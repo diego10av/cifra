@@ -1,8 +1,12 @@
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 import { v4 as uuidv4 } from 'uuid';
 
 function getSql() {
-  return neon(process.env.DATABASE_URL!);
+  return postgres(process.env.DATABASE_URL!, {
+    ssl: 'require',
+    max: 1,
+    idle_timeout: 10,
+  });
 }
 
 export async function query<T = Record<string, unknown>>(
@@ -10,9 +14,14 @@ export async function query<T = Record<string, unknown>>(
   params?: unknown[]
 ): Promise<T[]> {
   const sql = getSql();
-  // Use sql.query() for parameterized queries (not tagged template)
-  const rows = await sql.query(text, params);
-  return rows as T[];
+  try {
+    // postgres.js uses $1, $2 etc. but via .unsafe() for raw SQL with params
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows = await sql.unsafe(text, params as any[]);
+    return rows as unknown as T[];
+  } finally {
+    await sql.end();
+  }
 }
 
 export async function queryOne<T = Record<string, unknown>>(
@@ -24,8 +33,7 @@ export async function queryOne<T = Record<string, unknown>>(
 }
 
 export async function execute(text: string, params?: unknown[]): Promise<void> {
-  const sql = getSql();
-  await sql.query(text, params);
+  await query(text, params);
 }
 
 export async function initializeSchema(): Promise<void> {
