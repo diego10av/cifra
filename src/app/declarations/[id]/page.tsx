@@ -91,6 +91,7 @@ export default function DeclarationDetailPage() {
   const [uploading, setUploading] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [classifying, setClassifying] = useState(false);
+  const [fillingFx, setFillingFx] = useState(false);
   const [uploadingPrecedents, setUploadingPrecedents] = useState(false);
   const [precedentToast, setPrecedentToast] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null); // row-level loading
@@ -188,6 +189,24 @@ export default function DeclarationDetailPage() {
     });
     setClassifying(false);
     await loadData();
+  }
+  async function handleFillFx() {
+    setFillingFx(true);
+    try {
+      const res = await fetch(`/api/declarations/${id}/fill-fx`, { method: 'POST' });
+      const r = await res.json();
+      if (res.ok) {
+        setPrecedentToast(
+          r.updated > 0
+            ? `ECB rates fetched: ${r.updated} invoice(s) updated, ${r.skipped} skipped.`
+            : 'No FX invoices needed updating.'
+        );
+        setTimeout(() => setPrecedentToast(null), 6000);
+      }
+    } finally {
+      setFillingFx(false);
+      await loadData();
+    }
   }
 
   async function handleLineUpdate(lineId: string, updates: Record<string, unknown>) {
@@ -355,6 +374,16 @@ export default function DeclarationDetailPage() {
               </div>
             </div>
             <div className="flex gap-2 items-center">
+              {hasFx && activeLines.length > 0 && !locked && (
+                <button
+                  onClick={handleFillFx}
+                  disabled={fillingFx}
+                  className="h-8 px-3 rounded border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  title="Fetch ECB reference rates for non-EUR invoices"
+                >
+                  {fillingFx ? 'Fetching…' : 'Fetch FX rates'}
+                </button>
+              )}
               {activeLines.length > 0 && !locked && (
                 <button
                   onClick={handleClassify}

@@ -17,8 +17,9 @@ export default function RootLayout({
         <nav className="bg-[#1a1a2e] text-white px-6 py-3 flex items-center justify-between">
           <a href="/" className="font-bold text-lg tracking-tight">Luxembourg VAT Platform</a>
           <div className="flex gap-6 text-sm">
-            <a href="/entities" className="hover:text-gray-300">Entities</a>
-            <a href="/declarations" className="hover:text-gray-300">Declarations</a>
+            <a href="/entities" className="hover:text-gray-300 transition-colors">Entities</a>
+            <a href="/declarations" className="hover:text-gray-300 transition-colors">Declarations</a>
+            <a href="/deadlines" className="hover:text-gray-300 transition-colors">Deadlines</a>
           </div>
         </nav>
         <main className="max-w-7xl mx-auto px-4 py-6">
