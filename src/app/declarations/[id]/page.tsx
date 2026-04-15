@@ -583,7 +583,7 @@ export default function DeclarationDetailPage() {
 
           {/* Summary */}
           {activeLines.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 mt-6 mb-8">
+            <div className="bg-white border border-gray-200 rounded-lg p-4 mt-6 mb-4">
               <h3 className="text-[13px] font-semibold text-gray-900 mb-3">Summary</h3>
               <div className="grid grid-cols-5 gap-6 text-[13px]">
                 <SummaryStat label="Lux VAT" value={`€${fmtEUR(totalLuxVat)}`} />
@@ -597,6 +597,11 @@ export default function DeclarationDetailPage() {
                 />
               </div>
             </div>
+          )}
+
+          {/* Outputs — Phase 4 */}
+          {activeLines.length > 0 && (
+            <OutputsPanel declarationId={id} />
           )}
         </div>
       </div>
@@ -1296,6 +1301,250 @@ function fmtEUR(v: number | null | string): string {
   if (isNaN(n)) return '—';
   return n.toLocaleString('en-LU', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+// ═══════════════════════════════════════════════════════════════
+// Outputs Panel — Phase 4 (eCDF boxes, payment ref, Excel download)
+// ═══════════════════════════════════════════════════════════════
+interface BoxResult {
+  box: string;
+  label: string;
+  section: string;
+  value: number;
+  computation: 'sum' | 'formula' | 'manual';
+  formula?: string;
+  manual?: boolean;
+}
+interface ECDFReport {
+  regime: 'simplified' | 'ordinary';
+  year: number;
+  period: string;
+  form_version: string;
+  boxes: BoxResult[];
+  box_values: Record<string, number>;
+  totals: { vat_due: number; payable: number; credit: number };
+  manual_boxes_pending: string[];
+  warnings: string[];
+}
+interface Payment {
+  reference: string;
+  iban: string;
+  bic: string;
+  beneficiary: string;
+  amount: number;
+}
+interface OutputsResponse {
+  ecdf: ECDFReport;
+  payment: Payment | null;
+  payment_error: string | null;
+  declaration: { year: number; period: string; status: string; entity_name: string };
+}
+
+function OutputsPanel({ declarationId }: { declarationId: string }) {
+  const [data, setData] = useState<OutputsResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copiedRef, setCopiedRef] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/declarations/${declarationId}/outputs`);
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        throw new Error(j.error || `HTTP ${res.status}`);
+      }
+      setData(await res.json());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [declarationId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  function copyReference() {
+    if (!data?.payment?.reference) return;
+    navigator.clipboard.writeText(data.payment.reference).then(() => {
+      setCopiedRef(true);
+      setTimeout(() => setCopiedRef(false), 1500);
+    });
+  }
+
+  if (loading && !data) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-8 flex items-center gap-2 text-[12px] text-gray-500">
+        <Spinner small /> Computing outputs…
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-white border border-red-200 rounded-lg p-4 mb-8 text-[12px] text-red-700">
+        Error computing outputs: {error}
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const boxesBySection: Record<string, BoxResult[]> = {};
+  for (const b of data.ecdf.boxes) {
+    if (!boxesBySection[b.section]) boxesBySection[b.section] = [];
+    boxesBySection[b.section].push(b);
+  }
+  const sectionOrder = ['A', 'B', 'D', 'F', 'I', 'III', 'IV'];
+  const sections = sectionOrder.filter(s => boxesBySection[s]);
+
+  const downloadExcel = () => {
+    window.location.href = `/api/declarations/${declarationId}/excel`;
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg mb-8 overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+        <div>
+          <h3 className="text-[13px] font-semibold text-gray-900">Outputs</h3>
+          <div className="text-[11px] text-gray-500 mt-0.5">
+            {data.ecdf.regime === 'simplified' ? 'Simplified return' : 'Ordinary return'} ·{' '}
+            {data.ecdf.year} {data.ecdf.period} · form {data.ecdf.form_version}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={downloadExcel}
+            className="h-8 px-3 rounded bg-[#1a1a2e] text-white text-[11px] font-semibold hover:bg-[#2a2a4e] transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download Excel
+          </button>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 cursor-pointer"
+          >
+            {expanded ? 'Hide all boxes' : 'All boxes'}
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4">
+        {/* Totals row */}
+        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-200">
+          <KeyBox
+            label={`VAT due (box ${data.ecdf.regime === 'simplified' ? '076' : '097'})`}
+            value={fmtEUR(data.ecdf.totals.vat_due)}
+            bold
+          />
+          <KeyBox
+            label="Payable to AED"
+            value={`€${fmtEUR(data.ecdf.totals.payable)}`}
+            color={data.ecdf.totals.payable > 0 ? 'text-gray-900' : 'text-gray-400'}
+          />
+          <KeyBox
+            label="Credit"
+            value={`€${fmtEUR(data.ecdf.totals.credit)}`}
+            color={data.ecdf.totals.credit > 0 ? 'text-green-600' : 'text-gray-400'}
+          />
+        </div>
+
+        {/* Payment instructions */}
+        {data.payment ? (
+          <div className="mb-4">
+            <h4 className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-2">Payment instructions</h4>
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+              <div className="flex items-center justify-between gap-3 mb-2">
+                <div className="font-mono text-[13px] font-semibold text-gray-900 tracking-tight break-all">
+                  {data.payment.reference}
+                </div>
+                <button
+                  onClick={copyReference}
+                  className="shrink-0 h-7 px-2.5 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1"
+                >
+                  {copiedRef ? '✓ Copied' : 'Copy reference'}
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-4 text-[11.5px]">
+                <div>
+                  <div className="text-gray-500 uppercase tracking-wide text-[10px] font-semibold">Beneficiary</div>
+                  <div className="text-gray-900 font-medium mt-0.5">{data.payment.beneficiary}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500 uppercase tracking-wide text-[10px] font-semibold">IBAN</div>
+                  <div className="text-gray-900 font-mono mt-0.5">{data.payment.iban}</div>
+                </div>
+                <div>
+                  <div className="text-gray-500 uppercase tracking-wide text-[10px] font-semibold">BIC</div>
+                  <div className="text-gray-900 font-mono mt-0.5">{data.payment.bic}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : data.payment_error ? (
+          <div className="mb-4 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+            Payment reference unavailable — {data.payment_error}. Add the matricule on the Entity page.
+          </div>
+        ) : null}
+
+        {/* Warnings */}
+        {data.ecdf.warnings.length > 0 && (
+          <div className="mb-4 text-[11.5px] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
+            {data.ecdf.warnings.map((w, i) => <div key={i}>⚠ {w}</div>)}
+          </div>
+        )}
+        {data.ecdf.manual_boxes_pending.length > 0 && (
+          <div className="mb-4 text-[11.5px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+            Manual input required for box{data.ecdf.manual_boxes_pending.length === 1 ? '' : 'es'}{' '}
+            {data.ecdf.manual_boxes_pending.join(', ')} (ordinary-regime pro-rata).
+          </div>
+        )}
+
+        {/* Box list */}
+        {expanded && (
+          <div className="space-y-4 mt-4">
+            {sections.map(section => (
+              <div key={section}>
+                <h4 className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1.5">Section {section}</h4>
+                <div className="border border-gray-200 rounded-md overflow-hidden">
+                  <table className="w-full text-[12px]">
+                    <tbody>
+                      {boxesBySection[section].map((b, i) => (
+                        <tr key={b.box} className={`border-b border-gray-100 last:border-0 ${i % 2 === 1 ? 'bg-gray-50/60' : ''}`}>
+                          <td className="px-3 py-1.5 font-mono text-gray-500 w-14">{b.box}</td>
+                          <td className="px-3 py-1.5 text-gray-700">
+                            {b.label}
+                            {b.manual && <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 uppercase tracking-wide font-semibold">manual</span>}
+                            {b.formula && <span className="ml-2 text-[10px] text-gray-400 font-mono">= {b.formula}</span>}
+                          </td>
+                          <td className="px-3 py-1.5 text-right font-mono tabular-nums text-gray-900 w-32">
+                            {fmtEUR(b.value)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function KeyBox({ label, value, color, bold }: { label: string; value: string | number; color?: string; bold?: boolean }) {
+  return (
+    <div>
+      <div className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold">{label}</div>
+      <div className={`tabular-nums mt-1 ${bold ? 'font-bold text-[16px]' : 'font-semibold text-[14px]'} ${color || 'text-gray-900'}`}>{value}</div>
+    </div>
+  );
+}
+
 function treatmentColorClass(code: TreatmentCode | null, source: string | null): string {
   // Inference-sourced classifications get an amber tint to signal "needs confirmation"
   if (source === 'inference') return 'bg-amber-100 text-amber-800 border border-amber-200';
