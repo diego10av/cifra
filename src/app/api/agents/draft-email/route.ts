@@ -29,6 +29,19 @@ async function readPrompt(name: string): Promise<string> {
 // Body: { declaration_id, expert_notes?: string }
 // Returns: { subject, body, full_text, model, observations_data }
 export async function POST(request: NextRequest) {
+  try {
+    return await handleDraft(request);
+  } catch (e) {
+    const err = e as { status?: number; message?: string; stack?: string };
+    console.error('[draft-email] FATAL', err.status, err.message, err.stack?.split('\n').slice(0, 5).join(' | '));
+    return NextResponse.json({
+      error: err.message || String(e),
+      status: err.status || 500,
+    }, { status: 500 });
+  }
+}
+
+async function handleDraft(request: NextRequest): Promise<NextResponse> {
   const body = await request.json();
   const { declaration_id, expert_notes } = body;
   if (!declaration_id) return NextResponse.json({ error: 'declaration_id required' }, { status: 400 });
