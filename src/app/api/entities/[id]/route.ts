@@ -63,3 +63,32 @@ export async function PUT(
   const entity = await queryOne('SELECT * FROM entities WHERE id = $1', [id]);
   return NextResponse.json(entity);
 }
+
+// DELETE /api/entities/:id - soft delete
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  await initializeSchema();
+  const { id } = await params;
+  const body = await request.json().catch(() => ({}));
+
+  const existing = await queryOne('SELECT * FROM entities WHERE id = $1', [id]);
+  if (!existing) return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
+  if (existing.deleted_at) return NextResponse.json({ error: 'Entity already deleted' }, { status: 409 });
+
+  const reason = body.reason || 'user_deleted';
+
+  await execute(
+    "UPDATE entities SET deleted_at = NOW(), deleted_reason = $1, updated_at = NOW() WHERE id = $2",
+    [reason, id]
+  );
+
+  await logAudit({
+    entityId: id, action: 'delete', targetType: 'entity', targetId: id,
+    oldValue: JSON.stringify({ name: existing.name }),
+    newValue: reason,
+  });
+
+  return NextResponse.json({ success: true });
+}

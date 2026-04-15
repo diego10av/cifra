@@ -7,6 +7,9 @@ import path from 'path';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 
+// Allow up to 5 minutes for batch extraction on Vercel Pro (or 60s on free tier)
+export const maxDuration = 300;
+
 function getClient(): Anthropic {
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 }
@@ -32,7 +35,7 @@ export async function POST(request: NextRequest) {
   if (!declaration) return NextResponse.json({ error: 'Declaration not found' }, { status: 404 });
 
   const documents = await query(
-    "SELECT * FROM documents WHERE declaration_id = $1 AND status = 'uploaded'",
+    "SELECT * FROM documents WHERE declaration_id = $1 AND status IN ('uploaded','error')",
     [declaration_id]
   );
   if (documents.length === 0) return NextResponse.json({ message: 'No documents to process' });
@@ -203,7 +206,23 @@ export async function POST(request: NextRequest) {
         results.push({ id: doc.id, filename: doc.filename, triage: triageType, extracted: false });
       }
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : 'Unknown error';
+      // Log full error to Vercel logs for debugging
+      console.error(`[extract] ERROR processing ${doc.filename} (id=${doc.id}):`, error);
+
+      let errMsg = 'Unknown error';
+      if (error instanceof Anthropic.APIError) {
+        errMsg = `Anthropic API ${error.status}: ${error.message}`;
+      } else if (error instanceof Error) {
+        errMsg = error.message;
+        // Include stack snippet for non-API errors
+        if (error.stack) {
+          const stackLine = error.stack.split('\n').slice(1, 3).join(' | ');
+          errMsg = `${errMsg} [${stackLine}]`;
+        }
+      } else {
+        errMsg = String(error);
+      }
+
       await execute("UPDATE documents SET status = 'error', error_message = $1 WHERE id = $2", [errMsg, doc.id]);
       results.push({ id: doc.id, filename: doc.filename, error: errMsg });
     }

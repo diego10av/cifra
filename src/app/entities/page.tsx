@@ -47,6 +47,22 @@ export default function EntitiesPage() {
     setEntities(await res.json());
   }
 
+  async function handleDelete(entity: Entity) {
+    if (!confirm(`Are you sure you want to delete "${entity.name}"? This hides the entity from the list but keeps the data in the database for audit purposes.`)) {
+      return;
+    }
+    const res = await fetch(`/api/entities/${entity.id}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason: 'user_deleted' }),
+    });
+    if (!res.ok) {
+      alert('Failed to delete entity');
+      return;
+    }
+    loadEntities();
+  }
+
   function resetForm() {
     setForm({
       name: '', vat_number: '', matricule: '', rcs_number: '',
@@ -251,39 +267,37 @@ export default function EntitiesPage() {
         <table className="w-full text-sm">
           <thead className="bg-[#1a1a2e] text-white text-xs">
             <tr>
-              <th className="px-4 py-3 text-left">Name</th>
-              <th className="px-4 py-3 text-left">VAT Number</th>
-              <th className="px-4 py-3 text-left">Legal Form</th>
-              <th className="px-4 py-3 text-left">Type</th>
+              <th className="px-4 py-3 text-left">Client Name</th>
+              <th className="px-4 py-3 text-left">Entity Name</th>
               <th className="px-4 py-3 text-left">Regime</th>
               <th className="px-4 py-3 text-left">Frequency</th>
-              <th className="px-4 py-3 text-left">Client</th>
+              <th className="px-4 py-3 text-left">VAT Number</th>
               <th className="px-4 py-3 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {entities.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No entities yet. Create one to get started.</td></tr>
+              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No entities yet. Create one to get started.</td></tr>
             )}
             {entities.map(entity => (
               <tr key={entity.id} className="border-t hover:bg-gray-50">
+                <td className="px-4 py-3 text-gray-600">{entity.client_name || '—'}</td>
                 <td className="px-4 py-3 font-medium">{entity.name}</td>
-                <td className="px-4 py-3 text-gray-600">{entity.vat_number || '-'}</td>
-                <td className="px-4 py-3 text-gray-600">{entity.legal_form || '-'}</td>
-                <td className="px-4 py-3 text-gray-600">{entity.entity_type || '-'}</td>
                 <td className="px-4 py-3">
                   <span className={`text-xs px-2 py-0.5 rounded font-medium ${
                     entity.regime === 'simplified' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
                   }`}>{entity.regime}</span>
                 </td>
                 <td className="px-4 py-3 text-gray-600">{entity.frequency}</td>
-                <td className="px-4 py-3 text-gray-600">{entity.client_name || '-'}</td>
+                <td className="px-4 py-3 text-gray-600">{entity.vat_number || '—'}</td>
                 <td className="px-4 py-3">
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <button onClick={() => handleEdit(entity)}
                       className="text-blue-600 hover:underline text-xs">Edit</button>
                     <Link href={`/declarations?entity_id=${entity.id}`}
                       className="text-blue-600 hover:underline text-xs">Declarations</Link>
+                    <button onClick={() => handleDelete(entity)}
+                      className="text-red-600 hover:underline text-xs">Delete</button>
                   </div>
                 </td>
               </tr>

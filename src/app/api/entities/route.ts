@@ -4,7 +4,7 @@ import { query, queryOne, execute, generateId, logAudit, initializeSchema } from
 // GET /api/entities - list all entities
 export async function GET() {
   await initializeSchema();
-  const entities = await query('SELECT * FROM entities ORDER BY name ASC');
+  const entities = await query('SELECT * FROM entities WHERE deleted_at IS NULL ORDER BY name ASC');
   return NextResponse.json(entities);
 }
 

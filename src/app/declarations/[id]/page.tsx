@@ -104,6 +104,11 @@ export default function DeclarationDetailPage() {
     loadData();
   }
 
+  async function handleRetryDocument(docId: string) {
+    await fetch(`/api/documents/${docId}/retry`, { method: 'POST' });
+    loadData();
+  }
+
   async function handleExtract() {
     setExtracting(true);
     // Update status to extracting
@@ -259,36 +264,51 @@ export default function DeclarationDetailPage() {
         <div className="bg-white border rounded-lg mb-4">
           <div className="px-4 py-3 border-b flex items-center justify-between">
             <h3 className="text-sm font-semibold">Documents ({data.documents.length})</h3>
-            {data.documents.some(d => d.status === 'uploaded') && (
+            {data.documents.some(d => d.status === 'uploaded' || d.status === 'error') && (
               <button
                 onClick={handleExtract}
                 disabled={extracting}
                 className="bg-purple-600 text-white px-3 py-1.5 rounded text-xs font-semibold hover:bg-purple-700 disabled:opacity-40"
               >
-                {extracting ? 'Extracting...' : 'Extract All'}
+                {extracting ? 'Extracting...' : data.documents.some(d => d.status === 'error') ? 'Retry All Errors' : 'Extract All'}
               </button>
             )}
           </div>
-          <div className="max-h-48 overflow-y-auto">
+          <div className="max-h-96 overflow-y-auto">
             {data.documents.map(doc => (
-              <div key={doc.id} className="px-4 py-2 border-b last:border-0 flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-400">
-                    {doc.file_type === 'pdf' ? '📄' : doc.file_type === 'image' ? '🖼️' : '📝'}
-                  </span>
-                  <span>{doc.filename}</span>
-                  <span className="text-xs text-gray-400">({(doc.file_size / 1024).toFixed(0)} KB)</span>
+              <div key={doc.id} className="px-4 py-2 border-b last:border-0 text-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-gray-400 shrink-0">
+                      {doc.file_type === 'pdf' ? '📄' : doc.file_type === 'image' ? '🖼️' : '📝'}
+                    </span>
+                    <span className="truncate">{doc.filename}</span>
+                    <span className="text-xs text-gray-400 shrink-0">({(doc.file_size / 1024).toFixed(0)} KB)</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    {doc.triage_result && (
+                      <span className={`text-xs px-2 py-0.5 rounded font-medium ${
+                        doc.triage_result === 'invoice' ? 'bg-blue-100 text-blue-700' :
+                        doc.triage_result === 'credit_note' ? 'bg-purple-100 text-purple-700' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>{doc.triage_result}</span>
+                    )}
+                    <DocStatus status={doc.status} />
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {doc.triage_result && (
-                    <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                      doc.triage_result === 'invoice' ? 'bg-blue-100 text-blue-700' :
-                      doc.triage_result === 'credit_note' ? 'bg-purple-100 text-purple-700' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>{doc.triage_result}</span>
-                  )}
-                  <DocStatus status={doc.status} />
-                </div>
+                {doc.status === 'error' && doc.error_message && (
+                  <div className="mt-1 ml-6 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 break-words flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                      <span className="font-semibold">Error:</span> {doc.error_message}
+                    </div>
+                    <button
+                      onClick={() => handleRetryDocument(doc.id)}
+                      className="text-blue-600 hover:underline shrink-0 font-semibold"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
