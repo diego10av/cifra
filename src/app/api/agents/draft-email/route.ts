@@ -6,10 +6,12 @@ import { query, queryOne } from '@/lib/db';
 import { computeECDF } from '@/lib/ecdf';
 import { generatePaymentReference } from '@/lib/payment-ref';
 
-// Use the most capable model — client-facing copy must be impeccable.
-// Falls back to claude-sonnet if Opus is unavailable.
-const MODEL = 'claude-opus-4-5-20250929';
-const FALLBACK_MODEL = 'claude-sonnet-4-5-20250929';
+// Drafter model. claude-haiku-4-5 is what the rest of the platform uses and is
+// guaranteed to exist for this API key. The PRD nominates Opus for this agent;
+// when an Opus 4.x model is exposed for this key, change PRIMARY_MODEL below
+// without touching anything else — the fallback chain stays the same.
+const PRIMARY_MODEL = 'claude-haiku-4-5-20251001';
+const FALLBACK_MODEL = 'claude-haiku-4-5-20251001';
 
 export const maxDuration = 120;
 
@@ -135,11 +137,11 @@ ${JSON.stringify(observations, null, 2)}
 Draft the email per your instructions.`;
 
   const client = getClient();
-  let usedModel = MODEL;
+  let usedModel = PRIMARY_MODEL;
   let response;
   try {
     response = await client.messages.create({
-      model: MODEL,
+      model: PRIMARY_MODEL,
       max_tokens: 2000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMsg }],
@@ -147,7 +149,6 @@ Draft the email per your instructions.`;
   } catch (e) {
     const err = e as { status?: number; message?: string };
     if (err.status === 404 || err.message?.includes('model')) {
-      // Fallback: try Sonnet
       usedModel = FALLBACK_MODEL;
       response = await client.messages.create({
         model: FALLBACK_MODEL,
@@ -156,6 +157,7 @@ Draft the email per your instructions.`;
         messages: [{ role: 'user', content: userMsg }],
       });
     } else {
+      console.error('[draft-email] error:', err.status, err.message);
       throw e;
     }
   }
