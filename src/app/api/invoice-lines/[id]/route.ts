@@ -79,10 +79,11 @@ export async function PATCH(
   const updated = await queryOne(
     `SELECT il.*, i.provider, i.provider_vat, i.country, i.invoice_date, i.invoice_number,
             i.direction, i.currency, i.currency_amount, i.ecb_rate, i.document_id,
+            i.extraction_source,
             doc.filename as source_filename
      FROM invoice_lines il
      JOIN invoices i ON il.invoice_id = i.id
-     JOIN documents doc ON i.document_id = doc.id
+     LEFT JOIN documents doc ON i.document_id = doc.id
      WHERE il.id = $1`,
     [id]
   );

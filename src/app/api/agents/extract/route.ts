@@ -10,8 +10,24 @@ const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 // Allow up to 5 minutes for batch extraction on Vercel Pro (or 60s on free tier)
 export const maxDuration = 300;
 
+// Small delay between sequential API calls to avoid transient auth issues
+// when multiple requests share the same key at near-identical timestamps.
+const INTER_CALL_DELAY_MS = 500;
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+function maskKey(key: string | undefined): string {
+  if (!key) return 'MISSING';
+  const t = key.trim();
+  if (t.length < 12) return 'TOO_SHORT';
+  return `${t.substring(0, 8)}...${t.substring(t.length - 4)} (len=${t.length})`;
+}
+
 function getClient(): Anthropic {
-  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const rawKey = process.env.ANTHROPIC_API_KEY;
+  if (!rawKey) throw new Error('ANTHROPIC_API_KEY not set');
+  // Trim whitespace — Vercel env vars sometimes pick up trailing newlines/spaces
+  const apiKey = rawKey.trim();
+  return new Anthropic({ apiKey });
 }
 
 function getSupabase() {
@@ -21,6 +37,25 @@ function getSupabase() {
 async function readPromptFile(name: string): Promise<string> {
   const promptPath = path.join(process.cwd(), 'prompts', name);
   return readFile(promptPath, 'utf-8');
+}
+
+// Wraps a messages.create call with one retry on 401 (transient auth-header corruption).
+// Fresh client each retry to force a new SDK state.
+async function callWithRetry(
+  body: Anthropic.MessageCreateParamsNonStreaming,
+  label: string
+): Promise<Anthropic.Message> {
+  try {
+    return await getClient().messages.create(body);
+  } catch (e) {
+    const err = e as { status?: number; message?: string };
+    if (err.status === 401) {
+      console.warn(`[extract] ${label} got 401, retrying after 1s with fresh client`);
+      await sleep(1000);
+      return await getClient().messages.create(body);
+    }
+    throw e;
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -53,7 +88,8 @@ export async function POST(request: NextRequest) {
   );
   if (documents.length === 0) return NextResponse.json({ message: 'No documents to process' });
 
-  const client = getClient();
+  console.log(`[extract] Starting batch for declaration=${declaration_id}, docs=${documents.length}, key=${maskKey(process.env.ANTHROPIC_API_KEY)}`);
+
   const supabase = getSupabase();
   let triagePrompt: string, extractPrompt: string;
 
@@ -66,7 +102,8 @@ export async function POST(request: NextRequest) {
 
   const results = [];
 
-  for (const doc of documents) {
+  for (let docIndex = 0; docIndex < documents.length; docIndex++) {
+    const doc = documents[docIndex];
     try {
       // status is already 'triaging' — claimed atomically above
 
@@ -95,34 +132,46 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Step 1: Triage
-      const triageResponse = await client.messages.create({
-        model: HAIKU_MODEL,
-        max_tokens: 500,
-        system: triagePrompt,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: fileType === 'pdf' ? 'document' : 'image',
-              source: { type: 'base64', media_type: mediaType, data: base64 },
-            } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
-            { type: 'text', text: `Entity: ${declaration.entity_name} (VAT: ${declaration.vat_number})\nClassify this document.` },
-          ],
-        }],
-      });
+      // If the user has already overridden triage ("Include as Invoice"), skip the
+      // triage API call entirely. Otherwise run the triage agent.
+      let triageType: string;
+      let triageConfidence: number;
 
-      const triageText = triageResponse.content.find(b => b.type === 'text')?.text || '';
-      let triageResult: { type: string; confidence: number };
-      try {
-        triageResult = JSON.parse(triageText);
-      } catch {
-        const match = triageText.match(/\{[\s\S]*?\}/);
-        triageResult = match ? JSON.parse(match[0]) : { type: 'invoice', confidence: 0.5 };
+      if (doc.triage_result && Number(doc.triage_confidence) >= 1.0) {
+        triageType = doc.triage_result as string;
+        triageConfidence = Number(doc.triage_confidence);
+      } else {
+        // Space sequential calls slightly to avoid bursty-auth edge cases (intermittent 401s
+        // observed when many requests share the same key at near-identical timestamps).
+        if (docIndex > 0) await sleep(INTER_CALL_DELAY_MS);
+
+        const triageResponse = await callWithRetry({
+          model: HAIKU_MODEL,
+          max_tokens: 500,
+          system: triagePrompt,
+          messages: [{
+            role: 'user',
+            content: [
+              {
+                type: fileType === 'pdf' ? 'document' : 'image',
+                source: { type: 'base64', media_type: mediaType, data: base64 },
+              } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
+              { type: 'text', text: `Entity: ${declaration.entity_name} (VAT: ${declaration.vat_number})\nClassify this document.` },
+            ],
+          }],
+        }, `triage(${doc.filename})`);
+
+        const triageText = triageResponse.content.find(b => b.type === 'text')?.text || '';
+        let triageResult: { type: string; confidence: number };
+        try {
+          triageResult = JSON.parse(triageText);
+        } catch {
+          const match = triageText.match(/\{[\s\S]*?\}/);
+          triageResult = match ? JSON.parse(match[0]) : { type: 'invoice', confidence: 0.5 };
+        }
+        triageType = triageResult.type || 'invoice';
+        triageConfidence = triageResult.confidence || 0.5;
       }
-
-      const triageType = triageResult.type || 'invoice';
-      const triageConfidence = triageResult.confidence || 0.5;
 
       await execute(
         "UPDATE documents SET status = 'triaged', triage_result = $1, triage_confidence = $2 WHERE id = $3",
@@ -139,7 +188,10 @@ export async function POST(request: NextRequest) {
       if (triageType === 'invoice' || triageType === 'credit_note') {
         await execute("UPDATE documents SET status = 'extracting' WHERE id = $1", [doc.id]);
 
-        const extractResponse = await client.messages.create({
+        // Extra delay before the second API call for the same document.
+        await sleep(INTER_CALL_DELAY_MS);
+
+        const extractResponse = await callWithRetry({
           model: HAIKU_MODEL,
           max_tokens: 2000,
           system: extractPrompt,
@@ -153,7 +205,7 @@ export async function POST(request: NextRequest) {
               { type: 'text', text: `Extract all invoice data. Entity: ${declaration.entity_name} (${declaration.regime} regime).` },
             ],
           }],
-        });
+        }, `extract(${doc.filename})`);
 
         const extractText = extractResponse.content.find(b => b.type === 'text')?.text || '';
         let invoiceData: Record<string, unknown>;

@@ -36,13 +36,15 @@ export async function GET(
     [id]
   );
 
+  // LEFT JOIN on documents so manual outgoing invoices (document_id IS NULL) still appear.
   const lines = await query(
     `SELECT il.*, i.provider, i.provider_vat, i.country, i.invoice_date, i.invoice_number,
             i.direction, i.currency, i.currency_amount, i.ecb_rate, i.document_id,
+            i.extraction_source,
             d.filename as source_filename
      FROM invoice_lines il
      JOIN invoices i ON il.invoice_id = i.id
-     JOIN documents d ON i.document_id = d.id
+     LEFT JOIN documents d ON i.document_id = d.id
      WHERE il.declaration_id = $1
      ORDER BY il.sort_order ASC, i.provider ASC`,
     [id]
