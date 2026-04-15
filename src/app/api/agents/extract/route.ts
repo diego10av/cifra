@@ -1,35 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query, queryOne, execute, generateId, logAudit, initializeSchema } from '@/lib/db';
 import { createClient } from '@supabase/supabase-js';
-import Anthropic from '@anthropic-ai/sdk';
+import type Anthropic from '@anthropic-ai/sdk';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import { classifyDeclaration } from '@/lib/classify';
+import { anthropicCreate, maskKey } from '@/lib/anthropic-wrapper';
+import { createJob, updateJob, finishJob, isCancelRequested } from '@/lib/jobs';
+import { apiError, apiOk, apiFail } from '@/lib/api-errors';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
-
-// Allow up to 5 minutes for batch extraction on Vercel Pro (or 60s on free tier)
 export const maxDuration = 300;
 
-// Small delay between sequential API calls to avoid transient auth issues
-// when multiple requests share the same key at near-identical timestamps.
 const INTER_CALL_DELAY_MS = 500;
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-function maskKey(key: string | undefined): string {
-  if (!key) return 'MISSING';
-  const t = key.trim();
-  if (t.length < 12) return 'TOO_SHORT';
-  return `${t.substring(0, 8)}...${t.substring(t.length - 4)} (len=${t.length})`;
-}
-
-function getClient(): Anthropic {
-  const rawKey = process.env.ANTHROPIC_API_KEY;
-  if (!rawKey) throw new Error('ANTHROPIC_API_KEY not set');
-  // Trim whitespace — Vercel env vars sometimes pick up trailing newlines/spaces
-  const apiKey = rawKey.trim();
-  return new Anthropic({ apiKey });
-}
 
 function getSupabase() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
@@ -40,193 +24,198 @@ async function readPromptFile(name: string): Promise<string> {
   return readFile(promptPath, 'utf-8');
 }
 
-// Wraps a messages.create call with one retry on 401 (transient auth-header corruption).
-// Fresh client each retry to force a new SDK state.
-async function callWithRetry(
-  body: Anthropic.MessageCreateParamsNonStreaming,
-  label: string
-): Promise<Anthropic.Message> {
+// POST /api/agents/extract
+// Body: { declaration_id }
+// Returns: { job_id, documents_claimed, message }  (immediately, 202-style)
+// The caller then polls GET /api/jobs/:id to see progress.
+export async function POST(request: NextRequest) {
   try {
-    return await getClient().messages.create(body);
-  } catch (e) {
-    const err = e as { status?: number; message?: string };
-    if (err.status === 401) {
-      console.warn(`[extract] ${label} got 401, retrying after 1s with fresh client`);
-      await sleep(1000);
-      return await getClient().messages.create(body);
+    await initializeSchema();
+    const { declaration_id } = await request.json();
+
+    const declaration = await queryOne<{ entity_id: string; entity_name: string; vat_number: string | null; regime: string }>(
+      `SELECT d.entity_id, e.name as entity_name, e.vat_number, e.regime
+         FROM declarations d JOIN entities e ON d.entity_id = e.id WHERE d.id = $1`,
+      [declaration_id]
+    );
+    if (!declaration) return apiError('declaration_not_found', 'Declaration not found.', { status: 404 });
+
+    // Atomic claim
+    const MAX_BATCH_SIZE = 200;
+    const documents = await query<{ id: string; filename: string; file_path: string; file_type: string; triage_result: string | null; triage_confidence: number | null }>(
+      `UPDATE documents
+         SET status = 'triaging', error_message = NULL
+       WHERE id IN (
+         SELECT id FROM documents
+          WHERE declaration_id = $1
+            AND status IN ('uploaded','error')
+          LIMIT $2
+       )
+       RETURNING *`,
+      [declaration_id, MAX_BATCH_SIZE]
+    );
+
+    if (documents.length === 0) {
+      return apiOk({ message: 'No documents to process', job_id: null, documents_claimed: 0 });
     }
-    throw e;
+
+    // Create a job and run extraction synchronously (Vercel doesn't support
+    // true background jobs without a queue — the request stays open for up to
+    // maxDuration and the client polls the job record).
+    const jobId = await createJob({ kind: 'extract', declaration_id, total: documents.length });
+
+    console.log(`[extract] job=${jobId} starting for decl=${declaration_id}, docs=${documents.length}, key=${maskKey(process.env.ANTHROPIC_API_KEY)}`);
+
+    // Fire and continue — but we must await for Vercel to keep the function running.
+    const run = runExtraction({
+      jobId,
+      declaration_id,
+      entity_id: declaration.entity_id,
+      entity_name: declaration.entity_name,
+      vat_number: declaration.vat_number || '',
+      regime: declaration.regime,
+      documents,
+    });
+
+    await run;
+    return apiOk({ job_id: jobId, documents_claimed: documents.length });
+  } catch (e) {
+    return apiFail(e, 'agents/extract');
   }
 }
 
-export async function POST(request: NextRequest) {
-  await initializeSchema();
-  const { declaration_id } = await request.json();
-
-  const declaration = await queryOne(
-    `SELECT d.*, e.name as entity_name, e.vat_number, e.regime
-     FROM declarations d JOIN entities e ON d.entity_id = e.id WHERE d.id = $1`,
-    [declaration_id]
-  );
-  if (!declaration) return NextResponse.json({ error: 'Declaration not found' }, { status: 404 });
-
-  // ATOMIC claim: flip documents from 'uploaded'/'error' to 'triaging' in a single UPDATE...RETURNING.
-  // Prevents double-processing (and double API billing) if the user clicks "Extract All" twice,
-  // or if two tabs/devices submit simultaneously. Also caps the batch at 200 docs per invocation
-  // as a safety net against accidental mass uploads.
-  const MAX_BATCH_SIZE = 200;
-  const documents = await query(
-    `UPDATE documents
-       SET status = 'triaging', error_message = NULL
-     WHERE id IN (
-       SELECT id FROM documents
-        WHERE declaration_id = $1
-          AND status IN ('uploaded','error')
-        LIMIT $2
-     )
-     RETURNING *`,
-    [declaration_id, MAX_BATCH_SIZE]
-  );
-  if (documents.length === 0) return NextResponse.json({ message: 'No documents to process' });
-
-  console.log(`[extract] Starting batch for declaration=${declaration_id}, docs=${documents.length}, key=${maskKey(process.env.ANTHROPIC_API_KEY)}`);
-
-  const supabase = getSupabase();
+async function runExtraction(params: {
+  jobId: string;
+  declaration_id: string;
+  entity_id: string;
+  entity_name: string;
+  vat_number: string;
+  regime: string;
+  documents: Array<{ id: string; filename: string; file_path: string; file_type: string; triage_result: string | null; triage_confidence: number | null }>;
+}) {
+  const { jobId, declaration_id, documents, entity_id } = params;
   let triagePrompt: string, extractPrompt: string;
-
   try {
     triagePrompt = await readPromptFile('triage.md');
     extractPrompt = await readPromptFile('extractor.md');
   } catch {
-    return NextResponse.json({ error: 'Agent prompt files not found' }, { status: 500 });
+    await finishJob(jobId, 'error', null, 'Agent prompt files not found on the server.');
+    return;
   }
 
-  const results = [];
+  const supabase = getSupabase();
+  let processed = 0;
+  let extractedCount = 0;
+  let rejectedCount = 0;
+  let errorCount = 0;
 
   for (let docIndex = 0; docIndex < documents.length; docIndex++) {
     const doc = documents[docIndex];
-    try {
-      // status is already 'triaging' — claimed atomically above
 
-      // Download file from Supabase Storage
+    // Cancel check
+    if (await isCancelRequested(jobId)) {
+      // Reset claimed-but-not-yet-touched docs back to 'uploaded'
+      for (let j = docIndex; j < documents.length; j++) {
+        await execute("UPDATE documents SET status = 'uploaded' WHERE id = $1 AND status = 'triaging'", [documents[j].id]);
+      }
+      await finishJob(jobId, 'cancelled', `Cancelled after ${processed} of ${documents.length} documents.`);
+      return;
+    }
+
+    await updateJob(jobId, {
+      processed,
+      current_item: doc.filename,
+      message: `Processing ${doc.filename}…`,
+    });
+
+    try {
       const { data: fileData, error: dlError } = await supabase.storage
         .from('documents')
         .download(doc.file_path as string);
-
-      if (dlError || !fileData) {
-        throw new Error(`Failed to download: ${dlError?.message || 'no data'}`);
-      }
-
+      if (dlError || !fileData) throw new Error(`Failed to download: ${dlError?.message || 'no data'}`);
       const buffer = Buffer.from(await fileData.arrayBuffer());
       const base64 = buffer.toString('base64');
-      const fileType = doc.file_type as string;
+      const fileType = doc.file_type;
 
       let mediaType: 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp' | 'application/pdf';
-      if (fileType === 'pdf') {
-        mediaType = 'application/pdf';
-      } else if (fileType === 'image') {
-        const ext = (doc.filename as string).toLowerCase().split('.').pop();
+      if (fileType === 'pdf') mediaType = 'application/pdf';
+      else if (fileType === 'image') {
+        const ext = doc.filename.toLowerCase().split('.').pop();
         mediaType = ext === 'png' ? 'image/png' : 'image/jpeg';
       } else {
         await execute("UPDATE documents SET status = 'triaged', triage_result = 'invoice', triage_confidence = 0.5 WHERE id = $1", [doc.id]);
-        results.push({ id: doc.id, filename: doc.filename, triage: 'invoice', note: 'Word doc - limited extraction' });
+        processed += 1;
         continue;
       }
 
-      // If the user has already overridden triage ("Include as Invoice"), skip the
-      // triage API call entirely. Otherwise run the triage agent.
+      // Triage
       let triageType: string;
       let triageConfidence: number;
-
       if (doc.triage_result && Number(doc.triage_confidence) >= 1.0) {
-        triageType = doc.triage_result as string;
+        triageType = doc.triage_result;
         triageConfidence = Number(doc.triage_confidence);
       } else {
-        // Space sequential calls slightly to avoid bursty-auth edge cases (intermittent 401s
-        // observed when many requests share the same key at near-identical timestamps).
         if (docIndex > 0) await sleep(INTER_CALL_DELAY_MS);
-
-        const triageResponse = await callWithRetry({
-          model: HAIKU_MODEL,
-          max_tokens: 500,
-          system: triagePrompt,
+        const triageResponse = await anthropicCreate({
+          model: HAIKU_MODEL, max_tokens: 500, system: triagePrompt,
           messages: [{
             role: 'user',
             content: [
-              {
-                type: fileType === 'pdf' ? 'document' : 'image',
-                source: { type: 'base64', media_type: mediaType, data: base64 },
-              } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
-              { type: 'text', text: `Entity: ${declaration.entity_name} (VAT: ${declaration.vat_number})\nClassify this document.` },
+              { type: fileType === 'pdf' ? 'document' : 'image', source: { type: 'base64', media_type: mediaType, data: base64 } } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
+              { type: 'text', text: `Entity: ${params.entity_name} (VAT: ${params.vat_number})\nClassify this document.` },
             ],
           }],
-        }, `triage(${doc.filename})`);
+        }, { agent: 'triage', declaration_id, entity_id, label: doc.filename });
 
         const triageText = triageResponse.content.find(b => b.type === 'text')?.text || '';
-        let triageResult: { type: string; confidence: number };
-        try {
-          triageResult = JSON.parse(triageText);
-        } catch {
-          const match = triageText.match(/\{[\s\S]*?\}/);
-          triageResult = match ? JSON.parse(match[0]) : { type: 'invoice', confidence: 0.5 };
+        let r: { type?: string; confidence?: number };
+        try { r = JSON.parse(triageText); }
+        catch {
+          const m = triageText.match(/\{[\s\S]*?\}/);
+          r = m ? JSON.parse(m[0]) : { type: 'invoice', confidence: 0.5 };
         }
-        triageType = triageResult.type || 'invoice';
-        triageConfidence = triageResult.confidence || 0.5;
+        triageType = r.type || 'invoice';
+        triageConfidence = r.confidence || 0.5;
       }
 
       await execute(
         "UPDATE documents SET status = 'triaged', triage_result = $1, triage_confidence = $2 WHERE id = $3",
         [triageType, triageConfidence, doc.id]
       );
-
       await logAudit({
-        entityId: declaration.entity_id as string, declarationId: declaration_id,
-        action: 'triage', targetType: 'document', targetId: doc.id as string,
+        entityId: entity_id, declarationId: declaration_id,
+        action: 'triage', targetType: 'document', targetId: doc.id,
         newValue: JSON.stringify({ type: triageType, confidence: triageConfidence }),
       });
 
-      // Step 2: Extract (only invoices/credit notes)
       if (triageType === 'invoice' || triageType === 'credit_note') {
         await execute("UPDATE documents SET status = 'extracting' WHERE id = $1", [doc.id]);
-
-        // Extra delay before the second API call for the same document.
         await sleep(INTER_CALL_DELAY_MS);
 
-        const extractResponse = await callWithRetry({
-          model: HAIKU_MODEL,
-          max_tokens: 2000,
-          system: extractPrompt,
+        const extractResponse = await anthropicCreate({
+          model: HAIKU_MODEL, max_tokens: 2000, system: extractPrompt,
           messages: [{
             role: 'user',
             content: [
-              {
-                type: fileType === 'pdf' ? 'document' : 'image',
-                source: { type: 'base64', media_type: mediaType, data: base64 },
-              } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
-              { type: 'text', text: `Extract all invoice data. Entity: ${declaration.entity_name} (${declaration.regime} regime).` },
+              { type: fileType === 'pdf' ? 'document' : 'image', source: { type: 'base64', media_type: mediaType, data: base64 } } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
+              { type: 'text', text: `Extract all invoice data. Entity: ${params.entity_name} (${params.regime} regime).` },
             ],
           }],
-        }, `extract(${doc.filename})`);
+        }, { agent: 'extractor', declaration_id, entity_id, label: doc.filename });
 
         const extractText = extractResponse.content.find(b => b.type === 'text')?.text || '';
         let invoiceData: Record<string, unknown>;
-        try {
-          invoiceData = JSON.parse(extractText);
-        } catch {
-          const match = extractText.match(/\{[\s\S]*\}/);
-          invoiceData = match ? JSON.parse(match[0]) : {};
+        try { invoiceData = JSON.parse(extractText); }
+        catch {
+          const m = extractText.match(/\{[\s\S]*\}/);
+          invoiceData = m ? JSON.parse(m[0]) : {};
         }
 
-        // Idempotent: if an invoice already exists for this document (e.g. a retry
-        // race or a duplicate atomic-claim), skip creation and reuse it.
-        const existing = await queryOne<{ id: string }>(
-          'SELECT id FROM invoices WHERE document_id = $1 LIMIT 1',
-          [doc.id]
-        );
+        // Idempotent invoice creation
+        const existing = await queryOne<{ id: string }>('SELECT id FROM invoices WHERE document_id = $1 LIMIT 1', [doc.id]);
         let invoiceId: string;
         if (existing) {
           invoiceId = existing.id;
-          // Clear existing lines so we re-extract cleanly (retry scenario)
           await execute('DELETE FROM invoice_lines WHERE invoice_id = $1', [invoiceId]);
           await execute(
             `UPDATE invoices
@@ -240,8 +229,7 @@ export async function POST(request: NextRequest) {
               invoiceData.invoice_number || null, invoiceData.direction || 'incoming',
               invoiceData.total_ex_vat || 0, invoiceData.total_vat || 0,
               invoiceData.total_incl_vat || 0, invoiceData.currency || null,
-              invoiceData.currency_amount || null,
-              invoiceId,
+              invoiceData.currency_amount || null, invoiceId,
             ]
           );
         } else {
@@ -291,40 +279,29 @@ export async function POST(request: NextRequest) {
 
         await execute("UPDATE documents SET status = 'extracted' WHERE id = $1", [doc.id]);
         await logAudit({
-          entityId: declaration.entity_id as string, declarationId: declaration_id,
+          entityId: entity_id, declarationId: declaration_id,
           action: 'extract', targetType: 'invoice', targetId: invoiceId,
           newValue: JSON.stringify({ provider: invoiceData.provider, lines: lines.length }),
         });
-
-        results.push({ id: doc.id, filename: doc.filename, triage: triageType, extracted: true, lines: lines.length });
+        extractedCount += 1;
       } else {
         await execute("UPDATE documents SET status = 'rejected' WHERE id = $1", [doc.id]);
-        results.push({ id: doc.id, filename: doc.filename, triage: triageType, extracted: false });
+        rejectedCount += 1;
       }
     } catch (error) {
-      // Log full error to Vercel logs for debugging
       console.error(`[extract] ERROR processing ${doc.filename} (id=${doc.id}):`, error);
-
       let errMsg = 'Unknown error';
-      if (error instanceof Anthropic.APIError) {
-        errMsg = `Anthropic API ${error.status}: ${error.message}`;
-      } else if (error instanceof Error) {
-        errMsg = error.message;
-        // Include stack snippet for non-API errors
-        if (error.stack) {
-          const stackLine = error.stack.split('\n').slice(1, 3).join(' | ');
-          errMsg = `${errMsg} [${stackLine}]`;
-        }
-      } else {
-        errMsg = String(error);
-      }
-
+      const err = error as { status?: number; message?: string; stack?: string };
+      if (err.status === 401) errMsg = `Anthropic API 401: invalid x-api-key (check ANTHROPIC_API_KEY)`;
+      else if (err.message) errMsg = err.message;
       await execute("UPDATE documents SET status = 'error', error_message = $1 WHERE id = $2", [errMsg, doc.id]);
-      results.push({ id: doc.id, filename: doc.filename, error: errMsg });
+      errorCount += 1;
     }
+
+    processed += 1;
   }
 
-  // ===== Auto-classify with the full pipeline (rules + precedents + inference) =====
+  // Run classification
   let classificationSummary: Record<string, unknown> | null = null;
   try {
     classificationSummary = await classifyDeclaration(declaration_id) as unknown as Record<string, unknown>;
@@ -332,11 +309,13 @@ export async function POST(request: NextRequest) {
     console.error('[extract] classification failed:', e);
   }
 
-  // Update declaration status to review
-  const allDocs = await query("SELECT status FROM documents WHERE declaration_id = $1", [declaration_id]);
+  // Move declaration forward
+  const allDocs = await query<{ status: string }>("SELECT status FROM documents WHERE declaration_id = $1", [declaration_id]);
   if (allDocs.some(d => d.status === 'extracted')) {
     await execute("UPDATE declarations SET status = 'review', updated_at = NOW() WHERE id = $1", [declaration_id]);
   }
 
-  return NextResponse.json({ results, processed: results.length, classification: classificationSummary });
+  const summary = `Done. ${extractedCount} extracted · ${rejectedCount} excluded · ${errorCount} failed.`;
+  await updateJob(jobId, { processed, current_item: null, message: summary });
+  await finishJob(jobId, 'done', JSON.stringify({ extracted: extractedCount, rejected: rejectedCount, errors: errorCount, classification: classificationSummary }));
 }

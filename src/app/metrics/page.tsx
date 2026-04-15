@@ -11,7 +11,13 @@ interface MetricsData {
   };
   declarations_by_status: { status: string; n: number }[];
   activity_last_30d: { d: string; n: number }[];
-  cost_estimate: { anthropic_api_calls: number; anthropic_eur: number; note: string };
+  cost_estimate: {
+    anthropic_api_calls: number; anthropic_eur: number;
+    total_tokens: number | null;
+    is_real: boolean;
+    by_agent: Array<{ agent: string; calls: number; total_eur: number }>;
+    note: string;
+  };
 }
 
 export default function MetricsPage() {
@@ -53,9 +59,9 @@ export default function MetricsPage() {
           subtitle={`${data.classification.total_lines} lines · ${data.classification.changed_by_user} changed`}
         />
         <BigKPI
-          label="Anthropic API calls"
-          value={data.cost_estimate.anthropic_api_calls.toLocaleString()}
-          subtitle={`Est. €${data.cost_estimate.anthropic_eur.toFixed(2)} total`}
+          label={data.cost_estimate.is_real ? 'Anthropic spend (actual)' : 'Anthropic spend (est.)'}
+          value={`€${data.cost_estimate.anthropic_eur.toFixed(data.cost_estimate.anthropic_eur < 1 ? 4 : 2)}`}
+          subtitle={`${data.cost_estimate.anthropic_api_calls.toLocaleString()} API call${data.cost_estimate.anthropic_api_calls === 1 ? '' : 's'}${data.cost_estimate.total_tokens ? ` · ${(data.cost_estimate.total_tokens / 1000).toFixed(1)}k tokens` : ''}`}
         />
         <BigKPI
           label="Active declarations"
@@ -114,6 +120,24 @@ export default function MetricsPage() {
           </div>
         )}
       </div>
+
+      {/* Spend by agent */}
+      {data.cost_estimate.is_real && data.cost_estimate.by_agent.length > 0 && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4 mb-5">
+          <h3 className="text-[13px] font-semibold text-gray-900 mb-3">Spend by agent</h3>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
+            {data.cost_estimate.by_agent.map(a => (
+              <div key={a.agent} className="flex items-center justify-between text-[12px] border-b border-gray-100 pb-1">
+                <span className="text-gray-700 capitalize">{a.agent.replace('_', ' ')}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-gray-500 text-[11px]">{a.calls} calls</span>
+                  <span className="font-semibold tabular-nums">€{a.total_eur.toFixed(a.total_eur < 1 ? 4 : 2)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Activity sparkline */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 mb-5">

@@ -1,25 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import { query, queryOne } from '@/lib/db';
 import { computeECDF } from '@/lib/ecdf';
 import { generatePaymentReference } from '@/lib/payment-ref';
+import { anthropicCreate } from '@/lib/anthropic-wrapper';
 
-// Drafter model. claude-haiku-4-5 is what the rest of the platform uses and is
-// guaranteed to exist for this API key. The PRD nominates Opus for this agent;
-// when an Opus 4.x model is exposed for this key, change PRIMARY_MODEL below
-// without touching anything else — the fallback chain stays the same.
 const PRIMARY_MODEL = 'claude-haiku-4-5-20251001';
 const FALLBACK_MODEL = 'claude-haiku-4-5-20251001';
 
 export const maxDuration = 120;
-
-function getClient(): Anthropic {
-  const key = process.env.ANTHROPIC_API_KEY?.trim();
-  if (!key) throw new Error('ANTHROPIC_API_KEY not set');
-  return new Anthropic({ apiKey: key });
-}
 
 async function readPrompt(name: string): Promise<string> {
   return readFile(path.join(process.cwd(), 'prompts', name), 'utf-8');
@@ -152,26 +142,25 @@ ${JSON.stringify(observations, null, 2)}
 
 Draft the email per your instructions.`;
 
-  const client = getClient();
   let usedModel = PRIMARY_MODEL;
   let response;
   try {
-    response = await client.messages.create({
+    response = await anthropicCreate({
       model: PRIMARY_MODEL,
       max_tokens: 2000,
       system: systemPrompt,
       messages: [{ role: 'user', content: userMsg }],
-    });
+    }, { agent: 'drafter', declaration_id });
   } catch (e) {
     const err = e as { status?: number; message?: string };
     if (err.status === 404 || err.message?.includes('model')) {
       usedModel = FALLBACK_MODEL;
-      response = await client.messages.create({
+      response = await anthropicCreate({
         model: FALLBACK_MODEL,
         max_tokens: 2000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userMsg }],
-      });
+      }, { agent: 'drafter', declaration_id });
     } else {
       console.error('[draft-email] error:', err.status, err.message);
       throw e;

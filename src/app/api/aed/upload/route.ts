@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { execute, generateId, logAudit } from '@/lib/db';
 import { createClient } from '@supabase/supabase-js';
-import Anthropic from '@anthropic-ai/sdk';
 import { readFile } from 'fs/promises';
 import path from 'path';
+import { anthropicCreate } from '@/lib/anthropic-wrapper';
 
 export const maxDuration = 90;
 
@@ -44,9 +44,8 @@ export async function POST(request: NextRequest) {
     const systemPrompt = await readFile(promptPath, 'utf-8');
     const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
     if (apiKey && file.type === 'application/pdf') {
-      const client = new Anthropic({ apiKey });
       const base64 = Buffer.from(bytes).toString('base64');
-      const resp = await client.messages.create({
+      const resp = await anthropicCreate({
         model: HAIKU,
         max_tokens: 700,
         system: systemPrompt,
@@ -57,7 +56,7 @@ export async function POST(request: NextRequest) {
             { type: 'text', text: 'Classify this AED letter.' },
           ],
         }],
-      });
+      }, { agent: 'aed_reader', entity_id: entityId, label: file.name });
       const text = resp.content.find(b => b.type === 'text')?.text || '';
       const match = text.match(/\{[\s\S]*\}/);
       if (match) {

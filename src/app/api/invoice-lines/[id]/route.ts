@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, execute, logAudit, initializeSchema } from '@/lib/db';
+import { validateInvoiceDate, validateVatRate, validateCurrency, validateCountry, validateVatNumber } from '@/lib/validation';
+import { apiError } from '@/lib/api-errors';
 
 // PATCH /api/invoice-lines/:id
 export async function PATCH(
@@ -18,7 +20,32 @@ export async function PATCH(
      WHERE il.id = $1`,
     [id]
   );
-  if (!line) return NextResponse.json({ error: 'Invoice line not found' }, { status: 404 });
+  if (!line) return apiError('line_not_found', 'Invoice line not found.', { status: 404 });
+
+  // Validation
+  if ('invoice_date' in body && body.invoice_date) {
+    const v = validateInvoiceDate(body.invoice_date);
+    if (!v.ok) return apiError(v.error.code, v.error.message, { hint: v.error.hint, status: 400 });
+  }
+  if ('vat_rate' in body && body.vat_rate != null) {
+    const v = validateVatRate(Number(body.vat_rate));
+    if (!v.ok) return apiError(v.error.code, v.error.message, { hint: v.error.hint, status: 400 });
+  }
+  if ('currency' in body && body.currency) {
+    const v = validateCurrency(body.currency);
+    if (!v.ok) return apiError(v.error.code, v.error.message, { hint: v.error.hint, status: 400 });
+    body.currency = v.value;
+  }
+  if ('country' in body && body.country) {
+    const v = validateCountry(body.country);
+    if (!v.ok) return apiError(v.error.code, v.error.message, { hint: v.error.hint, status: 400 });
+    body.country = v.value;
+  }
+  if ('provider_vat' in body && body.provider_vat) {
+    const v = validateVatNumber(body.provider_vat);
+    if (!v.ok) return apiError(v.error.code, v.error.message, { hint: v.error.hint, status: 400 });
+    body.provider_vat = v.value;
+  }
 
   const lineFields = [
     'description', 'amount_eur', 'vat_rate', 'vat_applied', 'rc_amount',

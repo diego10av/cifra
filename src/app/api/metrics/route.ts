@@ -81,9 +81,22 @@ export async function GET() {
       GROUP BY 1 ORDER BY 1`
   );
 
-  // Cost estimate
-  const estimatedApiCalls = (totalInvoices?.n || 0) * 2; // triage + extract per invoice
+  // Actual spend from api_calls table (populated by the wrapper)
+  const spend = await queryOne<{ calls: number; total_eur: number; total_tokens: number }>(
+    `SELECT COUNT(*)::int AS calls,
+            COALESCE(SUM(cost_eur), 0)::float AS total_eur,
+            COALESCE(SUM(input_tokens + output_tokens), 0)::int AS total_tokens
+       FROM api_calls`
+  );
+  const spendByAgent = await query<{ agent: string; calls: number; total_eur: number }>(
+    `SELECT agent, COUNT(*)::int AS calls, COALESCE(SUM(cost_eur),0)::float AS total_eur
+       FROM api_calls GROUP BY agent ORDER BY total_eur DESC`
+  );
+
+  // Fallback estimate when no api_calls rows exist (e.g. pre-wrapper data).
+  const estimatedApiCalls = (totalInvoices?.n || 0) * 2;
   const estimatedCostEUR = estimatedApiCalls * 0.003;
+  const haveRealData = (spend?.calls || 0) > 0;
 
   // Accuracy KPIs
   const totalAi = totalInvoices?.n || 0;
@@ -119,9 +132,14 @@ export async function GET() {
     declarations_by_status: declarations,
     activity_last_30d: activity,
     cost_estimate: {
-      anthropic_api_calls: estimatedApiCalls,
-      anthropic_eur: estimatedCostEUR,
-      note: 'Estimate assumes triage + extract per invoice with Claude Haiku. Real spend may differ; check console.anthropic.com for actuals.',
+      anthropic_api_calls: haveRealData ? (spend?.calls || 0) : estimatedApiCalls,
+      anthropic_eur: haveRealData ? (spend?.total_eur || 0) : estimatedCostEUR,
+      total_tokens: haveRealData ? (spend?.total_tokens || 0) : null,
+      by_agent: spendByAgent,
+      is_real: haveRealData,
+      note: haveRealData
+        ? 'Actual spend from logged API calls.'
+        : 'Estimate assumes triage + extract per invoice. No real usage logged yet.',
     },
   });
 }

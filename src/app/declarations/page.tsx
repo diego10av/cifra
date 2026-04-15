@@ -103,7 +103,20 @@ function DeclarationsContent() {
             <div>
               <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Entity *</label>
               <select required value={form.entity_id}
-                onChange={e => setForm({...form, entity_id: e.target.value, period: ''})}
+                onChange={async e => {
+                  const newEntity = e.target.value;
+                  setForm({...form, entity_id: newEntity, period: ''});
+                  // Smart default: suggest next unfiled period for the selected entity
+                  if (newEntity) {
+                    try {
+                      const res = await fetch(`/api/entities/${newEntity}/suggest-period`);
+                      if (res.ok) {
+                        const s = await res.json();
+                        setForm(f => ({ ...f, entity_id: newEntity, year: s.year, period: s.period }));
+                      }
+                    } catch { /* ignore — user fills in manually */ }
+                  }
+                }}
                 className="w-full border rounded px-3 py-2 text-sm">
                 <option value="">Select entity...</option>
                 {entities.map(e => (

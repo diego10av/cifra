@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, execute, logAudit, initializeSchema } from '@/lib/db';
+import { validateVatNumber, validateIban } from '@/lib/validation';
+import { apiError } from '@/lib/api-errors';
 
 // GET /api/entities/:id
 export async function GET(
@@ -23,7 +25,19 @@ export async function PUT(
   const body = await request.json();
 
   const existing = await queryOne('SELECT * FROM entities WHERE id = $1', [id]);
-  if (!existing) return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
+  if (!existing) return apiError('entity_not_found', 'Entity not found.', { status: 404 });
+
+  // Validate
+  if ('vat_number' in body && body.vat_number) {
+    const v = validateVatNumber(body.vat_number);
+    if (!v.ok) return apiError(v.error.code, v.error.message, { hint: v.error.hint, status: 400 });
+    body.vat_number = v.value;
+  }
+  if ('bank_iban' in body && body.bank_iban) {
+    const v = validateIban(body.bank_iban);
+    if (!v.ok) return apiError(v.error.code, v.error.message, { hint: v.error.hint, status: 400 });
+    body.bank_iban = v.value;
+  }
 
   const fields = [
     'name', 'vat_number', 'matricule', 'rcs_number', 'legal_form', 'entity_type',

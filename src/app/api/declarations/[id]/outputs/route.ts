@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryOne } from '@/lib/db';
 import { computeECDF } from '@/lib/ecdf';
 import { generatePaymentReference } from '@/lib/payment-ref';
+// cost breakdown per declaration
 
 // GET /api/declarations/:id/outputs
 // Returns the computed eCDF box values, totals, and payment instructions.
@@ -38,6 +39,14 @@ export async function GET(
       paymentError = e instanceof Error ? e.message : String(e);
     }
 
+    // Per-declaration API cost: total EUR spent on Anthropic calls for this
+    // declaration. Populated by the anthropic-wrapper since last deploy.
+    const cost = await queryOne<{ calls: number; total_eur: number }>(
+      `SELECT COUNT(*)::int AS calls, COALESCE(SUM(cost_eur), 0)::float AS total_eur
+         FROM api_calls WHERE declaration_id = $1`,
+      [id]
+    );
+
     return NextResponse.json({
       ecdf,
       payment,
@@ -47,6 +56,10 @@ export async function GET(
         period: decl.period,
         status: decl.status,
         entity_name: decl.entity_name,
+      },
+      cost: {
+        calls: cost?.calls || 0,
+        eur: cost?.total_eur || 0,
       },
     });
   } catch (e) {

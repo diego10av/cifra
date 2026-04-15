@@ -19,6 +19,8 @@ export interface ClassifyReport {
   skipped_manual: number;
   by_rule: Record<string, number>;
   by_source: Record<string, number>;
+  changes: number;           // how many lines had their treatment actually change
+  change_samples: Array<{ provider: string; from: string; to: string; rule: string }>;
 }
 
 export async function classifyDeclaration(declarationId: string): Promise<ClassifyReport> {
@@ -146,6 +148,8 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
   let classifiedCount = 0;
   let unclassifiedCount = 0;
   let skippedManual = 0;
+  let changedCount = 0;
+  const changeSamples: Array<{ provider: string; from: string; to: string; rule: string }> = [];
 
   for (const line of lines) {
     // PRIORITY 1 — never override manual classifications
@@ -222,8 +226,17 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
     if (result.treatment) classifiedCount += 1;
     else unclassifiedCount += 1;
 
-    // Audit only when treatment actually changed
+    // Audit + track change samples only when treatment actually changed
     if (line.treatment !== result.treatment) {
+      changedCount += 1;
+      if (changeSamples.length < 10) {
+        changeSamples.push({
+          provider: line.provider || '—',
+          from: line.treatment || 'UNCLASSIFIED',
+          to: result.treatment || 'UNCLASSIFIED',
+          rule: result.rule,
+        });
+      }
       await logAudit({
         entityId: declaration.entity_id,
         declarationId: declarationId,
@@ -244,5 +257,7 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
     skipped_manual: skippedManual,
     by_rule: byRule,
     by_source: bySource,
+    changes: changedCount,
+    change_samples: changeSamples,
   };
 }

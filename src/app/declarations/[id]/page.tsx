@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import { TREATMENT_CODES, INCOMING_TREATMENTS, OUTGOING_TREATMENTS, type TreatmentCode } from '@/config/treatment-codes';
+import { useToast } from '@/components/Toaster';
+import { describeApiError } from '@/lib/ui-errors';
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -87,6 +89,7 @@ type PreviewTarget =
 export default function DeclarationDetailPage() {
   const params = useParams();
   const id = params.id as string;
+  const toast = useToast();
 
   const [data, setData] = useState<DeclarationData | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -94,14 +97,22 @@ export default function DeclarationDetailPage() {
   const [classifying, setClassifying] = useState(false);
   const [fillingFx, setFillingFx] = useState(false);
   const [uploadingPrecedents, setUploadingPrecedents] = useState(false);
+  // Legacy inline toast (kept for precedent report messages). New actions use the global toaster.
   const [precedentToast, setPrecedentToast] = useState<string | null>(null);
-  const [pendingAction, setPendingAction] = useState<string | null>(null); // row-level loading
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [editingLine, setEditingLine] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState<PreviewTarget>(null);
   const [previewWidth, setPreviewWidth] = useState(50);
   const [isDraggingDivider, setIsDraggingDivider] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
+
+  // New: active job progress + bulk selection
+  const [activeJobId, setActiveJobId] = useState<string | null>(null);
+  const [jobProgress, setJobProgress] = useState<{ total: number; processed: number; current: string | null; status: string; message?: string | null } | null>(null);
+  const [selectedLineIds, setSelectedLineIds] = useState<Set<string>>(new Set());
+  const [justCreatedLineId, setJustCreatedLineId] = useState<string | null>(null);
+
   const fileInput = useRef<HTMLInputElement>(null);
   const precedentInput = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -112,6 +123,55 @@ export default function DeclarationDetailPage() {
   }, [id]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // When a line is freshly created (via Add outgoing), scroll it into view
+  // once the data has been reloaded.
+  useEffect(() => {
+    if (!justCreatedLineId) return;
+    const row = document.getElementById(`row-${justCreatedLineId}`);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Try to focus the first editable input in the row
+      setTimeout(() => {
+        const input = row.querySelector('input, textarea, select') as HTMLElement | null;
+        input?.focus();
+      }, 300);
+      // Clear the marker so we don't re-scroll on unrelated re-renders
+      setJustCreatedLineId(null);
+    }
+  }, [justCreatedLineId, data]);
+
+  // On first load and whenever we see an active job anywhere on the page,
+  // start a 1.5s poll that updates the progress bar.
+  useEffect(() => {
+    let stopped = false;
+    async function tick() {
+      const res = await fetch(`/api/declarations/${id}/active-job`);
+      if (!res.ok) return;
+      const job = await res.json();
+      if (job && !stopped) {
+        setActiveJobId(job.id);
+        setJobProgress({
+          total: job.total,
+          processed: job.processed,
+          current: job.current_item,
+          status: job.status,
+          message: job.message,
+        });
+        if (job.status !== 'running') {
+          setTimeout(() => { setJobProgress(null); setActiveJobId(null); }, 2000);
+          await loadData();
+        }
+      } else if (!stopped) {
+        if (activeJobId) setActiveJobId(null);
+        if (jobProgress) setJobProgress(null);
+      }
+    }
+    tick();
+    const int = setInterval(tick, 1500);
+    return () => { stopped = true; clearInterval(int); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   // ── Upload / Extract / Classify ──
   async function handleUpload(files: FileList | File[]) {
@@ -173,23 +233,81 @@ export default function DeclarationDetailPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'extracting' }),
     });
-    await fetch(`/api/agents/extract`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ declaration_id: id }),
+    try {
+      const res = await fetch(`/api/agents/extract`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ declaration_id: id }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const e = await describeApiError(res, 'Extraction failed');
+        toast.error(e.message, e.hint);
+        return;
+      }
+      if (body.job_id) setActiveJobId(body.job_id);
+      if (body.documents_claimed === 0) {
+        toast.info('No new documents to extract.');
+      } else {
+        toast.success('Extraction finished.');
+      }
+    } finally {
+      setExtracting(false);
+      setActiveJobId(null);
+      setJobProgress(null);
+      await loadData();
+    }
+  }
+  async function handleCancelJob() {
+    if (!activeJobId) return;
+    await fetch(`/api/jobs/${activeJobId}`, { method: 'POST' });
+    toast.info('Cancel requested — the current document will finish.');
+  }
+
+  async function handleBulkAction(action: string, value?: string) {
+    const ids = Array.from(selectedLineIds);
+    if (ids.length === 0) return;
+    const res = await fetch('/api/invoice-lines/bulk', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids, action, value }),
     });
-    setExtracting(false);
+    if (!res.ok) {
+      const e = await describeApiError(res);
+      toast.error(e.message, e.hint);
+      return;
+    }
+    const body = await res.json();
+    toast.success(`${body.changed} line${body.changed === 1 ? '' : 's'} updated.`);
+    setSelectedLineIds(new Set());
     await loadData();
   }
   async function handleClassify() {
     setClassifying(true);
-    await fetch(`/api/agents/classify`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ declaration_id: id }),
-    });
-    setClassifying(false);
-    await loadData();
+    try {
+      const res = await fetch(`/api/agents/classify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ declaration_id: id }),
+      });
+      if (!res.ok) {
+        const e = await describeApiError(res, 'Classification failed');
+        toast.error(e.message, e.hint);
+        return;
+      }
+      const report = await res.json();
+      const changes = Number(report.changes || 0);
+      if (changes === 0) {
+        toast.info('Rules re-run — no classifications changed.');
+      } else {
+        const samples = (report.change_samples || []).slice(0, 3)
+          .map((c: { provider: string; from: string; to: string }) => `${c.provider.slice(0, 20)}: ${c.from} → ${c.to}`)
+          .join(', ');
+        toast.success(`${changes} line${changes === 1 ? '' : 's'} reclassified.`, samples || undefined);
+      }
+    } finally {
+      setClassifying(false);
+      await loadData();
+    }
   }
   async function handleFillFx() {
     setFillingFx(true);
@@ -211,11 +329,35 @@ export default function DeclarationDetailPage() {
   }
 
   async function handleLineUpdate(lineId: string, updates: Record<string, unknown>) {
-    await fetch(`/api/invoice-lines/${lineId}`, {
+    // Optimistic: patch local state immediately for instant UI feedback.
+    setData(d => {
+      if (!d) return d;
+      return {
+        ...d,
+        lines: d.lines.map(l => l.id === lineId ? { ...l, ...updates } : l),
+      };
+    });
+
+    const res = await fetch(`/api/invoice-lines/${lineId}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
     });
-    loadData();
+    if (!res.ok) {
+      const e = await describeApiError(res, 'Update failed');
+      toast.error(e.message, e.hint);
+      // Revert by reloading fresh server state
+      loadData();
+      return;
+    }
+    // Server may have normalised values (e.g. VAT cleaned). Reconcile.
+    const updated = await res.json();
+    setData(d => {
+      if (!d) return d;
+      return {
+        ...d,
+        lines: d.lines.map(l => l.id === lineId ? { ...l, ...updated } : l),
+      };
+    });
   }
 
   async function handleMoveLine(lineId: string, target: 'incoming' | 'outgoing' | 'excluded') {
@@ -256,10 +398,19 @@ export default function DeclarationDetailPage() {
   }
   async function handleAddOutgoing() {
     await withPending('add-outgoing', async () => {
-      await fetch('/api/invoices', {
+      const res = await fetch('/api/invoices', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ declaration_id: id, direction: 'outgoing' }),
       });
+      if (res.ok) {
+        const body = await res.json();
+        // Open the new line straight in edit mode with auto-focus + scroll.
+        if (body.line_id) {
+          setJustCreatedLineId(body.line_id);
+          setEditingLine(body.line_id);
+        }
+        toast.success('Outgoing invoice added. Fill in the details.');
+      }
       await loadData();
     });
   }
@@ -415,6 +566,14 @@ export default function DeclarationDetailPage() {
             </div>
           </header>
 
+          {/* Job progress */}
+          {jobProgress && (
+            <JobProgressBar
+              progress={jobProgress}
+              onCancel={activeJobId && jobProgress.status === 'running' ? handleCancelJob : undefined}
+            />
+          )}
+
           <DeclarationNotes declarationId={id} initial={data.notes} />
 
           {/* Approval toast (precedent learning report etc.) */}
@@ -509,6 +668,14 @@ export default function DeclarationDetailPage() {
 
           {/* Services Received */}
           <SectionHeader title="Services Received" count={incomingLines.length} />
+          {selectedLineIds.size > 0 && (
+            <BulkActionBar
+              count={selectedLineIds.size}
+              onClear={() => setSelectedLineIds(new Set())}
+              onAction={handleBulkAction}
+              direction="incoming"
+            />
+          )}
           {incomingLines.length === 0 ? (
             <EmptyBlock>No incoming invoices yet.</EmptyBlock>
           ) : (
@@ -521,6 +688,8 @@ export default function DeclarationDetailPage() {
               selectedRowKey={preview?.rowKey}
               pendingAction={pendingAction}
               isLocked={locked}
+              selectedIds={selectedLineIds}
+              onSelectionChange={setSelectedLineIds}
             />
           )}
 
@@ -551,6 +720,8 @@ export default function DeclarationDetailPage() {
               selectedRowKey={preview?.rowKey}
               pendingAction={pendingAction}
               isLocked={locked}
+              selectedIds={selectedLineIds}
+              onSelectionChange={setSelectedLineIds}
             />
           )}
 
@@ -839,7 +1010,7 @@ function ManualPlaceholder() {
 // ═══════════════════════════════════════════════════════════════
 function ReviewTable({
   lines, direction, hasFx, compact, editingLine, setEditingLine, onUpdate, onMove, onOpenPreview,
-  selectedRowKey, pendingAction, isLocked,
+  selectedRowKey, pendingAction, isLocked, selectedIds, onSelectionChange,
 }: {
   lines: InvoiceLine[];
   direction: 'incoming' | 'outgoing';
@@ -853,8 +1024,30 @@ function ReviewTable({
   selectedRowKey: string | undefined;
   pendingAction: string | null;
   isLocked: boolean;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (next: Set<string>) => void;
 }) {
   const treatments = direction === 'incoming' ? INCOMING_TREATMENTS : OUTGOING_TREATMENTS;
+  const selectable = !isLocked && !!selectedIds && !!onSelectionChange;
+  const allSelected = selectable && lines.length > 0 && lines.every(l => selectedIds!.has(l.id));
+  const someSelected = selectable && !allSelected && lines.some(l => selectedIds!.has(l.id));
+
+  function toggleAll() {
+    if (!selectable) return;
+    const next = new Set(selectedIds!);
+    if (allSelected) {
+      lines.forEach(l => next.delete(l.id));
+    } else {
+      lines.forEach(l => next.add(l.id));
+    }
+    onSelectionChange!(next);
+  }
+  function toggleOne(id: string) {
+    if (!selectable) return;
+    const next = new Set(selectedIds!);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    onSelectionChange!(next);
+  }
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -862,6 +1055,17 @@ function ReviewTable({
         <table className="w-full text-[12px] border-collapse">
           <thead>
             <tr className="bg-gray-50 text-gray-600 border-b border-gray-200">
+              {selectable && (
+                <Th width={32}>
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={el => { if (el) el.indeterminate = someSelected; }}
+                    onChange={toggleAll}
+                    className="cursor-pointer"
+                  />
+                </Th>
+              )}
               <Th width={32}></Th>
               <Th>Provider</Th>
               {!compact && <Th>Country</Th>}
@@ -887,6 +1091,9 @@ function ReviewTable({
                 key={line.id}
                 line={line}
                 treatments={treatments}
+                selectable={selectable}
+                selected={!!(selectedIds && selectedIds.has(line.id))}
+                onToggleSelect={() => toggleOne(line.id)}
                 hasFx={hasFx}
                 compact={compact}
                 isEditing={editingLine === line.id}
@@ -924,6 +1131,7 @@ function Th({ children, right, center, width }: { children?: React.ReactNode; ri
 function TableRow({
   line, treatments, hasFx, compact, isEditing, onEditToggle, onUpdate, onMove, onOpenPreview,
   isSelected, moveLoading, isLocked, direction,
+  selectable, selected, onToggleSelect,
 }: {
   line: InvoiceLine;
   treatments: readonly TreatmentCode[];
@@ -938,6 +1146,9 @@ function TableRow({
   moveLoading: boolean;
   isLocked: boolean;
   direction: 'incoming' | 'outgoing';
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }) {
   const flagAck = Boolean(line.flag_acknowledged);
   const isFlagged = Boolean(line.flag);
@@ -962,6 +1173,17 @@ function TableRow({
 
   return (
     <tr id={`row-${line.id}`} className={rowClass}>
+      {selectable && (
+        <td className="px-2 py-1.5 text-center">
+          <input
+            type="checkbox"
+            checked={!!selected}
+            onChange={() => onToggleSelect?.()}
+            onClick={e => e.stopPropagation()}
+            className="cursor-pointer"
+          />
+        </td>
+      )}
       {/* Preview icon */}
       <td className="px-1 py-1.5 text-center">
         <button
@@ -1412,6 +1634,7 @@ interface OutputsResponse {
   payment: Payment | null;
   payment_error: string | null;
   declaration: { year: number; period: string; status: string; entity_name: string };
+  cost?: { calls: number; eur: number };
 }
 
 function OutputsPanel({ declarationId }: { declarationId: string }) {
@@ -1484,9 +1707,23 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
       <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
         <div>
           <h3 className="text-[13px] font-semibold text-gray-900">Outputs</h3>
-          <div className="text-[11px] text-gray-500 mt-0.5">
-            {data.ecdf.regime === 'simplified' ? 'Simplified return' : 'Ordinary return'} ·{' '}
-            {data.ecdf.year} {data.ecdf.period} · form {data.ecdf.form_version}
+          <div className="text-[11px] text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
+            <span>{data.ecdf.regime === 'simplified' ? 'Simplified return' : 'Ordinary return'}</span>
+            <span className="text-gray-300">·</span>
+            <span>{data.ecdf.year} {data.ecdf.period}</span>
+            <span className="text-gray-300">·</span>
+            <span>form {data.ecdf.form_version}</span>
+            {data.cost && data.cost.calls > 0 && (
+              <>
+                <span className="text-gray-300">·</span>
+                <span
+                  className="inline-flex items-center gap-1 text-[10px] font-mono bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded border border-gray-200"
+                  title={`${data.cost.calls} Anthropic API call${data.cost.calls === 1 ? '' : 's'} for this declaration`}
+                >
+                  €{data.cost.eur.toFixed(data.cost.eur < 1 ? 4 : 2)} API
+                </span>
+              </>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1633,6 +1870,161 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Bulk action bar — shown above the review table when lines are selected.
+// ═══════════════════════════════════════════════════════════════
+function BulkActionBar({
+  count, onClear, onAction, direction,
+}: {
+  count: number;
+  onClear: () => void;
+  onAction: (action: string, value?: string) => void;
+  direction: 'incoming' | 'outgoing';
+}) {
+  const [treatmentOpen, setTreatmentOpen] = useState(false);
+  const [confirmExcluded, setConfirmExcluded] = useState(false);
+  const treatments = direction === 'incoming' ? INCOMING_TREATMENTS : OUTGOING_TREATMENTS;
+
+  return (
+    <div className="sticky top-0 z-10 mb-2 bg-[#1a1a2e] text-white rounded-lg px-3 py-2 flex items-center gap-2 text-[12px] animate-fadeIn">
+      <span className="font-semibold">{count} selected</span>
+      <span className="text-white/40 mx-1">·</span>
+      <button
+        onClick={() => onAction('mark_reviewed')}
+        className="h-7 px-2.5 rounded bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+      >
+        Mark reviewed
+      </button>
+      <button
+        onClick={() => onAction('acknowledge_flag')}
+        className="h-7 px-2.5 rounded bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+      >
+        Acknowledge flags
+      </button>
+      <div className="relative">
+        <button
+          onClick={() => setTreatmentOpen(o => !o)}
+          className="h-7 px-2.5 rounded bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+        >
+          Set treatment ▾
+        </button>
+        {treatmentOpen && (
+          <div className="absolute top-full left-0 mt-1 bg-white text-gray-900 border border-gray-200 rounded-md shadow-lg min-w-[240px] max-h-[300px] overflow-y-auto z-20">
+            {treatments.map(t => (
+              <button
+                key={t}
+                onClick={() => { setTreatmentOpen(false); onAction('set_treatment', t); }}
+                className="block w-full text-left px-3 py-1.5 text-[11.5px] hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
+              >
+                <span className="font-mono font-semibold mr-2">{t}</span>
+                <span className="text-gray-600">{TREATMENT_CODES[t].label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {confirmExcluded ? (
+        <>
+          <span className="text-white/70 ml-2">Are you sure?</span>
+          <button
+            onClick={() => { onAction('move_to_excluded'); setConfirmExcluded(false); }}
+            className="h-7 px-2.5 rounded bg-red-500 hover:bg-red-600 transition-colors cursor-pointer font-semibold"
+          >
+            Yes, move to excluded
+          </button>
+          <button
+            onClick={() => setConfirmExcluded(false)}
+            className="h-7 px-2.5 rounded bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+          >
+            Cancel
+          </button>
+        </>
+      ) : (
+        <button
+          onClick={() => setConfirmExcluded(true)}
+          className="h-7 px-2.5 rounded bg-white/10 hover:bg-red-500/80 transition-colors cursor-pointer"
+        >
+          Move to excluded
+        </button>
+      )}
+      <div className="flex-1" />
+      <button
+        onClick={onClear}
+        className="h-7 px-2.5 rounded bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
+      >
+        Clear
+      </button>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Job progress bar — shown when extract / classify / fill_fx is running.
+// Polled from the parent.
+// ═══════════════════════════════════════════════════════════════
+function JobProgressBar({
+  progress, onCancel,
+}: {
+  progress: { total: number; processed: number; current: string | null; status: string; message?: string | null };
+  onCancel?: () => void;
+}) {
+  const pct = progress.total > 0 ? Math.round((progress.processed / progress.total) * 100) : 0;
+  const isRunning = progress.status === 'running';
+  const isCancelled = progress.status === 'cancelled';
+  const isError = progress.status === 'error';
+  const isDone = progress.status === 'done';
+
+  const bg =
+    isDone ? 'bg-emerald-50 border-emerald-200'
+    : isError ? 'bg-red-50 border-red-200'
+    : isCancelled ? 'bg-amber-50 border-amber-200'
+    : 'bg-blue-50 border-blue-200';
+
+  const barColor =
+    isDone ? 'bg-emerald-500'
+    : isError ? 'bg-red-500'
+    : isCancelled ? 'bg-amber-500'
+    : 'bg-blue-500';
+
+  const label =
+    isRunning ? `Processing ${progress.processed}/${progress.total}`
+    : isDone ? 'Finished'
+    : isCancelled ? 'Cancelled'
+    : isError ? 'Failed'
+    : progress.status;
+
+  return (
+    <div className={`${bg} border rounded-lg p-3 mb-4 animate-fadeIn`}>
+      <div className="flex items-center justify-between mb-2 gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          {isRunning && <Spinner small />}
+          <span className="text-[12px] font-semibold text-gray-900">{label}</span>
+          {progress.current && isRunning && (
+            <span className="text-[11px] text-gray-500 truncate">· {progress.current}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-[11px] tabular-nums text-gray-600">{pct}%</span>
+          {onCancel && (
+            <button
+              onClick={onCancel}
+              className="h-7 px-2.5 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 cursor-pointer transition-all duration-150"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="h-1.5 bg-white/70 rounded overflow-hidden">
+        <div className={`h-full ${barColor} transition-all duration-300`} style={{ width: `${pct}%` }} />
+      </div>
+      {progress.message && !isRunning && (
+        <div className="mt-2 text-[11px] text-gray-600">{progress.message}</div>
+      )}
     </div>
   );
 }
