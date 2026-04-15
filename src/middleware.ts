@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Allow login page and API login route without auth
+  // Allow only the login page and login API without auth
   if (
     request.nextUrl.pathname === '/login' ||
-    request.nextUrl.pathname === '/api/auth/login' ||
-    request.nextUrl.pathname === '/api/health'
+    request.nextUrl.pathname === '/api/auth/login'
   ) {
     return NextResponse.next();
   }

@@ -34,9 +34,22 @@ export async function POST(request: NextRequest) {
   );
   if (!declaration) return NextResponse.json({ error: 'Declaration not found' }, { status: 404 });
 
+  // ATOMIC claim: flip documents from 'uploaded'/'error' to 'triaging' in a single UPDATE...RETURNING.
+  // Prevents double-processing (and double API billing) if the user clicks "Extract All" twice,
+  // or if two tabs/devices submit simultaneously. Also caps the batch at 200 docs per invocation
+  // as a safety net against accidental mass uploads.
+  const MAX_BATCH_SIZE = 200;
   const documents = await query(
-    "SELECT * FROM documents WHERE declaration_id = $1 AND status IN ('uploaded','error')",
-    [declaration_id]
+    `UPDATE documents
+       SET status = 'triaging', error_message = NULL
+     WHERE id IN (
+       SELECT id FROM documents
+        WHERE declaration_id = $1
+          AND status IN ('uploaded','error')
+        LIMIT $2
+     )
+     RETURNING *`,
+    [declaration_id, MAX_BATCH_SIZE]
   );
   if (documents.length === 0) return NextResponse.json({ message: 'No documents to process' });
 
@@ -55,7 +68,7 @@ export async function POST(request: NextRequest) {
 
   for (const doc of documents) {
     try {
-      await execute("UPDATE documents SET status = 'triaging' WHERE id = $1", [doc.id]);
+      // status is already 'triaging' — claimed atomically above
 
       // Download file from Supabase Storage
       const { data: fileData, error: dlError } = await supabase.storage
