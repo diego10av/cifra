@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query, queryOne, execute, logAudit, initializeSchema } from '@/lib/db';
 import { canTransition, type DeclarationStatus } from '@/lib/lifecycle';
+import { upsertPrecedentsFromDeclaration } from '@/lib/precedents';
 
 // GET /api/declarations/:id
 export async function GET(
@@ -70,6 +71,8 @@ export async function PATCH(
   const declaration = await queryOne('SELECT * FROM declarations WHERE id = $1', [id]);
   if (!declaration) return NextResponse.json({ error: 'Declaration not found' }, { status: 404 });
 
+  let precedentReport = null;
+
   if (body.status) {
     const currentStatus = declaration.status as DeclarationStatus;
     const newStatus = body.status as DeclarationStatus;
@@ -85,13 +88,22 @@ export async function PATCH(
     if (newStatus === 'approved') {
       extra += `, approved_at = NOW(), approved_by = 'founder'`;
     }
-    if (newStatus === 'filed' && body.filing_ref) {
+    if (newStatus === 'filed') {
+      // filing_ref is required for FILED
+      if (!body.filing_ref) {
+        return NextResponse.json({ error: 'filing_ref is required when transitioning to filed' }, { status: 400 });
+      }
       extra += `, filing_ref = $${idx}, filed_at = NOW()`;
       values.push(body.filing_ref);
       idx++;
     }
     if (newStatus === 'paid') {
       extra += `, payment_confirmed_at = NOW()`;
+      if (body.payment_ref) {
+        extra += `, payment_ref = $${idx}`;
+        values.push(body.payment_ref);
+        idx++;
+      }
     }
 
     values.push(id);
@@ -100,16 +112,32 @@ export async function PATCH(
     await logAudit({
       entityId: declaration.entity_id as string,
       declarationId: id,
-      action: newStatus === 'approved' ? 'approve' : newStatus === 'review' && currentStatus === 'approved' ? 'reopen' : 'update',
+      action:
+        newStatus === 'approved' ? 'approve'
+        : newStatus === 'filed' ? 'file'
+        : newStatus === 'paid' ? 'pay'
+        : newStatus === 'review' && (currentStatus === 'approved' || currentStatus === 'filed') ? 'reopen'
+        : 'update',
       targetType: 'declaration', targetId: id,
       field: 'status', oldValue: currentStatus, newValue: newStatus,
     });
+
+    // Side effect: upserting precedents on review→approved completes the
+    // learning loop (per PRD §6.1). Done after the status change so the
+    // declaration is locked first.
+    if (newStatus === 'approved' && currentStatus === 'review') {
+      try {
+        precedentReport = await upsertPrecedentsFromDeclaration(id);
+      } catch (e) {
+        console.error('[declarations.PATCH] precedent upsert failed:', e);
+      }
+    }
   }
 
   if (body.notes !== undefined) {
     await execute('UPDATE declarations SET notes = $1, updated_at = NOW() WHERE id = $2', [body.notes, id]);
   }
-  if (body.payment_ref !== undefined) {
+  if (body.payment_ref !== undefined && !body.status) {
     await execute('UPDATE declarations SET payment_ref = $1, updated_at = NOW() WHERE id = $2', [body.payment_ref, id]);
   }
 
@@ -118,5 +146,5 @@ export async function PATCH(
      FROM declarations d JOIN entities e ON d.entity_id = e.id WHERE d.id = $1`,
     [id]
   );
-  return NextResponse.json(updated);
+  return NextResponse.json({ ...(updated as object), precedent_report: precedentReport });
 }

@@ -65,6 +65,12 @@ interface DeclarationData {
   has_outgoing: number | boolean;
   vat_number: string;
   matricule: string;
+  filing_ref: string | null;
+  filed_at: string | null;
+  payment_ref: string | null;
+  payment_confirmed_at: string | null;
+  proof_of_filing_filename: string | null;
+  proof_of_filing_uploaded_at: string | null;
   documentStats: { total: number; uploaded: number; invoices: number; non_invoices: number; extracted: number; errors: number };
   documents: DocumentRec[];
   lines: InvoiceLine[];
@@ -202,11 +208,30 @@ export default function DeclarationDetailPage() {
     });
   }
 
-  async function handleStatusChange(newStatus: string) {
-    await fetch(`/api/declarations/${id}`, {
+  async function handleStatusChange(newStatus: string, extra?: Record<string, unknown>) {
+    const res = await fetch(`/api/declarations/${id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
+      body: JSON.stringify({ status: newStatus, ...(extra || {}) }),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(`Could not change status: ${err.error || 'unknown error'}`);
+      return;
+    }
+    const result = await res.json();
+    if (result.precedent_report) {
+      const r = result.precedent_report;
+      setPrecedentToast(
+        `Approved. Precedent table updated: ${r.inserted} new + ${r.updated} refreshed (${r.total_lines_considered} lines considered).`
+      );
+      setTimeout(() => setPrecedentToast(null), 7000);
+    }
+    loadData();
+  }
+  async function handleProofUpload(file: File) {
+    const form = new FormData();
+    form.set('file', file);
+    await fetch(`/api/declarations/${id}/proof-of-filing`, { method: 'POST', body: form });
     loadData();
   }
   async function handleAddOutgoing() {
@@ -359,6 +384,14 @@ export default function DeclarationDetailPage() {
               )}
             </div>
           </header>
+
+          {/* Approval toast (precedent learning report etc.) */}
+          {precedentToast && (
+            <div className="mb-4 px-3 py-2 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 text-[12px] flex items-center gap-2 animate-fadeIn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              {precedentToast}
+            </div>
+          )}
 
           {/* Reconciliation card */}
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
@@ -597,6 +630,17 @@ export default function DeclarationDetailPage() {
                 />
               </div>
             </div>
+          )}
+
+          {/* Filing & Payment workflow — visible from APPROVED onwards */}
+          {['approved', 'filed', 'paid'].includes(data.status) && (
+            <FilingPanel
+              data={data}
+              onMarkFiled={(filing_ref) => handleStatusChange('filed', { filing_ref })}
+              onMarkPaid={(payment_ref) => handleStatusChange('paid', payment_ref ? { payment_ref } : undefined)}
+              onReopen={() => handleStatusChange('review')}
+              onUploadProof={handleProofUpload}
+            />
           )}
 
           {/* Outputs — Phase 4 */}
@@ -1551,6 +1595,216 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
         )}
       </div>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Filing & Payment Panel — closes the lifecycle (APPROVED → FILED → PAID)
+// ═══════════════════════════════════════════════════════════════
+function FilingPanel({
+  data, onMarkFiled, onMarkPaid, onReopen, onUploadProof,
+}: {
+  data: DeclarationData;
+  onMarkFiled: (filing_ref: string) => void;
+  onMarkPaid: (payment_ref?: string) => void;
+  onReopen: () => void;
+  onUploadProof: (file: File) => void;
+}) {
+  const [filingRef, setFilingRef] = useState(data.filing_ref || '');
+  const [paymentRefInput, setPaymentRefInput] = useState(data.payment_ref || '');
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
+  const proofInput = useRef<HTMLInputElement>(null);
+
+  const status = data.status;
+
+  // Lazy-fetch the signed proof URL when one exists
+  useEffect(() => {
+    if (!data.proof_of_filing_filename) { setProofUrl(null); return; }
+    fetch(`/api/declarations/${data.id}/proof-of-filing`)
+      .then(async r => { if (r.ok) return r.json(); throw new Error(); })
+      .then(d => setProofUrl(d.url))
+      .catch(() => setProofUrl(null));
+  }, [data.id, data.proof_of_filing_filename]);
+
+  async function handleProofChange(files: FileList | null) {
+    if (!files || !files.length) return;
+    setUploadingProof(true);
+    try { await onUploadProof(files[0]); }
+    finally { setUploadingProof(false); }
+  }
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg mb-4 overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+        <div>
+          <h3 className="text-[13px] font-semibold text-gray-900">Filing &amp; payment</h3>
+          <div className="text-[11px] text-gray-500 mt-0.5">
+            {status === 'approved' && 'Ready to file. Upload the eCDF XML to the AED portal, then record the filing reference here.'}
+            {status === 'filed' && 'Filed. Mark as paid once the bank confirms the transfer.'}
+            {status === 'paid' && 'Cycle complete.'}
+          </div>
+        </div>
+        <button
+          onClick={onReopen}
+          className="h-7 px-2.5 rounded border border-orange-300 text-[11px] font-medium text-orange-600 hover:bg-orange-50 transition-all duration-150 cursor-pointer"
+          title="Reopen for further changes (lines become editable again)"
+        >
+          Reopen
+        </button>
+      </div>
+
+      <div className="p-4 grid grid-cols-3 gap-4">
+        {/* Step 1 — Approved */}
+        <Step
+          number={1}
+          title="Approved"
+          state="done"
+          subtitle={data.payment_ref ? `Payment ref ${data.payment_ref}` : 'Lines frozen, precedents updated'}
+        />
+
+        {/* Step 2 — Filed */}
+        {status === 'approved' ? (
+          <div className="border border-gray-200 rounded-md p-3 col-span-2">
+            <div className="flex items-center gap-2 mb-2">
+              <StepDot active />
+              <div className="text-[12px] font-semibold text-gray-900">Mark as filed</div>
+            </div>
+            <div className="text-[11px] text-gray-500 mb-2">
+              Enter the AED filing reference from the eCDF confirmation page.
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={filingRef}
+                onChange={e => setFilingRef(e.target.value)}
+                placeholder="AED filing reference"
+                className="flex-1 border border-gray-300 rounded px-2 py-1 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+              />
+              <button
+                onClick={() => filingRef.trim() && onMarkFiled(filingRef.trim())}
+                disabled={!filingRef.trim()}
+                className="h-8 px-3 rounded bg-[#1a1a2e] text-white text-[11px] font-semibold hover:bg-[#2a2a4e] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-150"
+              >
+                Mark as filed
+              </button>
+            </div>
+          </div>
+        ) : (
+          <Step
+            number={2}
+            title="Filed"
+            state="done"
+            subtitle={`Ref ${data.filing_ref || '—'} on ${formatDate(data.filed_at)}`}
+          />
+        )}
+
+        {/* Step 3 — Paid */}
+        {status === 'paid' ? (
+          <Step
+            number={3}
+            title="Paid"
+            state="done"
+            subtitle={`Confirmed on ${formatDate(data.payment_confirmed_at)}`}
+          />
+        ) : status === 'filed' ? (
+          <div className="border border-gray-200 rounded-md p-3 col-span-3">
+            <div className="flex items-center gap-2 mb-2">
+              <StepDot active />
+              <div className="text-[12px] font-semibold text-gray-900">Mark as paid</div>
+            </div>
+            <div className="text-[11px] text-gray-500 mb-2">
+              Optional: record the bank reference number from the transfer confirmation.
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={paymentRefInput}
+                onChange={e => setPaymentRefInput(e.target.value)}
+                placeholder="Bank transfer reference (optional)"
+                className="flex-1 border border-gray-300 rounded px-2 py-1 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+              />
+              <button
+                onClick={() => onMarkPaid(paymentRefInput.trim() || undefined)}
+                className="h-8 px-3 rounded bg-green-600 text-white text-[11px] font-semibold hover:bg-green-700 cursor-pointer transition-all duration-150"
+              >
+                Mark as paid
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Proof-of-filing upload (visible from FILED onwards) */}
+      {['filed', 'paid'].includes(status) && (
+        <div className="px-4 pb-4 -mt-2">
+          <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-0.5">
+                  Proof of filing
+                </div>
+                {data.proof_of_filing_filename ? (
+                  <div className="text-[12px] text-gray-700 truncate">
+                    {proofUrl ? (
+                      <a href={proofUrl} target="_blank" rel="noreferrer" className="hover:underline text-blue-600">
+                        {data.proof_of_filing_filename}
+                      </a>
+                    ) : (
+                      data.proof_of_filing_filename
+                    )}
+                    <span className="text-gray-400 ml-2 text-[11px]">
+                      uploaded {formatDate(data.proof_of_filing_uploaded_at)}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="text-[12px] text-gray-500">
+                    No file uploaded yet. The proof is the eCDF confirmation screenshot or PDF.
+                  </div>
+                )}
+              </div>
+              <input
+                ref={proofInput} type="file" accept=".pdf,.png,.jpg,.jpeg" className="hidden"
+                onChange={e => handleProofChange(e.target.files)}
+              />
+              <button
+                onClick={() => proofInput.current?.click()}
+                disabled={uploadingProof}
+                className="shrink-0 h-7 px-2.5 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-150"
+              >
+                {uploadingProof ? 'Uploading…' : data.proof_of_filing_filename ? 'Replace' : 'Upload'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Step({
+  number, title, state, subtitle,
+}: {
+  number: number; title: string; state: 'done' | 'active' | 'pending'; subtitle: string;
+}) {
+  const dotColor =
+    state === 'done' ? 'bg-emerald-600 text-white' :
+    state === 'active' ? 'bg-[#1a1a2e] text-white' :
+    'bg-gray-200 text-gray-500';
+  return (
+    <div className="border border-gray-200 rounded-md p-3 flex items-start gap-3">
+      <div className={`shrink-0 w-6 h-6 rounded-full text-[11px] font-semibold flex items-center justify-center ${dotColor}`}>
+        {state === 'done' ? '✓' : number}
+      </div>
+      <div className="min-w-0">
+        <div className="text-[12px] font-semibold text-gray-900">{title}</div>
+        <div className="text-[11px] text-gray-500 mt-0.5 truncate">{subtitle}</div>
+      </div>
+    </div>
+  );
+}
+
+function StepDot({ active }: { active?: boolean }) {
+  return (
+    <div className={`w-2.5 h-2.5 rounded-full ${active ? 'bg-[#1a1a2e]' : 'bg-gray-300'}`} />
   );
 }
 
