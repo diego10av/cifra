@@ -80,33 +80,33 @@ export default function LegalOverridesPage() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-[20px] font-semibold tracking-tight">Legal overrides</h1>
-          <p className="text-[12px] text-gray-500 mt-1">
+          <p className="text-[12px] text-ink-muted mt-1">
             Jurisprudence and AED circulars that change how specific invoices are classified.
             Overrides take precedence over precedents and inference, but yield to direct evidence (RULES 1-9).
           </p>
         </div>
         <button
           onClick={startCreate}
-          className="h-8 px-3 rounded bg-[#1a1a2e] text-white text-[12px] font-semibold hover:bg-[#2a2a4e] transition-all duration-150 cursor-pointer"
+          className="h-8 px-3 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer"
         >
           + New override
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={save} className="bg-white border border-gray-200 rounded-lg p-4 mb-5">
+        <form onSubmit={save} className="bg-surface border border-border rounded-lg p-4 mb-5">
           <h3 className="text-[13px] font-semibold mb-3">{editing ? 'Edit override' : 'New legal override'}</h3>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Rule / position changed *">
               <input required value={form.rule_changed}
                 onChange={e => setForm({ ...form, rule_changed: e.target.value })}
                 placeholder="e.g. EU intermediation services"
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]" />
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
             </Field>
             <Field label="New treatment *">
               <select value={form.new_treatment}
                 onChange={e => setForm({ ...form, new_treatment: e.target.value })}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]">
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
                 {ALL_TREATMENTS.map(t => (
                   <option key={t} value={t}>{t} — {TREATMENT_CODES[t].label}</option>
                 ))}
@@ -116,24 +116,24 @@ export default function LegalOverridesPage() {
               <input required value={form.legal_basis}
                 onChange={e => setForm({ ...form, legal_basis: e.target.value })}
                 placeholder="e.g. CJEU T-657/24, 26 November 2025"
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]" />
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
             </Field>
             <Field label="Effective date *">
               <input required type="date" value={form.effective_date}
                 onChange={e => setForm({ ...form, effective_date: e.target.value })}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]" />
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
             </Field>
             <Field label="Provider match (substring)">
               <input value={form.provider_match}
                 onChange={e => setForm({ ...form, provider_match: e.target.value })}
                 placeholder='e.g. "Acme Intermediary GmbH" or leave blank'
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]" />
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
             </Field>
             <Field label="Description match (substring)">
               <input value={form.description_match}
                 onChange={e => setForm({ ...form, description_match: e.target.value })}
                 placeholder='e.g. "intermediation" or "referral"'
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]" />
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
             </Field>
           </div>
           <Field label="Justification">
@@ -141,33 +141,33 @@ export default function LegalOverridesPage() {
               onChange={e => setForm({ ...form, justification: e.target.value })}
               rows={3}
               placeholder="Explain the reasoning, audit-risk caveats, and any prior-year-amendment recommendations."
-              className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]" />
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
           </Field>
-          <p className="text-[11px] text-gray-500 mt-2">
+          <p className="text-[11px] text-ink-muted mt-2">
             At least one of <strong>provider match</strong> or <strong>description match</strong> is required, otherwise the override would apply to every invoice.
           </p>
           <div className="mt-3 flex gap-2">
             <button type="submit"
-              className="h-9 px-4 rounded bg-[#1a1a2e] text-white text-[12px] font-semibold hover:bg-[#2a2a4e] transition-all duration-150 cursor-pointer">
+              className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer">
               {editing ? 'Save changes' : 'Create override'}
             </button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null); }}
-              className="h-9 px-4 rounded border border-gray-300 text-[12px] font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+              className="h-9 px-4 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt cursor-pointer">
               Cancel
             </button>
           </div>
         </form>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-surface border border-border rounded-lg overflow-hidden">
         {overrides.length === 0 ? (
-          <div className="p-8 text-center text-[12px] text-gray-400">
+          <div className="p-8 text-center text-[12px] text-ink-faint">
             No legal overrides defined. Use these for jurisprudence changes (e.g. CJEU rulings) or AED circulars
             that change the treatment for a specific class of invoices.
           </div>
         ) : (
           <table className="w-full text-[12px]">
-            <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
+            <thead className="bg-surface-alt text-ink-soft border-b border-border">
               <tr>
                 <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Rule changed</th>
                 <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">New treatment</th>
@@ -179,23 +179,23 @@ export default function LegalOverridesPage() {
             </thead>
             <tbody>
               {overrides.map(o => (
-                <tr key={o.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/60 transition-colors duration-150">
-                  <td className="px-3 py-2 font-medium text-gray-900">{o.rule_changed}</td>
+                <tr key={o.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                  <td className="px-3 py-2 font-medium text-ink">{o.rule_changed}</td>
                   <td className="px-3 py-2">
                     <span className="text-[10px] px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
                       {o.new_treatment}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-gray-700 text-[11px]">
+                  <td className="px-3 py-2 text-ink-soft text-[11px]">
                     {o.provider_match && <div>provider: <span className="font-mono">{o.provider_match}</span></div>}
                     {o.description_match && <div>desc: <span className="font-mono">{o.description_match}</span></div>}
                     {!o.provider_match && !o.description_match && <span className="text-red-600">⚠ no match</span>}
                   </td>
-                  <td className="px-3 py-2 text-gray-700">{o.legal_basis}</td>
-                  <td className="px-3 py-2 text-gray-700 tabular-nums">{o.effective_date}</td>
+                  <td className="px-3 py-2 text-ink-soft">{o.legal_basis}</td>
+                  <td className="px-3 py-2 text-ink-soft tabular-nums">{o.effective_date}</td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
-                    <button onClick={() => startEdit(o)} className="text-blue-600 hover:underline text-[11px] font-medium cursor-pointer">Edit</button>
-                    <span className="text-gray-300 mx-1">·</span>
+                    <button onClick={() => startEdit(o)} className="text-brand-600 hover:underline text-[11px] font-medium cursor-pointer">Edit</button>
+                    <span className="text-ink-faint mx-1">·</span>
                     <button onClick={() => remove(o.id)} className="text-red-600 hover:underline text-[11px] font-medium cursor-pointer">Delete</button>
                   </td>
                 </tr>
@@ -211,7 +211,7 @@ export default function LegalOverridesPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1">{label}</span>
+      <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</span>
       {children}
     </label>
   );

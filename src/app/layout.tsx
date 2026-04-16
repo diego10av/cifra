@@ -1,42 +1,75 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import SearchBar from "@/components/SearchBar";
-import { ToastProvider } from "@/components/Toaster";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import SearchBar from '@/components/SearchBar';
+import { Logo } from '@/components/Logo';
+import Link from 'next/link';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  title: "Luxembourg VAT Platform",
-  description: "Internal VAT compliance tool for Luxembourg fund entities",
+  title: 'cifra — Luxembourg VAT',
+  description: 'Preparation and filing of Luxembourg VAT returns. Built for tax professionals.',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+    ],
+  },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="h-full antialiased">
-      <body className="min-h-full bg-gray-50 text-gray-900">
-        <ToastProvider>
-        <nav className="bg-[#1a1a2e] text-white px-6 py-2.5 flex items-center justify-between gap-4">
-          <a href="/" className="font-bold text-[15px] tracking-tight whitespace-nowrap">Luxembourg VAT Platform</a>
-          <div className="flex items-center gap-6 text-[13px]">
-            <a href="/entities" className="hover:text-gray-300 transition-colors">Entities</a>
-            <a href="/declarations" className="hover:text-gray-300 transition-colors">Declarations</a>
-            <a href="/deadlines" className="hover:text-gray-300 transition-colors">Deadlines</a>
-            <a href="/aed-letters" className="hover:text-gray-300 transition-colors">AED letters</a>
-            <a href="/registrations" className="hover:text-gray-300 transition-colors">Registrations</a>
-            <a href="/legal-overrides" className="hover:text-gray-300 transition-colors">Overrides</a>
-            <a href="/audit" className="hover:text-gray-300 transition-colors">Audit</a>
-            <a href="/metrics" className="hover:text-gray-300 transition-colors">Metrics</a>
-            <a href="/settings" className="hover:text-gray-300 transition-colors">Settings</a>
-          </div>
-          <SearchBar />
-        </nav>
-        <main className="max-w-7xl mx-auto px-4 py-6">
-          {children}
-        </main>
-        </ToastProvider>
+    <html lang="en" className={`h-full ${inter.variable}`}>
+      <body className="min-h-full bg-canvas text-ink antialiased">
+        <TopNav />
+        <main className="max-w-[1400px] mx-auto px-6 py-8">{children}</main>
       </body>
     </html>
+  );
+}
+
+function TopNav() {
+  return (
+    <nav className="sticky top-0 z-40 bg-surface/85 backdrop-blur-xl border-b border-divider">
+      <div className="max-w-[1400px] mx-auto px-6 h-14 flex items-center justify-between gap-6">
+        <Link href="/" className="shrink-0 focus-visible:outline-none">
+          <Logo />
+        </Link>
+        <NavLinks />
+        <div className="shrink-0"><SearchBar /></div>
+      </div>
+    </nav>
+  );
+}
+
+function NavLinks() {
+  const links: Array<[string, string]> = [
+    ['/', 'Overview'],
+    ['/entities', 'Entities'],
+    ['/declarations', 'Declarations'],
+    ['/deadlines', 'Deadlines'],
+    ['/aed-letters', 'AED'],
+    ['/registrations', 'Registrations'],
+    ['/legal-overrides', 'Overrides'],
+    ['/metrics', 'Metrics'],
+    ['/audit', 'Audit'],
+    ['/settings', 'Settings'],
+  ];
+  return (
+    <div className="hidden md:flex items-center gap-0.5 text-[12.5px]">
+      {links.map(([href, label]) => (
+        <a
+          key={href}
+          href={href}
+          className="px-2.5 h-8 flex items-center rounded-md text-ink-soft hover:text-ink hover:bg-surface-alt transition-colors duration-150"
+        >
+          {label}
+        </a>
+      ))}
+    </div>
   );
 }

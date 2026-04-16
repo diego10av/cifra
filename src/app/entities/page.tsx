@@ -2,313 +2,273 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { PlusIcon, PencilIcon, Trash2Icon, ArrowRightIcon, BuildingIcon } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Field, Input, Select, Label, Textarea } from '@/components/ui/Input';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageSkeleton } from '@/components/ui/Skeleton';
+import { Card, CardHeader, CardBody } from '@/components/ui/Card';
 
 interface Entity {
-  id: string;
-  name: string;
-  vat_number: string | null;
-  matricule: string | null;
-  rcs_number: string | null;
-  legal_form: string | null;
-  entity_type: string | null;
-  regime: string;
-  frequency: string;
-  address: string | null;
-  bank_iban: string | null;
-  bank_bic: string | null;
-  tax_office: string | null;
-  client_name: string | null;
-  client_email: string | null;
-  csp_name: string | null;
-  csp_email: string | null;
-  has_fx: number;
-  has_outgoing: number;
-  has_recharges: number;
-  notes: string | null;
-  created_at: string;
+  id: string; name: string; vat_number: string | null; matricule: string | null;
+  rcs_number: string | null; legal_form: string | null; entity_type: string | null;
+  regime: string; frequency: string; address: string | null;
+  bank_iban: string | null; bank_bic: string | null; tax_office: string | null;
+  client_name: string | null; client_email: string | null;
+  csp_name: string | null; csp_email: string | null;
+  has_fx: number; has_outgoing: number; has_recharges: number;
+  notes: string | null; created_at: string;
 }
 
+const EMPTY = {
+  name: '', vat_number: '', matricule: '', rcs_number: '',
+  legal_form: '', entity_type: '', regime: 'simplified', frequency: 'annual',
+  address: '', bank_iban: '', bank_bic: '', tax_office: '',
+  client_name: '', client_email: '', csp_name: '', csp_email: '',
+  has_fx: false, has_outgoing: false, has_recharges: false, notes: '',
+};
+
 export default function EntitiesPage() {
-  const [entities, setEntities] = useState<Entity[]>([]);
+  const [entities, setEntities] = useState<Entity[] | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [form, setForm] = useState({
-    name: '', vat_number: '', matricule: '', rcs_number: '',
-    legal_form: '', entity_type: '', regime: 'simplified', frequency: 'annual',
-    address: '', bank_iban: '', bank_bic: '', tax_office: '',
-    client_name: '', client_email: '', csp_name: '', csp_email: '',
-    has_fx: false, has_outgoing: false, has_recharges: false, notes: '',
-  });
+  const [form, setForm] = useState(EMPTY);
 
-  useEffect(() => { loadEntities(); }, []);
-
-  async function loadEntities() {
+  useEffect(() => { load(); }, []);
+  async function load() {
     const res = await fetch('/api/entities');
     setEntities(await res.json());
   }
+  function reset() { setForm(EMPTY); setEditId(null); }
 
   async function handleDelete(entity: Entity) {
-    if (!confirm(`Are you sure you want to delete "${entity.name}"? This hides the entity from the list but keeps the data in the database for audit purposes.`)) {
-      return;
-    }
-    const res = await fetch(`/api/entities/${entity.id}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
+    if (!confirm(`Delete "${entity.name}"? This hides it from the list but keeps the data for audit.`)) return;
+    await fetch(`/api/entities/${entity.id}`, {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason: 'user_deleted' }),
     });
-    if (!res.ok) {
-      alert('Failed to delete entity');
-      return;
-    }
-    loadEntities();
-  }
-
-  function resetForm() {
-    setForm({
-      name: '', vat_number: '', matricule: '', rcs_number: '',
-      legal_form: '', entity_type: '', regime: 'simplified', frequency: 'annual',
-      address: '', bank_iban: '', bank_bic: '', tax_office: '',
-      client_name: '', client_email: '', csp_name: '', csp_email: '',
-      has_fx: false, has_outgoing: false, has_recharges: false, notes: '',
-    });
-    setEditId(null);
+    load();
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const url = editId ? `/api/entities/${editId}` : '/api/entities';
-    const method = editId ? 'PUT' : 'POST';
     await fetch(url, {
-      method,
+      method: editId ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
-    resetForm();
+    reset();
     setShowForm(false);
-    loadEntities();
+    load();
   }
 
-  function handleEdit(entity: Entity) {
+  function handleEdit(e: Entity) {
     setForm({
-      name: entity.name || '',
-      vat_number: entity.vat_number || '',
-      matricule: entity.matricule || '',
-      rcs_number: entity.rcs_number || '',
-      legal_form: entity.legal_form || '',
-      entity_type: entity.entity_type || '',
-      regime: entity.regime || 'simplified',
-      frequency: entity.frequency || 'annual',
-      address: entity.address || '',
-      bank_iban: entity.bank_iban || '',
-      bank_bic: entity.bank_bic || '',
-      tax_office: entity.tax_office || '',
-      client_name: entity.client_name || '',
-      client_email: entity.client_email || '',
-      csp_name: entity.csp_name || '',
-      csp_email: entity.csp_email || '',
-      has_fx: !!entity.has_fx,
-      has_outgoing: !!entity.has_outgoing,
-      has_recharges: !!entity.has_recharges,
-      notes: entity.notes || '',
+      name: e.name || '', vat_number: e.vat_number || '', matricule: e.matricule || '',
+      rcs_number: e.rcs_number || '', legal_form: e.legal_form || '', entity_type: e.entity_type || '',
+      regime: e.regime || 'simplified', frequency: e.frequency || 'annual',
+      address: e.address || '', bank_iban: e.bank_iban || '', bank_bic: e.bank_bic || '',
+      tax_office: e.tax_office || '', client_name: e.client_name || '', client_email: e.client_email || '',
+      csp_name: e.csp_name || '', csp_email: e.csp_email || '',
+      has_fx: !!e.has_fx, has_outgoing: !!e.has_outgoing, has_recharges: !!e.has_recharges,
+      notes: e.notes || '',
     });
-    setEditId(entity.id);
+    setEditId(e.id);
     setShowForm(true);
   }
 
+  if (!entities) return <PageSkeleton />;
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Entities</h1>
-        <button
-          onClick={() => { resetForm(); setShowForm(!showForm); }}
-          className="bg-[#1a1a2e] text-white px-4 py-2 rounded text-sm font-semibold hover:bg-[#2a2a4e]"
-        >
-          {showForm ? 'Cancel' : '+ New Entity'}
-        </button>
-      </div>
+      <PageHeader
+        title="Entities"
+        subtitle="Every Luxembourg entity you file for. Set the regime and frequency once — the rest flows automatically."
+        actions={
+          <Button
+            variant="primary"
+            icon={<PlusIcon size={14} />}
+            onClick={() => { reset(); setShowForm(!showForm); }}
+          >
+            {showForm ? 'Cancel' : 'New entity'}
+          </Button>
+        }
+      />
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white border rounded-lg p-6 mb-6">
-          <h2 className="font-semibold mb-4">{editId ? 'Edit Entity' : 'New Entity'}</h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Name *</label>
-              <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">VAT Number</label>
-              <input value={form.vat_number} onChange={e => setForm({...form, vat_number: e.target.value})}
-                placeholder="LU12345678" className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Matricule</label>
-              <input value={form.matricule} onChange={e => setForm({...form, matricule: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">RCS Number</label>
-              <input value={form.rcs_number} onChange={e => setForm({...form, rcs_number: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Legal Form</label>
-              <select value={form.legal_form} onChange={e => setForm({...form, legal_form: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm">
-                <option value="">Select...</option>
-                <option value="SARL">SARL</option>
-                <option value="SCA">SCA</option>
-                <option value="SCS">SCS</option>
-                <option value="SA">SA</option>
-                <option value="SCSp">SCSp</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Entity Type</label>
-              <select value={form.entity_type} onChange={e => setForm({...form, entity_type: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm">
-                <option value="">Select...</option>
-                <option value="fund">Fund</option>
-                <option value="active_holding">Active Holding</option>
-                <option value="gp">General Partner</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Regime *</label>
-              <select value={form.regime} onChange={e => setForm({...form, regime: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm">
-                <option value="simplified">Simplified</option>
-                <option value="ordinary">Ordinary</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Frequency *</label>
-              <select value={form.frequency} onChange={e => setForm({...form, frequency: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm">
-                <option value="annual">Annual</option>
-                <option value="quarterly">Quarterly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-            <div className="col-span-2">
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Address</label>
-              <input value={form.address} onChange={e => setForm({...form, address: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Bank IBAN</label>
-              <input value={form.bank_iban} onChange={e => setForm({...form, bank_iban: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Bank BIC</label>
-              <input value={form.bank_bic} onChange={e => setForm({...form, bank_bic: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Tax Office</label>
-              <input value={form.tax_office} onChange={e => setForm({...form, tax_office: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Client Name</label>
-              <input value={form.client_name} onChange={e => setForm({...form, client_name: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Client Email</label>
-              <input value={form.client_email} onChange={e => setForm({...form, client_email: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">CSP Name</label>
-              <input value={form.csp_name} onChange={e => setForm({...form, csp_name: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">CSP Email</label>
-              <input value={form.csp_email} onChange={e => setForm({...form, csp_email: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm" />
-            </div>
-          </div>
-          <div className="flex gap-6 mt-4">
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.has_fx} onChange={e => setForm({...form, has_fx: e.target.checked})} />
-              Has FX invoices
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.has_outgoing} onChange={e => setForm({...form, has_outgoing: e.target.checked})} />
-              Has outgoing invoices
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={form.has_recharges} onChange={e => setForm({...form, has_recharges: e.target.checked})} />
-              Has recharges
-            </label>
-          </div>
-          <div className="mt-4">
-            <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Notes</label>
-            <textarea value={form.notes} onChange={e => setForm({...form, notes: e.target.value})}
-              rows={2} className="w-full border rounded px-3 py-2 text-sm" />
-          </div>
-          <div className="mt-4 flex gap-2">
-            <button type="submit" className="bg-[#1a1a2e] text-white px-4 py-2 rounded text-sm font-semibold hover:bg-[#2a2a4e]">
-              {editId ? 'Update' : 'Create'} Entity
-            </button>
-            <button type="button" onClick={() => { resetForm(); setShowForm(false); }}
-              className="border px-4 py-2 rounded text-sm">
-              Cancel
-            </button>
-          </div>
-        </form>
+        <Card className="mb-6 animate-fadeIn">
+          <CardHeader title={editId ? 'Edit entity' : 'New entity'} />
+          <CardBody>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-2 gap-4">
+                <Field label="Entity name *">
+                  <Input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                </Field>
+                <Field label="VAT number">
+                  <Input value={form.vat_number} onChange={e => setForm({ ...form, vat_number: e.target.value })} placeholder="LU12345678" />
+                </Field>
+                <Field label="Matricule">
+                  <Input value={form.matricule} onChange={e => setForm({ ...form, matricule: e.target.value })} />
+                </Field>
+                <Field label="RCS number">
+                  <Input value={form.rcs_number} onChange={e => setForm({ ...form, rcs_number: e.target.value })} />
+                </Field>
+                <Field label="Legal form">
+                  <Select value={form.legal_form} onChange={e => setForm({ ...form, legal_form: e.target.value })}>
+                    <option value="">Select…</option>
+                    <option value="SARL">SARL</option>
+                    <option value="SCA">SCA</option>
+                    <option value="SCS">SCS</option>
+                    <option value="SA">SA</option>
+                    <option value="SCSp">SCSp</option>
+                  </Select>
+                </Field>
+                <Field label="Entity type">
+                  <Select value={form.entity_type} onChange={e => setForm({ ...form, entity_type: e.target.value })}>
+                    <option value="">Select…</option>
+                    <option value="fund">Fund</option>
+                    <option value="active_holding">Active holding</option>
+                    <option value="gp">General partner</option>
+                    <option value="other">Other</option>
+                  </Select>
+                </Field>
+                <Field label="Regime *">
+                  <Select value={form.regime} onChange={e => setForm({ ...form, regime: e.target.value })}>
+                    <option value="simplified">Simplified</option>
+                    <option value="ordinary">Ordinary</option>
+                  </Select>
+                </Field>
+                <Field label="Frequency *">
+                  <Select value={form.frequency} onChange={e => setForm({ ...form, frequency: e.target.value })}>
+                    <option value="annual">Annual</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="monthly">Monthly</option>
+                  </Select>
+                </Field>
+                <Field label="Address" className="col-span-2">
+                  <Input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
+                </Field>
+                <Field label="Bank IBAN">
+                  <Input value={form.bank_iban} onChange={e => setForm({ ...form, bank_iban: e.target.value })} />
+                </Field>
+                <Field label="Bank BIC">
+                  <Input value={form.bank_bic} onChange={e => setForm({ ...form, bank_bic: e.target.value })} />
+                </Field>
+                <Field label="Tax office">
+                  <Input value={form.tax_office} onChange={e => setForm({ ...form, tax_office: e.target.value })} />
+                </Field>
+                <Field label="Client name">
+                  <Input value={form.client_name} onChange={e => setForm({ ...form, client_name: e.target.value })} />
+                </Field>
+                <Field label="Client email">
+                  <Input value={form.client_email} onChange={e => setForm({ ...form, client_email: e.target.value })} />
+                </Field>
+                <Field label="CSP name">
+                  <Input value={form.csp_name} onChange={e => setForm({ ...form, csp_name: e.target.value })} />
+                </Field>
+                <Field label="CSP email" className="col-span-2">
+                  <Input value={form.csp_email} onChange={e => setForm({ ...form, csp_email: e.target.value })} />
+                </Field>
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-divider">
+                <Label>Traits</Label>
+                <div className="flex flex-wrap gap-5 mt-1">
+                  <Check label="Has FX invoices" checked={form.has_fx} onChange={v => setForm({ ...form, has_fx: v })} />
+                  <Check label="Has outgoing invoices" checked={form.has_outgoing} onChange={v => setForm({ ...form, has_outgoing: v })} />
+                  <Check label="Has recharges" checked={form.has_recharges} onChange={v => setForm({ ...form, has_recharges: v })} />
+                </div>
+              </div>
+
+              <Field label="Notes" className="mt-4">
+                <Textarea value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} rows={2} />
+              </Field>
+
+              <div className="mt-5 flex gap-2">
+                <Button type="submit" variant="primary">{editId ? 'Save changes' : 'Create entity'}</Button>
+                <Button type="button" variant="secondary" onClick={() => { reset(); setShowForm(false); }}>Cancel</Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
       )}
 
-      <div className="bg-white border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[#1a1a2e] text-white text-xs">
-            <tr>
-              <th className="px-4 py-3 text-left">Client Name</th>
-              <th className="px-4 py-3 text-left">Entity Name</th>
-              <th className="px-4 py-3 text-left">Regime</th>
-              <th className="px-4 py-3 text-left">Frequency</th>
-              <th className="px-4 py-3 text-left">VAT Number</th>
-              <th className="px-4 py-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entities.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No entities yet. Create one to get started.</td></tr>
-            )}
-            {entities.map(entity => (
-              <tr key={entity.id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-600">{entity.client_name || '—'}</td>
-                <td className="px-4 py-3 font-medium">
-                  <Link href={`/entities/${entity.id}`} className="hover:text-blue-600 hover:underline">{entity.name}</Link>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`text-xs px-2 py-0.5 rounded font-medium ${
-                    entity.regime === 'simplified' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
-                  }`}>{entity.regime}</span>
-                </td>
-                <td className="px-4 py-3 text-gray-600">{entity.frequency}</td>
-                <td className="px-4 py-3 text-gray-600">{entity.vat_number || '—'}</td>
-                <td className="px-4 py-3">
-                  <div className="flex gap-3">
-                    <Link href={`/entities/${entity.id}`}
-                      className="text-blue-600 hover:underline text-xs">Open</Link>
-                    <button onClick={() => handleEdit(entity)}
-                      className="text-blue-600 hover:underline text-xs">Edit</button>
-                    <Link href={`/declarations?entity_id=${entity.id}`}
-                      className="text-blue-600 hover:underline text-xs">Declarations</Link>
-                    <button onClick={() => handleDelete(entity)}
-                      className="text-red-600 hover:underline text-xs">Delete</button>
-                  </div>
-                </td>
+      {entities.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={<BuildingIcon size={22} />}
+            title="No entities yet"
+            description="Entities are the Luxembourg legal entities you file VAT for. Start by creating one."
+            action={<Button variant="primary" icon={<PlusIcon size={14} />} onClick={() => setShowForm(true)}>Create entity</Button>}
+          />
+        </Card>
+      ) : (
+        <Card className="overflow-hidden">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-surface-alt border-b border-divider text-ink-muted">
+              <tr>
+                <Th>Client</Th>
+                <Th>Entity</Th>
+                <Th>Regime</Th>
+                <Th>Frequency</Th>
+                <Th>VAT number</Th>
+                <Th />
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {entities.map(entity => (
+                <tr key={entity.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                  <td className="px-4 py-3 text-ink-soft">{entity.client_name || <span className="text-ink-faint">—</span>}</td>
+                  <td className="px-4 py-3">
+                    <Link href={`/entities/${entity.id}`} className="font-medium text-ink hover:text-brand-600 transition-colors">
+                      {entity.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge tone={entity.regime === 'simplified' ? 'info' : 'violet'}>{entity.regime}</Badge>
+                  </td>
+                  <td className="px-4 py-3 text-ink-soft capitalize">{entity.frequency}</td>
+                  <td className="px-4 py-3 text-ink-soft font-mono text-[11.5px]">{entity.vat_number || <span className="text-ink-faint">—</span>}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link href={`/entities/${entity.id}`} className="p-1.5 rounded-md text-ink-muted hover:text-brand-600 hover:bg-surface-alt transition-colors" title="Open">
+                        <ArrowRightIcon size={14} />
+                      </Link>
+                      <button onClick={() => handleEdit(entity)} className="p-1.5 rounded-md text-ink-muted hover:text-ink hover:bg-surface-alt transition-colors" title="Edit">
+                        <PencilIcon size={14} />
+                      </button>
+                      <button onClick={() => handleDelete(entity)} className="p-1.5 rounded-md text-ink-muted hover:text-danger-700 hover:bg-danger-50 transition-colors" title="Delete">
+                        <Trash2Icon size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
     </div>
+  );
+}
+
+function Th({ children }: { children?: React.ReactNode }) {
+  return <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">{children}</th>;
+}
+
+function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <label className="inline-flex items-center gap-2 cursor-pointer text-[12.5px] text-ink-soft hover:text-ink transition-colors">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={e => onChange(e.target.checked)}
+        className="w-4 h-4 rounded border-border accent-brand-500 cursor-pointer"
+      />
+      {label}
+    </label>
   );
 }

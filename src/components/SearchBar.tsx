@@ -80,15 +80,15 @@ export default function SearchBar() {
     <div ref={ref} className="relative w-72">
       <button
         onClick={() => { setOpen(true); requestAnimationFrame(() => inputRef.current?.focus()); }}
-        className="w-full h-8 px-2 rounded border border-white/20 bg-white/5 text-[12px] text-white/70 hover:bg-white/10 transition-colors text-left flex items-center gap-2 cursor-pointer"
+        className="w-full h-8 px-2.5 rounded-md border border-border bg-surface text-[12px] text-ink-muted hover:bg-surface-alt hover:border-border-strong transition-all duration-150 text-left flex items-center gap-2"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span className="flex-1 truncate">Search…</span>
-        <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-white/20 text-white/50 font-mono">⌘K</kbd>
+        <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-border text-ink-faint font-mono">⌘K</kbd>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-[420px] bg-white text-gray-900 border border-gray-200 rounded-lg shadow-2xl overflow-hidden z-50 animate-fadeIn">
+        <div className="absolute right-0 top-full mt-2 w-[420px] bg-surface text-ink border border-border rounded-lg shadow-lg overflow-hidden z-50 animate-fadeInScale">
           <div className="px-3 py-2 border-b border-gray-200">
             <input
               ref={inputRef}
@@ -148,8 +148,8 @@ export default function SearchBar() {
               </>
             )}
           </div>
-          <div className="px-3 py-1.5 border-t border-gray-100 text-[10px] text-gray-400 flex items-center justify-between bg-gray-50">
-            <span>↑↓ to navigate · Enter to open · Esc to close</span>
+          <div className="px-3 py-1.5 border-t border-divider text-[10px] text-ink-muted flex items-center justify-between bg-surface-alt">
+            <span>↑↓ navigate · Enter to open · Esc to close</span>
             <span>{flat.length} result{flat.length === 1 ? '' : 's'}</span>
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function SearchBar() {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="px-3 py-1 text-[10px] uppercase tracking-wide font-semibold text-gray-500 bg-gray-50 border-y border-gray-100">{title}</div>
+      <div className="px-3 py-1 text-[10px] uppercase tracking-[0.06em] font-semibold text-ink-muted bg-surface-alt border-y border-divider">{title}</div>
       {children}
     </div>
   );
@@ -170,13 +170,12 @@ function Item({ active, onClick, children }: { active: boolean; onClick: () => v
   return (
     <button
       onClick={onClick}
-      onMouseEnter={() => {/* highlight not driven here */}}
-      className={`block w-full text-left px-3 py-2 text-[12.5px] transition-colors duration-150 cursor-pointer ${active ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+      className={`block w-full text-left px-3 py-2 text-[12.5px] transition-colors duration-150 ${active ? 'bg-brand-50 text-brand-800' : 'hover:bg-surface-alt'}`}
     >
       {children}
     </button>
   );
 }
 function Tip({ children }: { children: React.ReactNode }) {
-  return <div className="px-3 py-3 text-[12px] text-gray-400">{children}</div>;
+  return <div className="px-3 py-3 text-[12px] text-ink-muted">{children}</div>;
 }

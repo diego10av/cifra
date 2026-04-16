@@ -1,29 +1,23 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, useMemo } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { PlusIcon, ArrowRightIcon, FileTextIcon } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { Card, CardHeader, CardBody } from '@/components/ui/Card';
+import { Field, Input, Select } from '@/components/ui/Input';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { PageSkeleton } from '@/components/ui/Skeleton';
 
-interface Entity {
-  id: string;
-  name: string;
-  regime: string;
-  frequency: string;
-}
-
-interface Declaration {
-  id: string;
-  entity_id: string;
-  entity_name: string;
-  year: number;
-  period: string;
-  status: string;
-  created_at: string;
-}
+interface Entity { id: string; name: string; regime: string; frequency: string; has_outgoing?: number | boolean }
+interface Declaration { id: string; entity_id: string; entity_name: string; year: number; period: string; status: string; created_at: string }
 
 export default function DeclarationsPage() {
   return (
-    <Suspense fallback={<div className="text-center py-12 text-gray-500">Loading...</div>}>
+    <Suspense fallback={<PageSkeleton />}>
       <DeclarationsContent />
     </Suspense>
   );
@@ -33,183 +27,188 @@ function DeclarationsContent() {
   const searchParams = useSearchParams();
   const entityId = searchParams.get('entity_id');
 
-  const [entities, setEntities] = useState<Entity[]>([]);
-  const [declarations, setDeclarations] = useState<Declaration[]>([]);
+  const [entities, setEntities] = useState<Entity[] | null>(null);
+  const [declarations, setDeclarations] = useState<Declaration[] | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ entity_id: entityId || '', year: new Date().getFullYear(), period: '' });
   const [error, setError] = useState('');
 
   useEffect(() => {
     fetch('/api/entities').then(r => r.json()).then(setEntities);
-    loadDeclarations();
+    const url = entityId ? `/api/declarations?entity_id=${entityId}` : '/api/declarations';
+    fetch(url).then(r => r.json()).then(setDeclarations);
   }, [entityId]);
 
-  async function loadDeclarations() {
-    const url = entityId ? `/api/declarations?entity_id=${entityId}` : '/api/declarations';
-    const res = await fetch(url);
-    setDeclarations(await res.json());
-  }
-
-  function getPeriodsForEntity(entityId: string): string[] {
-    const entity = entities.find(e => e.id === entityId);
+  // Smart default: when entity selected, prefill the next unfiled period
+  const periodsForEntity = (id: string): string[] => {
+    const entity = entities?.find(e => e.id === id);
     if (!entity) return ['Y1'];
     if (entity.frequency === 'annual') return ['Y1'];
     if (entity.frequency === 'quarterly') return ['Q1', 'Q2', 'Q3', 'Q4'];
     return ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
-  }
+  };
+
+  // Precompute next suggested (year, period) for selected entity
+  const nextSuggestion = useMemo(() => {
+    if (!form.entity_id || !declarations) return null;
+    const entity = entities?.find(e => e.id === form.entity_id);
+    if (!entity) return null;
+    const taken = new Set(declarations.filter(d => d.entity_id === form.entity_id).map(d => `${d.year}::${d.period}`));
+    const now = new Date();
+    const currentYear = now.getUTCFullYear();
+    // Iterate recent past periods looking for the first unfiled one
+    for (let yOffset = 0; yOffset < 3; yOffset++) {
+      const y = currentYear - yOffset;
+      const periods = periodsForEntity(entity.id);
+      for (let i = periods.length - 1; i >= 0; i--) {
+        const p = periods[i];
+        if (!taken.has(`${y}::${p}`)) return { year: y, period: p };
+      }
+    }
+    return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.entity_id, entities, declarations]);
+
+  useEffect(() => {
+    if (nextSuggestion && !form.period) {
+      setForm(f => ({ ...f, year: nextSuggestion.year, period: nextSuggestion.period }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nextSuggestion]);
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     const res = await fetch('/api/declarations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
-    if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || 'Failed to create declaration');
-      return;
-    }
-    const declaration = await res.json();
-    setShowForm(false);
-    window.location.href = `/declarations/${declaration.id}`;
+    if (!res.ok) { setError((await res.json()).error || 'Failed'); return; }
+    const d = await res.json();
+    window.location.href = `/declarations/${d.id}`;
   }
+
+  if (!entities || !declarations) return <PageSkeleton />;
 
   const selectedEntity = entities.find(e => e.id === form.entity_id);
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">
-          Declarations
-          {entityId && selectedEntity && (
-            <span className="text-lg font-normal text-gray-500 ml-2">for {selectedEntity.name}</span>
-          )}
-        </h1>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="bg-[#1a1a2e] text-white px-4 py-2 rounded text-sm font-semibold hover:bg-[#2a2a4e]"
-        >
-          {showForm ? 'Cancel' : '+ New Declaration'}
-        </button>
-      </div>
+      <PageHeader
+        title={
+          <>
+            Declarations
+            {entityId && selectedEntity && (
+              <span className="text-[16px] text-ink-muted font-normal ml-3">for {selectedEntity.name}</span>
+            )}
+          </>
+        }
+        subtitle="Each declaration follows the lifecycle: uploaded → extracted → classified → reviewed → approved → filed → paid."
+        actions={
+          <Button variant="primary" icon={<PlusIcon size={14} />} onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Cancel' : 'New declaration'}
+          </Button>
+        }
+      />
 
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-white border rounded-lg p-6 mb-6">
-          <h2 className="font-semibold mb-4">New Declaration</h2>
-          {error && <div className="text-red-600 text-sm mb-3 bg-red-50 border border-red-200 rounded px-3 py-2">{error}</div>}
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Entity *</label>
-              <select required value={form.entity_id}
-                onChange={async e => {
-                  const newEntity = e.target.value;
-                  setForm({...form, entity_id: newEntity, period: ''});
-                  // Smart default: suggest next unfiled period for the selected entity
-                  if (newEntity) {
-                    try {
-                      const res = await fetch(`/api/entities/${newEntity}/suggest-period`);
-                      if (res.ok) {
-                        const s = await res.json();
-                        setForm(f => ({ ...f, entity_id: newEntity, year: s.year, period: s.period }));
-                      }
-                    } catch { /* ignore — user fills in manually */ }
-                  }
-                }}
-                className="w-full border rounded px-3 py-2 text-sm">
-                <option value="">Select entity...</option>
-                {entities.map(e => (
-                  <option key={e.id} value={e.id}>{e.name} ({e.regime})</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Year *</label>
-              <select required value={form.year}
-                onChange={e => setForm({...form, year: parseInt(e.target.value)})}
-                className="w-full border rounded px-3 py-2 text-sm">
-                {[2024, 2025, 2026, 2027].map(y => (
-                  <option key={y} value={y}>{y}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase mb-1">Period *</label>
-              <select required value={form.period}
-                onChange={e => setForm({...form, period: e.target.value})}
-                className="w-full border rounded px-3 py-2 text-sm">
-                <option value="">Select period...</option>
-                {form.entity_id && getPeriodsForEntity(form.entity_id).map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="mt-4">
-            <button type="submit" className="bg-[#1a1a2e] text-white px-4 py-2 rounded text-sm font-semibold hover:bg-[#2a2a4e]">
-              Create Declaration
-            </button>
-          </div>
-        </form>
+        <Card className="mb-6 animate-fadeIn">
+          <CardHeader title="New declaration" subtitle={nextSuggestion ? `Suggested next unfiled period: ${nextSuggestion.year} ${nextSuggestion.period}` : undefined} />
+          <CardBody>
+            <form onSubmit={handleCreate}>
+              {error && <div className="text-danger-700 text-[12.5px] mb-3 bg-danger-50 border border-[#F4B9B7] rounded-md px-3 py-2">{error}</div>}
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="Entity *">
+                  <Select required value={form.entity_id}
+                    onChange={e => setForm({ ...form, entity_id: e.target.value, period: '' })}>
+                    <option value="">Select entity…</option>
+                    {entities.map(e => <option key={e.id} value={e.id}>{e.name} ({e.regime})</option>)}
+                  </Select>
+                </Field>
+                <Field label="Year *">
+                  <Select required value={form.year} onChange={e => setForm({ ...form, year: parseInt(e.target.value) })}>
+                    {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
+                  </Select>
+                </Field>
+                <Field label="Period *">
+                  <Select required value={form.period} onChange={e => setForm({ ...form, period: e.target.value })}>
+                    <option value="">Select period…</option>
+                    {form.entity_id && periodsForEntity(form.entity_id).map(p => <option key={p} value={p}>{p}</option>)}
+                  </Select>
+                </Field>
+              </div>
+              <div className="mt-4">
+                <Button type="submit" variant="primary">Create declaration</Button>
+              </div>
+            </form>
+          </CardBody>
+        </Card>
       )}
 
-      <div className="bg-white border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-[#1a1a2e] text-white text-xs">
-            <tr>
-              <th className="px-4 py-3 text-left">Entity</th>
-              <th className="px-4 py-3 text-left">Year</th>
-              <th className="px-4 py-3 text-left">Period</th>
-              <th className="px-4 py-3 text-left">Status</th>
-              <th className="px-4 py-3 text-left">Created</th>
-              <th className="px-4 py-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {declarations.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">
-                No declarations yet.{' '}
-                {entities.length === 0
-                  ? <Link href="/entities" className="text-blue-600 hover:underline">Create an entity first</Link>
-                  : 'Click "New Declaration" to start.'}
-              </td></tr>
-            )}
-            {declarations.map(d => (
-              <tr key={d.id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium">{d.entity_name}</td>
-                <td className="px-4 py-3">{d.year}</td>
-                <td className="px-4 py-3">{d.period}</td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={d.status} />
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{new Date(d.created_at).toLocaleDateString()}</td>
-                <td className="px-4 py-3">
-                  <Link href={`/declarations/${d.id}`} className="text-blue-600 hover:underline text-xs">Open</Link>
-                </td>
+      {declarations.length === 0 ? (
+        <Card>
+          <EmptyState
+            icon={<FileTextIcon size={22} />}
+            title="No declarations yet"
+            description={entities.length === 0
+              ? 'Create an entity first, then start your first declaration.'
+              : 'Click "New declaration" to start your first one.'}
+            action={entities.length === 0 ? (
+              <Link href="/entities"><Button variant="primary">Create an entity</Button></Link>
+            ) : undefined}
+          />
+        </Card>
+      ) : (
+        <Card className="overflow-hidden">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-surface-alt border-b border-divider text-ink-muted">
+              <tr>
+                <Th>Entity</Th>
+                <Th>Year</Th>
+                <Th>Period</Th>
+                <Th>Status</Th>
+                <Th>Created</Th>
+                <Th />
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {declarations.map(d => (
+                <tr key={d.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                  <td className="px-4 py-3 font-medium text-ink">{d.entity_name}</td>
+                  <td className="px-4 py-3 text-ink-soft tabular-nums">{d.year}</td>
+                  <td className="px-4 py-3 text-ink-soft">{d.period}</td>
+                  <td className="px-4 py-3"><StatusPill status={d.status} /></td>
+                  <td className="px-4 py-3 text-ink-muted text-[11.5px]">{new Date(d.created_at).toLocaleDateString('en-GB')}</td>
+                  <td className="px-4 py-3 text-right">
+                    <Link href={`/declarations/${d.id}`} className="inline-flex items-center text-brand-600 hover:text-brand-700 text-[11.5px] font-medium transition-colors gap-1">
+                      Open <ArrowRightIcon size={12} />
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    created: 'bg-gray-100 text-gray-700',
-    uploading: 'bg-blue-100 text-blue-700',
-    extracting: 'bg-purple-100 text-purple-700',
-    classifying: 'bg-yellow-100 text-yellow-700',
-    review: 'bg-orange-100 text-orange-700',
-    approved: 'bg-green-100 text-green-700',
-    filed: 'bg-emerald-100 text-emerald-800',
-    paid: 'bg-teal-100 text-teal-800',
+function Th({ children }: { children?: React.ReactNode }) {
+  return <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">{children}</th>;
+}
+
+function StatusPill({ status }: { status: string }) {
+  const map: Record<string, { tone: 'neutral' | 'info' | 'violet' | 'amber' | 'warning' | 'success' | 'teal'; label: string }> = {
+    created:     { tone: 'neutral', label: 'Created' },
+    uploading:   { tone: 'info',    label: 'Uploading' },
+    extracting:  { tone: 'violet',  label: 'Extracting' },
+    classifying: { tone: 'amber',   label: 'Classifying' },
+    review:      { tone: 'warning', label: 'Review' },
+    approved:    { tone: 'success', label: 'Approved' },
+    filed:       { tone: 'teal',    label: 'Filed' },
+    paid:        { tone: 'success', label: 'Paid' },
   };
-  return (
-    <span className={`text-xs px-2 py-0.5 rounded font-medium ${colors[status] || 'bg-gray-100'}`}>
-      {status.toUpperCase()}
-    </span>
-  );
+  const { tone, label } = map[status] || { tone: 'neutral' as const, label: status };
+  return <Badge tone={tone}>{label}</Badge>;
 }

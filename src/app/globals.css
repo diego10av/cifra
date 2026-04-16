@@ -1,48 +1,184 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════
+ *  cifra — design tokens
+ *  Inspired by Factorial (warm, premium, confident) and Avalara
+ *  (serious, trustworthy). Coral is the brand accent, used sparingly
+ *  over a warm-neutral base.
+ * ═══════════════════════════════════════════════════════════════ */
+
 :root {
-  --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
+  /* ── Typography ───────────────────────────── */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+               Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+               Monaco, Consolas, monospace;
+
+  /* ── Brand: warm coral ────────────────────── */
+  --color-brand-50:  #FFF5F2;
+  --color-brand-100: #FFE4DC;
+  --color-brand-200: #FFC4B3;
+  --color-brand-300: #FF9F85;
+  --color-brand-400: #FF7855;
+  --color-brand-500: #FF5A35;  /* primary — the cifra coral */
+  --color-brand-600: #E84420;
+  --color-brand-700: #C03314;
+  --color-brand-800: #95270F;
+  --color-brand-900: #6D1C0C;
+
+  /* ── Neutrals: warm off-whites and greys ──── */
+  --color-canvas:       #FAF8F6;  /* page background */
+  --color-surface:      #FFFFFF;  /* cards */
+  --color-surface-alt:  #F6F3F0;  /* subtle fills */
+
+  --color-border:       #E8E3DC;
+  --color-border-strong:#D4CEC5;
+  --color-divider:      #F0ECE6;
+
+  --color-ink:          #1A1614;  /* primary text */
+  --color-ink-soft:     #433D39;  /* secondary text */
+  --color-ink-muted:    #7A716B;  /* tertiary text */
+  --color-ink-faint:    #B5ACA3;  /* placeholder/disabled */
+
+  /* ── Semantic colours (compliance-safe) ──── */
+  --color-success-50:   #EDFDF5;
+  --color-success-500:  #0E9F6E;
+  --color-success-700:  #056E4B;
+
+  --color-warning-50:   #FEF6E7;
+  --color-warning-500:  #E0A207;
+  --color-warning-700:  #9A6B03;
+
+  --color-danger-50:    #FEECEB;
+  --color-danger-500:   #D62828;
+  --color-danger-700:   #9C1212;
+
+  --color-info-50:      #EEF4FB;
+  --color-info-500:     #3B82F6;
+  --color-info-700:     #1E5AC6;
+
+  /* ── Elevation ────────────────────────────── */
+  --shadow-xs: 0 1px 2px 0 rgba(26, 22, 20, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(26, 22, 20, 0.06), 0 1px 2px -1px rgba(26, 22, 20, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(26, 22, 20, 0.07), 0 2px 4px -2px rgba(26, 22, 20, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(26, 22, 20, 0.08), 0 4px 6px -4px rgba(26, 22, 20, 0.05);
+  --shadow-focus: 0 0 0 3px rgba(255, 90, 53, 0.18);
+
+  /* ── Radii ────────────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 }
 
-html,
-body {
+/* ── Tailwind v4 theme bindings ──────────────── */
+@theme inline {
+  --color-brand-50:  var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+
+  --color-canvas:      var(--color-canvas);
+  --color-surface:     var(--color-surface);
+  --color-surface-alt: var(--color-surface-alt);
+  --color-border:      var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-divider:     var(--color-divider);
+  --color-ink:         var(--color-ink);
+  --color-ink-soft:    var(--color-ink-soft);
+  --color-ink-muted:   var(--color-ink-muted);
+  --color-ink-faint:   var(--color-ink-faint);
+  --color-success-50:  var(--color-success-50);
+  --color-success-500: var(--color-success-500);
+  --color-success-700: var(--color-success-700);
+  --color-warning-50:  var(--color-warning-50);
+  --color-warning-500: var(--color-warning-500);
+  --color-warning-700: var(--color-warning-700);
+  --color-danger-50:   var(--color-danger-50);
+  --color-danger-500:  var(--color-danger-500);
+  --color-danger-700:  var(--color-danger-700);
+  --color-info-50:     var(--color-info-50);
+  --color-info-500:    var(--color-info-500);
+  --color-info-700:    var(--color-info-700);
+}
+
+/* ── Base ────────────────────────────────────── */
+html, body {
   font-family: var(--font-sans);
-  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01", "ss02";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  color: var(--color-ink);
+  background: var(--color-canvas);
 }
 
-button,
-[role="button"],
-[data-clickable="true"] {
-  cursor: pointer;
+body { min-height: 100vh; }
+
+/* ── Cursors ────────────────────────────────── */
+button, [role="button"], a[href], [data-clickable="true"] { cursor: pointer; }
+button:disabled, [role="button"][aria-disabled="true"] { cursor: not-allowed; }
+input[type="text"], input[type="number"], input[type="date"],
+input[type="email"], input[type="password"], textarea { cursor: text; }
+
+/* ── Focus ──────────────────────────────────── */
+*:focus { outline: none; }
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-color: var(--color-brand-500);
 }
 
-button:disabled,
-[role="button"][aria-disabled="true"] {
-  cursor: not-allowed;
+/* ── Selection ──────────────────────────────── */
+::selection {
+  background: var(--color-brand-100);
+  color: var(--color-brand-900);
 }
 
-input[type="text"],
-input[type="number"],
-input[type="date"],
-input[type="email"],
-input[type="password"],
-textarea {
-  cursor: text;
-}
-
+/* ── Animations ─────────────────────────────── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.animate-fadeIn {
-  animation: fadeIn 120ms ease-out;
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Nicer scrollbars for data-heavy views */
+.animate-fadeIn { animation: fadeIn 140ms cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-fadeInScale { animation: fadeInScale 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+.animate-slideInRight { animation: slideInRight 160ms cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* ── Skeleton ───────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-alt) 0%,
+    var(--color-divider) 50%,
+    var(--color-surface-alt) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Scrollbars ─────────────────────────────── */
 .overflow-x-auto::-webkit-scrollbar,
 .overflow-y-auto::-webkit-scrollbar,
 .overflow-auto::-webkit-scrollbar {
@@ -52,16 +188,19 @@ textarea {
 .overflow-x-auto::-webkit-scrollbar-thumb,
 .overflow-y-auto::-webkit-scrollbar-thumb,
 .overflow-auto::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
-  border-radius: 5px;
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
 }
 .overflow-x-auto::-webkit-scrollbar-thumb:hover,
 .overflow-y-auto::-webkit-scrollbar-thumb:hover,
 .overflow-auto::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: var(--color-ink-muted);
 }
 .overflow-x-auto::-webkit-scrollbar-track,
 .overflow-y-auto::-webkit-scrollbar-track,
 .overflow-auto::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ── Utility: tabular numerals everywhere ───── */
+.tabular-nums { font-variant-numeric: tabular-nums; }

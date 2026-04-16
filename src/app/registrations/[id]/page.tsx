@@ -51,7 +51,7 @@ export default function RegistrationDetailPage() {
     } finally { setSaving(false); }
   }
 
-  if (!data) return <div className="text-center py-12 text-gray-500">Loading…</div>;
+  if (!data) return <div className="text-center py-12 text-ink-muted">Loading…</div>;
 
   const checklist: ChecklistItem[] = typeof data.docs_checklist === 'string'
     ? JSON.parse(data.docs_checklist || '[]')
@@ -76,24 +76,24 @@ export default function RegistrationDetailPage() {
   return (
     <div>
       <div className="mb-5">
-        <div className="text-[11px] text-gray-400 mb-1">
+        <div className="text-[11px] text-ink-faint mb-1">
           <Link href="/registrations" className="hover:underline">Registrations</Link> ›
         </div>
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-[20px] font-semibold tracking-tight">{data.entity_name}</h1>
-            <div className="text-[12px] text-gray-500 mt-1">
+            <div className="text-[12px] text-ink-muted mt-1">
               Registration · <span className="capitalize">{data.regime_requested}</span>
               {data.frequency_requested && <> · <span className="capitalize">{data.frequency_requested}</span></>}
               {data.tax_office && <> · {data.tax_office}</>}
             </div>
           </div>
-          <span className="text-[10px] text-gray-400">{saving ? 'Saving…' : savedAt ? `Saved ${savedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
+          <span className="text-[10px] text-ink-faint">{saving ? 'Saving…' : savedAt ? `Saved ${savedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : ''}</span>
         </div>
       </div>
 
       {/* Status pipeline */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-5">
+      <div className="bg-surface border border-border rounded-lg p-4 mb-5">
         <div className="grid grid-cols-5 gap-3">
           {STATUS_FLOW.map((s, i) => (
             <PipelineStep
@@ -109,10 +109,10 @@ export default function RegistrationDetailPage() {
       </div>
 
       {/* Checklist */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-5">
+      <div className="bg-surface border border-border rounded-lg p-4 mb-5">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[13px] font-semibold text-gray-900">
-            Document checklist <span className="text-gray-400 font-normal ml-1">({doneCount}/{totalCount})</span>
+          <h3 className="text-[13px] font-semibold text-ink">
+            Document checklist <span className="text-ink-faint font-normal ml-1">({doneCount}/{totalCount})</span>
           </h3>
           {allDocsDone && data.status === 'docs_requested' && (
             <button
@@ -124,9 +124,9 @@ export default function RegistrationDetailPage() {
           )}
         </div>
         <div className="space-y-2">
-          {checklist.length === 0 && <div className="text-[12px] text-gray-400">No checklist defined.</div>}
+          {checklist.length === 0 && <div className="text-[12px] text-ink-faint">No checklist defined.</div>}
           {checklist.map(item => (
-            <div key={item.key} className={`flex items-start gap-3 p-2.5 rounded border ${item.done ? 'bg-emerald-50/40 border-emerald-200' : 'border-gray-200'}`}>
+            <div key={item.key} className={`flex items-start gap-3 p-2.5 rounded border ${item.done ? 'bg-emerald-50/40 border-emerald-200' : 'border-border'}`}>
               <input
                 type="checkbox"
                 checked={!!item.done}
@@ -137,13 +137,13 @@ export default function RegistrationDetailPage() {
                 className="mt-0.5 w-4 h-4 cursor-pointer"
               />
               <div className="flex-1">
-                <div className="text-[12.5px] font-medium text-gray-900">
+                <div className="text-[12.5px] font-medium text-ink">
                   {item.label}
                   {item.required_for !== 'all' && (
-                    <span className="ml-2 text-[10px] text-gray-400 font-normal">({item.required_for} only)</span>
+                    <span className="ml-2 text-[10px] text-ink-faint font-normal">({item.required_for} only)</span>
                   )}
                 </div>
-                <div className="text-[11px] text-gray-500 mt-0.5">{item.description}</div>
+                <div className="text-[11px] text-ink-muted mt-0.5">{item.description}</div>
                 {item.done && item.received_at && (
                   <div className="text-[10px] text-emerald-700 mt-0.5">Received {item.received_at}</div>
                 )}
@@ -155,15 +155,15 @@ export default function RegistrationDetailPage() {
 
       {/* Form preparation + filing details */}
       <div className="grid grid-cols-2 gap-4 mb-5">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-[13px] font-semibold text-gray-900 mb-3">Filing details</h3>
+        <div className="bg-surface border border-border rounded-lg p-4">
+          <h3 className="text-[13px] font-semibold text-ink mb-3">Filing details</h3>
           <div className="space-y-3">
             <FieldRow label="Filing reference">
               <input
                 defaultValue={data.filing_ref || ''}
                 onBlur={e => patch({ filing_ref: e.target.value || null })}
                 placeholder="MyGuichet reference number"
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </FieldRow>
             <FieldRow label="Filed on">
@@ -171,15 +171,15 @@ export default function RegistrationDetailPage() {
                 type="date"
                 defaultValue={(data.filed_at || '').slice(0, 10)}
                 onBlur={e => patch({ filed_at: e.target.value || null })}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </FieldRow>
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-[13px] font-semibold text-gray-900 mb-3">AED issuance</h3>
-          <p className="text-[11px] text-gray-500 mb-3">
+        <div className="bg-surface border border-border rounded-lg p-4">
+          <h3 className="text-[13px] font-semibold text-ink mb-3">AED issuance</h3>
+          <p className="text-[11px] text-ink-muted mb-3">
             Once the AED letter arrives, record the issued matricule and VAT number here. Marking the registration as &quot;vat received&quot; will sync these onto the entity automatically.
           </p>
           <div className="space-y-3">
@@ -187,14 +187,14 @@ export default function RegistrationDetailPage() {
               <input
                 defaultValue={data.issued_matricule || ''}
                 onBlur={e => patch({ issued_matricule: e.target.value || null })}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] font-mono focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </FieldRow>
             <FieldRow label="VAT number (LUxxxxxxxx)">
               <input
                 defaultValue={data.issued_vat_number || ''}
                 onBlur={e => patch({ issued_vat_number: e.target.value || null })}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] font-mono focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </FieldRow>
             <FieldRow label="Received on">
@@ -202,7 +202,7 @@ export default function RegistrationDetailPage() {
                 type="date"
                 defaultValue={(data.vat_received_at || '').slice(0, 10)}
                 onBlur={e => patch({ vat_received_at: e.target.value || null })}
-                className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </FieldRow>
           </div>
@@ -210,41 +210,41 @@ export default function RegistrationDetailPage() {
       </div>
 
       {/* Comments field */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-5">
-        <h3 className="text-[13px] font-semibold text-gray-900 mb-2">Section 31 — Comments to AED form</h3>
-        <p className="text-[11px] text-gray-500 mb-2">
+      <div className="bg-surface border border-border rounded-lg p-4 mb-5">
+        <h3 className="text-[13px] font-semibold text-ink mb-2">Section 31 — Comments to AED form</h3>
+        <p className="text-[11px] text-ink-muted mb-2">
           For simplified regime: invoke <strong>Circular 723 (29 December 2006)</strong>, state no output VAT, request simplified regime.
         </p>
         <textarea
           defaultValue={data.comments_field || ''}
           onBlur={e => patch({ comments_field: e.target.value || null })}
           rows={4}
-          className="w-full border border-gray-300 rounded px-3 py-2 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+          className="w-full border border-border-strong rounded px-3 py-2 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
       {/* Internal notes */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-5">
-        <h3 className="text-[13px] font-semibold text-gray-900 mb-2">Internal notes</h3>
+      <div className="bg-surface border border-border rounded-lg p-4 mb-5">
+        <h3 className="text-[13px] font-semibold text-ink mb-2">Internal notes</h3>
         <textarea
           defaultValue={data.notes || ''}
           onBlur={e => patch({ notes: e.target.value || null })}
           rows={3}
           placeholder="Engagement context, special arrangements, reminders…"
-          className="w-full border border-gray-300 rounded px-3 py-2 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+          className="w-full border border-border-strong rounded px-3 py-2 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
       </div>
 
       {/* Audit */}
       {data.audit.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <h3 className="text-[13px] font-semibold text-gray-900 mb-3">Activity</h3>
+        <div className="bg-surface border border-border rounded-lg p-4">
+          <h3 className="text-[13px] font-semibold text-ink mb-3">Activity</h3>
           <div className="space-y-1">
             {data.audit.map((a, i) => (
               <div key={i} className="text-[11px] flex items-center gap-2">
-                <span className="text-gray-400 w-32">{new Date(a.created_at).toLocaleString('en-GB')}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 font-medium">{a.action}</span>
-                <span className="text-gray-500">{a.field}: {a.old_value || '—'} → {a.new_value || '—'}</span>
+                <span className="text-ink-faint w-32">{new Date(a.created_at).toLocaleString('en-GB')}</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-alt text-ink-soft font-medium">{a.action}</span>
+                <span className="text-ink-muted">{a.field}: {a.old_value || '—'} → {a.new_value || '—'}</span>
               </div>
             ))}
           </div>
@@ -261,15 +261,15 @@ function PipelineStep({ label, done, active, available, onClick }: {
   const cls = done
     ? `${base} bg-emerald-50 border-emerald-200`
     : active
-      ? `${base} bg-[#1a1a2e] border-[#1a1a2e] text-white`
-      : `${base} bg-white border-gray-200 ${available ? 'hover:border-gray-300 cursor-pointer' : 'opacity-50 cursor-not-allowed'}`;
+      ? `${base} bg-brand-500 border-[#1a1a2e] text-white`
+      : `${base} bg-surface border-border ${available ? 'hover:border-border-strong cursor-pointer' : 'opacity-50 cursor-not-allowed'}`;
   return (
     <button
       onClick={available ? onClick : undefined}
       disabled={!available}
       className={cls}
     >
-      <div className={`text-[11px] font-semibold uppercase tracking-wide ${done ? 'text-emerald-700' : active ? 'text-white' : 'text-gray-700'}`}>
+      <div className={`text-[11px] font-semibold uppercase tracking-wide ${done ? 'text-emerald-700' : active ? 'text-white' : 'text-ink-soft'}`}>
         {label}
       </div>
       {done && <div className="text-[16px] mt-0.5 text-emerald-600">✓</div>}
@@ -280,7 +280,7 @@ function PipelineStep({ label, done, active, available, onClick }: {
 function FieldRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1">{label}</div>
+      <div className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</div>
       {children}
     </div>
   );

@@ -82,7 +82,7 @@ export default function AEDLettersPage() {
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-[20px] font-semibold tracking-tight">AED communications</h1>
-          <p className="text-[12px] text-gray-500 mt-1">
+          <p className="text-[12px] text-ink-muted mt-1">
             Letters received from the Luxembourg tax authority. Auto-classified by Claude on upload.
           </p>
         </div>
@@ -94,19 +94,19 @@ export default function AEDLettersPage() {
 
       <div className="grid grid-cols-3 gap-3 mb-5">
         <KPI label="Total letters" value={counts.total} />
-        <KPI label="High urgency open" value={counts.high} color={counts.high > 0 ? 'text-red-600' : 'text-gray-400'} />
-        <KPI label="Open" value={counts.open} color={counts.open > 0 ? 'text-orange-600' : 'text-gray-400'} />
+        <KPI label="High urgency open" value={counts.high} color={counts.high > 0 ? 'text-red-600' : 'text-ink-faint'} />
+        <KPI label="Open" value={counts.open} color={counts.open > 0 ? 'text-orange-600' : 'text-ink-faint'} />
       </div>
 
       {/* Upload */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-5">
+      <div className="bg-surface border border-border rounded-lg p-4 mb-5">
         <div className="flex items-end gap-3">
           <div className="flex-1">
-            <label className="block text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1">Entity (optional)</label>
+            <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Entity (optional)</label>
             <select
               value={selectedEntity}
               onChange={e => setSelectedEntity(e.target.value)}
-              className="w-full border border-gray-300 rounded px-2 py-1.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             >
               <option value="">— unassigned —</option>
               {entities.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
@@ -117,7 +117,7 @@ export default function AEDLettersPage() {
           <button
             onClick={() => fileInput.current?.click()}
             disabled={uploading}
-            className="h-9 px-4 rounded bg-[#1a1a2e] text-white text-[12px] font-semibold hover:bg-[#2a2a4e] disabled:opacity-40 cursor-pointer transition-all duration-150"
+            className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-40 cursor-pointer transition-all duration-150"
           >
             {uploading ? 'Uploading & classifying…' : 'Upload AED letter'}
           </button>
@@ -125,12 +125,12 @@ export default function AEDLettersPage() {
       </div>
 
       {/* Letters table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-surface border border-border rounded-lg overflow-hidden">
         {visible.length === 0 ? (
-          <div className="p-8 text-center text-[12px] text-gray-400">No letters yet.</div>
+          <div className="p-8 text-center text-[12px] text-ink-faint">No letters yet.</div>
         ) : (
           <table className="w-full text-[12px]">
-            <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
+            <thead className="bg-surface-alt text-ink-soft border-b border-border">
               <tr>
                 <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Type</th>
                 <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Entity</th>
@@ -145,22 +145,22 @@ export default function AEDLettersPage() {
             </thead>
             <tbody>
               {visible.map(l => (
-                <tr key={l.id} className="border-b border-gray-100 last:border-0 hover:bg-gray-50/60 transition-colors duration-150">
+                <tr key={l.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
                   <td className="px-3 py-2"><TypePill type={l.type} /></td>
-                  <td className="px-3 py-2 text-gray-700">{l.entity_name || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-3 py-2 text-gray-600 font-mono text-[11px]">{l.reference || '—'}</td>
-                  <td className="px-3 py-2 text-gray-700 max-w-md">
-                    <div className="line-clamp-2">{l.summary || <button onClick={() => openLetter(l.id)} className="text-blue-600 hover:underline cursor-pointer">Open to review</button>}</div>
+                  <td className="px-3 py-2 text-ink-soft">{l.entity_name || <span className="text-ink-faint">—</span>}</td>
+                  <td className="px-3 py-2 text-ink-soft font-mono text-[11px]">{l.reference || '—'}</td>
+                  <td className="px-3 py-2 text-ink-soft max-w-md">
+                    <div className="line-clamp-2">{l.summary || <button onClick={() => openLetter(l.id)} className="text-brand-600 hover:underline cursor-pointer">Open to review</button>}</div>
                   </td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums text-gray-700">{l.amount != null ? `€${Number(l.amount).toLocaleString('en-LU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}</td>
-                  <td className="px-3 py-2 text-gray-700">{formatDate(l.deadline_date)}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums text-ink-soft">{l.amount != null ? `€${Number(l.amount).toLocaleString('en-LU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}</td>
+                  <td className="px-3 py-2 text-ink-soft">{formatDate(l.deadline_date)}</td>
                   <td className="px-3 py-2"><UrgencyPill urgency={l.urgency} /></td>
                   <td className="px-3 py-2"><StatusPill status={l.status} /></td>
                   <td className="px-3 py-2 text-right whitespace-nowrap">
-                    <button onClick={() => openLetter(l.id)} className="text-blue-600 hover:underline text-[11px] font-medium cursor-pointer">View</button>
-                    {l.status === 'received' && <> · <button onClick={() => setStatus(l.id, 'reviewed')} className="text-blue-600 hover:underline text-[11px] font-medium cursor-pointer">Mark reviewed</button></>}
-                    {l.status === 'reviewed' && <> · <button onClick={() => setStatus(l.id, 'actioned')} className="text-blue-600 hover:underline text-[11px] font-medium cursor-pointer">Mark actioned</button></>}
-                    {l.status !== 'archived' && <> · <button onClick={() => setStatus(l.id, 'archived')} className="text-gray-400 hover:underline text-[11px] cursor-pointer">Archive</button></>}
+                    <button onClick={() => openLetter(l.id)} className="text-brand-600 hover:underline text-[11px] font-medium cursor-pointer">View</button>
+                    {l.status === 'received' && <> · <button onClick={() => setStatus(l.id, 'reviewed')} className="text-brand-600 hover:underline text-[11px] font-medium cursor-pointer">Mark reviewed</button></>}
+                    {l.status === 'reviewed' && <> · <button onClick={() => setStatus(l.id, 'actioned')} className="text-brand-600 hover:underline text-[11px] font-medium cursor-pointer">Mark actioned</button></>}
+                    {l.status !== 'archived' && <> · <button onClick={() => setStatus(l.id, 'archived')} className="text-ink-faint hover:underline text-[11px] cursor-pointer">Archive</button></>}
                   </td>
                 </tr>
               ))}
@@ -173,40 +173,40 @@ export default function AEDLettersPage() {
 }
 
 function TypePill({ type }: { type: string | null }) {
-  if (!type) return <span className="text-[10px] text-gray-400">—</span>;
+  if (!type) return <span className="text-[10px] text-ink-faint">—</span>;
   const map: Record<string, string> = {
-    extrait_de_compte: 'bg-gray-100 text-gray-700',
+    extrait_de_compte: 'bg-surface-alt text-ink-soft',
     fixation_d_acompte: 'bg-red-100 text-red-700',
     bulletin_d_information: 'bg-amber-100 text-amber-700',
     demande_de_renseignements: 'bg-orange-100 text-orange-700',
-    other: 'bg-gray-100 text-gray-600',
+    other: 'bg-surface-alt text-ink-soft',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${map[type] || 'bg-gray-100'}`}>{type.replace(/_/g, ' ')}</span>;
+  return <span className={`text-[10px] px-2 py-0.5 rounded font-medium ${map[type] || 'bg-surface-alt'}`}>{type.replace(/_/g, ' ')}</span>;
 }
 function UrgencyPill({ urgency }: { urgency: string | null }) {
-  if (!urgency) return <span className="text-[10px] text-gray-400">—</span>;
+  if (!urgency) return <span className="text-[10px] text-ink-faint">—</span>;
   const map: Record<string, string> = {
     high: 'bg-red-100 text-red-700',
     medium: 'bg-amber-100 text-amber-700',
-    low: 'bg-gray-100 text-gray-600',
+    low: 'bg-surface-alt text-ink-soft',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${map[urgency] || 'bg-gray-100'}`}>{urgency}</span>;
+  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${map[urgency] || 'bg-surface-alt'}`}>{urgency}</span>;
 }
 function StatusPill({ status }: { status: string }) {
   const map: Record<string, string> = {
     received: 'bg-blue-100 text-blue-700',
     reviewed: 'bg-purple-100 text-purple-700',
     actioned: 'bg-green-100 text-green-700',
-    archived: 'bg-gray-100 text-gray-500',
+    archived: 'bg-surface-alt text-ink-muted',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${map[status] || 'bg-gray-100'}`}>{status}</span>;
+  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${map[status] || 'bg-surface-alt'}`}>{status}</span>;
 }
 function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
       className={`h-7 px-2.5 rounded text-[11px] font-medium transition-colors duration-150 cursor-pointer ${
-        active ? 'bg-[#1a1a2e] text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+        active ? 'bg-brand-500 text-white' : 'border border-border-strong text-ink-soft hover:bg-surface-alt'
       }`}
     >
       {children}
@@ -215,9 +215,9 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
 }
 function KPI({ label, value, color }: { label: string; value: number | string; color?: string }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-3">
-      <div className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold">{label}</div>
-      <div className={`text-2xl font-bold mt-1 tabular-nums ${color || 'text-gray-900'}`}>{value}</div>
+    <div className="bg-surface border border-border rounded-lg p-3">
+      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
+      <div className={`text-2xl font-bold mt-1 tabular-nums ${color || 'text-ink'}`}>{value}</div>
     </div>
   );
 }

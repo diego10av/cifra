@@ -484,7 +484,7 @@ export default function DeclarationDetailPage() {
     };
   }, [isDraggingDivider]);
 
-  if (!data) return <div className="text-center py-12 text-gray-500">Loading...</div>;
+  if (!data) return <div className="text-center py-12 text-ink-muted">Loading...</div>;
 
   const activeLines = data.lines.filter(l => l.state !== 'deleted');
   const deletedLines = data.lines.filter(l => l.state === 'deleted');
@@ -514,13 +514,13 @@ export default function DeclarationDetailPage() {
           {/* Header */}
           <header className="flex items-start justify-between mb-5">
             <div>
-              <h1 className="text-[20px] font-semibold text-gray-900 tracking-tight">
+              <h1 className="text-[20px] font-semibold text-ink tracking-tight">
                 {data.entity_name}
-                <span className="text-gray-400 font-normal ml-2">— {data.year} {data.period}</span>
+                <span className="text-ink-faint font-normal ml-2">— {data.year} {data.period}</span>
               </h1>
-              <div className="flex items-center gap-2 mt-1.5 text-[12px] text-gray-500">
+              <div className="flex items-center gap-2 mt-1.5 text-[12px] text-ink-muted">
                 <span className="capitalize">{data.regime}</span>
-                <span className="text-gray-300">•</span>
+                <span className="text-ink-faint">•</span>
                 <span>{data.vat_number}</span>
                 <StatusBadge status={data.status} />
               </div>
@@ -530,7 +530,7 @@ export default function DeclarationDetailPage() {
                 <button
                   onClick={handleFillFx}
                   disabled={fillingFx}
-                  className="h-8 px-3 rounded border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   title="Fetch ECB reference rates for non-EUR invoices"
                 >
                   {fillingFx ? 'Fetching…' : 'Fetch FX rates'}
@@ -540,7 +540,7 @@ export default function DeclarationDetailPage() {
                 <button
                   onClick={handleClassify}
                   disabled={classifying}
-                  className="h-8 px-3 rounded border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {classifying ? 'Classifying…' : 'Re-run rules'}
                 </button>
@@ -585,12 +585,12 @@ export default function DeclarationDetailPage() {
           )}
 
           {/* Reconciliation card */}
-          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+          <div className="bg-surface border border-border rounded-lg p-4 mb-4">
             <div className="grid grid-cols-6 gap-4">
               <Stat label="Uploaded" value={data.documentStats.total} />
               <Stat label="Invoices" value={data.documentStats.invoices} color="text-blue-600" />
-              <Stat label="Excluded" value={excludedDocs.length + deletedLines.length} color="text-gray-400" />
-              <Stat label="Errors" value={data.documentStats.errors} color={data.documentStats.errors > 0 ? 'text-red-600' : 'text-gray-400'} />
+              <Stat label="Excluded" value={excludedDocs.length + deletedLines.length} color="text-ink-faint" />
+              <Stat label="Errors" value={data.documentStats.errors} color={data.documentStats.errors > 0 ? 'text-red-600' : 'text-ink-faint'} />
               <Stat label="Lines" value={activeLines.length} />
               <Stat label="Total EUR" value={totalExVat.toLocaleString('en-LU', { minimumFractionDigits: 2 })} small />
             </div>
@@ -602,7 +602,7 @@ export default function DeclarationDetailPage() {
               {/* Invoice upload */}
               <div
                 className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-150 ${
-                  dragOver ? 'border-[#1a1a2e] bg-blue-50' : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
+                  dragOver ? 'border-[#1a1a2e] bg-blue-50' : 'border-border-strong bg-surface hover:border-gray-400 hover:bg-surface-alt'
                 }`}
                 onClick={() => fileInput.current?.click()}
                 onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -611,21 +611,21 @@ export default function DeclarationDetailPage() {
               >
                 <input ref={fileInput} type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.docx,.doc"
                   className="hidden" onChange={e => e.target.files && handleUpload(e.target.files)} />
-                <div className="text-[11px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Invoices</div>
-                <div className="text-[12px] text-gray-600">
+                <div className="text-[11px] text-ink-faint uppercase tracking-wide font-semibold mb-1">Invoices</div>
+                <div className="text-[12px] text-ink-soft">
                   {uploading ? 'Uploading…' : 'Drop PDFs here or click to browse'}
                 </div>
               </div>
 
               {/* Precedents upload */}
               <div
-                className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-150 border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50"
+                className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-150 border-border-strong bg-surface hover:border-gray-400 hover:bg-surface-alt"
                 onClick={() => precedentInput.current?.click()}
               >
                 <input ref={precedentInput} type="file" accept=".xlsx,.xls"
                   className="hidden" onChange={e => e.target.files && handlePrecedentUpload(e.target.files)} />
-                <div className="text-[11px] text-gray-400 uppercase tracking-wide font-semibold mb-1">Prior-year appendix</div>
-                <div className="text-[12px] text-gray-600">
+                <div className="text-[11px] text-ink-faint uppercase tracking-wide font-semibold mb-1">Prior-year appendix</div>
+                <div className="text-[12px] text-ink-soft">
                   {uploadingPrecedents ? 'Parsing Excel…' : 'Upload .xlsx to seed precedents'}
                 </div>
                 {precedentToast && (
@@ -637,14 +637,14 @@ export default function DeclarationDetailPage() {
 
           {/* Pending documents */}
           {pendingDocs.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg mb-4 overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-                <h3 className="text-[13px] font-semibold text-gray-900">Documents ({pendingDocs.length})</h3>
+            <div className="bg-surface border border-border rounded-lg mb-4 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-border flex items-center justify-between bg-surface-alt">
+                <h3 className="text-[13px] font-semibold text-ink">Documents ({pendingDocs.length})</h3>
                 {pendingDocs.some(d => d.status === 'uploaded' || d.status === 'error') && (
                   <button
                     onClick={handleExtract}
                     disabled={extracting}
-                    className="h-7 px-3 rounded bg-[#1a1a2e] text-white text-[11px] font-semibold hover:bg-[#2a2a4e] transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
+                    className="h-7 px-3 rounded bg-brand-500 text-white text-[11px] font-semibold hover:bg-brand-600 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
                   >
                     {extracting && <Spinner small />}
                     {extracting ? 'Extracting…' : pendingDocs.some(d => d.status === 'error') ? 'Retry all errors' : 'Extract all'}
@@ -700,7 +700,7 @@ export default function DeclarationDetailPage() {
               <button
                 onClick={handleAddOutgoing}
                 disabled={pendingAction === 'add-outgoing'}
-                className="h-7 px-2.5 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="h-7 px-2.5 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 + Add outgoing invoice
               </button>
@@ -732,9 +732,9 @@ export default function DeclarationDetailPage() {
           {excludedDocs.length === 0 && deletedLines.length === 0 ? (
             <EmptyBlock>No excluded items.</EmptyBlock>
           ) : (
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-surface border border-border rounded-lg overflow-hidden">
               <table className="w-full text-[12px]">
-                <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
+                <thead className="bg-surface-alt text-ink-soft border-b border-border">
                   <tr>
                     <th className="px-3 py-2 text-left font-medium">Source</th>
                     <th className="px-3 py-2 text-left font-medium">Reason</th>
@@ -749,8 +749,8 @@ export default function DeclarationDetailPage() {
                       <tr
                         key={doc.id} id={`row-doc-${doc.id}`}
                         onClick={() => openPreviewForDoc(doc)}
-                        className={`border-b border-gray-100 last:border-0 transition-colors duration-150 cursor-pointer ${
-                          preview?.rowKey === `doc-${doc.id}` ? 'bg-blue-50' : 'hover:bg-gray-50'
+                        className={`border-b border-divider last:border-0 transition-colors duration-150 cursor-pointer ${
+                          preview?.rowKey === `doc-${doc.id}` ? 'bg-blue-50' : 'hover:bg-surface-alt'
                         }`}
                       >
                         <td className="px-3 py-2">
@@ -760,7 +760,7 @@ export default function DeclarationDetailPage() {
                           </div>
                         </td>
                         <td className="px-3 py-2"><TriageTag triage={doc.triage_result} /></td>
-                        <td className="px-3 py-2 text-right text-gray-400">—</td>
+                        <td className="px-3 py-2 text-right text-ink-faint">—</td>
                         <td className="px-3 py-2">
                           {!locked && (
                             <button
@@ -780,8 +780,8 @@ export default function DeclarationDetailPage() {
                     <tr
                       key={line.id} id={`row-${line.id}`}
                       onClick={() => openPreviewForLine(line)}
-                      className={`border-b border-gray-100 last:border-0 transition-colors duration-150 cursor-pointer ${
-                        preview?.rowKey === line.id ? 'bg-blue-50' : 'hover:bg-gray-50'
+                      className={`border-b border-divider last:border-0 transition-colors duration-150 cursor-pointer ${
+                        preview?.rowKey === line.id ? 'bg-blue-50' : 'hover:bg-surface-alt'
                       }`}
                     >
                       <td className="px-3 py-2">
@@ -790,8 +790,8 @@ export default function DeclarationDetailPage() {
                           <span className="truncate max-w-xs">{line.provider || line.source_filename || 'Deleted line'}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-2 text-gray-500">{line.deleted_reason || 'deleted'}</td>
-                      <td className="px-3 py-2 text-right font-mono text-gray-500">{fmtEUR(line.amount_eur)}</td>
+                      <td className="px-3 py-2 text-ink-muted">{line.deleted_reason || 'deleted'}</td>
+                      <td className="px-3 py-2 text-right font-mono text-ink-muted">{fmtEUR(line.amount_eur)}</td>
                       <td className="px-3 py-2">
                         {!locked && (
                           <MoveDropdown
@@ -811,7 +811,7 @@ export default function DeclarationDetailPage() {
           {deletedLines.length > 0 && (
             <button
               onClick={() => setShowDeleted(!showDeleted)}
-              className="text-[11px] text-gray-400 hover:text-gray-600 mt-2 cursor-pointer transition-colors duration-150"
+              className="text-[11px] text-ink-faint hover:text-ink-soft mt-2 cursor-pointer transition-colors duration-150"
             >
               {showDeleted ? 'Hide' : 'Show'} full deleted-line history
             </button>
@@ -819,8 +819,8 @@ export default function DeclarationDetailPage() {
 
           {/* Summary */}
           {activeLines.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4 mt-6 mb-4">
-              <h3 className="text-[13px] font-semibold text-gray-900 mb-3">Summary</h3>
+            <div className="bg-surface border border-border rounded-lg p-4 mt-6 mb-4">
+              <h3 className="text-[13px] font-semibold text-ink mb-3">Summary</h3>
               <div className="grid grid-cols-5 gap-6 text-[13px]">
                 <SummaryStat label="Lux VAT" value={`€${fmtEUR(totalLuxVat)}`} />
                 <SummaryStat label="Reverse Charge VAT" value={`€${fmtEUR(totalRC)}`} />
@@ -857,11 +857,11 @@ export default function DeclarationDetailPage() {
       {previewOpen && (
         <div
           onMouseDown={e => { e.preventDefault(); setIsDraggingDivider(true); }}
-          className="w-1 bg-gray-200 hover:bg-[#1a1a2e] transition-colors duration-150 cursor-col-resize relative group shrink-0"
+          className="w-1 bg-gray-200 hover:bg-brand-500 transition-colors duration-150 cursor-col-resize relative group shrink-0"
           title="Drag to resize"
         >
           {/* Grab handle (visible on hover) */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-1 h-10 rounded bg-gray-300 group-hover:bg-[#1a1a2e] transition-colors duration-150" />
+          <div className="absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2 w-1 h-10 rounded bg-gray-300 group-hover:bg-brand-500 transition-colors duration-150" />
         </div>
       )}
 
@@ -907,9 +907,9 @@ function PreviewPanel({ preview, onClose }: { preview: PreviewTarget; onClose: (
   const zoomPct = typeof zoom === 'number' ? zoom : (zoom === 'fit-width' ? 1 : 0.9);
 
   return (
-    <div className="sticky top-2 flex flex-col border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm" style={{ height: 'calc(100vh - 96px)' }}>
+    <div className="sticky top-2 flex flex-col border border-border rounded-lg overflow-hidden bg-surface shadow-sm" style={{ height: 'calc(100vh - 96px)' }}>
       {/* Toolbar */}
-      <div className="px-3 h-10 border-b border-gray-200 flex items-center justify-between bg-white">
+      <div className="px-3 h-10 border-b border-border flex items-center justify-between bg-surface">
         <div className="flex items-center gap-2 min-w-0">
           <FileIcon type={fileType || 'pdf'} />
           <span className="text-[12px] font-medium truncate text-gray-800">
@@ -946,7 +946,7 @@ function PreviewPanel({ preview, onClose }: { preview: PreviewTarget; onClose: (
       </div>
 
       {/* Body */}
-      <div className="flex-1 overflow-auto bg-gray-100">
+      <div className="flex-1 overflow-auto bg-surface-alt">
         {preview.kind === 'manual' ? (
           <ManualPlaceholder />
         ) : loading ? (
@@ -964,12 +964,12 @@ function PreviewPanel({ preview, onClose }: { preview: PreviewTarget; onClose: (
                   maxWidth: zoom === 'fit-width' ? '100%' : 'none',
                   maxHeight: zoom === 'fit-page' ? '100%' : 'none',
                 }}
-                className="bg-white shadow-sm" />
+                className="bg-surface shadow-sm" />
             </div>
           ) : fileType === 'pdf' ? (
-            <iframe src={pdfSrc!} className="w-full h-full bg-white" title={filename} />
+            <iframe src={pdfSrc!} className="w-full h-full bg-surface" title={filename} />
           ) : (
-            <div className="p-4 text-[12px] text-gray-600">
+            <div className="p-4 text-[12px] text-ink-soft">
               <a href={signedUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Download to preview</a>.
             </div>
           )
@@ -977,7 +977,7 @@ function PreviewPanel({ preview, onClose }: { preview: PreviewTarget; onClose: (
       </div>
 
       {/* Footer hint */}
-      <div className="px-3 h-7 border-t border-gray-200 text-[10px] text-gray-400 flex items-center justify-between bg-gray-50">
+      <div className="px-3 h-7 border-t border-border text-[10px] text-ink-faint flex items-center justify-between bg-surface-alt">
         <span>↑/↓ to navigate · Esc to close{typeof zoom === 'number' ? ` · zoom ${Math.round(zoomPct * 100)}%` : ''}</span>
         {preview.kind === 'document' && signedUrl && (
           <a href={signedUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
@@ -991,13 +991,13 @@ function PreviewPanel({ preview, onClose }: { preview: PreviewTarget; onClose: (
 
 function ManualPlaceholder() {
   return (
-    <div className="flex items-center justify-center h-full bg-gray-50 p-8 text-center">
+    <div className="flex items-center justify-center h-full bg-surface-alt p-8 text-center">
       <div>
         <div className="w-12 h-12 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-3">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink-faint"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </div>
-        <div className="text-[13px] font-medium text-gray-700">No source document</div>
-        <div className="text-[11px] text-gray-500 mt-1 max-w-[260px] mx-auto">
+        <div className="text-[13px] font-medium text-ink-soft">No source document</div>
+        <div className="text-[11px] text-ink-muted mt-1 max-w-[260px] mx-auto">
           This entry was added manually — it is an outgoing invoice issued by the entity.
         </div>
       </div>
@@ -1050,11 +1050,11 @@ function ReviewTable({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+    <div className="bg-surface border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-[12px] border-collapse">
           <thead>
-            <tr className="bg-gray-50 text-gray-600 border-b border-gray-200">
+            <tr className="bg-surface-alt text-ink-soft border-b border-border">
               {selectable && (
                 <Th width={32}>
                   <input
@@ -1118,7 +1118,7 @@ function Th({ children, right, center, width }: { children?: React.ReactNode; ri
   return (
     <th
       style={width ? { width } : undefined}
-      className={`px-2 py-2 font-medium text-[11px] uppercase tracking-wide text-gray-500 ${right ? 'text-right' : center ? 'text-center' : 'text-left'} whitespace-nowrap`}
+      className={`px-2 py-2 font-medium text-[11px] uppercase tracking-wide text-ink-muted ${right ? 'text-right' : center ? 'text-center' : 'text-left'} whitespace-nowrap`}
     >
       {children}
     </th>
@@ -1156,9 +1156,9 @@ function TableRow({
   const isPrecedent = line.treatment_source === 'precedent';
 
   const rowClass = [
-    'border-b border-gray-100 transition-colors duration-150',
-    line.state === 'deleted' ? 'bg-gray-50 text-gray-400 line-through' : '',
-    isSelected ? 'bg-blue-50' : !isLocked ? 'hover:bg-gray-50/70' : '',
+    'border-b border-divider transition-colors duration-150',
+    line.state === 'deleted' ? 'bg-surface-alt text-ink-faint line-through' : '',
+    isSelected ? 'bg-blue-50' : !isLocked ? 'hover:bg-surface-alt/70' : '',
     isInference ? 'bg-amber-50/50' : '',
     isPrecedent && !isSelected ? 'bg-blue-50/40' : '',
     !line.treatment && !isSelected ? 'bg-red-50/30' : '',
@@ -1188,7 +1188,7 @@ function TableRow({
       <td className="px-1 py-1.5 text-center">
         <button
           onClick={e => { e.stopPropagation(); onOpenPreview(line); }}
-          className="inline-flex w-6 h-6 items-center justify-center rounded text-gray-400 hover:text-[#1a1a2e] hover:bg-gray-100 transition-all duration-150 cursor-pointer"
+          className="inline-flex w-6 h-6 items-center justify-center rounded text-ink-faint hover:text-brand-600 hover:bg-surface-alt transition-all duration-150 cursor-pointer"
           title={line.document_id ? `Preview: ${line.source_filename}` : 'No source document (manual)'}
         >
           {line.document_id ? (
@@ -1202,81 +1202,81 @@ function TableRow({
       {/* Provider */}
       <td {...editCellProps()}>
         {isEditing && !isLocked ? (
-          <input autoFocus className="w-full border border-gray-300 rounded px-1.5 py-0.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+          <input autoFocus className="w-full border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             defaultValue={line.provider}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { provider: e.target.value })} />
         ) : (
-          <span className="font-medium text-gray-900 block truncate max-w-[180px]">{line.provider || '—'}</span>
+          <span className="font-medium text-ink block truncate max-w-[180px]">{line.provider || '—'}</span>
         )}
       </td>
 
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input className="w-14 border border-gray-300 rounded px-1.5 py-0.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+            <input className="w-14 border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               defaultValue={line.country}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { country: e.target.value })} />
-          ) : <span className="text-gray-600">{line.country || '—'}</span>}
+          ) : <span className="text-ink-soft">{line.country || '—'}</span>}
         </td>
       )}
 
       <td {...editCellProps()} title={line.description}>
         {isEditing && !isLocked ? (
-          <input className="w-full border border-gray-300 rounded px-1.5 py-0.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+          <input className="w-full border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             defaultValue={line.description}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { description: e.target.value })} />
         ) : (
-          <span className="text-gray-700 block truncate max-w-[220px]">{line.description || '—'}</span>
+          <span className="text-ink-soft block truncate max-w-[220px]">{line.description || '—'}</span>
         )}
       </td>
 
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input type="date" className="border border-gray-300 rounded px-1 py-0.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+            <input type="date" className="border border-border-strong rounded px-1 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               defaultValue={line.invoice_date}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { invoice_date: e.target.value })} />
-          ) : <span className="text-gray-600 whitespace-nowrap">{formatDate(line.invoice_date)}</span>}
+          ) : <span className="text-ink-soft whitespace-nowrap">{formatDate(line.invoice_date)}</span>}
         </td>
       )}
 
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input className="w-20 border border-gray-300 rounded px-1.5 py-0.5 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+            <input className="w-20 border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               defaultValue={line.invoice_number}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { invoice_number: e.target.value })} />
-          ) : <span className="text-gray-600">{line.invoice_number || '—'}</span>}
+          ) : <span className="text-ink-soft">{line.invoice_number || '—'}</span>}
         </td>
       )}
 
       <td {...editCellProps()} className="px-2 py-1.5 text-right font-mono cursor-pointer tabular-nums">
         {isEditing && !isLocked ? (
-          <input className="w-24 border border-gray-300 rounded px-1.5 py-0.5 text-[12px] text-right focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+          <input className="w-24 border border-border-strong rounded px-1.5 py-0.5 text-[12px] text-right focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             type="number" step="0.01" defaultValue={line.amount_eur}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { amount_eur: parseFloat(e.target.value) })} />
-        ) : <span className="text-gray-900">{fmtEUR(line.amount_eur)}</span>}
+        ) : <span className="text-ink">{fmtEUR(line.amount_eur)}</span>}
       </td>
 
-      <td className="px-2 py-1.5 text-right tabular-nums text-gray-500">
+      <td className="px-2 py-1.5 text-right tabular-nums text-ink-muted">
         {line.vat_rate != null ? `${(Number(line.vat_rate) * 100).toFixed(0)}%` : '—'}
       </td>
 
-      {!compact && <td className="px-2 py-1.5 text-right font-mono tabular-nums text-gray-700">{fmtEUR(line.vat_applied)}</td>}
-      {!compact && <td className="px-2 py-1.5 text-right font-mono tabular-nums text-gray-700">{fmtEUR(line.rc_amount)}</td>}
-      {!compact && <td className="px-2 py-1.5 text-right font-mono tabular-nums text-gray-500">{fmtEUR(line.amount_incl)}</td>}
+      {!compact && <td className="px-2 py-1.5 text-right font-mono tabular-nums text-ink-soft">{fmtEUR(line.vat_applied)}</td>}
+      {!compact && <td className="px-2 py-1.5 text-right font-mono tabular-nums text-ink-soft">{fmtEUR(line.rc_amount)}</td>}
+      {!compact && <td className="px-2 py-1.5 text-right font-mono tabular-nums text-ink-muted">{fmtEUR(line.amount_incl)}</td>}
 
       {hasFx && !compact && (
         <>
-          <td className="px-2 py-1.5 text-right text-gray-500">{line.currency || '—'}</td>
-          <td className="px-2 py-1.5 text-right font-mono tabular-nums text-gray-500">{line.currency_amount ? fmtEUR(line.currency_amount) : '—'}</td>
-          <td className="px-2 py-1.5 text-right text-gray-500">{line.ecb_rate || '—'}</td>
+          <td className="px-2 py-1.5 text-right text-ink-muted">{line.currency || '—'}</td>
+          <td className="px-2 py-1.5 text-right font-mono tabular-nums text-ink-muted">{line.currency_amount ? fmtEUR(line.currency_amount) : '—'}</td>
+          <td className="px-2 py-1.5 text-right text-ink-muted">{line.ecb_rate || '—'}</td>
         </>
       )}
 
@@ -1284,7 +1284,7 @@ function TableRow({
       <td {...editCellProps()}>
         {isEditing && !isLocked ? (
           <select
-            className="border border-gray-300 rounded px-1.5 py-0.5 text-[11px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+            className="border border-border-strong rounded px-1.5 py-0.5 text-[11px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={line.treatment || ''}
             onClick={e => e.stopPropagation()}
             onChange={e => onUpdate(line.id, { treatment: e.target.value || null, treatment_source: 'manual' })}
@@ -1309,7 +1309,7 @@ function TableRow({
           {isFlagged ? (
             <button
               className={`inline-flex w-6 h-6 items-center justify-center rounded transition-colors duration-150 cursor-pointer ${
-                flagAck ? 'text-gray-300 hover:text-gray-400' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-100'
+                flagAck ? 'text-ink-faint hover:text-ink-faint' : 'text-amber-600 hover:text-amber-700 hover:bg-amber-100'
               }`}
               title={line.flag_reason || 'Flagged'}
               onClick={e => {
@@ -1369,7 +1369,7 @@ function MoveDropdown({
       <button
         onClick={e => { e.stopPropagation(); setOpen(o => !o); }}
         disabled={loading}
-        className="inline-flex w-6 h-6 items-center justify-center rounded text-gray-400 hover:text-[#1a1a2e] hover:bg-gray-100 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+        className="inline-flex w-6 h-6 items-center justify-center rounded text-ink-faint hover:text-brand-600 hover:bg-surface-alt transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         title="Move to another section"
       >
         {loading ? (
@@ -1381,13 +1381,13 @@ function MoveDropdown({
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 bg-white border border-gray-200 rounded-md shadow-lg min-w-[210px] py-1 animate-fadeIn">
+        <div className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-md shadow-lg min-w-[210px] py-1 animate-fadeIn">
           {targets.map(t => (
             <button
               key={t.key}
               onClick={e => { e.stopPropagation(); setOpen(false); onMove(t.key); }}
               className={`block w-full text-left px-3 py-1.5 text-[12px] transition-colors duration-150 cursor-pointer ${
-                t.danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-50'
+                t.danger ? 'text-red-600 hover:bg-red-50' : 'text-ink-soft hover:bg-surface-alt'
               }`}
             >
               {t.label}
@@ -1442,13 +1442,13 @@ function DocRow({
     <div
       id={`row-doc-${doc.id}`}
       onClick={onSelect}
-      className={`px-4 py-2 border-b border-gray-100 last:border-0 text-[12px] cursor-pointer transition-colors duration-150 ${selected ? 'bg-blue-50' : 'hover:bg-gray-50'}`}
+      className={`px-4 py-2 border-b border-divider last:border-0 text-[12px] cursor-pointer transition-colors duration-150 ${selected ? 'bg-blue-50' : 'hover:bg-surface-alt'}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <FileIcon type={doc.file_type} />
           <span className="truncate">{doc.filename}</span>
-          <span className="text-[10px] text-gray-400 shrink-0">{(doc.file_size / 1024).toFixed(0)} KB</span>
+          <span className="text-[10px] text-ink-faint shrink-0">{(doc.file_size / 1024).toFixed(0)} KB</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <TriageTag triage={doc.triage_result} />
@@ -1477,7 +1477,7 @@ function DocRow({
 // ═══════════════════════════════════════════════════════════════
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    created: 'bg-gray-100 text-gray-700',
+    created: 'bg-surface-alt text-ink-soft',
     uploading: 'bg-blue-100 text-blue-700',
     extracting: 'bg-purple-100 text-purple-700',
     classifying: 'bg-yellow-100 text-yellow-700',
@@ -1486,11 +1486,11 @@ function StatusBadge({ status }: { status: string }) {
     filed: 'bg-emerald-100 text-emerald-800',
     paid: 'bg-teal-100 text-teal-800',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-gray-100'}`}>{status}</span>;
+  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-surface-alt'}`}>{status}</span>;
 }
 function DocStatusTag({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    uploaded: 'bg-gray-100 text-gray-600',
+    uploaded: 'bg-surface-alt text-ink-soft',
     triaging: 'bg-purple-100 text-purple-600',
     triaged: 'bg-blue-100 text-blue-600',
     extracting: 'bg-yellow-100 text-yellow-600',
@@ -1498,10 +1498,10 @@ function DocStatusTag({ status }: { status: string }) {
     rejected: 'bg-orange-100 text-orange-600',
     error: 'bg-red-100 text-red-600',
   };
-  return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[status] || 'bg-gray-100'}`}>{status}</span>;
+  return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[status] || 'bg-surface-alt'}`}>{status}</span>;
 }
 function TriageTag({ triage }: { triage: string | null }) {
-  if (!triage) return <span className="text-[10px] text-gray-400">—</span>;
+  if (!triage) return <span className="text-[10px] text-ink-faint">—</span>;
   const colors: Record<string, string> = {
     invoice: 'bg-blue-100 text-blue-700',
     credit_note: 'bg-purple-100 text-purple-700',
@@ -1509,14 +1509,14 @@ function TriageTag({ triage }: { triage: string | null }) {
     receipt: 'bg-yellow-100 text-yellow-700',
     aed_letter: 'bg-red-100 text-red-700',
     expense_claim: 'bg-pink-100 text-pink-700',
-    duplicate: 'bg-gray-100 text-gray-600',
-    other: 'bg-gray-100 text-gray-600',
+    duplicate: 'bg-surface-alt text-ink-soft',
+    other: 'bg-surface-alt text-ink-soft',
   };
-  return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[triage] || 'bg-gray-100'}`}>{triage}</span>;
+  return <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[triage] || 'bg-surface-alt'}`}>{triage}</span>;
 }
 function FileIcon({ type }: { type: string }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 shrink-0">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink-faint shrink-0">
       {type === 'image' ? (
         <>
           <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
@@ -1531,7 +1531,7 @@ function FileIcon({ type }: { type: string }) {
 }
 function ManualIcon() {
   return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink-faint">
       <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
     </svg>
   );
@@ -1539,7 +1539,7 @@ function ManualIcon() {
 function IconBtn({ children, onClick, title }: { children: React.ReactNode; onClick: () => void; title: string }) {
   return (
     <button onClick={onClick} title={title}
-      className="inline-flex w-7 h-7 items-center justify-center rounded text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-150 cursor-pointer">
+      className="inline-flex w-7 h-7 items-center justify-center rounded text-ink-soft hover:bg-surface-alt hover:text-ink transition-colors duration-150 cursor-pointer">
       {children}
     </button>
   );
@@ -1547,29 +1547,29 @@ function IconBtn({ children, onClick, title }: { children: React.ReactNode; onCl
 function Stat({ label, value, color, small }: { label: string; value: string | number; color?: string; small?: boolean }) {
   return (
     <div>
-      <div className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold">{label}</div>
-      <div className={`font-semibold mt-1 tabular-nums ${color || 'text-gray-900'} ${small ? 'text-sm' : 'text-lg'}`}>{value}</div>
+      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
+      <div className={`font-semibold mt-1 tabular-nums ${color || 'text-ink'} ${small ? 'text-sm' : 'text-lg'}`}>{value}</div>
     </div>
   );
 }
 function SummaryStat({ label, value, color, bold }: { label: string; value: string; color?: string; bold?: boolean }) {
   return (
     <div>
-      <div className="text-[11px] text-gray-500">{label}</div>
-      <div className={`tabular-nums mt-0.5 ${bold ? 'font-bold text-[15px]' : 'font-semibold text-[13px]'} ${color || 'text-gray-900'}`}>{value}</div>
+      <div className="text-[11px] text-ink-muted">{label}</div>
+      <div className={`tabular-nums mt-0.5 ${bold ? 'font-bold text-[15px]' : 'font-semibold text-[13px]'} ${color || 'text-ink'}`}>{value}</div>
     </div>
   );
 }
 function SectionHeader({ title, count, inline }: { title: string; count: number; inline?: boolean }) {
   return (
-    <h3 className={`text-[13px] font-semibold text-gray-900 ${inline ? '' : 'mb-2'}`}>
-      {title} <span className="text-gray-400 font-normal ml-1">({count})</span>
+    <h3 className={`text-[13px] font-semibold text-ink ${inline ? '' : 'mb-2'}`}>
+      {title} <span className="text-ink-faint font-normal ml-1">({count})</span>
     </h3>
   );
 }
 function EmptyBlock({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 text-center text-[12px] text-gray-400">
+    <div className="bg-surface border border-border rounded-lg p-6 text-center text-[12px] text-ink-faint">
       {children}
     </div>
   );
@@ -1674,7 +1674,7 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
 
   if (loading && !data) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-8 flex items-center gap-2 text-[12px] text-gray-500">
+      <div className="bg-surface border border-border rounded-lg p-4 mb-8 flex items-center gap-2 text-[12px] text-ink-muted">
         <Spinner small /> Computing outputs…
       </div>
     );
@@ -1682,7 +1682,7 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
 
   if (error) {
     return (
-      <div className="bg-white border border-red-200 rounded-lg p-4 mb-8 text-[12px] text-red-700">
+      <div className="bg-surface border border-red-200 rounded-lg p-4 mb-8 text-[12px] text-red-700">
         Error computing outputs: {error}
       </div>
     );
@@ -1703,21 +1703,21 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg mb-8 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+    <div className="bg-surface border border-border rounded-lg mb-8 overflow-hidden">
+      <div className="px-4 py-3 border-b border-border bg-surface-alt flex items-center justify-between">
         <div>
-          <h3 className="text-[13px] font-semibold text-gray-900">Outputs</h3>
-          <div className="text-[11px] text-gray-500 mt-0.5 flex items-center gap-2 flex-wrap">
+          <h3 className="text-[13px] font-semibold text-ink">Outputs</h3>
+          <div className="text-[11px] text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
             <span>{data.ecdf.regime === 'simplified' ? 'Simplified return' : 'Ordinary return'}</span>
-            <span className="text-gray-300">·</span>
+            <span className="text-ink-faint">·</span>
             <span>{data.ecdf.year} {data.ecdf.period}</span>
-            <span className="text-gray-300">·</span>
+            <span className="text-ink-faint">·</span>
             <span>form {data.ecdf.form_version}</span>
             {data.cost && data.cost.calls > 0 && (
               <>
-                <span className="text-gray-300">·</span>
+                <span className="text-ink-faint">·</span>
                 <span
-                  className="inline-flex items-center gap-1 text-[10px] font-mono bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded border border-gray-200"
+                  className="inline-flex items-center gap-1 text-[10px] font-mono bg-surface-alt text-ink-soft px-1.5 py-0.5 rounded border border-border"
                   title={`${data.cost.calls} Anthropic API call${data.cost.calls === 1 ? '' : 's'} for this declaration`}
                 >
                   €{data.cost.eur.toFixed(data.cost.eur < 1 ? 4 : 2)} API
@@ -1729,39 +1729,39 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
         <div className="flex items-center gap-2">
           <button
             onClick={download('excel')}
-            className="h-8 px-3 rounded bg-[#1a1a2e] text-white text-[11px] font-semibold hover:bg-[#2a2a4e] transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded bg-brand-500 text-white text-[11px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <DownloadIcon /> Excel
           </button>
           <button
             onClick={download('pdf')}
-            className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <DownloadIcon /> Front page PDF
           </button>
           <button
             onClick={download('xml')}
-            className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <DownloadIcon /> eCDF XML
           </button>
           <button
             onClick={download('ecsl?format=xlsx')}
-            className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
             title="EC Sales List (état récapitulatif) — only meaningful if the entity supplies B2B services to EU customers"
           >
             <DownloadIcon /> ECSL
           </button>
           <button
             onClick={() => setEmailOpen(true)}
-            className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Draft email
           </button>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-all duration-150 cursor-pointer"
+            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer"
           >
             {expanded ? 'Hide boxes' : 'All boxes'}
           </button>
@@ -1771,7 +1771,7 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
 
       <div className="p-4">
         {/* Totals row */}
-        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-gray-200">
+        <div className="grid grid-cols-3 gap-4 mb-4 pb-4 border-b border-border">
           <KeyBox
             label={`VAT due (box ${data.ecdf.regime === 'simplified' ? '076' : '097'})`}
             value={fmtEUR(data.ecdf.totals.vat_due)}
@@ -1780,43 +1780,43 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
           <KeyBox
             label="Payable to AED"
             value={`€${fmtEUR(data.ecdf.totals.payable)}`}
-            color={data.ecdf.totals.payable > 0 ? 'text-gray-900' : 'text-gray-400'}
+            color={data.ecdf.totals.payable > 0 ? 'text-ink' : 'text-ink-faint'}
           />
           <KeyBox
             label="Credit"
             value={`€${fmtEUR(data.ecdf.totals.credit)}`}
-            color={data.ecdf.totals.credit > 0 ? 'text-green-600' : 'text-gray-400'}
+            color={data.ecdf.totals.credit > 0 ? 'text-green-600' : 'text-ink-faint'}
           />
         </div>
 
         {/* Payment instructions */}
         {data.payment ? (
           <div className="mb-4">
-            <h4 className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-2">Payment instructions</h4>
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+            <h4 className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-2">Payment instructions</h4>
+            <div className="bg-surface-alt border border-border rounded-md p-3">
               <div className="flex items-center justify-between gap-3 mb-2">
-                <div className="font-mono text-[13px] font-semibold text-gray-900 tracking-tight break-all">
+                <div className="font-mono text-[13px] font-semibold text-ink tracking-tight break-all">
                   {data.payment.reference}
                 </div>
                 <button
                   onClick={copyReference}
-                  className="shrink-0 h-7 px-2.5 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1"
+                  className="shrink-0 h-7 px-2.5 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1"
                 >
                   {copiedRef ? '✓ Copied' : 'Copy reference'}
                 </button>
               </div>
               <div className="grid grid-cols-3 gap-4 text-[11.5px]">
                 <div>
-                  <div className="text-gray-500 uppercase tracking-wide text-[10px] font-semibold">Beneficiary</div>
-                  <div className="text-gray-900 font-medium mt-0.5">{data.payment.beneficiary}</div>
+                  <div className="text-ink-muted uppercase tracking-wide text-[10px] font-semibold">Beneficiary</div>
+                  <div className="text-ink font-medium mt-0.5">{data.payment.beneficiary}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500 uppercase tracking-wide text-[10px] font-semibold">IBAN</div>
-                  <div className="text-gray-900 font-mono mt-0.5">{data.payment.iban}</div>
+                  <div className="text-ink-muted uppercase tracking-wide text-[10px] font-semibold">IBAN</div>
+                  <div className="text-ink font-mono mt-0.5">{data.payment.iban}</div>
                 </div>
                 <div>
-                  <div className="text-gray-500 uppercase tracking-wide text-[10px] font-semibold">BIC</div>
-                  <div className="text-gray-900 font-mono mt-0.5">{data.payment.bic}</div>
+                  <div className="text-ink-muted uppercase tracking-wide text-[10px] font-semibold">BIC</div>
+                  <div className="text-ink font-mono mt-0.5">{data.payment.bic}</div>
                 </div>
               </div>
             </div>
@@ -1845,19 +1845,19 @@ function OutputsPanel({ declarationId }: { declarationId: string }) {
           <div className="space-y-4 mt-4">
             {sections.map(section => (
               <div key={section}>
-                <h4 className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1.5">Section {section}</h4>
-                <div className="border border-gray-200 rounded-md overflow-hidden">
+                <h4 className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Section {section}</h4>
+                <div className="border border-border rounded-md overflow-hidden">
                   <table className="w-full text-[12px]">
                     <tbody>
                       {boxesBySection[section].map((b, i) => (
-                        <tr key={b.box} className={`border-b border-gray-100 last:border-0 ${i % 2 === 1 ? 'bg-gray-50/60' : ''}`}>
-                          <td className="px-3 py-1.5 font-mono text-gray-500 w-14">{b.box}</td>
-                          <td className="px-3 py-1.5 text-gray-700">
+                        <tr key={b.box} className={`border-b border-divider last:border-0 ${i % 2 === 1 ? 'bg-surface-alt/60' : ''}`}>
+                          <td className="px-3 py-1.5 font-mono text-ink-muted w-14">{b.box}</td>
+                          <td className="px-3 py-1.5 text-ink-soft">
                             {b.label}
                             {b.manual && <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 uppercase tracking-wide font-semibold">manual</span>}
-                            {b.formula && <span className="ml-2 text-[10px] text-gray-400 font-mono">= {b.formula}</span>}
+                            {b.formula && <span className="ml-2 text-[10px] text-ink-faint font-mono">= {b.formula}</span>}
                           </td>
-                          <td className="px-3 py-1.5 text-right font-mono tabular-nums text-gray-900 w-32">
+                          <td className="px-3 py-1.5 text-right font-mono tabular-nums text-ink w-32">
                             {fmtEUR(b.value)}
                           </td>
                         </tr>
@@ -1890,7 +1890,7 @@ function BulkActionBar({
   const treatments = direction === 'incoming' ? INCOMING_TREATMENTS : OUTGOING_TREATMENTS;
 
   return (
-    <div className="sticky top-0 z-10 mb-2 bg-[#1a1a2e] text-white rounded-lg px-3 py-2 flex items-center gap-2 text-[12px] animate-fadeIn">
+    <div className="sticky top-0 z-10 mb-2 bg-brand-500 text-white rounded-lg px-3 py-2 flex items-center gap-2 text-[12px] animate-fadeIn">
       <span className="font-semibold">{count} selected</span>
       <span className="text-white/40 mx-1">·</span>
       <button
@@ -1913,15 +1913,15 @@ function BulkActionBar({
           Set treatment ▾
         </button>
         {treatmentOpen && (
-          <div className="absolute top-full left-0 mt-1 bg-white text-gray-900 border border-gray-200 rounded-md shadow-lg min-w-[240px] max-h-[300px] overflow-y-auto z-20">
+          <div className="absolute top-full left-0 mt-1 bg-surface text-ink border border-border rounded-md shadow-lg min-w-[240px] max-h-[300px] overflow-y-auto z-20">
             {treatments.map(t => (
               <button
                 key={t}
                 onClick={() => { setTreatmentOpen(false); onAction('set_treatment', t); }}
-                className="block w-full text-left px-3 py-1.5 text-[11.5px] hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
+                className="block w-full text-left px-3 py-1.5 text-[11.5px] hover:bg-surface-alt cursor-pointer border-b border-divider last:border-0"
               >
                 <span className="font-mono font-semibold mr-2">{t}</span>
-                <span className="text-gray-600">{TREATMENT_CODES[t].label}</span>
+                <span className="text-ink-soft">{TREATMENT_CODES[t].label}</span>
               </button>
             ))}
           </div>
@@ -2002,17 +2002,17 @@ function JobProgressBar({
       <div className="flex items-center justify-between mb-2 gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {isRunning && <Spinner small />}
-          <span className="text-[12px] font-semibold text-gray-900">{label}</span>
+          <span className="text-[12px] font-semibold text-ink">{label}</span>
           {progress.current && isRunning && (
-            <span className="text-[11px] text-gray-500 truncate">· {progress.current}</span>
+            <span className="text-[11px] text-ink-muted truncate">· {progress.current}</span>
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-[11px] tabular-nums text-gray-600">{pct}%</span>
+          <span className="text-[11px] tabular-nums text-ink-soft">{pct}%</span>
           {onCancel && (
             <button
               onClick={onCancel}
-              className="h-7 px-2.5 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 cursor-pointer transition-all duration-150"
+              className="h-7 px-2.5 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface hover:border-gray-400 cursor-pointer transition-all duration-150"
             >
               Cancel
             </button>
@@ -2023,7 +2023,7 @@ function JobProgressBar({
         <div className={`h-full ${barColor} transition-all duration-300`} style={{ width: `${pct}%` }} />
       </div>
       {progress.message && !isRunning && (
-        <div className="mt-2 text-[11px] text-gray-600">{progress.message}</div>
+        <div className="mt-2 text-[11px] text-ink-soft">{progress.message}</div>
       )}
     </div>
   );
@@ -2061,7 +2061,7 @@ function DeclarationNotes({ declarationId, initial }: { declarationId: string; i
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mb-4 text-[11px] text-gray-400 hover:text-gray-700 cursor-pointer transition-colors flex items-center gap-1"
+        className="mb-4 text-[11px] text-ink-faint hover:text-ink-soft cursor-pointer transition-colors flex items-center gap-1"
       >
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14"/></svg>
         Add internal note
@@ -2076,7 +2076,7 @@ function DeclarationNotes({ declarationId, initial }: { declarationId: string; i
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
           Internal note
         </div>
-        <span className="text-[10px] text-gray-400">
+        <span className="text-[10px] text-ink-faint">
           {saving ? 'Saving…' : savedAt ? `Saved ${savedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : ''}
         </span>
       </div>
@@ -2128,11 +2128,11 @@ function FilingPanel({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg mb-4 overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+    <div className="bg-surface border border-border rounded-lg mb-4 overflow-hidden">
+      <div className="px-4 py-3 border-b border-border bg-surface-alt flex items-center justify-between">
         <div>
-          <h3 className="text-[13px] font-semibold text-gray-900">Filing &amp; payment</h3>
-          <div className="text-[11px] text-gray-500 mt-0.5">
+          <h3 className="text-[13px] font-semibold text-ink">Filing &amp; payment</h3>
+          <div className="text-[11px] text-ink-muted mt-0.5">
             {status === 'approved' && 'Ready to file. Upload the eCDF XML to the AED portal, then record the filing reference here.'}
             {status === 'filed' && 'Filed. Mark as paid once the bank confirms the transfer.'}
             {status === 'paid' && 'Cycle complete.'}
@@ -2158,12 +2158,12 @@ function FilingPanel({
 
         {/* Step 2 — Filed */}
         {status === 'approved' ? (
-          <div className="border border-gray-200 rounded-md p-3 col-span-2">
+          <div className="border border-border rounded-md p-3 col-span-2">
             <div className="flex items-center gap-2 mb-2">
               <StepDot active />
-              <div className="text-[12px] font-semibold text-gray-900">Mark as filed</div>
+              <div className="text-[12px] font-semibold text-ink">Mark as filed</div>
             </div>
-            <div className="text-[11px] text-gray-500 mb-2">
+            <div className="text-[11px] text-ink-muted mb-2">
               Enter the AED filing reference from the eCDF confirmation page.
             </div>
             <div className="flex gap-2">
@@ -2171,12 +2171,12 @@ function FilingPanel({
                 value={filingRef}
                 onChange={e => setFilingRef(e.target.value)}
                 placeholder="AED filing reference"
-                className="flex-1 border border-gray-300 rounded px-2 py-1 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="flex-1 border border-border-strong rounded px-2 py-1 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
               <button
                 onClick={() => filingRef.trim() && onMarkFiled(filingRef.trim())}
                 disabled={!filingRef.trim()}
-                className="h-8 px-3 rounded bg-[#1a1a2e] text-white text-[11px] font-semibold hover:bg-[#2a2a4e] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-150"
+                className="h-8 px-3 rounded bg-brand-500 text-white text-[11px] font-semibold hover:bg-brand-600 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-150"
               >
                 Mark as filed
               </button>
@@ -2200,12 +2200,12 @@ function FilingPanel({
             subtitle={`Confirmed on ${formatDate(data.payment_confirmed_at)}`}
           />
         ) : status === 'filed' ? (
-          <div className="border border-gray-200 rounded-md p-3 col-span-3">
+          <div className="border border-border rounded-md p-3 col-span-3">
             <div className="flex items-center gap-2 mb-2">
               <StepDot active />
-              <div className="text-[12px] font-semibold text-gray-900">Mark as paid</div>
+              <div className="text-[12px] font-semibold text-ink">Mark as paid</div>
             </div>
-            <div className="text-[11px] text-gray-500 mb-2">
+            <div className="text-[11px] text-ink-muted mb-2">
               Optional: record the bank reference number from the transfer confirmation.
             </div>
             <div className="flex gap-2">
@@ -2213,7 +2213,7 @@ function FilingPanel({
                 value={paymentRefInput}
                 onChange={e => setPaymentRefInput(e.target.value)}
                 placeholder="Bank transfer reference (optional)"
-                className="flex-1 border border-gray-300 rounded px-2 py-1 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="flex-1 border border-border-strong rounded px-2 py-1 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
               <button
                 onClick={() => onMarkPaid(paymentRefInput.trim() || undefined)}
@@ -2229,14 +2229,14 @@ function FilingPanel({
       {/* Proof-of-filing upload (visible from FILED onwards) */}
       {['filed', 'paid'].includes(status) && (
         <div className="px-4 pb-4 -mt-2">
-          <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+          <div className="bg-surface-alt border border-border rounded-md p-3">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-0.5">
+                <div className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
                   Proof of filing
                 </div>
                 {data.proof_of_filing_filename ? (
-                  <div className="text-[12px] text-gray-700 truncate">
+                  <div className="text-[12px] text-ink-soft truncate">
                     {proofUrl ? (
                       <a href={proofUrl} target="_blank" rel="noreferrer" className="hover:underline text-blue-600">
                         {data.proof_of_filing_filename}
@@ -2244,12 +2244,12 @@ function FilingPanel({
                     ) : (
                       data.proof_of_filing_filename
                     )}
-                    <span className="text-gray-400 ml-2 text-[11px]">
+                    <span className="text-ink-faint ml-2 text-[11px]">
                       uploaded {formatDate(data.proof_of_filing_uploaded_at)}
                     </span>
                   </div>
                 ) : (
-                  <div className="text-[12px] text-gray-500">
+                  <div className="text-[12px] text-ink-muted">
                     No file uploaded yet. The proof is the eCDF confirmation screenshot or PDF.
                   </div>
                 )}
@@ -2261,7 +2261,7 @@ function FilingPanel({
               <button
                 onClick={() => proofInput.current?.click()}
                 disabled={uploadingProof}
-                className="shrink-0 h-7 px-2.5 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-150"
+                className="shrink-0 h-7 px-2.5 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface hover:border-gray-400 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all duration-150"
               >
                 {uploadingProof ? 'Uploading…' : data.proof_of_filing_filename ? 'Replace' : 'Upload'}
               </button>
@@ -2280,16 +2280,16 @@ function Step({
 }) {
   const dotColor =
     state === 'done' ? 'bg-emerald-600 text-white' :
-    state === 'active' ? 'bg-[#1a1a2e] text-white' :
-    'bg-gray-200 text-gray-500';
+    state === 'active' ? 'bg-brand-500 text-white' :
+    'bg-gray-200 text-ink-muted';
   return (
-    <div className="border border-gray-200 rounded-md p-3 flex items-start gap-3">
+    <div className="border border-border rounded-md p-3 flex items-start gap-3">
       <div className={`shrink-0 w-6 h-6 rounded-full text-[11px] font-semibold flex items-center justify-center ${dotColor}`}>
         {state === 'done' ? '✓' : number}
       </div>
       <div className="min-w-0">
-        <div className="text-[12px] font-semibold text-gray-900">{title}</div>
-        <div className="text-[11px] text-gray-500 mt-0.5 truncate">{subtitle}</div>
+        <div className="text-[12px] font-semibold text-ink">{title}</div>
+        <div className="text-[11px] text-ink-muted mt-0.5 truncate">{subtitle}</div>
       </div>
     </div>
   );
@@ -2297,7 +2297,7 @@ function Step({
 
 function StepDot({ active }: { active?: boolean }) {
   return (
-    <div className={`w-2.5 h-2.5 rounded-full ${active ? 'bg-[#1a1a2e]' : 'bg-gray-300'}`} />
+    <div className={`w-2.5 h-2.5 rounded-full ${active ? 'bg-brand-500' : 'bg-gray-300'}`} />
   );
 }
 
@@ -2359,11 +2359,11 @@ function EmailDrafterModal({ declarationId, onClose }: { declarationId: string; 
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-lg w-full max-w-3xl shadow-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
-        <div className="px-5 py-3 border-b border-gray-200 flex items-center justify-between">
+      <div className="bg-surface rounded-lg w-full max-w-3xl shadow-2xl flex flex-col" style={{ maxHeight: '90vh' }}>
+        <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <div>
-            <h3 className="text-[14px] font-semibold text-gray-900">Draft client email</h3>
-            <div className="text-[11px] text-gray-500 mt-0.5">Generated by Claude — review carefully before sending.</div>
+            <h3 className="text-[14px] font-semibold text-ink">Draft client email</h3>
+            <div className="text-[11px] text-ink-muted mt-0.5">Generated by Claude — review carefully before sending.</div>
           </div>
           <IconBtn title="Close (Esc)" onClick={onClose}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -2373,7 +2373,7 @@ function EmailDrafterModal({ declarationId, onClose }: { declarationId: string; 
         <div className="flex-1 overflow-y-auto p-5">
           {!draft && !loading && (
             <div>
-              <label className="block text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1.5">
+              <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">
                 Expert notes (optional)
               </label>
               <textarea
@@ -2381,11 +2381,11 @@ function EmailDrafterModal({ declarationId, onClose }: { declarationId: string; 
                 onChange={e => setExpertNotes(e.target.value)}
                 rows={4}
                 placeholder="Specific legal observations, position changes, AED considerations… these will be quoted verbatim in the email."
-                className="w-full border border-gray-300 rounded px-3 py-2 text-[12px] focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                className="w-full border border-border-strong rounded px-3 py-2 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
               <button
                 onClick={generate}
-                className="mt-3 h-9 px-4 rounded bg-[#1a1a2e] text-white text-[12px] font-semibold hover:bg-[#2a2a4e] transition-all duration-150 cursor-pointer"
+                className="mt-3 h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer"
               >
                 Generate draft
               </button>
@@ -2393,7 +2393,7 @@ function EmailDrafterModal({ declarationId, onClose }: { declarationId: string; 
           )}
 
           {loading && (
-            <div className="flex items-center justify-center py-10 text-[12px] text-gray-500 gap-2">
+            <div className="flex items-center justify-center py-10 text-[12px] text-ink-muted gap-2">
               <Spinner /> Drafting with Claude (Opus)…
             </div>
           )}
@@ -2407,44 +2407,44 @@ function EmailDrafterModal({ declarationId, onClose }: { declarationId: string; 
           {draft && (
             <div className="space-y-3">
               <div>
-                <label className="block text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1.5">Subject</label>
+                <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Subject</label>
                 <input
                   value={subject}
                   onChange={e => setSubject(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-[12px] font-medium focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-[12px] font-medium focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
               </div>
               <div>
-                <label className="block text-[11px] uppercase tracking-wide font-semibold text-gray-500 mb-1.5">Body</label>
+                <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Body</label>
                 <textarea
                   value={body}
                   onChange={e => setBody(e.target.value)}
                   rows={18}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-[12px] font-mono leading-relaxed focus:border-[#1a1a2e] focus:outline-none focus:ring-1 focus:ring-[#1a1a2e]"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-[12px] font-mono leading-relaxed focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
               </div>
-              <div className="text-[10px] text-gray-400">Generated by {draft.model}</div>
+              <div className="text-[10px] text-ink-faint">Generated by {draft.model}</div>
             </div>
           )}
         </div>
 
         {draft && (
-          <div className="px-5 py-3 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-2">
+          <div className="px-5 py-3 border-t border-border bg-surface-alt flex items-center justify-end gap-2">
             <button
               onClick={generate}
-              className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 transition-all duration-150 cursor-pointer"
+              className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface hover:border-gray-400 transition-all duration-150 cursor-pointer"
             >
               Re-generate
             </button>
             <button
               onClick={copyAll}
-              className="h-8 px-3 rounded border border-gray-300 text-[11px] font-medium text-gray-700 hover:bg-white hover:border-gray-400 transition-all duration-150 cursor-pointer"
+              className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface hover:border-gray-400 transition-all duration-150 cursor-pointer"
             >
               {copied ? '✓ Copied' : 'Copy'}
             </button>
             <button
               onClick={openInMail}
-              className="h-8 px-3 rounded bg-[#1a1a2e] text-white text-[11px] font-semibold hover:bg-[#2a2a4e] transition-all duration-150 cursor-pointer"
+              className="h-8 px-3 rounded bg-brand-500 text-white text-[11px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer"
             >
               Open in mail client
             </button>
@@ -2458,8 +2458,8 @@ function EmailDrafterModal({ declarationId, onClose }: { declarationId: string; 
 function KeyBox({ label, value, color, bold }: { label: string; value: string | number; color?: string; bold?: boolean }) {
   return (
     <div>
-      <div className="text-[10px] text-gray-500 uppercase tracking-wide font-semibold">{label}</div>
-      <div className={`tabular-nums mt-1 ${bold ? 'font-bold text-[16px]' : 'font-semibold text-[14px]'} ${color || 'text-gray-900'}`}>{value}</div>
+      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
+      <div className={`tabular-nums mt-1 ${bold ? 'font-bold text-[16px]' : 'font-semibold text-[14px]'} ${color || 'text-ink'}`}>{value}</div>
     </div>
   );
 }
@@ -2468,7 +2468,7 @@ function treatmentColorClass(code: TreatmentCode | null, source: string | null):
   // Inference-sourced classifications get an amber tint to signal "needs confirmation"
   if (source === 'inference') return 'bg-amber-100 text-amber-800 border border-amber-200';
   if (source === 'precedent') return 'bg-blue-100 text-blue-800 border border-blue-300';
-  if (!code) return 'bg-gray-100 text-gray-600 border border-gray-200';
+  if (!code) return 'bg-surface-alt text-ink-soft border border-border';
   if (code.startsWith('LUX_')) return 'bg-sky-100 text-sky-800 border border-sky-200';
   if (code.startsWith('RC_EU')) return 'bg-purple-100 text-purple-800 border border-purple-200';
   if (code.startsWith('RC_NONEU')) return 'bg-fuchsia-100 text-fuchsia-800 border border-fuchsia-200';
@@ -2476,5 +2476,5 @@ function treatmentColorClass(code: TreatmentCode | null, source: string | null):
   if (code === 'EXEMPT_44') return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
   if (code === 'OUT_SCOPE') return 'bg-slate-100 text-slate-700 border border-slate-200';
   if (code.startsWith('OUT_')) return 'bg-teal-100 text-teal-800 border border-teal-200';
-  return 'bg-gray-100 text-gray-700 border border-gray-200';
+  return 'bg-surface-alt text-ink-soft border border-border';
 }
