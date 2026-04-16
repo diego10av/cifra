@@ -15,8 +15,8 @@ export function LogoMark({ size = 20, className = '' }: { size?: number; classNa
       {/* Rounded square with a coral-to-warm-red gradient */}
       <defs>
         <linearGradient id="cifra-grad" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#FF7855" />
-          <stop offset="100%" stopColor="#E84420" />
+          <stop offset="0%" stopColor="#F14E72" />
+          <stop offset="100%" stopColor="#C61640" />
         </linearGradient>
       </defs>
       <rect x="1" y="1" width="22" height="22" rx="5" fill="url(#cifra-grad)" />

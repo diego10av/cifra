@@ -14,17 +14,21 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
                Monaco, Consolas, monospace;
 
-  /* ── Brand: warm coral ────────────────────── */
-  --color-brand-50:  #FFF5F2;
-  --color-brand-100: #FFE4DC;
-  --color-brand-200: #FFC4B3;
-  --color-brand-300: #FF9F85;
-  --color-brand-400: #FF7855;
-  --color-brand-500: #FF5A35;  /* primary — the cifra coral */
-  --color-brand-600: #E84420;
-  --color-brand-700: #C03314;
-  --color-brand-800: #95270F;
-  --color-brand-900: #6D1C0C;
+  /* ── Brand: Factorial pink-red ────────────────
+   *  Factorial uses a vivid pink-red as accent. We adapt a scale around
+   *  #E8264C for use as CTA colour, logo, links, and focus rings. The
+   *  rest of the interface stays on warm neutrals — pink appears sparingly.
+   */
+  --color-brand-50:  #FFF0F4;
+  --color-brand-100: #FFD9E0;
+  --color-brand-200: #FFB0BE;
+  --color-brand-300: #FA8097;
+  --color-brand-400: #F14E72;
+  --color-brand-500: #E8264C;  /* primary — the cifra pink */
+  --color-brand-600: #C61640;
+  --color-brand-700: #9E1033;
+  --color-brand-800: #7A0C28;
+  --color-brand-900: #540919;
 
   /* ── Neutrals: warm off-whites and greys ──── */
   --color-canvas:       #FAF8F6;  /* page background */
@@ -62,7 +66,7 @@
   --shadow-sm: 0 1px 3px 0 rgba(26, 22, 20, 0.06), 0 1px 2px -1px rgba(26, 22, 20, 0.04);
   --shadow-md: 0 4px 6px -1px rgba(26, 22, 20, 0.07), 0 2px 4px -2px rgba(26, 22, 20, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(26, 22, 20, 0.08), 0 4px 6px -4px rgba(26, 22, 20, 0.05);
-  --shadow-focus: 0 0 0 3px rgba(255, 90, 53, 0.18);
+  --shadow-focus: 0 0 0 3px rgba(232, 38, 76, 0.18);
 
   /* ── Radii ────────────────────────────────── */
   --radius-xs: 4px;

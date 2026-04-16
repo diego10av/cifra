@@ -33,7 +33,7 @@ export default function LoginPage() {
         aria-hidden
         className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-20 pointer-events-none"
         style={{
-          background: 'radial-gradient(closest-side, rgba(255,90,53,0.35), transparent 70%)',
+          background: 'radial-gradient(closest-side, rgba(232,38,76,0.30), transparent 70%)',
         }}
       />
       <div className="relative bg-surface border border-border rounded-xl shadow-lg p-8 w-full max-w-[380px] animate-fadeInScale">
