@@ -208,6 +208,12 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
         'RULE 7A', 'RULE 7B', 'RULE 7D',
         'RULE 15A', 'RULE 15B', 'RULE 15C', 'RULE 15D',
         'RULE 23',
+        // Batch B additions (20-32)
+        'RULE 20', 'RULE 22', 'RULE 24', 'RULE 25', 'RULE 26', 'RULE 27',
+        'RULE 29', 'RULE 31',
+        // Rate-split reverse-charge fallback variants
+        'RULE 11B', 'RULE 11C', 'RULE 11D',
+        'RULE 13B', 'RULE 13C', 'RULE 13D',
       ]);
       const isDirectEvidenceRule = DIRECT_EVIDENCE_RULES.has(direct.rule);
       if (isDirectEvidenceRule) {

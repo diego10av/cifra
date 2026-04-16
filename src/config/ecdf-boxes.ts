@@ -127,12 +127,21 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
 
   // ──────────────── Section D — Reverse charge on services ────────────────
   // D.1 — EU suppliers
-  { box: '436', label: 'RC EU taxable services (base)', section: 'D', computation: 'sum',
+  // Rate-split bases: 17% default + 14 / 8 / 3 for reduced-rate services.
+  // Box 436 aggregates all rate-variants so the TVA001N section total
+  // stays correct.
+  { box: '436', label: 'RC EU taxable services — total base (all rates)', section: 'D', computation: 'formula',
+    formula: '741 + 743 + 745 + 747' },
+  { box: '741', label: 'RC EU taxable base 17%', section: 'D', computation: 'sum',
     filter: { treatments: ['RC_EU_TAX'], field: 'amount_eur' } },
-  { box: '462', label: 'VAT on RC EU taxable (17%)', section: 'D', computation: 'formula',
-    formula: '436 * 0.17' },
-  { box: '741', label: 'RC EU taxable breakdown (17%)', section: 'D', computation: 'formula',
-    formula: '436' },
+  { box: '743', label: 'RC EU taxable base 14%', section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_EU_TAX_14'], field: 'amount_eur' } },
+  { box: '745', label: 'RC EU taxable base 8%',  section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_EU_TAX_08'], field: 'amount_eur' } },
+  { box: '747', label: 'RC EU taxable base 3%',  section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_EU_TAX_03'], field: 'amount_eur' } },
+  { box: '462', label: 'VAT on RC EU taxable (rate-weighted)', section: 'D', computation: 'formula',
+    formula: '741 * 0.17 + 743 * 0.14 + 745 * 0.08 + 747 * 0.03' },
   { box: '742', label: 'VAT on RC EU taxable breakdown', section: 'D', computation: 'formula',
     formula: '462' },
   // Box 435 is RC EU **exempt services** only. EXEMPT_44 and
@@ -144,23 +153,43 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
   { box: '435', label: 'RC EU exempt services (base)', section: 'D', computation: 'sum',
     filter: { treatments: ['RC_EU_EX'], field: 'amount_eur' } },
 
-  // D.2 — Non-EU suppliers
-  { box: '463', label: 'RC non-EU taxable services (base)', section: 'D', computation: 'sum',
+  // D.2 — Non-EU suppliers (rate-split same as D.1)
+  { box: '463', label: 'RC non-EU taxable services — total base (all rates)', section: 'D', computation: 'formula',
+    formula: '751 + 753 + 755 + 757' },
+  { box: '751', label: 'RC non-EU taxable base 17%', section: 'D', computation: 'sum',
     filter: { treatments: ['RC_NONEU_TAX'], field: 'amount_eur' } },
-  { box: '464', label: 'VAT on RC non-EU taxable (17%)', section: 'D', computation: 'formula',
-    formula: '463 * 0.17' },
-  { box: '751', label: 'RC non-EU taxable breakdown (17%)', section: 'D', computation: 'formula',
-    formula: '463' },
+  { box: '753', label: 'RC non-EU taxable base 14%', section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_NONEU_TAX_14'], field: 'amount_eur' } },
+  { box: '755', label: 'RC non-EU taxable base 8%',  section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_NONEU_TAX_08'], field: 'amount_eur' } },
+  { box: '757', label: 'RC non-EU taxable base 3%',  section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_NONEU_TAX_03'], field: 'amount_eur' } },
+  { box: '464', label: 'VAT on RC non-EU taxable (rate-weighted)', section: 'D', computation: 'formula',
+    formula: '751 * 0.17 + 753 * 0.14 + 755 * 0.08 + 757 * 0.03' },
   { box: '752', label: 'VAT on RC non-EU taxable breakdown', section: 'D', computation: 'formula',
     formula: '464' },
   { box: '445', label: 'RC non-EU exempt services (base)', section: 'D', computation: 'sum',
     filter: { treatments: ['RC_NONEU_EX'], field: 'amount_eur' } },
 
-  // D totals — taxable RC base and total RC VAT due
+  // D.3 — Domestic reverse-charge (construction, scrap, emission allowances).
+  // Art. 61§2 LTVA transposing Art. 199 / 199a Directive. Separate lines
+  // so the AED can identify the anti-fraud mechanisms used.
+  // TODO(form-version): confirm box ids 438 / 440 against the current
+  // TVA002NA — these are the conventional AED codes for domestic RC.
+  { box: '438', label: 'Domestic RC — construction (base)', section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_LUX_CONSTR_17'], field: 'amount_eur' } },
+  { box: '439', label: 'VAT on domestic RC construction (17%)', section: 'D', computation: 'formula',
+    formula: '438 * 0.17' },
+  { box: '440', label: 'Domestic RC — scrap / emission (base)', section: 'D', computation: 'sum',
+    filter: { treatments: ['RC_LUX_SPEC_17'], field: 'amount_eur' } },
+  { box: '441', label: 'VAT on domestic RC scrap (17%)', section: 'D', computation: 'formula',
+    formula: '440 * 0.17' },
+
+  // D totals — taxable RC base and total RC VAT due (cross-border + domestic)
   { box: '409', label: 'Total RC taxable base', section: 'D', computation: 'formula',
-    formula: '436 + 463' },
+    formula: '436 + 463 + 438 + 440' },
   { box: '410', label: 'Total RC VAT due', section: 'D', computation: 'formula',
-    formula: '462 + 464' },
+    formula: '462 + 464 + 439 + 441' },
 
   // ──────────────── Section E — Autolivraison / self-supply ────────────────
   // Self-supply is declared as both output VAT (box 044) and deductible

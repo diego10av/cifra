@@ -35,6 +35,10 @@ const INTENTIONALLY_UNMAPPED = new Set<string>([
   // AED form's own definition. They belong only in audit / appendix output.
   'EXEMPT_44',        // incoming exempt Art. 44§1 d (fund-management), invoiced
   'EXEMPT_44A_FIN',   // incoming exempt Art. 44§1 a (financial), invoiced
+  // Batch B additions:
+  'MARGIN_NONDED',    // margin scheme — buyer cannot deduct; informational
+  'OUT_OSS',          // reported separately via OSS, NOT on LU return boxes
+  'PLATFORM_DEEMED',  // depends on direction of flow (LU vs OSS); reviewer routes
 ]);
 
 describe('eCDF box mapping — coverage of every treatment code', () => {
@@ -86,7 +90,9 @@ describe('eCDF box mapping — shape checks', () => {
 
   it('Box 409 (total RC taxable base) sums only the TAXABLE bases, not the exempt ones', () => {
     const box409 = ALL_BOXES.find(b => b.box === '409');
-    expect(box409?.formula).toBe('436 + 463');
+    // Taxable RC bases: cross-border (436 + 463) + domestic (438 + 440).
+    // Batch B added the domestic components (RC_LUX_CONSTR + RC_LUX_SPEC).
+    expect(box409?.formula).toBe('436 + 463 + 438 + 440');
     // Belt-and-braces: 435 (RC EU exempt) and 445 (RC non-EU exempt) must
     // NOT appear in the taxable-base total — that was the bug fixed in
     // Batch 2.

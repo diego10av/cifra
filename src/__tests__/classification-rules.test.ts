@@ -341,6 +341,180 @@ describe('Batch E-1 audit fixes', () => {
   });
 });
 
+// ════════════════ Option B — new rules 20-32 + audit hardening ════════════════
+describe('Batch B rules (20-32 + hardening)', () => {
+  // ─── RULE 20 — VAT group ───
+  it('RULE 20 — entity in VAT group, LU no-VAT incoming → VAT_GROUP_OUT (flagged)', () => {
+    const r = classifyInvoiceLine(
+      inv({ country: 'LU', description: 'Intra-group accounting service', vat_rate: 0, vat_applied: 0 }),
+      { entity_type: 'active_holding', vat_group_id: 'LUGRP12345' },
+    );
+    expect(r.treatment).toBe('VAT_GROUP_OUT');
+    expect(r.rule).toBe('RULE 20');
+    expect(r.flag).toBe(true);
+    expect(r.flag_reason).toMatch(/LUGRP12345/);
+  });
+
+  // ─── RULE 22 — Platform deemed supplier ───
+  it('RULE 22 — "marketplace facilitator" keyword → PLATFORM_DEEMED', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'IE',
+      description: 'Platform fee — marketplace facilitator Art. 9a',
+    }));
+    expect(r.treatment).toBe('PLATFORM_DEEMED');
+    expect(r.rule).toBe('RULE 22');
+    expect(r.flag).toBe(true);
+  });
+
+  // ─── RULE 24 — Margin scheme ───
+  it('RULE 24 — "régime de la marge" → MARGIN_NONDED (buyer cannot deduct)', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'FR',
+      description: 'Purchase of second-hand goods — régime de la marge',
+      vat_applied: 0, amount_eur: 1000,
+    }));
+    expect(r.treatment).toBe('MARGIN_NONDED');
+    expect(r.rule).toBe('RULE 24');
+    expect(r.flag).toBe(true);
+  });
+
+  // ─── RULE 25 — Domestic RC on construction ───
+  it('RULE 25 — LU construction work, no VAT → RC_LUX_CONSTR_17', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'LU',
+      description: 'Travaux de construction — gros œuvre Q1 2026',
+      vat_rate: 0, vat_applied: 0,
+    }));
+    expect(r.treatment).toBe('RC_LUX_CONSTR_17');
+    expect(r.rule).toBe('RULE 25');
+    expect(r.flag).toBe(true);
+  });
+
+  // ─── RULE 26 — Domestic RC on scrap / emission ───
+  it('RULE 26 — LU emission-allowance supply, no VAT → RC_LUX_SPEC_17', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'LU',
+      description: 'Sale of CO2 allowance to LU acquirer',
+      vat_rate: 0, vat_applied: 0,
+    }));
+    expect(r.treatment).toBe('RC_LUX_SPEC_17');
+    expect(r.rule).toBe('RULE 26');
+  });
+
+  // ─── RULE 27 — Bad-debt relief ───
+  it('RULE 27 — "créance irrécouvrable" → BAD_DEBT_RELIEF (flagged)', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'LU',
+      description: 'Régularisation — créance irrécouvrable suite à faillite',
+    }));
+    expect(r.treatment).toBe('BAD_DEBT_RELIEF');
+    expect(r.rule).toBe('RULE 27');
+    expect(r.flag).toBe(true);
+  });
+
+  // ─── RULE 29 — Non-deductible LU input VAT ───
+  it('RULE 29 — LU 17% on "repas d\'affaires" → LUX_17_NONDED', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'LU',
+      description: 'Restaurant — repas d\'affaires avec un client potentiel',
+      vat_rate: 0.17,
+    }));
+    expect(r.treatment).toBe('LUX_17_NONDED');
+    expect(r.rule).toBe('RULE 29');
+    expect(r.flag).toBe(true);
+  });
+
+  it('RULE 29 does NOT fire for ordinary LU 17% services', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'LU',
+      description: 'Consulting services Q1',
+      vat_rate: 0.17,
+    }));
+    expect(r.treatment).toBe('LUX_17');
+    expect(r.rule).toBe('RULE 1');
+  });
+
+  // ─── RULE 31 — Autolivraison ───
+  it('RULE 31 — self_supply_mentioned=true outgoing → AUTOLIV_17', () => {
+    const r = classifyInvoiceLine(inv({
+      direction: 'outgoing', country: 'LU',
+      description: 'Self-supply for private use of business asset',
+      // @ts-expect-error — extended field from the extractor
+      self_supply_mentioned: true,
+    }));
+    expect(r.treatment).toBe('AUTOLIV_17');
+    expect(r.rule).toBe('RULE 31');
+  });
+
+  // ─── Rate-split reverse-charge RULES 11B/C/D (EU) ───
+  it('RULE 11D — EU supplier, e-book service, no VAT → RC_EU_TAX_03', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'IE',
+      description: 'E-book licence annual subscription',
+    }));
+    expect(r.treatment).toBe('RC_EU_TAX_03');
+    expect(r.rule).toBe('RULE 11D');
+  });
+
+  it('RULE 11C — EU supplier, district heating, no VAT → RC_EU_TAX_08', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'DE',
+      description: 'District heating supply Q1 2026',
+    }));
+    expect(r.treatment).toBe('RC_EU_TAX_08');
+    expect(r.rule).toBe('RULE 11C');
+  });
+
+  it('RULE 11 — generic EU service no VAT (no backstop trigger) → RC_EU_TAX (17% default)', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'NL',
+      description: 'Cloud hosting monthly subscription',
+    }));
+    expect(r.treatment).toBe('RC_EU_TAX');
+    expect(r.rule).toBe('RULE 11');
+  });
+
+  // ─── Rate-split reverse-charge RULES 13D (non-EU) ───
+  it('RULE 13D — Non-EU supplier, e-book → RC_NONEU_TAX_03', () => {
+    const r = classifyInvoiceLine(inv({
+      country: 'US',
+      description: 'E-book annual subscription',
+    }));
+    expect(r.treatment).toBe('RC_NONEU_TAX_03');
+    expect(r.rule).toBe('RULE 13D');
+  });
+
+  // ─── Passive-holding gate ───
+  it('Passive holding + EU service → flag-only, no auto-RC (Polysar)', () => {
+    const r = classifyInvoiceLine(
+      inv({ country: 'FR', description: 'Legal advisory on M&A due diligence' }),
+      { entity_type: 'passive_holding' },
+    );
+    expect(r.treatment).toBeNull();
+    expect(r.rule).toBe('RULE 11P');
+    expect(r.flag).toBe(true);
+    expect(r.flag_reason).toMatch(/passive|Polysar|Cibo/i);
+  });
+
+  it('Passive holding + non-EU service → flag-only RULE 13P', () => {
+    const r = classifyInvoiceLine(
+      inv({ country: 'CH', description: 'Swiss consulting' }),
+      { entity_type: 'passive_holding' },
+    );
+    expect(r.treatment).toBeNull();
+    expect(r.rule).toBe('RULE 13P');
+  });
+
+  it('Active holding + EU service → normal RC_EU_TAX', () => {
+    const r = classifyInvoiceLine(
+      inv({ country: 'FR', description: 'Legal advisory services' }),
+      { entity_type: 'active_holding' },
+    );
+    // Either INFERENCE E (taxable backstop) for legal advisory, or RULE 11
+    expect(['RC_EU_TAX']).toContain(r.treatment);
+  });
+});
+
 describe('Reverse charge rules', () => {
   it('RULE 10 — EU + fund-mgmt + Art 44, entity IS a fund → RC_EU_EX', () => {
     // Batch E-1 CRITICAL fix: the Art. 44§1 d fund-management exemption

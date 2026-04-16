@@ -242,6 +242,105 @@ export const FRANCHISE_KEYWORDS: readonly string[] = [
   'régime de la franchise', 'régime franchise',
 ];
 
+// ── Construction / renovation / cleaning (Art. 61§2 c LTVA domestic RC) ──
+// LU-to-LU supplies of these works are reverse-charged to the recipient
+// per Art. 61§2 c LTVA + Règlement grand-ducal du 21 décembre 1991.
+export const CONSTRUCTION_KEYWORDS: readonly string[] = [
+  'construction', 'travaux de construction', 'bauleistung',
+  'renovation', 'rénovation', 'renovierung',
+  'demolition', 'démolition', 'abbruch',
+  'cleaning', 'nettoyage', 'reinigung',
+  'gros œuvre', 'second œuvre',
+  'masonry', 'plumbing', 'plomberie', 'installation',
+  'electrical works', 'travaux électriques', 'elektroinstallation',
+];
+
+// ── Scrap metals / emission allowances / electricity wholesale (Art. 61§2 a-b LTVA) ──
+// Domestic reverse-charge per Art. 199a Directive (quick-reaction mechanism).
+export const SPECIFIC_RC_KEYWORDS: readonly string[] = [
+  'scrap', 'ferraille', 'altmetall',
+  'used materials', 'matériaux de récupération',
+  'waste', 'déchets', 'abfall',
+  'emission allowance', 'quota d\'émission', 'emissionszertifikat',
+  'co2 allowance',
+  'electricity wholesale', 'électricité en gros',
+  'gas wholesale',
+];
+
+// ── Reduced-rate service categories (for rate-split reverse charge) ──
+// Used by RULES 11B/C/D and 13B/C/D to pick the correct RC rate when the
+// service is in one of the LU reduced-rate categories (Art. 40-1 LTVA /
+// Annex III Directive).
+export const REDUCED_RATE_14_KEYWORDS: readonly string[] = [
+  // Note: the LU 14% parking rate has narrowed post-2022/542. Currently
+  // applies to certain depositary-adjacent services (CONFIRM against
+  // LTVA Annex post-2025).
+  'depositary 14', 'garde de valeurs mobilières',
+];
+export const REDUCED_RATE_08_KEYWORDS: readonly string[] = [
+  // Reduced 8% — district heating, some cultural / sports services
+  'district heating', 'chauffage urbain', 'fernwärme',
+  'admission fee sports', 'billetterie sportive',
+];
+export const REDUCED_RATE_03_KEYWORDS: readonly string[] = [
+  // Super-reduced 3% — books, e-books, certain foodstuffs, printed matter
+  'book', 'livre', 'buch', 'libro', 'książka',
+  'e-book', 'ebook', 'e-publication',
+  'periodical', 'périodique', 'zeitschrift',
+  'foodstuffs', 'denrées alimentaires', 'lebensmittel',
+  'pharmaceutical', 'médicament', 'arzneimittel',
+];
+
+// ── Pre-payment / advance / deposit keywords (Art. 61§1 LTVA chargeability) ──
+export const PREPAYMENT_KEYWORDS: readonly string[] = [
+  'acompte', 'avance', 'deposit', 'advance payment',
+  'pre-payment', 'prepayment', 'prepaid',
+  'anzahlung', 'vorauszahlung',
+  'anticipo',
+];
+
+// ── Bad-debt relief (Art. 62 LTVA regularisation) ──
+export const BAD_DEBT_KEYWORDS: readonly string[] = [
+  'bad debt', 'créance irrécouvrable', 'créance douteuse',
+  'uneinbringlich', 'uneinbringliche forderung',
+  'insolvency', 'faillite', 'insolvenzverfahren',
+  'debt write-off', 'radiation de créance',
+];
+
+// ── Platform economy — deemed supplier (Versãofast / Fenix / ViDA) ──
+// Identifies invoices from platforms that are deemed the supplier for
+// B2C transactions under Art. 9a Reg. 282/2011 + ViDA 2027 extension.
+export const PLATFORM_DEEMED_SUPPLIER_KEYWORDS: readonly string[] = [
+  'marketplace facilitator', 'deemed supplier',
+  'plateforme de distribution', 'intermédiaire numérique',
+  'platform economy', 'art. 9a', 'article 9a',
+  'art. 14a', 'article 14a',
+];
+
+// ── Non-deductible LU input VAT categories (Art. 54 LTVA) ──
+// LU 17% invoices that should land in LUX_17_NONDED rather than LUX_17.
+export const NON_DEDUCTIBLE_KEYWORDS: readonly string[] = [
+  'restauration', 'restaurant', 'repas d\'affaires',
+  'hotel', 'hôtel', 'accommodation',
+  'reception', 'réception', 'client entertainment',
+  'entertainment', 'cadeau', 'gift',
+  'tabac', 'tobacco',
+  'véhicule de tourisme', 'passenger car',
+];
+
+// ── Clearly-taxable professional services for passive-holding guard ──
+// A pure passive SOPARFI is NOT a taxable person (Polysar C-60/90 /
+// Cibo Participations C-16/00). When a clearly-taxable service is
+// received by a passive holding, the supplier should charge origin-
+// country VAT; the LU recipient does NOT reverse-charge. The classifier
+// surfaces a flag because the deduction right depends on active-holding
+// status.
+export const PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS: readonly string[] = [
+  'due diligence', 'm&a advisory', 'acquisition advisory',
+  'legal advisory', 'tax advisory',
+  'corporate finance advisory',
+];
+
 // ── Helpers ──
 export function containsAny(haystack: string | null | undefined, needles: readonly string[]): boolean {
   if (!haystack) return false;

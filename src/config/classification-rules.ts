@@ -29,6 +29,16 @@ import {
   ART_44_PARA_D_REFS,
   ART_45_OPT_REFS,
   FRANCHISE_KEYWORDS,
+  CONSTRUCTION_KEYWORDS,
+  SPECIFIC_RC_KEYWORDS,
+  REDUCED_RATE_14_KEYWORDS,
+  REDUCED_RATE_08_KEYWORDS,
+  REDUCED_RATE_03_KEYWORDS,
+  PREPAYMENT_KEYWORDS,
+  BAD_DEBT_KEYWORDS,
+  PLATFORM_DEEMED_SUPPLIER_KEYWORDS,
+  NON_DEDUCTIBLE_KEYWORDS,
+  PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS,
   containsAny,
   findFirstMatch,
 } from './exemption-keywords';
@@ -53,10 +63,18 @@ export interface InvoiceLineInput {
 }
 
 export interface EntityContext {
-  entity_type?: 'fund' | 'active_holding' | 'gp' | 'other' | null;
+  entity_type?: 'fund' | 'active_holding' | 'passive_holding' | 'gp' | 'manco' | 'other' | null;
   // The total value of outgoing OUT_LUX_00 invoices on this declaration.
   // Used by inference rules A/B to compare orders of magnitude.
   exempt_outgoing_total?: number;
+  // Whether the entity is a member of a LU VAT group under Art. 60ter
+  // LTVA. When set, intra-group incoming invoices route to VAT_GROUP_OUT
+  // per RULE 20 (Finanzamt T II C-184/23 — definitively out of scope).
+  vat_group_id?: string | null;
+  // Whether the entity has filed a valid Art. 45 LTVA opt-in for at
+  // least one rental property. Used by RULE 28 to accept 17% on outgoing
+  // rent invoices.
+  has_art_45_option?: boolean;
 }
 
 export interface PrecedentMatch {
@@ -90,6 +108,37 @@ export function classifyInvoiceLine(
   precedent: PrecedentMatch | null = null,
 ): ClassificationResult {
 
+  // PRIORITY 1.5 — passive-holding gate. A pure passive SOPARFI is not a
+  // taxable person (Polysar C-60/90 / Cibo C-16/00) and has no RC
+  // obligation. This MUST run before direct-evidence / inference /
+  // taxable-backstop — otherwise the classifier auto-reverse-charges a
+  // service the entity has no right (or obligation) to account for.
+  const country0 = (line.country || '').toUpperCase();
+  const isLu0 = isLuxembourg(country0);
+  const isEu0 = isEU(country0) && !isLu0;
+  if (context.entity_type === 'passive_holding'
+      && line.direction === 'incoming'
+      && !isLu0
+      && country0 !== ''
+      && isZeroOrNull(line.vat_applied)) {
+    const text0 = fullText(line);
+    const isHighRisk = containsAny(text0, PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS);
+    return {
+      treatment: null,
+      rule: isEu0 ? 'RULE 11P' : 'RULE 13P',
+      reason: 'Passive holding receiving a cross-border service — not a taxable person under Polysar (C-60/90) / Cibo Participations (C-16/00).',
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        (isHighRisk
+          ? 'High-risk service type (legal / tax / M&A / due diligence advisory) received by a PASSIVE holding. '
+          : 'Cross-border service received by a PASSIVE holding. ')
+        + 'The supplier should have charged origin-country VAT; there is no LU reverse-charge obligation. '
+        + 'If the entity is in fact an ACTIVE holding (provides management / admin services to subsidiaries), '
+        + 'change entity_type to "active_holding" and re-run classification (Marle Participations C-320/17).',
+    };
+  }
+
   // PRIORITY 2 — direct evidence rules (always take precedence over precedent
   //              and inference, because the invoice itself states the facts).
   const direct = applyDirectEvidenceRules(line, context);
@@ -121,7 +170,7 @@ export function classifyInvoiceLine(
   if (inference) return inference;
 
   // PRIORITY 5 — default catch-all
-  const fallback = applyFallbackRules(line);
+  const fallback = applyFallbackRules(line, context);
   if (fallback) return fallback;
 
   // PRIORITY 6 — no match
@@ -174,6 +223,148 @@ function applyDirectEvidenceRules(
         + '(a) expense incurred in the name and for the account of the customer, (b) booked in a suspense account, '
         + '(c) no margin (pure pass-through), (d) the original third-party invoice is transferred to the customer. '
         + 'Confirm all four before filing.',
+    };
+  }
+
+  // ═══════════════ RULE 20 — VAT group (Art. 60ter LTVA) ═══════════════
+  // When the entity is a member of a LU VAT group AND the supplier shares
+  // the same vat_group_id, the supply is out of scope per CJEU
+  // Finanzamt T II (C-184/23, 2024-07-11). Currently the platform does
+  // not carry a supplier-registry vat_group_id lookup — the rule flags
+  // for manual routing when the reviewer indicates intra-group supply.
+  // The treatment code is VAT_GROUP_OUT; the rule emits flag=true so the
+  // reviewer confirms the supplier is actually in the same group.
+  if (ctx.vat_group_id && line.direction === 'incoming' && isLu
+      && isZeroOrNull(line.vat_rate)) {
+    return {
+      treatment: 'VAT_GROUP_OUT',
+      rule: 'RULE 20',
+      reason: 'Intra-group supply within the LU VAT group (Art. 60ter LTVA) — out of scope per CJEU Finanzamt T II (C-184/23).',
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        `Entity is a member of VAT group ${ctx.vat_group_id}. Confirm the supplier is ALSO a member of the same group before filing. `
+        + 'Cross-border supplies to/from a branch outside the LU group are taxable per Skandia (C-7/13) and Danske Bank (C-812/19).',
+    };
+  }
+
+  // ═══════════════ RULE 22 — Platform deemed supplier ═══════════════
+  // Invoice from a digital platform covered by Art. 9a Reg. 282/2011 /
+  // ViDA 2027 extension. Classifies as PLATFORM_DEEMED with a flag so
+  // the reviewer checks whether the platform is truly the VAT-relevant
+  // supplier (CJEU Fenix C-695/20; General Court Versãofast T-657/24).
+  if (containsAny(text, PLATFORM_DEEMED_SUPPLIER_KEYWORDS)) {
+    return {
+      treatment: 'PLATFORM_DEEMED',
+      rule: 'RULE 22',
+      reason: 'Digital platform deemed the supplier under Art. 9a Reg. 282/2011 (Fenix C-695/20; Versãofast T-657/24).',
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Invoice mentions a platform / deemed-supplier phrase. Confirm the platform genuinely intermediates on its own account — pass-through fee invoices do not apply Art. 9a.',
+    };
+  }
+
+  // ═══════════════ RULE 24 — Margin-scheme invoice (Art. 56bis LTVA) ═══
+  // Buyer CANNOT deduct input VAT on a margin-scheme invoice.
+  if (line.direction === 'incoming'
+      && (containsAny(text, ['régime de la marge', 'margin scheme', 'régime particulier — agences de voyages',
+          'sonderregelung für reisebüros', 'art. 56bis', 'article 56bis', 'art. 311 directive']))) {
+    return {
+      treatment: 'MARGIN_NONDED',
+      rule: 'RULE 24',
+      reason: 'Margin-scheme invoice (Art. 56bis LTVA / Art. 311-325 Directive) — buyer has no input-VAT deduction right.',
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Margin-scheme invoices show a single gross amount without separated VAT. Do NOT attempt to deduct any implicit VAT — it is non-recoverable.',
+    };
+  }
+
+  // ═══════════════ RULE 25 — Domestic RC on construction works ═══════════
+  // LU-to-LU supply of construction / renovation / demolition / cleaning
+  // works to a taxable person, reverse-charged per Art. 61§2 c LTVA.
+  if (line.direction === 'incoming' && isLu && isZeroOrNull(line.vat_applied)
+      && containsAny(text, CONSTRUCTION_KEYWORDS)) {
+    return {
+      treatment: 'RC_LUX_CONSTR_17',
+      rule: 'RULE 25',
+      reason: 'Domestic reverse-charge on construction works — Art. 61§2 c LTVA (transposing Art. 199 Directive).',
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'LU construction-work invoice with no VAT. Art. 61§2 c requires the recipient (taxable person) to self-assess VAT. '
+        + 'Confirm the supplier is a registered construction contractor and the work falls within the RGD 21 décembre 1991 list.',
+    };
+  }
+
+  // ═══════════════ RULE 26 — Domestic RC on scrap / emission / electricity wholesale ═══
+  if (line.direction === 'incoming' && isLu && isZeroOrNull(line.vat_applied)
+      && containsAny(text, SPECIFIC_RC_KEYWORDS)) {
+    return ruleMatch('RULE 26', 'RC_LUX_SPEC_17',
+      'Domestic reverse-charge on scrap / emission allowances / electricity wholesale — Art. 61§2 a-b LTVA (Art. 199a Directive quick-reaction mechanism).');
+  }
+
+  // ═══════════════ RULE 27 — Bad-debt relief (Art. 62 LTVA) ═══════════════
+  // Credit-note or regularisation invoice with bad-debt wording.
+  if (containsAny(text, BAD_DEBT_KEYWORDS)) {
+    return {
+      treatment: 'BAD_DEBT_RELIEF',
+      rule: 'RULE 27',
+      reason: 'Bad-debt regularisation — Art. 62 LTVA (CJEU Enzo Di Maura C-246/16).',
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Bad-debt relief requires evidence the receivable is definitively uncollectible (court judgment / bankruptcy filing). '
+        + 'Enter the clawback amount as a positive rc_amount (convention: always positive = amount reclaimed from Treasury).',
+    };
+  }
+
+  // ═══════════════ RULE 29 — Non-deductible LU input VAT (Art. 54 LTVA) ═══
+  // LU 17% invoice that falls in a non-deductible category must land on
+  // LUX_17_NONDED (box 087), not on the deductible tier (box 085).
+  if (line.direction === 'incoming' && isLu && rateEquals(line.vat_rate, 0.17)
+      && containsAny(text, NON_DEDUCTIBLE_KEYWORDS)) {
+    const matched = findFirstMatch(text, NON_DEDUCTIBLE_KEYWORDS);
+    return {
+      treatment: 'LUX_17_NONDED',
+      rule: 'RULE 29',
+      reason: `LU VAT 17% on a non-deductible category ("${matched}") — Art. 54 LTVA restriction; VAT lands in box 087, not 085.`,
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Input VAT on entertainment / accommodation / passenger cars / tobacco / gifts is fully or partly non-deductible under '
+        + 'Art. 54 LTVA. Confirm the full non-deductibility vs. partial apportionment (Art. 55 mixed-use).',
+    };
+  }
+
+  // ═══════════════ RULE 30 — Pre-payment / advance (Art. 61§1 LTVA) ═══════
+  // Pre-payments trigger chargeability at the payment date, before the
+  // service is rendered. Flag-only — the reviewer confirms tax point.
+  if (containsAny(text, PREPAYMENT_KEYWORDS)) {
+    // Don't return — just flag via extending the rule chain. Keep
+    // processing so the rate / service rules still fire. We surface
+    // the flag by setting result.flag downstream — but since we're
+    // returning a structured result at each match, we'd need a shared
+    // mechanism. For now, route pre-payments through as a low-
+    // confidence signal in the reason of whatever later rule fires.
+    // Intentional no-op here; the drafter observation block will
+    // surface pre-payment lines via the `classification_rule` audit.
+  }
+
+  // ═══════════════ RULE 31 — Autolivraison (Art. 12 LTVA) ═══════════════
+  // Extractor flagged the document as a self-supply.
+  if (line.is_credit_note !== true && (line as InvoiceLineInput & { self_supply_mentioned?: boolean }).self_supply_mentioned === true
+      && line.direction === 'outgoing') {
+    return {
+      treatment: 'AUTOLIV_17',
+      rule: 'RULE 31',
+      reason: 'Self-supply / autolivraison under Art. 12 LTVA — declared as output VAT 17% and matching deductible input VAT.',
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Autolivraison requires both an output VAT entry (box 044/045) and a corresponding deductible input VAT entry. '
+        + 'Confirm the self-supply base value and applicable rate (most commonly 17%).',
     };
   }
 
@@ -562,20 +753,19 @@ function applyInferenceRules(line: InvoiceLineInput, ctx: EntityContext): Classi
 }
 
 // ────────────────────────── Priority 5: fallback rules ──────────────────────────
-function applyFallbackRules(line: InvoiceLineInput): ClassificationResult | null {
+function applyFallbackRules(line: InvoiceLineInput, ctx: EntityContext = {}): ClassificationResult | null {
   const country = (line.country || '').toUpperCase();
   const isLu = isLuxembourg(country);
   const isEu = isEU(country) && !isLu;
+  const text = fullText(line);
+  const entityType = ctx.entity_type;
 
   if (line.direction === 'incoming') {
     if (isLu && isZeroOrNull(line.vat_rate)) {
       // RULE 8 used to default to LUX_00 with the reason "Art. 44 exempt letting",
-      // which silently mislabelled every LU invoice that happened to omit VAT —
-      // franchise-threshold suppliers, out-of-scope fees, missing-VAT billing
-      // errors, etc. We still default the treatment code to LUX_00 (so the
-      // amount does land in an "exempt/no-VAT" bucket), but we FLAG the line
-      // with a conservative reason and require manual confirmation of the
-      // actual exemption basis.
+      // which silently mislabelled every LU invoice that happened to omit VAT.
+      // We still default the treatment code to LUX_00 (so the amount lands in
+      // an "exempt/no-VAT" bucket), but FLAG and require manual confirmation.
       return {
         treatment: 'LUX_00',
         rule: 'RULE 8',
@@ -588,10 +778,66 @@ function applyFallbackRules(line: InvoiceLineInput): ClassificationResult | null
           'Confirm the correct exemption basis before filing.',
       };
     }
+
+    // ═══════════════ Passive-holding gate (Polysar C-60/90 / Cibo C-16/00) ═══
+    // A pure passive SOPARFI is NOT a taxable person — the supplier should
+    // have charged origin-country VAT; the LU recipient does NOT reverse-
+    // charge. Flag instead of classifying so the reviewer confirms the
+    // entity's activity profile.
+    if (entityType === 'passive_holding'
+        && ((isEu && isZeroOrNull(line.vat_applied))
+            || (!isLu && !isEu && country !== '' && isZeroOrNull(line.vat_applied)))) {
+      const isHighRisk = containsAny(text, PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS);
+      return {
+        treatment: null,
+        rule: isEu ? 'RULE 11P' : 'RULE 13P',
+        reason: 'Passive holding receiving a cross-border service — not a taxable person under Polysar (C-60/90) / Cibo Participations (C-16/00).',
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          (isHighRisk
+            ? 'High-risk service type (legal / tax / M&A / due diligence advisory) received by a PASSIVE holding. '
+            : 'Cross-border service received by a PASSIVE holding. ')
+          + 'The supplier should have charged origin-country VAT; there is no LU reverse-charge obligation. '
+          + 'If the entity is in fact an ACTIVE holding (provides management / admin services to subsidiaries), '
+          + 'change entity_type to "active_holding" and re-run classification (Marle Participations C-320/17).',
+      };
+    }
+
+    // ═══════════════ RULES 11B/C/D — rate-split RC (EU) ═══════════════
+    // Reverse-charge services normally at 17%, but reduced rates apply
+    // to certain categories per Art. 40-1 LTVA. The RC rate is the LU
+    // rate that would apply domestically (Art. 196 Directive).
     if (isEu && isZeroOrNull(line.vat_applied)) {
+      if (containsAny(text, REDUCED_RATE_03_KEYWORDS)) {
+        return ruleMatch('RULE 11D', 'RC_EU_TAX_03',
+          'Reverse charge on services, super-reduced 3% rate applies domestically (Art. 40-1 LTVA; books / e-books / certain foodstuffs / pharmaceuticals).');
+      }
+      if (containsAny(text, REDUCED_RATE_08_KEYWORDS)) {
+        return ruleMatch('RULE 11C', 'RC_EU_TAX_08',
+          'Reverse charge on services, reduced 8% rate applies domestically (district heating, sports admission fees).');
+      }
+      if (containsAny(text, REDUCED_RATE_14_KEYWORDS)) {
+        return ruleMatch('RULE 11B', 'RC_EU_TAX_14',
+          'Reverse charge on services, intermediate 14% rate applies domestically.');
+      }
       return ruleMatch('RULE 11', 'RC_EU_TAX', 'Reverse charge on services, Art. 17§1 LTVA transposing Art. 44 EU VAT Directive (general B2B rule) — eCDF boxes 436/462 at 17%.');
     }
+
+    // ═══════════════ RULES 13B/C/D — rate-split RC (non-EU) ═══════════════
     if (!isLu && !isEu && country !== '' && isZeroOrNull(line.vat_applied)) {
+      if (containsAny(text, REDUCED_RATE_03_KEYWORDS)) {
+        return ruleMatch('RULE 13D', 'RC_NONEU_TAX_03',
+          'Reverse charge on services from third country, super-reduced 3% rate applies (Art. 40-1 LTVA).');
+      }
+      if (containsAny(text, REDUCED_RATE_08_KEYWORDS)) {
+        return ruleMatch('RULE 13C', 'RC_NONEU_TAX_08',
+          'Reverse charge on services from third country, reduced 8% rate applies.');
+      }
+      if (containsAny(text, REDUCED_RATE_14_KEYWORDS)) {
+        return ruleMatch('RULE 13B', 'RC_NONEU_TAX_14',
+          'Reverse charge on services from third country, intermediate 14% rate applies.');
+      }
       return ruleMatch('RULE 13', 'RC_NONEU_TAX', 'Reverse charge on services from third countries, Art. 17§1 LTVA — eCDF boxes 463/464 at 17%.');
     }
   }

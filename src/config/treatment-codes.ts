@@ -28,10 +28,28 @@ export const TREATMENT_CODES = {
   // ════════════════════════════════════════════════════════════════════
   // INCOMING — Reverse-charge on services (self-assessed)
   // ════════════════════════════════════════════════════════════════════
-  RC_EU_TAX:        { label: 'RC EU Taxable',     direction: 'incoming', vatRate: null, description: 'Reverse charge, EU supplier, taxable in Luxembourg (Art. 17§1 LTVA)' },
-  RC_EU_EX:         { label: 'RC EU Exempt',      direction: 'incoming', vatRate: null, description: 'Reverse charge, EU supplier, exempt under Art. 44' },
-  RC_NONEU_TAX:     { label: 'RC Non-EU Taxable', direction: 'incoming', vatRate: null, description: 'Reverse charge, non-EU supplier, taxable in Luxembourg' },
-  RC_NONEU_EX:      { label: 'RC Non-EU Exempt',  direction: 'incoming', vatRate: null, description: 'Reverse charge, non-EU supplier, exempt under Art. 44' },
+  // Default-rate (17%) RC codes. The generic RC_EU_TAX / RC_NONEU_TAX
+  // codes are the workhorse; the rate-specific variants below handle
+  // reduced-rate services (district heating 8%, books/e-books 3%, etc.).
+  // The reverse-charge mechanism uses the LU rate applicable to the
+  // same supply if domestic (Art. 17§1 LTVA / Art. 196 Directive).
+  RC_EU_TAX:        { label: 'RC EU Taxable 17%',  direction: 'incoming', vatRate: 0.17, description: 'Reverse charge, EU supplier, taxable in Luxembourg at 17% (Art. 17§1 LTVA)' },
+  RC_EU_TAX_14:     { label: 'RC EU Taxable 14%',  direction: 'incoming', vatRate: 0.14, description: 'Reverse charge, EU supplier, reduced rate 14% applies domestically' },
+  RC_EU_TAX_08:     { label: 'RC EU Taxable 8%',   direction: 'incoming', vatRate: 0.08, description: 'Reverse charge, EU supplier, reduced rate 8% applies (district heating, sports)' },
+  RC_EU_TAX_03:     { label: 'RC EU Taxable 3%',   direction: 'incoming', vatRate: 0.03, description: 'Reverse charge, EU supplier, super-reduced 3% applies (books, e-books, certain foodstuffs)' },
+  RC_EU_EX:         { label: 'RC EU Exempt',       direction: 'incoming', vatRate: null, description: 'Reverse charge, EU supplier, exempt under Art. 44 (qualifying fund recipient)' },
+  RC_NONEU_TAX:     { label: 'RC Non-EU Taxable 17%', direction: 'incoming', vatRate: 0.17, description: 'Reverse charge, non-EU supplier, taxable in Luxembourg at 17%' },
+  RC_NONEU_TAX_14:  { label: 'RC Non-EU Taxable 14%', direction: 'incoming', vatRate: 0.14, description: 'Reverse charge, non-EU supplier, reduced rate 14% applies' },
+  RC_NONEU_TAX_08:  { label: 'RC Non-EU Taxable 8%',  direction: 'incoming', vatRate: 0.08, description: 'Reverse charge, non-EU supplier, reduced rate 8% applies' },
+  RC_NONEU_TAX_03:  { label: 'RC Non-EU Taxable 3%',  direction: 'incoming', vatRate: 0.03, description: 'Reverse charge, non-EU supplier, super-reduced 3% applies' },
+  RC_NONEU_EX:      { label: 'RC Non-EU Exempt',   direction: 'incoming', vatRate: null, description: 'Reverse charge, non-EU supplier, exempt under Art. 44' },
+
+  // Domestic reverse-charge categories (Art. 61§2 LTVA / Art. 199 Directive)
+  RC_LUX_CONSTR_17: { label: 'Domestic RC — construction 17%', direction: 'incoming', vatRate: 0.17, description: 'LU-to-LU construction, renovation, cleaning (Art. 61§2 c LTVA + RGD 21 décembre 1991)' },
+  RC_LUX_SPEC_17:   { label: 'Domestic RC — scrap / emission 17%', direction: 'incoming', vatRate: 0.17, description: 'LU-to-LU scrap, waste, emission allowances, electricity wholesale (Art. 61§2 a-b LTVA)' },
+
+  // Margin scheme — buyer has NO deduction right
+  MARGIN_NONDED:    { label: 'Margin scheme (no deduction)', direction: 'incoming', vatRate: 0, description: 'Margin-scheme invoice (Art. 56bis LTVA / Art. 311-325 Directive): single gross amount, buyer cannot deduct' },
 
   // ════════════════════════════════════════════════════════════════════
   // INCOMING — Intra-Community acquisitions of goods (by rate)
@@ -86,6 +104,8 @@ export const TREATMENT_CODES = {
   OUT_LU_TRIANG:    { label: 'Outgoing Triangulation', direction: 'outgoing', vatRate: 0, description: 'Triangulation simplification, intermediate supplier (Art. 18bis LTVA)' },
   OUT_NONEU:        { label: 'Outgoing non-EU customer', direction: 'outgoing', vatRate: 0, description: 'Service or goods to non-EU customer — outside the scope of LU VAT' },
   AUTOLIV_17:       { label: 'Autolivraison 17%', direction: 'outgoing', vatRate: 0.17, description: 'Self-supply / autolivraison at 17% (Art. 12 LTVA)' },
+  OUT_OSS:          { label: 'Outgoing — OSS / IOSS (filed separately)', direction: 'outgoing', vatRate: null, description: 'B2C electronic / TBE services to EU consumers reported via OSS; NOT on the LU return boxes (Dir 2017/2455 / LTVA Art. 17bis)' },
+  PLATFORM_DEEMED:  { label: 'Platform deemed supplier', direction: 'outgoing', vatRate: null, description: 'Digital platform deemed the supplier for VAT purposes (Art. 9a Reg. 282/2011; Versãofast T-657/24; Fenix C-695/20)' },
 } as const;
 
 export type TreatmentCode = keyof typeof TREATMENT_CODES;
@@ -94,10 +114,13 @@ export type TreatmentCode = keyof typeof TREATMENT_CODES;
 // add a new code above, add it to the matching array below as well.
 export const INCOMING_TREATMENTS: TreatmentCode[] = [
   'LUX_17', 'LUX_14', 'LUX_08', 'LUX_03', 'LUX_00', 'LUX_17_NONDED',
-  'RC_EU_TAX', 'RC_EU_EX', 'RC_NONEU_TAX', 'RC_NONEU_EX',
+  'RC_EU_TAX', 'RC_EU_TAX_14', 'RC_EU_TAX_08', 'RC_EU_TAX_03', 'RC_EU_EX',
+  'RC_NONEU_TAX', 'RC_NONEU_TAX_14', 'RC_NONEU_TAX_08', 'RC_NONEU_TAX_03', 'RC_NONEU_EX',
+  'RC_LUX_CONSTR_17', 'RC_LUX_SPEC_17',
   'IC_ACQ', 'IC_ACQ_17', 'IC_ACQ_14', 'IC_ACQ_08', 'IC_ACQ_03',
   'IMPORT_VAT',
   'EXEMPT_44', 'EXEMPT_44A_FIN', 'EXEMPT_44B_RE',
+  'MARGIN_NONDED',
   'OUT_SCOPE', 'DEBOURS', 'VAT_GROUP_OUT', 'BAD_DEBT_RELIEF',
 ];
 
@@ -107,4 +130,5 @@ export const OUTGOING_TREATMENTS: TreatmentCode[] = [
   'OUT_LUX_17_OPT',
   'OUT_EU_RC', 'OUT_IC_GOODS', 'OUT_LU_TRIANG', 'OUT_NONEU',
   'AUTOLIV_17',
+  'OUT_OSS', 'PLATFORM_DEEMED',
 ];
