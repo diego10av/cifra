@@ -53,7 +53,7 @@ export function maskKey(k: string | undefined): string {
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export interface AnthropicCallContext {
-  agent: 'triage' | 'extractor' | 'classifier' | 'drafter' | 'aed_reader' | 'other';
+  agent: 'triage' | 'extractor' | 'classifier' | 'drafter' | 'aed_reader' | 'validator' | 'other';
   declaration_id?: string | null;
   entity_id?: string | null;
   label?: string; // e.g. document filename for logs
