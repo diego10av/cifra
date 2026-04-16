@@ -5,6 +5,10 @@ import { useParams } from 'next/navigation';
 import { TREATMENT_CODES, INCOMING_TREATMENTS, OUTGOING_TREATMENTS, type TreatmentCode } from '@/config/treatment-codes';
 import { useToast } from '@/components/Toaster';
 import { describeApiError } from '@/lib/ui-errors';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { LifecycleStepper } from '@/components/ui/LifecycleStepper';
+import { Tabs, type TabDef } from '@/components/ui/Tabs';
+import { FileTextIcon, ClipboardCheckIcon, DownloadCloudIcon, FolderArchiveIcon, RefreshCwIcon, CheckCircle2Icon, RotateCcwIcon } from 'lucide-react';
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -506,42 +510,77 @@ export default function DeclarationDetailPage() {
   const hasFx = Boolean(data.has_fx);
   const previewOpen = !!preview;
 
+  // Active tab. Default picks the most useful view given the current state:
+  //  - nothing uploaded yet → Documents (upload zones)
+  //  - extraction in flight → Documents (pending docs + progress)
+  //  - lines exist → Review
+  //  - already approved/filed/paid → Filing (next action is filing-side)
+  const defaultTab: 'documents' | 'review' | 'filing' | 'outputs' =
+    activeLines.length === 0 && data.documents.length === 0 ? 'documents'
+      : ['approved', 'filed', 'paid'].includes(data.status) ? 'filing'
+      : 'review';
+  const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs'>(defaultTab);
+
+  const tabs: TabDef[] = [
+    { id: 'documents', label: 'Documents', icon: <FolderArchiveIcon size={14} />,
+      badge: data.documentStats.errors > 0 ? data.documentStats.errors : undefined,
+      badgeTone: 'warning' },
+    { id: 'review',    label: 'Review',    icon: <FileTextIcon size={14} />,
+      badge: unclassified + flagged > 0 ? unclassified + flagged : undefined,
+      badgeTone: 'warning' },
+    { id: 'filing',    label: 'Filing',    icon: <ClipboardCheckIcon size={14} /> },
+    { id: 'outputs',   label: 'Outputs',   icon: <DownloadCloudIcon size={14} />,
+      badge: activeLines.length > 0 ? undefined : undefined },
+  ];
+
   return (
     <div ref={containerRef} className="flex w-full" style={{ minHeight: 'calc(100vh - 80px)' }}>
       {/* ─────────── LEFT COLUMN ─────────── */}
       <div className="flex flex-col min-w-0" style={{ width: previewOpen ? `${100 - previewWidth}%` : '100%' }}>
         <div className="pr-3">
-          {/* Header */}
-          <header className="flex items-start justify-between mb-5">
-            <div>
-              <h1 className="text-[20px] font-semibold text-ink tracking-tight">
+          {/* ─── Breadcrumbs ─── */}
+          <Breadcrumbs
+            crumbs={[
+              { label: 'Declarations', href: '/declarations' },
+              { label: data.entity_name, href: `/entities/${data.entity_id}` },
+              { label: `${data.year} ${data.period}` },
+            ]}
+          />
+
+          {/* ─── Page header ─── */}
+          <header className="flex flex-wrap items-start justify-between gap-4 mb-5">
+            <div className="min-w-0">
+              <h1 className="text-[24px] font-bold text-ink tracking-tight leading-tight" style={{ letterSpacing: '-0.02em' }}>
                 {data.entity_name}
-                <span className="text-ink-faint font-normal ml-2">— {data.year} {data.period}</span>
               </h1>
-              <div className="flex items-center gap-2 mt-1.5 text-[12px] text-ink-muted">
+              <div className="flex items-center gap-2 mt-1.5 text-[12.5px] text-ink-muted flex-wrap">
+                <span className="font-medium text-ink-soft">{data.year} {data.period}</span>
+                <span className="text-ink-faint">·</span>
                 <span className="capitalize">{data.regime}</span>
-                <span className="text-ink-faint">•</span>
-                <span>{data.vat_number}</span>
+                <span className="text-ink-faint">·</span>
+                <span className="tabular-nums">{data.vat_number}</span>
                 <StatusBadge status={data.status} />
               </div>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-wrap gap-2 items-center shrink-0">
               {hasFx && activeLines.length > 0 && !locked && (
                 <button
                   onClick={handleFillFx}
                   disabled={fillingFx}
-                  className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="h-8 px-3 rounded-md border border-border text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:border-border-strong transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
                   title="Fetch ECB reference rates for non-EUR invoices"
                 >
-                  {fillingFx ? 'Fetching…' : 'Fetch FX rates'}
+                  {fillingFx ? <Spinner small /> : <RefreshCwIcon size={13} />}
+                  {fillingFx ? 'Fetching…' : 'Fetch FX'}
                 </button>
               )}
               {activeLines.length > 0 && !locked && (
                 <button
                   onClick={handleClassify}
                   disabled={classifying}
-                  className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="h-8 px-3 rounded-md border border-border text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:border-border-strong transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
                 >
+                  {classifying ? <Spinner small /> : <RefreshCwIcon size={13} />}
                   {classifying ? 'Classifying…' : 'Re-run rules'}
                 </button>
               )}
@@ -549,23 +588,31 @@ export default function DeclarationDetailPage() {
                 <button
                   onClick={() => handleStatusChange('approved')}
                   disabled={unclassified > 0 || flagged > 0}
-                  className="h-8 px-4 rounded bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  className="h-8 px-4 rounded-md bg-success-500 text-white text-[12.5px] font-semibold hover:bg-success-700 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
                   title={unclassified > 0 || flagged > 0 ? `Cannot approve: ${unclassified} unclassified, ${flagged} unacknowledged flags` : 'Approve'}
                 >
+                  <CheckCircle2Icon size={13} />
                   Approve
                 </button>
               )}
               {data.status === 'approved' && (
                 <button
                   onClick={() => handleStatusChange('review')}
-                  className="h-8 px-3 rounded border border-orange-300 text-xs font-medium text-orange-600 hover:bg-orange-50 transition-all duration-150 cursor-pointer"
+                  className="h-8 px-3 rounded-md border border-warning-500/40 text-[12.5px] font-medium text-warning-700 hover:bg-warning-50 transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5"
                 >
+                  <RotateCcwIcon size={13} />
                   Reopen
                 </button>
               )}
             </div>
           </header>
 
+          {/* ─── Lifecycle stepper ─── */}
+          <div className="mb-6 px-2 py-4 bg-surface border border-border rounded-xl shadow-xs">
+            <LifecycleStepper status={data.status} />
+          </div>
+
+          {/* ─── Always-visible meta ─── */}
           {/* Job progress */}
           {jobProgress && (
             <JobProgressBar
@@ -576,28 +623,53 @@ export default function DeclarationDetailPage() {
 
           <DeclarationNotes declarationId={id} initial={data.notes} />
 
-          {/* Approval toast (precedent learning report etc.) */}
           {precedentToast && (
-            <div className="mb-4 px-3 py-2 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 text-[12px] flex items-center gap-2 animate-fadeIn">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div className="mb-4 px-3 py-2 rounded-md border border-success-500/30 bg-success-50 text-success-700 text-[12px] flex items-center gap-2 animate-fadeIn">
+              <CheckCircle2Icon size={14} />
               {precedentToast}
             </div>
           )}
 
-          {/* Reconciliation card */}
-          <div className="bg-surface border border-border rounded-lg p-4 mb-4">
-            <div className="grid grid-cols-6 gap-4">
+          {/* ─── Tabs ─── */}
+          <div className="mb-5">
+            <Tabs
+              tabs={tabs}
+              activeId={activeTab}
+              onChange={(id) => setActiveTab(id as typeof activeTab)}
+            />
+          </div>
+
+          {/* ─── TAB: Review ─── */}
+          {activeTab === 'review' && (
+            <>
+              {/* Reconciliation card */}
+              <div className="bg-surface border border-border rounded-xl p-4 mb-4 shadow-xs">
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
+                  <Stat label="Uploaded" value={data.documentStats.total} />
+                  <Stat label="Invoices" value={data.documentStats.invoices} color="text-info-700" />
+                  <Stat label="Excluded" value={excludedDocs.length + deletedLines.length} color="text-ink-faint" />
+                  <Stat label="Errors" value={data.documentStats.errors} color={data.documentStats.errors > 0 ? 'text-danger-700' : 'text-ink-faint'} />
+                  <Stat label="Lines" value={activeLines.length} />
+                  <Stat label="Total EUR" value={totalExVat.toLocaleString('en-LU', { minimumFractionDigits: 2 })} small />
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ─── TAB: Documents ─── */}
+          {activeTab === 'documents' && (
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-4 bg-surface border border-border rounded-xl p-4 mb-4 shadow-xs">
               <Stat label="Uploaded" value={data.documentStats.total} />
-              <Stat label="Invoices" value={data.documentStats.invoices} color="text-blue-600" />
+              <Stat label="Invoices" value={data.documentStats.invoices} color="text-info-700" />
               <Stat label="Excluded" value={excludedDocs.length + deletedLines.length} color="text-ink-faint" />
-              <Stat label="Errors" value={data.documentStats.errors} color={data.documentStats.errors > 0 ? 'text-red-600' : 'text-ink-faint'} />
+              <Stat label="Errors" value={data.documentStats.errors} color={data.documentStats.errors > 0 ? 'text-danger-700' : 'text-ink-faint'} />
               <Stat label="Lines" value={activeLines.length} />
               <Stat label="Total EUR" value={totalExVat.toLocaleString('en-LU', { minimumFractionDigits: 2 })} small />
             </div>
-          </div>
+          )}
 
-          {/* Upload zones */}
-          {['created', 'uploading', 'review'].includes(data.status) && (
+          {/* Upload zones — only in Documents tab */}
+          {activeTab === 'documents' && ['created', 'uploading', 'review'].includes(data.status) && (
             <div className="grid grid-cols-2 gap-3 mb-4">
               {/* Invoice upload */}
               <div
@@ -635,8 +707,8 @@ export default function DeclarationDetailPage() {
             </div>
           )}
 
-          {/* Pending documents */}
-          {pendingDocs.length > 0 && (
+          {/* Pending documents — Documents tab only */}
+          {activeTab === 'documents' && pendingDocs.length > 0 && (
             <div className="bg-surface border border-border rounded-lg mb-4 overflow-hidden">
               <div className="px-4 py-2.5 border-b border-border flex items-center justify-between bg-surface-alt">
                 <h3 className="text-[13px] font-semibold text-ink">Documents ({pendingDocs.length})</h3>
@@ -666,7 +738,8 @@ export default function DeclarationDetailPage() {
             </div>
           )}
 
-          {/* Services Received */}
+          {/* ─── Review tab body ─── */}
+          {activeTab === 'review' && (<>
           <SectionHeader title="Services Received" count={incomingLines.length} />
           {selectedLineIds.size > 0 && (
             <BulkActionBar
@@ -819,9 +892,9 @@ export default function DeclarationDetailPage() {
 
           {/* Summary */}
           {activeLines.length > 0 && (
-            <div className="bg-surface border border-border rounded-lg p-4 mt-6 mb-4">
+            <div className="bg-surface border border-border rounded-xl p-4 mt-6 mb-4 shadow-xs">
               <h3 className="text-[13px] font-semibold text-ink mb-3">Summary</h3>
-              <div className="grid grid-cols-5 gap-6 text-[13px]">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-[13px]">
                 <SummaryStat label="Lux VAT" value={`€${fmtEUR(totalLuxVat)}`} />
                 <SummaryStat label="Reverse Charge VAT" value={`€${fmtEUR(totalRC)}`} />
                 <SummaryStat label="IC Acq. VAT" value={`€${fmtEUR(icAcqVat)}`} />
@@ -829,26 +902,56 @@ export default function DeclarationDetailPage() {
                 <SummaryStat
                   label="Blockers"
                   value={`${unclassified} uncls · ${flagged} flagged`}
-                  color={unclassified > 0 || flagged > 0 ? 'text-red-600' : 'text-green-600'}
+                  color={unclassified > 0 || flagged > 0 ? 'text-danger-700' : 'text-success-700'}
                 />
               </div>
             </div>
           )}
+          </>)}
+          {/* ─── /Review tab ─── */}
 
-          {/* Filing & Payment workflow — visible from APPROVED onwards */}
-          {['approved', 'filed', 'paid'].includes(data.status) && (
-            <FilingPanel
-              data={data}
-              onMarkFiled={(filing_ref) => handleStatusChange('filed', { filing_ref })}
-              onMarkPaid={(payment_ref) => handleStatusChange('paid', payment_ref ? { payment_ref } : undefined)}
-              onReopen={() => handleStatusChange('review')}
-              onUploadProof={handleProofUpload}
-            />
+          {/* ─── Filing tab body ─── */}
+          {activeTab === 'filing' && (
+            <>
+              {['approved', 'filed', 'paid'].includes(data.status) ? (
+                <FilingPanel
+                  data={data}
+                  onMarkFiled={(filing_ref) => handleStatusChange('filed', { filing_ref })}
+                  onMarkPaid={(payment_ref) => handleStatusChange('paid', payment_ref ? { payment_ref } : undefined)}
+                  onReopen={() => handleStatusChange('review')}
+                  onUploadProof={handleProofUpload}
+                />
+              ) : (
+                <div className="bg-surface border border-border rounded-xl p-8 text-center shadow-xs">
+                  <div className="w-12 h-12 rounded-full bg-brand-50 border border-brand-100 text-brand-500 inline-flex items-center justify-center mb-3">
+                    <ClipboardCheckIcon size={20} />
+                  </div>
+                  <h3 className="text-[14px] font-semibold text-ink">Filing locked until approval</h3>
+                  <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-md mx-auto">
+                    Approve the declaration first (use the green Approve button above). After approval you can record the AED filing reference, upload the proof of filing and confirm payment from here.
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Outputs — Phase 4 */}
-          {activeLines.length > 0 && (
-            <OutputsPanel declarationId={id} />
+          {/* ─── Outputs tab body ─── */}
+          {activeTab === 'outputs' && (
+            <>
+              {activeLines.length > 0 ? (
+                <OutputsPanel declarationId={id} />
+              ) : (
+                <div className="bg-surface border border-border rounded-xl p-8 text-center shadow-xs">
+                  <div className="w-12 h-12 rounded-full bg-brand-50 border border-brand-100 text-brand-500 inline-flex items-center justify-center mb-3">
+                    <DownloadCloudIcon size={20} />
+                  </div>
+                  <h3 className="text-[14px] font-semibold text-ink">No outputs yet</h3>
+                  <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-md mx-auto">
+                    The appendix Excel, front-page PDF, eCDF XML and client email become available once at least one invoice line has been classified. Start in Documents or Review.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
