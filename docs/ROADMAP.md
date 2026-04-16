@@ -48,7 +48,7 @@ Effort: S (< 1 day) · M (1-3 days) · L (3-10 days) · XL (> 10 days)
 | 19 | **Toast / banner consistency pass** | S | Pick one pattern per situation type; audit and unify. |
 | 20 | **Database backups + restore plan** | M | Daily off-site snapshots, documented restore procedure, test restore quarterly. Art. 70 LTVA retention is 10 years. |
 | 21 | **AUTH_SECRET rotation mechanism** | S | Dual-secret validation with grace period. Standard SaaS hygiene. |
-| 22 | **CSP + security headers** | S | Content-Security-Policy, X-Frame-Options, Strict-Transport-Security. Tax-data SaaS should not ship without these. |
+| ~~22~~ | ~~**CSP + security headers**~~ | ~~S~~ | ✅ **Shipped 2026-04-16 in commit [incoming].** `next.config.ts` now emits CSP + HSTS (2y, preload-ready) + X-Frame-Options DENY + X-Content-Type-Options + Referrer-Policy + Permissions-Policy (camera / mic / geolocation / payment / USB / bluetooth / sensors all off) + Cross-Origin-Opener-Policy same-origin. CSP connect-src whitelists every external we actually call (Supabase + Anthropic + ECB + Vercel). |
 | 23 | **Staging environment** | M | Separate Supabase project + Vercel preview deployment. Schema migrations go to staging first. |
 | 24 | **Validator budget control (cache + confirmation)** | S | Don't re-run if lines unchanged. Show estimated cost before dispatching. Per-user monthly cap. |
 
