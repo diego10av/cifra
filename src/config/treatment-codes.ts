@@ -72,7 +72,14 @@ export const TREATMENT_CODES = {
   // OUTGOING
   // ════════════════════════════════════════════════════════════════════
   OUT_LUX_00:       { label: 'Outgoing Art. 44 Exempt', direction: 'outgoing', vatRate: 0, description: 'Outgoing, Art. 44 exempt (management fee to Lux fund)' },
+  // Rate-specific taxable outgoing. The audit (agent E-2) flagged that a
+  // fund structure with a 14% / 8% / 3% outgoing supply had no valid code
+  // — reviewers were forced to pick OUT_LUX_17 (wrong rate, over-paid VAT)
+  // or OUT_LUX_00 (wrong: not exempt, under-paid VAT).
   OUT_LUX_17:       { label: 'Outgoing Lux VAT 17%',   direction: 'outgoing', vatRate: 0.17, description: 'Outgoing, LU VAT 17% (taxable management / consulting)' },
+  OUT_LUX_14:       { label: 'Outgoing Lux VAT 14%',   direction: 'outgoing', vatRate: 0.14, description: 'Outgoing, LU VAT 14% (intermediate rate, depositary-type services on the outgoing side)' },
+  OUT_LUX_08:       { label: 'Outgoing Lux VAT 8%',    direction: 'outgoing', vatRate: 0.08, description: 'Outgoing, LU VAT 8% (reduced rate, specific services on the outgoing side)' },
+  OUT_LUX_03:       { label: 'Outgoing Lux VAT 3%',    direction: 'outgoing', vatRate: 0.03, description: 'Outgoing, LU VAT 3% (super-reduced rate, specific categories)' },
   OUT_LUX_17_OPT:   { label: 'Outgoing 17% (Art. 45 opt-in)', direction: 'outgoing', vatRate: 0.17, description: 'Real-estate letting taxed by option under Art. 45 LTVA' },
   OUT_EU_RC:        { label: 'Outgoing EU RC (B2B services)', direction: 'outgoing', vatRate: null, description: 'B2B service to EU customer — customer self-assesses VAT (Art. 17 EU VAT Directive)' },
   OUT_IC_GOODS:     { label: 'Outgoing IC supply of goods', direction: 'outgoing', vatRate: 0, description: 'Intra-Community supply of goods to EU VAT-registered customer (Art. 43 LTVA)' },
@@ -95,7 +102,9 @@ export const INCOMING_TREATMENTS: TreatmentCode[] = [
 ];
 
 export const OUTGOING_TREATMENTS: TreatmentCode[] = [
-  'OUT_LUX_00', 'OUT_LUX_17', 'OUT_LUX_17_OPT',
+  'OUT_LUX_00',
+  'OUT_LUX_17', 'OUT_LUX_14', 'OUT_LUX_08', 'OUT_LUX_03',
+  'OUT_LUX_17_OPT',
   'OUT_EU_RC', 'OUT_IC_GOODS', 'OUT_LU_TRIANG', 'OUT_NONEU',
   'AUTOLIV_17',
 ];

@@ -11,13 +11,21 @@
 import ExcelJS from 'exceljs';
 import { query, queryOne } from '@/lib/db';
 
+export type ECSLIndicator = 'L' | 'T' | 'S';
+// L = intra-Community supply of GOODS (Livraison)
+// T = TRIANGULATION — intermediate-supplier simplification (Art. 18bis LTVA)
+// S = SERVICES to EU B2B customer (reverse charge in the customer country)
+
 export type ECSLLine = {
   customer_name: string;
   vat_number: string;
   country: string;
   amount_eur: number;
-  indicator: 'S' | 'T'; // S = service, T = triangulation. We default to 'S'.
+  indicator: ECSLIndicator;
   invoice_count: number;
+  // `treatment` is carried through to the XML so downstream validators
+  // can cross-check the indicator against the underlying classification.
+  treatment: string;
 };
 
 export interface ECSLReport {
@@ -27,9 +35,21 @@ export interface ECSLReport {
   year: number;
   period: string;
   lines: ECSLLine[];
+  rejected_lines: Array<{ customer_name: string; country: string; reason: string; amount_eur: number }>;
   total: number;
   has_data: boolean;
 }
+
+// Map outgoing EU-flow treatment codes to their EC Sales List indicators.
+// Any code not listed here should NEVER appear in the état récapitulatif.
+const TREATMENT_TO_INDICATOR: Record<string, ECSLIndicator> = {
+  OUT_EU_RC:      'S',
+  OUT_IC_GOODS:   'L',
+  OUT_LU_TRIANG:  'T',
+};
+
+// VIES-format VAT number regex. Country prefix + 2-13 alphanumerics.
+const VIES_VAT_RE = /^[A-Z]{2}[0-9A-Z]{2,13}$/;
 
 export async function buildECSLReport(declarationId: string): Promise<ECSLReport> {
   const decl = await queryOne<{
@@ -44,39 +64,92 @@ export async function buildECSLReport(declarationId: string): Promise<ECSLReport
   );
   if (!decl) throw new Error('Declaration not found');
 
-  // Aggregate outgoing OUT_EU_RC lines by (counterparty VAT number, country)
+  // Aggregate outgoing EU-flow lines by (counterparty VAT number, country,
+  // treatment). Previously we only captured OUT_EU_RC and hard-coded the
+  // indicator to 'S', which omitted IC-goods supplies and triangulation
+  // simplifications entirely — a material omission the AED validator
+  // catches as an inconsistency against box 423+424 on the main return.
   const rows = await query<{
-    customer_name: string; vat_number: string; country: string;
-    amount_eur: number; invoice_count: number;
+    customer_name: string; customer_vat_raw: string | null; country: string;
+    amount_eur: number; invoice_count: number; treatment: string;
   }>(
     `SELECT
-        i.provider AS customer_name,
-        COALESCE(NULLIF(i.provider_vat, ''), '—') AS vat_number,
-        UPPER(COALESCE(i.country, '')) AS country,
+        COALESCE(i.customer_name_as_written, i.provider) AS customer_name,
+        COALESCE(NULLIF(i.customer_vat, ''), NULLIF(i.provider_vat, '')) AS customer_vat_raw,
+        UPPER(COALESCE(
+          NULLIF(i.customer_country, ''),
+          NULLIF(i.country, ''),
+          ''
+        )) AS country,
         SUM(il.amount_eur)::float AS amount_eur,
-        COUNT(DISTINCT i.id)::int AS invoice_count
+        COUNT(DISTINCT i.id)::int AS invoice_count,
+        il.treatment
        FROM invoice_lines il
        JOIN invoices i ON il.invoice_id = i.id
       WHERE il.declaration_id = $1
         AND il.state != 'deleted'
         AND i.direction = 'outgoing'
-        AND il.treatment = 'OUT_EU_RC'
-        AND i.provider IS NOT NULL
-      GROUP BY i.provider, i.provider_vat, i.country
+        AND il.treatment IN ('OUT_EU_RC', 'OUT_IC_GOODS', 'OUT_LU_TRIANG')
+      GROUP BY customer_name, customer_vat_raw, country, il.treatment
       ORDER BY country, customer_name`,
     [declarationId]
   );
 
-  const lines: ECSLLine[] = rows.map(r => ({
-    customer_name: r.customer_name,
-    vat_number: r.vat_number,
-    country: r.country,
-    amount_eur: Number(r.amount_eur),
-    indicator: 'S',
-    invoice_count: Number(r.invoice_count),
-  }));
+  const lines: ECSLLine[] = [];
+  const rejected: ECSLReport['rejected_lines'] = [];
+  let total = 0;
 
-  const total = lines.reduce((s, l) => s + l.amount_eur, 0);
+  for (const r of rows) {
+    const cleaned = (r.customer_vat_raw || '').replace(/[\s.\-/]+/g, '').toUpperCase();
+    const customer = r.customer_name || '(unknown customer)';
+    const amount = Number(r.amount_eur);
+
+    // Block 1 — Luxembourg counterparties never belong on the état
+    // récapitulatif. A LU→LU supply is ordinary domestic turnover.
+    if (r.country === 'LU' || cleaned.startsWith('LU')) {
+      rejected.push({ customer_name: customer, country: r.country, amount_eur: amount,
+        reason: 'Counterparty is Luxembourg-registered — does not belong on the EC Sales List.' });
+      continue;
+    }
+
+    // Block 2 — missing or VIES-invalid VAT number. The AED validator
+    // rejects any EC-sales-list line without a valid format.
+    if (!cleaned || !VIES_VAT_RE.test(cleaned)) {
+      rejected.push({ customer_name: customer, country: r.country, amount_eur: amount,
+        reason: `Customer VAT number "${r.customer_vat_raw ?? ''}" is missing or not VIES-format. Capture a valid EU VAT number before filing.` });
+      continue;
+    }
+
+    // Block 3 — country inconsistency. The first two characters of the
+    // VAT number must match the country code.
+    const vatPrefix = cleaned.slice(0, 2);
+    const countryCode = (r.country || '').toUpperCase();
+    if (countryCode && vatPrefix !== countryCode) {
+      rejected.push({ customer_name: customer, country: r.country, amount_eur: amount,
+        reason: `Country "${countryCode}" does not match VAT prefix "${vatPrefix}" — likely ingestion error.` });
+      continue;
+    }
+
+    const indicator = TREATMENT_TO_INDICATOR[r.treatment];
+    if (!indicator) {
+      rejected.push({ customer_name: customer, country: r.country, amount_eur: amount,
+        reason: `Treatment "${r.treatment}" has no EC-sales-list indicator mapping.` });
+      continue;
+    }
+
+    lines.push({
+      customer_name: customer,
+      vat_number: cleaned,
+      country: vatPrefix,
+      amount_eur: Math.round(amount * 100) / 100, // lock to 2dp before summing
+      indicator,
+      invoice_count: Number(r.invoice_count),
+      treatment: r.treatment,
+    });
+  }
+
+  total = lines.reduce((s, l) => s + l.amount_eur, 0);
+  total = Math.round(total * 100) / 100;
 
   return {
     entity_name: decl.entity_name,
@@ -85,6 +158,7 @@ export async function buildECSLReport(declarationId: string): Promise<ECSLReport
     year: decl.year,
     period: decl.period,
     lines,
+    rejected_lines: rejected,
     total,
     has_data: lines.length > 0,
   };
@@ -171,6 +245,18 @@ export async function buildECSLXlsx(report: ECSLReport): Promise<{ buffer: Buffe
 }
 
 export function buildECSLXml(report: ECSLReport): { xml: string; filename: string } {
+  // ⚠️ SCHEMA VERIFICATION REQUIRED — same five items flagged in
+  // src/lib/ecdf-xml.ts (namespace, FormVersion, element names, Period
+  // encoding, <Agent> sub-block). The XML below is for reviewer
+  // inspection until the TVA006N XSD has been cross-checked.
+  // Annual periods are rejected at the caller because the état
+  // récapitulatif has no annual variant.
+  if (report.period === 'Y1' || report.period === 'ANNUAL' || report.period === '') {
+    throw new Error(
+      'The EC Sales List (état récapitulatif) does not have an annual frequency. ' +
+      'Generate it monthly or quarterly.',
+    );
+  }
   const lines: string[] = [];
   const push = (s: string) => lines.push(s);
 

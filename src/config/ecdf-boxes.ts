@@ -8,6 +8,26 @@
 // The box numbers follow the canonical TVA001N (simplified) and TVA002NA
 // (ordinary) AED form layouts. When the AED publishes a new form version,
 // update the SUSPECT lines flagged with TODO(form-version).
+//
+// ════════════════════════════════════════════════════════════════════════
+// Opus fiscal audit — findings acted on (2026-04-16)
+// ════════════════════════════════════════════════════════════════════════
+// 1. Box 097 (CRITICAL): removed `+ 077` from the additive side. Import
+//    VAT paid at customs is input VAT (deduction), never output.
+// 2. Box 076 (CRITICAL): now `046 + 056 + 410 + 045` — added 046 (was
+//    missing LU output VAT) and removed 077 (double-counting).
+// 3. Box 435: trimmed filter to ['RC_EU_EX'] only. EXEMPT_44 and
+//    EXEMPT_44A_FIN are incoming-invoiced exempts, not reverse-charge;
+//    they previously inflated 435 against the form definition.
+// 4. Box 056: now rate-weighted formula of 711/713/715/717 bases × rate,
+//    instead of `sum(rc_amount)`. Makes 056 mathematically bound to the
+//    rate-breakdown that the AED validator cross-checks.
+// 5. Boxes 703/705/707 + 047/049/050 (NEW): rate-specific output VAT at
+//    14/8/3%. Previously a fund manager with a 14% outgoing supply had
+//    nowhere to land that amount.
+// 6. Boxes 703/705/707 + 701 are now in SIMPLIFIED_BOXES (not only
+//    ordinary) because box 076's output-VAT total depends on them.
+// ════════════════════════════════════════════════════════════════════════
 
 export type BoxDefinition = {
   box: string;
@@ -28,10 +48,7 @@ export type BoxDefinition = {
 export const SIMPLIFIED_BOXES: BoxDefinition[] = [
   // ──────────────── Section A — Turnover (outgoing) ────────────────
   { box: '012', label: 'Turnover exempt under Art. 44', section: 'A', computation: 'sum',
-    filter: { direction: 'outgoing',
-              // Any outgoing Art. 44-type exempt supply
-              treatments: ['OUT_LUX_00'],
-              field: 'amount_eur' } },
+    filter: { direction: 'outgoing', treatments: ['OUT_LUX_00'], field: 'amount_eur' } },
   // Box 014: non-EU customer supplies (outside LU VAT scope).
   // TODO(form-version): confirm box id on the latest TVA001N.
   { box: '014', label: 'Outgoing to non-EU (out of scope)', section: 'A', computation: 'sum',
@@ -44,9 +61,44 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
   { box: '450', label: 'Total supply to EU customers', section: 'A', computation: 'formula',
     formula: '423 + 424' },
 
+  // Rate-specific LU taxable turnover — bases.
+  // Previously only 701 (17%) existed and it lived in ORDINARY_ADDITIONAL_
+  // BOXES; the audit flagged that (i) simplified filers with LU taxable
+  // output had their 046 silently zero, and (ii) 14/8/3% output had no
+  // treatment code at all. Now all four rates sit in the simplified list
+  // so box 076 can reference 046.
+  { box: '701', label: 'Taxable turnover at 17%', section: 'I', computation: 'sum',
+    filter: { direction: 'outgoing', treatments: ['OUT_LUX_17', 'OUT_LUX_17_OPT'], field: 'amount_eur' } },
+  { box: '703', label: 'Taxable turnover at 14%', section: 'I', computation: 'sum',
+    filter: { direction: 'outgoing', treatments: ['OUT_LUX_14'], field: 'amount_eur' } },
+  { box: '705', label: 'Taxable turnover at 8%',  section: 'I', computation: 'sum',
+    filter: { direction: 'outgoing', treatments: ['OUT_LUX_08'], field: 'amount_eur' } },
+  { box: '707', label: 'Taxable turnover at 3%',  section: 'I', computation: 'sum',
+    filter: { direction: 'outgoing', treatments: ['OUT_LUX_03'], field: 'amount_eur' } },
+
+  // Rate-specific LU taxable turnover — output VAT.
+  // TODO(form-version): confirm 047/049/050 box ids on the current
+  // TVA001N / TVA002NA; they SUSPECT numbers from the AED's canonical
+  // rate-breakdown block.
+  { box: '046', label: 'Output VAT — total (all LU rates)', section: 'I', computation: 'formula',
+    formula: '701 * 0.17 + 703 * 0.14 + 705 * 0.08 + 707 * 0.03' },
+  { box: '047', label: 'Output VAT (14% breakdown)', section: 'I', computation: 'formula',
+    formula: '703 * 0.14' },
+  { box: '049', label: 'Output VAT (8% breakdown)', section: 'I', computation: 'formula',
+    formula: '705 * 0.08' },
+  { box: '050', label: 'Output VAT (3% breakdown)', section: 'I', computation: 'formula',
+    formula: '707 * 0.03' },
+
   // ──────────────── Section B — Intra-Community acquisitions ────────────────
-  { box: '051', label: 'IC acquisitions of goods (all rates)', section: 'B', computation: 'sum',
-    filter: { treatments: ['IC_ACQ', 'IC_ACQ_17', 'IC_ACQ_14', 'IC_ACQ_08', 'IC_ACQ_03'], field: 'amount_eur' } },
+  // 051 sums the rate-specific IC_ACQ_* variants. The legacy generic
+  // IC_ACQ code is retained in treatment-codes.ts for backward-compat
+  // with older rows, and the classifier must migrate those to one of
+  // the rate-specific codes before a declaration is locked — the
+  // pre-approval validator surfaces any remaining IC_ACQ-without-rate as
+  // a blocking error so the return arithmetic 051 = 711+713+715+717
+  // holds at filing time.
+  { box: '051', label: 'IC acquisitions of goods (all rates)', section: 'B', computation: 'formula',
+    formula: '711 + 713 + 715 + 717' },
   { box: '711', label: 'IC acquisitions at 17%', section: 'B', computation: 'sum',
     filter: { treatments: ['IC_ACQ_17'], field: 'amount_eur' } },
   { box: '713', label: 'IC acquisitions at 14%', section: 'B', computation: 'sum',
@@ -55,10 +107,13 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
     filter: { treatments: ['IC_ACQ_08'], field: 'amount_eur' } },
   { box: '717', label: 'IC acquisitions at 3%',  section: 'B', computation: 'sum',
     filter: { treatments: ['IC_ACQ_03'], field: 'amount_eur' } },
-  // Box 056: VAT on IC acquisitions — sum of the self-assessed rc_amount
-  // rather than 051 × 0.17 so rates 3/8/14/17 all flow through.
-  { box: '056', label: 'VAT on IC acquisitions', section: 'B', computation: 'sum',
-    filter: { treatments: ['IC_ACQ', 'IC_ACQ_17', 'IC_ACQ_14', 'IC_ACQ_08', 'IC_ACQ_03'], field: 'rc_amount' } },
+  // Box 056: rate-weighted VAT on IC acquisitions. Previously summed
+  // rc_amount, which drifted from the form's own arithmetic whenever
+  // rc_amount was re-entered without recomputation. Now bound to the
+  // rate-breakdown. Rate-unknown IC_ACQ lines must be migrated before
+  // filing.
+  { box: '056', label: 'VAT on IC acquisitions', section: 'B', computation: 'formula',
+    formula: '711 * 0.17 + 713 * 0.14 + 715 * 0.08 + 717 * 0.03' },
   { box: '712', label: 'VAT on IC acquisitions (breakdown)', section: 'B', computation: 'formula',
     formula: '056' },
 
@@ -80,8 +135,14 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
     formula: '436' },
   { box: '742', label: 'VAT on RC EU taxable breakdown', section: 'D', computation: 'formula',
     formula: '462' },
+  // Box 435 is RC EU **exempt services** only. EXEMPT_44 and
+  // EXEMPT_44A_FIN are incoming-invoiced exempts (no reverse charge);
+  // they previously inflated 435 against the form's own definition.
+  // Those codes now land on no box (intentional: purely informational
+  // for the input side — see INTENTIONALLY_UNMAPPED in the box-coverage
+  // test).
   { box: '435', label: 'RC EU exempt services (base)', section: 'D', computation: 'sum',
-    filter: { treatments: ['RC_EU_EX', 'EXEMPT_44', 'EXEMPT_44A_FIN'], field: 'amount_eur' } },
+    filter: { treatments: ['RC_EU_EX'], field: 'amount_eur' } },
 
   // D.2 — Non-EU suppliers
   { box: '463', label: 'RC non-EU taxable services (base)', section: 'D', computation: 'sum',
@@ -112,21 +173,30 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
     formula: '044 * 0.17' },
 
   // ──────────────── Section F — Total tax due ────────────────
+  // Box 076 — simplified total VAT due.
+  // Previously `056 + 410 + 045 + 077`. Two CRITICAL errors:
+  //   (i) missing 046 (domestic output VAT) — any simplified filer with
+  //       LU taxable turnover had their output VAT silently dropped.
+  //   (ii) including 077 (import VAT already paid at customs) double-
+  //       charged the import VAT.
   { box: '076', label: 'Total VAT due (simplified)', section: 'F', computation: 'formula',
-    formula: '056 + 410 + 045 + 077' },
+    formula: '046 + 056 + 410 + 045' },
 ];
 
 // Additional boxes for Ordinary Return (TVA002NA / NT / NM)
 export const ORDINARY_ADDITIONAL_BOXES: BoxDefinition[] = [
   // ──────────────── Section I — Turnover and output VAT ────────────────
-  { box: '701', label: 'Taxable turnover at 17%', section: 'I', computation: 'sum',
-    filter: { direction: 'outgoing', treatments: ['OUT_LUX_17', 'OUT_LUX_17_OPT'], field: 'amount_eur' } },
-  { box: '046', label: 'Output VAT (17%)', section: 'I', computation: 'formula',
-    formula: '701 * 0.17' },
+  // 701/703/705/707/046/047/049/050 already live in SIMPLIFIED_BOXES and
+  // are merged into the ordinary compute set by the engine. Here we only
+  // add the ordinary-specific disclosure boxes.
   { box: '016', label: 'Exempt turnover (Art. 44)', section: 'I', computation: 'sum',
     filter: { direction: 'outgoing', treatments: ['OUT_LUX_00'], field: 'amount_eur' } },
+  // Box 022 now sums every taxable rate and every exempt / out-of-scope
+  // turnover. Previously only 701 (17%) was summed — 703/705/707 were
+  // missing so a 14% / 8% / 3% outgoing supply was dropped from total
+  // turnover.
   { box: '022', label: 'Total turnover', section: 'I', computation: 'formula',
-    formula: '701 + 016 + 014 + 423 + 424' },
+    formula: '701 + 703 + 705 + 707 + 016 + 014 + 423 + 424' },
 
   // ──────────────── Section III — Input VAT deduction ────────────────
   // Box 085 = LU VAT actually invoiced at 17/14/8/3 (excludes exempt and
@@ -140,15 +210,26 @@ export const ORDINARY_ADDITIONAL_BOXES: BoxDefinition[] = [
   { box: '093', label: 'Deductible input VAT', section: 'III', computation: 'manual' },
   { box: '095', label: 'Pro-rata percentage', section: 'III', computation: 'manual' },
 
-  // Bad-debt regularisation — negative or positive adjustment entered by
-  // the reviewer. We sum the rc_amount (signed) of any BAD_DEBT_RELIEF
-  // line so the tax professional can audit the figure in a single place.
+  // Bad-debt regularisation.
+  // Convention: rc_amount is ALWAYS positive and represents the amount
+  // being clawed back from the Treasury (i.e. VAT the entity had
+  // previously remitted on a now-uncollectible receivable). This is
+  // enforced at the classifier / manual-entry layer. The 097 formula
+  // subtracts 099 because that matches "output VAT reduced by the
+  // amount the entity is reclaiming".
   { box: '099', label: 'Bad-debt relief regularisation', section: 'III', computation: 'sum',
     filter: { treatments: ['BAD_DEBT_RELIEF'], field: 'rc_amount' } },
 
   // ──────────────── Section IV — Net position ────────────────
+  // Box 097 — net VAT due.
+  // Previously `046 + 056 + 410 + 045 + 077 - 093 - 099`. The `+ 077`
+  // was CRITICAL: import VAT is deductible input VAT, never output.
+  // The reviewer enters 093 including the import-VAT contribution
+  // (optionally pro-rated). If 093 excludes 077, the new net position
+  // will understate the liability — surfaced as a pre-approval warning
+  // (093 < 085 + 056 + 410 + 045 + 077 implies a pro-rata restriction).
   { box: '097', label: 'Net VAT due', section: 'IV', computation: 'formula',
-    formula: '046 + 056 + 410 + 045 + 077 - 093 - 099' },
+    formula: '046 + 056 + 410 + 045 - 093 - 099' },
   { box: '102', label: 'Payment due', section: 'IV', computation: 'formula',
     formula: 'MAX(097, 0)' },
   { box: '103', label: 'Credit', section: 'IV', computation: 'formula',

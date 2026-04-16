@@ -28,7 +28,10 @@ export async function POST(request: NextRequest) {
   await initializeSchema();
   const body = await request.json();
 
-  const entity = await queryOne('SELECT * FROM entities WHERE id = $1', [body.entity_id]);
+  const entity = await queryOne<{ id: string; regime: string }>(
+    'SELECT id, regime FROM entities WHERE id = $1',
+    [body.entity_id]
+  );
   if (!entity) return NextResponse.json({ error: 'Entity not found' }, { status: 400 });
 
   const existing = await queryOne(
@@ -36,6 +39,22 @@ export async function POST(request: NextRequest) {
     [body.entity_id, body.year, body.period]
   );
   if (existing) return NextResponse.json({ error: 'Declaration already exists for this entity, year, and period' }, { status: 409 });
+
+  // Regime + period consistency.
+  // The Luxembourg simplified regime (TVA001N) is ANNUAL by definition —
+  // there is no simplified quarterly or monthly return. The AED migrates
+  // a taxpayer to the ordinary regime if their turnover breaches the
+  // simplified threshold (roughly EUR 620k). Creating a (simplified,
+  // Q1..4 | monthly) declaration silently generates XML that the AED
+  // eCDF validator rejects as a schema mismatch. Block it at creation.
+  const period: string = String(body.period || '').trim().toUpperCase();
+  const isAnnualPeriod = period === 'Y1' || period === 'ANNUAL' || period === '';
+  if (entity.regime === 'simplified' && !isAnnualPeriod) {
+    return NextResponse.json({
+      error: 'Simplified regime does not support sub-annual periods',
+      hint: 'The simplified regime (TVA001N) files annually only. Either change the entity regime to ordinary or use period Y1.',
+    }, { status: 400 });
+  }
 
   const id = generateId();
   await execute(

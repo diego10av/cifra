@@ -1,15 +1,50 @@
 // eCDF XML generator for AED upload (PRD §11, Phase 4).
 //
-// IMPORTANT — schema disclaimer:
-// The official eCDF XML schema (XSD) for VAT returns is published by the AED
-// and changes over time. This implementation produces an XML document with the
-// canonical AED structure (eCDF root, FormData, Form with FormType, NumericField
-// per box) that a Luxembourg tax professional can open, review, and adjust if
-// needed before manual upload to https://ecdf.b2g.etat.lu via LuxTrust.
+// ════════════════════════════════════════════════════════════════════════
+// ⚠️  SCHEMA VERIFICATION REQUIRED — five items flagged by the Opus
+//     fiscal audit (agent E-2) that we could NOT verify without pulling
+//     the current AED XSD and must be reconfirmed before any real filing:
+//
+//   (1) XML namespace: currently "http://www.ctie.etat.lu/2011/ecdf".
+//       The 2011 namespace is the first-generation AED eCDF namespace.
+//       The AED has republished the VAT XSD at least once post-2020
+//       quick fixes, and again during the 2025 SAF-T / ViDA alignment.
+//       → verify against the XSD at https://ecdf.b2g.etat.lu/download
+//       and update if moved (expected: .../2020/ecdf or .../2024/ecdf).
+//
+//   (2) Form version: currently hard-coded "1.0". Each AED form has a
+//       version keyed to its publication year; TVA002NA for fiscal 2025
+//       is typically at version "2.0" or higher (published in the PDF's
+//       footer and in the XSD). Uploading with FormVersion=1.0 against
+//       the current XSD is rejected as "schema mismatch".
+//       → maintain a form-version map keyed by (formCode, year).
+//
+//   (3) Field element name: currently <NumericField id="..." section="...">.
+//       AED XSDs in practice use different element names (likely a
+//       <Numeric> or <Value> element with only an id attribute, no
+//       section attribute). The current shape is a platform invention.
+//       → replace after verifying against the XSD.
+//
+//   (4) Period encoding: currently "2025-Q1" / "2025-MM" / "2025" strings.
+//       AED schemas typically require integer codes: 0=annual, 1..12=
+//       monthly, 13..16=quarterly.
+//       → rewrite periodToECDF() against the XSD.
+//
+//   (5) Sender block: currently <SenderType>tax_professional</SenderType>
+//       with no <Agent> sub-block identifying which tax professional
+//       (matricule, firm, mandate ref). The AED XSD requires this when
+//       SenderType is tax_professional — returns are rejected without it.
+//       → add <Agent><Matricule/><Name/></Agent> populated from the
+//       logged-in reviewer's profile.
+//
+// Until all five are verified and updated, the produced XML is FOR
+// REVIEWER INSPECTION ONLY. It will not pass the AED upload validator.
+// ════════════════════════════════════════════════════════════════════════
 //
 // The user must visually verify the produced XML matches the form they intend
-// to file (TVA001N for simplified annual, TVA002N for ordinary monthly, etc.)
-// before uploading. The platform does not file directly — manual upload only.
+// to file (TVA001N for simplified annual, TVA002NA for ordinary annual,
+// TVA002NT for ordinary quarterly, TVA002NM for ordinary monthly) before
+// uploading. The platform does not file directly — manual upload only.
 
 import { computeECDF } from '@/lib/ecdf';
 import { queryOne } from '@/lib/db';
