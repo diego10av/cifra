@@ -8,6 +8,7 @@ import { classifyDeclaration } from '@/lib/classify';
 import { anthropicCreate, maskKey } from '@/lib/anthropic-wrapper';
 import { createJob, updateJob, finishJob, isCancelRequested } from '@/lib/jobs';
 import { apiError, apiOk, apiFail } from '@/lib/api-errors';
+import { requireBudget } from '@/lib/budget-guard';
 
 const HAIKU_MODEL = 'claude-haiku-4-5-20251001';
 export const maxDuration = 300;
@@ -85,6 +86,14 @@ export async function POST(request: NextRequest) {
       [declaration_id]
     );
     if (!declaration) return apiError('declaration_not_found', 'Declaration not found.', { status: 404 });
+
+    // Budget guard — extraction is the most Anthropic-heavy endpoint
+    // (one Haiku call per document). Refuse if monthly cap hit.
+    const budget = await requireBudget();
+    if (!budget.ok) {
+      return apiError(budget.error.code, budget.error.message,
+        { hint: budget.error.hint, status: 429 });
+    }
 
     // Atomic claim
     const MAX_BATCH_SIZE = 200;

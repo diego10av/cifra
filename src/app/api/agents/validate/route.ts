@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { queryOne, query } from '@/lib/db';
 import { apiError, apiOk, apiFail } from '@/lib/api-errors';
 import { runValidator } from '@/lib/validator';
+import { requireBudget } from '@/lib/budget-guard';
 
 // Opus second-opinion review. Opt-in (reviewer clicks a button in the
 // UI); this endpoint is never called automatically. Expensive — ~€0.05
@@ -29,6 +30,13 @@ export async function POST(request: NextRequest) {
       return apiError('declaration_locked',
         `Declaration is ${decl.status}. Reopen before running the validator so any accepted findings can still be applied.`,
         { status: 409 });
+    }
+
+    // Budget guard — refuse new expensive calls once monthly cap hit.
+    const budget = await requireBudget();
+    if (!budget.ok) {
+      return apiError(budget.error.code, budget.error.message,
+        { hint: budget.error.hint, status: 429 });
     }
 
     const result = await runValidator(declaration_id);

@@ -25,7 +25,7 @@ Effort: S (< 1 day) · M (1-3 days) · L (3-10 days) · XL (> 10 days)
 | 3 | **Onboarding wizard first-run** | M | 3-step flow: welcome → create first client entity → upload prior-year Excel (optional) → land on Home. Prevents cold-empty-state abandonment. |
 | 4 | **Client approval portal (signed link)** | M | The fund manager receives a link (JWT-signed, no login), sees the appendix + PDF preview + Approve button. Click records IP + timestamp + audit trail. Eliminates the 3-5 email back-and-forth per declaration. |
 | 5 | **Sentry error tracking** | S | 30 minutes to add. Without it, production bugs are invisible. |
-| 6 | **Rate limiting + Anthropic budget alerts** | S | Middleware rate limit on `/api/agents/*`. Monthly budget cap per firm. Kill-switch if overrun. |
+| 6 | **Rate limiting + Anthropic budget alerts** | S | Middleware rate limit on `/api/agents/*`. Monthly budget cap per firm. Kill-switch if overrun. *Budget-cap half shipped in commit [incoming] — monthly SUM over api_calls + 429 refusal at cap. Rate limiting per minute still pending.* |
 | 7 | **Refactor declaration page into subfiles** | M | 2,480-line monolith → DocumentsTab / ReviewTab / FilingTab / OutputsTab / PreviewPanel. Pure mechanical refactor; business logic unchanged. |
 | 8 | **Pricing validated with 5 customer calls** | M | Not code. 5 discovery calls with LU fiduciary firms. Validate the seats-+-per-declaration hypothesis. |
 

@@ -102,7 +102,9 @@ Things worth remembering but not actionable yet:
 - ✅ Validator UI integration shipped — commit `4c85c81`
 - ✅ Protocols + TODO system + memory sync — commit `d349246`
 - ✅ Morning brief scheduled task configured — commit `f5a986b`
-- ✅ CSP + security headers (HSTS, CSP, XFO, Permissions-Policy, COOP) — commit [incoming]
+- ✅ CSP + security headers (HSTS, CSP, XFO, Permissions-Policy, COOP) — commit `a3b49a0`
+- ✅ Declaration page Rules-of-Hooks crash + pink cifra wordmark — commit `878d063`
+- ✅ Anthropic monthly budget guard (hard-cap at €75, configurable via BUDGET_MONTHLY_EUR) — commit [incoming]
 - ✅ UI redesign phases 1-3 shipped — commits `e7d4f3b`, `54164da`, `401c5ed`
 - ✅ Options A/B/C/D/E all complete (see ROADMAP Shipped)
 - ✅ Domain `cifracompliance.com` purchased (2026-04-15)
