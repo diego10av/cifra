@@ -8,7 +8,8 @@ import { describeApiError } from '@/lib/ui-errors';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { LifecycleStepper } from '@/components/ui/LifecycleStepper';
 import { Tabs, type TabDef } from '@/components/ui/Tabs';
-import { FileTextIcon, ClipboardCheckIcon, DownloadCloudIcon, FolderArchiveIcon, RefreshCwIcon, CheckCircle2Icon, RotateCcwIcon } from 'lucide-react';
+import { FileTextIcon, ClipboardCheckIcon, DownloadCloudIcon, FolderArchiveIcon, RefreshCwIcon, CheckCircle2Icon, RotateCcwIcon, SparklesIcon } from 'lucide-react';
+import { ValidatorPanel } from '@/components/validator/ValidatorPanel';
 
 // ═══════════════════════════════════════════════════════════════
 // Types
@@ -520,6 +521,7 @@ export default function DeclarationDetailPage() {
       : ['approved', 'filed', 'paid'].includes(data.status) ? 'filing'
       : 'review';
   const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs'>(defaultTab);
+  const [validatorOpen, setValidatorOpen] = useState(false);
 
   const tabs: TabDef[] = [
     { id: 'documents', label: 'Documents', icon: <FolderArchiveIcon size={14} />,
@@ -536,7 +538,14 @@ export default function DeclarationDetailPage() {
   return (
     <div ref={containerRef} className="flex w-full" style={{ minHeight: 'calc(100vh - 80px)' }}>
       {/* ─────────── LEFT COLUMN ─────────── */}
-      <div className="flex flex-col min-w-0" style={{ width: previewOpen ? `${100 - previewWidth}%` : '100%' }}>
+      <div
+        className="flex flex-col min-w-0"
+        style={{
+          width: validatorOpen ? 'calc(100% - 440px)'
+            : previewOpen ? `${100 - previewWidth}%`
+            : '100%',
+        }}
+      >
         <div className="pr-3">
           {/* ─── Breadcrumbs ─── */}
           <Breadcrumbs
@@ -582,6 +591,20 @@ export default function DeclarationDetailPage() {
                 >
                   {classifying ? <Spinner small /> : <RefreshCwIcon size={13} />}
                   {classifying ? 'Classifying…' : 'Re-run rules'}
+                </button>
+              )}
+              {activeLines.length > 0 && (
+                <button
+                  onClick={() => setValidatorOpen(v => !v)}
+                  className={`h-8 px-3 rounded-md border text-[12.5px] font-medium transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 ${
+                    validatorOpen
+                      ? 'border-brand-500 bg-brand-50 text-brand-700'
+                      : 'border-border text-ink-soft hover:bg-brand-50 hover:border-brand-300 hover:text-brand-700'
+                  }`}
+                  title="Opus second-opinion review (€0.05-0.15 per run)"
+                >
+                  <SparklesIcon size={13} />
+                  Second opinion
                 </button>
               )}
               {data.status === 'review' && (
@@ -969,9 +992,22 @@ export default function DeclarationDetailPage() {
       )}
 
       {/* ─────────── PREVIEW ─────────── */}
-      {previewOpen && (
+      {previewOpen && !validatorOpen && (
         <div style={{ width: `${previewWidth}%` }} className="min-w-[360px] pl-2">
           <PreviewPanel preview={preview} onClose={() => setPreview(null)} />
+        </div>
+      )}
+
+      {/* ─────────── VALIDATOR PANEL ─────────── */}
+      {validatorOpen && (
+        <div className="w-[440px] min-w-[380px] pl-2 shrink-0">
+          <div className="sticky top-4">
+            <ValidatorPanel
+              declarationId={id}
+              isLocked={locked}
+              onClose={() => setValidatorOpen(false)}
+            />
+          </div>
         </div>
       )}
     </div>
