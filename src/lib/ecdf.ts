@@ -164,17 +164,16 @@ export async function computeECDF(declarationId: string): Promise<ECDFReport> {
 
 // ── Internals ──
 function computeSum(lines: LineRow[], def: BoxDefinition): number {
+  // All treatment filtering is now explicit in BoxDefinition.filter.treatments
+  // (see Box 085, 056, etc). The previous implicit "startsWith('LUX_')"
+  // special-case has been removed — every box that needs a treatment filter
+  // must declare it in config.
   const filter = def.filter || {};
   const field = filter.field || 'amount_eur';
   let total = 0;
   for (const l of lines) {
     if (filter.direction && l.direction !== filter.direction) continue;
     if (filter.treatments && (!l.treatment || !filter.treatments.includes(l.treatment))) continue;
-    // For sum-of-vat on incoming, narrow to LU lines with actual VAT charged.
-    if (field === 'vat_applied' && filter.direction === 'incoming' && !filter.treatments) {
-      // Box 085 special case: all incoming LU VAT actually charged (only LUX_* treatments).
-      if (!l.treatment?.startsWith('LUX_')) continue;
-    }
     const raw = l[field];
     if (raw == null) continue;
     total += Number(raw);
@@ -184,15 +183,29 @@ function computeSum(lines: LineRow[], def: BoxDefinition): number {
 
 // Minimal and safe arithmetic evaluator for box formulas.
 // Supports: box references (3-digit numbers), + - * /, parentheses, numbers, MAX(a,b).
+//
+// Fail-closed semantics: if any referenced box is not yet resolved, the
+// evaluator returns null so the caller's iterative fixed-point loop can try
+// again after later passes fill in the missing values. The previous version
+// silently substituted `0` for missing refs, which produced wrong (lower)
+// numbers in one-shot evaluation and masked formula typos.
 function evaluateFormula(expr: string, values: Record<string, number>): number | null {
   // Resolve MAX(a, b) first by rewriting to Math.max(a,b)
-  let e = expr.replace(/MAX\s*\(\s*(-?[\w\d\s\+\-\*\/\.\(\)]+)\s*,\s*(-?[\w\d\s\+\-\*\/\.\(\)]+)\s*\)/gi,
-    (_m, a, b) => `Math.max((${resolveRefs(a, values)}),(${resolveRefs(b, values)}))`);
-  e = resolveRefs(e, values);
-  // Whitelist: only digits, operators, parens, spaces, dots, minus, Math.max tokens.
-  if (!/^[\d\s+\-*/().,MathxMAX]+$/.test(e.replace(/Math\.max/g, ''))) {
-    return null;
-  }
+  let unresolved = false;
+  const resolve = (s: string): string => {
+    const out = resolveRefs(s, values, () => { unresolved = true; });
+    return out;
+  };
+  let e = expr.replace(
+    /MAX\s*\(\s*(-?[\w\d\s+\-*/.()]+)\s*,\s*(-?[\w\d\s+\-*/.()]+)\s*\)/gi,
+    (_m, a: string, b: string) => `Math.max((${resolve(a)}),(${resolve(b)}))`,
+  );
+  e = resolve(e);
+  if (unresolved) return null;
+  // Whitelist (after stripping the one allowed identifier "Math.max"):
+  //   digits, whitespace, + - * /, parentheses, dot, comma.
+  const stripped = e.replace(/Math\.max/g, '');
+  if (!/^[\d\s+\-*/().,]*$/.test(stripped)) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-implied-eval, no-new-func
     const fn = new Function('Math', `return (${e});`);
@@ -204,11 +217,18 @@ function evaluateFormula(expr: string, values: Record<string, number>): number |
   }
 }
 
-// Replace 3-digit box references with their numeric values.
-function resolveRefs(expr: string, values: Record<string, number>): string {
+// Replace 3-digit box references with their numeric values. Calls onMissing
+// if a reference is not in the values map so the caller can fail-closed.
+function resolveRefs(
+  expr: string,
+  values: Record<string, number>,
+  onMissing?: () => void,
+): string {
   return expr.replace(/\b(\d{3})\b/g, (_m, ref) => {
     const v = values[ref];
-    return typeof v === 'number' ? String(v) : '0';
+    if (typeof v === 'number') return String(v);
+    onMissing?.();
+    return '0';
   });
 }
 

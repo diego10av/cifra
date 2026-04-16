@@ -27,11 +27,15 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
     formula: '423' },
 
   // Section B - Intra-Community acquisitions
+  // Box 056 used to assume 051 * 0.17, but IC acquisitions can be at 17/14/8/3
+  // depending on the goods. We now sum the actual VAT declared on the
+  // reverse-charge side of the line (rc_amount for IC_ACQ treatments). The
+  // extractor + classifier must populate rc_amount correctly.
   { box: '051', label: 'IC acquisitions of goods', section: 'B', computation: 'sum',
     filter: { treatments: ['IC_ACQ'], field: 'amount_eur' } },
-  { box: '056', label: 'VAT on IC acquisitions (17%)', section: 'B', computation: 'formula',
-    formula: '051 * 0.17' },
-  { box: '711', label: 'IC acquisitions breakdown (17%)', section: 'B', computation: 'formula',
+  { box: '056', label: 'VAT on IC acquisitions', section: 'B', computation: 'sum',
+    filter: { treatments: ['IC_ACQ'], field: 'rc_amount' } },
+  { box: '711', label: 'IC acquisitions breakdown', section: 'B', computation: 'formula',
     formula: '051' },
   { box: '712', label: 'VAT on IC acquisitions breakdown', section: 'B', computation: 'formula',
     formula: '056' },
@@ -62,8 +66,12 @@ export const SIMPLIFIED_BOXES: BoxDefinition[] = [
     filter: { treatments: ['RC_NONEU_EX'], field: 'amount_eur' } },
 
   // D totals
+  // Box 409 used to sum taxable + exempt RC bases (436 + 435 + 463 + 445),
+  // which contradicts its label "Total RC *taxable* base" and would overstate
+  // the base used for VAT-due computation. Only taxable bases belong here.
+  // Exempt RC bases go to box 435 / 445 standalone.
   { box: '409', label: 'Total RC taxable base', section: 'D', computation: 'formula',
-    formula: '436 + 435 + 463 + 445' },
+    formula: '436 + 463' },
   { box: '410', label: 'Total RC VAT due', section: 'D', computation: 'formula',
     formula: '462 + 464' },
 
@@ -85,8 +93,13 @@ export const ORDINARY_ADDITIONAL_BOXES: BoxDefinition[] = [
     formula: '701 + 016' },
 
   // Section III - Input VAT deduction
+  // Box 085 = VAT invoiced by LU suppliers actually charging VAT (17/14/8/3).
+  // The previous filter lacked an explicit treatment list and relied on a
+  // special-case startsWith('LUX_') check inside computeSum, which also
+  // matched LUX_00 (exempt) — harmless in practice because vat_applied=0, but
+  // brittle. We now name the four LU taxable treatments explicitly.
   { box: '085', label: 'Lux input VAT invoiced', section: 'III', computation: 'sum',
-    filter: { direction: 'incoming', field: 'vat_applied' } },
+    filter: { direction: 'incoming', treatments: ['LUX_17', 'LUX_14', 'LUX_08', 'LUX_03'], field: 'vat_applied' } },
   { box: '458', label: 'Total Lux VAT invoiced', section: 'III', computation: 'formula',
     formula: '085' },
   { box: '093', label: 'Deductible input VAT', section: 'III', computation: 'manual' },

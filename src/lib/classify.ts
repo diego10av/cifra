@@ -179,9 +179,17 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
         ctx,
         null  // skip precedent so we can decide
       );
-      // If the result came from a numbered RULE 1-9, keep it (direct evidence).
-      // Otherwise apply the override.
-      const isDirectEvidenceRule = /^RULE [1-9]$/.test(direct.rule);
+      // Direct-evidence rules (defined in applyDirectEvidenceRules in
+      // classification-rules.ts): 1-7, 9, 10, 12, 14, 15. RULES 8, 11, 13
+      // are the fallback catch-alls and MUST NOT block a legal override —
+      // the earlier `/^RULE [1-9]$/` regex accidentally matched RULE 8
+      // (blocking the override) and missed RULES 10/12/14/15 (letting the
+      // override silently overwrite direct invoice evidence).
+      const DIRECT_EVIDENCE_RULES = new Set([
+        'RULE 1', 'RULE 2', 'RULE 3', 'RULE 4', 'RULE 5', 'RULE 6', 'RULE 7',
+        'RULE 9', 'RULE 10', 'RULE 12', 'RULE 14', 'RULE 15',
+      ]);
+      const isDirectEvidenceRule = DIRECT_EVIDENCE_RULES.has(direct.rule);
       if (isDirectEvidenceRule) {
         result = direct;
       } else {

@@ -158,8 +158,16 @@ function applyDirectEvidenceRules(line: InvoiceLineInput): ClassificationResult 
   }
 
   if (line.direction === 'outgoing') {
-    if (containsAny(text, [...EXEMPTION_KEYWORDS, 'management fee', 'management fees'])) {
-      return ruleMatch('RULE 14', 'OUT_LUX_00', 'Exempt outgoing supply, Art. 44§1 d LTVA — eCDF box 012.');
+    // RULE 14 used to match any outgoing with EXEMPTION_KEYWORDS *or* the bare
+    // phrase "management fee(s)". An outgoing management fee billed WITH 17%
+    // VAT (perfectly valid — SOPARFI issuing a taxable advisory invoice) was
+    // then silently classified as exempt. We now require BOTH the exemption
+    // reference AND the invoice to actually be billed without VAT.
+    const isBilledWithoutVat =
+      isZeroOrNull(line.vat_rate) && isZeroOrNull(line.vat_applied);
+    if (isBilledWithoutVat && containsAny(text, EXEMPTION_KEYWORDS)) {
+      return ruleMatch('RULE 14', 'OUT_LUX_00',
+        'Exempt outgoing supply with explicit legal reference (Art. 44§1 d LTVA) and no VAT charged — eCDF box 012.');
     }
     if (rateEquals(line.vat_rate, 0.17)) {
       return ruleMatch('RULE 15', 'OUT_LUX_17', 'Taxable outgoing supply at 17% — eCDF boxes 701/046.');
@@ -267,7 +275,24 @@ function applyFallbackRules(line: InvoiceLineInput): ClassificationResult | null
 
   if (line.direction === 'incoming') {
     if (isLu && isZeroOrNull(line.vat_rate)) {
-      return ruleMatch('RULE 8', 'LUX_00', 'Default: Luxembourg supplier with no VAT charged (Art. 44 LTVA exempt letting / similar).');
+      // RULE 8 used to default to LUX_00 with the reason "Art. 44 exempt letting",
+      // which silently mislabelled every LU invoice that happened to omit VAT —
+      // franchise-threshold suppliers, out-of-scope fees, missing-VAT billing
+      // errors, etc. We still default the treatment code to LUX_00 (so the
+      // amount does land in an "exempt/no-VAT" bucket), but we FLAG the line
+      // with a conservative reason and require manual confirmation of the
+      // actual exemption basis.
+      return {
+        treatment: 'LUX_00',
+        rule: 'RULE 8',
+        reason: 'Luxembourg supplier with no VAT charged — specific exemption basis not detectable from the invoice.',
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'LU supplier issued the invoice without VAT but no recognised legal reference ' +
+          '(Art. 44, Art. 43, franchise threshold, out-of-scope) was found in the document. ' +
+          'Confirm the correct exemption basis before filing.',
+      };
     }
     if (isEu && isZeroOrNull(line.vat_applied)) {
       return ruleMatch('RULE 11', 'RC_EU_TAX', 'Reverse charge on services, Art. 17§1 LTVA transposing Art. 44 EU VAT Directive (general B2B rule) — eCDF boxes 436/462 at 17%.');

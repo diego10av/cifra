@@ -94,10 +94,16 @@ describe('Direct evidence rules (priority 2)', () => {
     expect(r.rule).toBe('RULE 7');
   });
 
-  it('RULE 8 — LU + null + no keyword → LUX_00 (default)', () => {
+  it('RULE 8 — LU + null + no keyword → LUX_00 but FLAGGED for manual review', () => {
+    // The treatment still defaults to LUX_00 so the amount lands in the
+    // exempt/no-VAT bucket, but the line must carry flag=true because we
+    // cannot identify the actual legal basis from the invoice alone
+    // (could be Art. 44, franchise threshold, out-of-scope, missing VAT).
     const r = classifyInvoiceLine(inv({ country: 'LU', description: 'Annex IV reporting' }));
     expect(r.treatment).toBe('LUX_00');
     expect(r.rule).toBe('RULE 8');
+    expect(r.flag).toBe(true);
+    expect(r.flag_reason).toBeTruthy();
   });
 
   it('RULE 9 — EU + "goods" → IC_ACQ', () => {
@@ -208,12 +214,37 @@ describe('Inference rules (priority 4)', () => {
 });
 
 describe('Outgoing rules', () => {
-  it('RULE 14 — outgoing + management fee → OUT_LUX_00', () => {
+  it('RULE 14 — outgoing + no VAT + explicit Art. 44 reference → OUT_LUX_00', () => {
+    const r = classifyInvoiceLine(inv({
+      direction: 'outgoing', country: 'LU',
+      vat_rate: 0, vat_applied: 0,
+      description: 'Management fee Q1 2025 — exempt under Art. 44 LTVA',
+    }));
+    expect(r.treatment).toBe('OUT_LUX_00');
+    expect(r.rule).toBe('RULE 14');
+  });
+
+  it('RULE 14 does NOT match a bare "management fee" description (no legal reference)', () => {
+    // Regression: the earlier loose RULE 14 silently exempted any outgoing
+    // containing "management fee". That caused taxable advisory fees billed
+    // at 17% to be mis-classified as exempt. The tightened RULE 14 now
+    // requires an explicit exemption reference AND no VAT charged.
     const r = classifyInvoiceLine(inv({
       direction: 'outgoing', country: 'LU',
       description: 'Management fee Q1 2025',
     }));
-    expect(r.treatment).toBe('OUT_LUX_00');
+    expect(r.treatment).not.toBe('OUT_LUX_00');
+  });
+
+  it('RULE 14 does NOT match an outgoing "management fee" billed with 17% VAT', () => {
+    const r = classifyInvoiceLine(inv({
+      direction: 'outgoing', country: 'LU',
+      vat_rate: 0.17,
+      description: 'Management fee Q1 2025 — exonéré de TVA',
+    }));
+    // vat_rate = 17% must win over the exemption phrase
+    expect(r.treatment).toBe('OUT_LUX_17');
+    expect(r.rule).toBe('RULE 15');
   });
 
   it('RULE 15 — outgoing + 17% → OUT_LUX_17', () => {
