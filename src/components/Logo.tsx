@@ -36,7 +36,17 @@ export function Logo({ className = '' }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <LogoMark size={22} />
-      <span className="font-semibold tracking-tight text-[16px]" style={{ letterSpacing: '-0.02em' }}>
+      {/* Wordmark in Factorial-style pink gradient — the C and A anchor
+          the brand colour at the start and end of the word.  We use a
+          CSS gradient clipped to the text so it prints crisp on any
+          surface (no raster). */}
+      <span
+        className="font-semibold tracking-tight text-[16px] bg-clip-text text-transparent"
+        style={{
+          letterSpacing: '-0.02em',
+          backgroundImage: 'linear-gradient(90deg, #F14E72 0%, #C61640 100%)',
+        }}
+      >
         cifra
       </span>
     </span>

@@ -118,6 +118,13 @@ export default function DeclarationDetailPage() {
   const [selectedLineIds, setSelectedLineIds] = useState<Set<string>>(new Set());
   const [justCreatedLineId, setJustCreatedLineId] = useState<string | null>(null);
 
+  // Tab + side-panel state. These MUST live above the `if (!data) return`
+  // early return below, or React throws "Rendered more hooks than during
+  // the previous render" when data transitions from null to an object.
+  // Rules of Hooks: same hooks, same order, every render.
+  const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs'>('review');
+  const [validatorOpen, setValidatorOpen] = useState(false);
+
   const fileInput = useRef<HTMLInputElement>(null);
   const precedentInput = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -128,6 +135,26 @@ export default function DeclarationDetailPage() {
   }, [id]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Pick the smart default tab the FIRST time data loads for a given
+  // declaration. Runs once per decl id — subsequent state changes
+  // (e.g. adding a document) do not clobber the reviewer's active
+  // tab. Logic:
+  //   - nothing yet → Documents (upload zones)
+  //   - approved/filed/paid → Filing (next action is filing-side)
+  //   - otherwise → Review (the default work surface)
+  const didPickDefaultTabRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!data) return;
+    if (didPickDefaultTabRef.current === data.id) return;
+    didPickDefaultTabRef.current = data.id;
+    const activeCount = (data.lines || []).filter(l => l.state !== 'deleted').length;
+    const smart =
+      activeCount === 0 && (data.documents || []).length === 0 ? 'documents'
+        : ['approved', 'filed', 'paid'].includes(data.status) ? 'filing'
+        : 'review';
+    setActiveTab(smart);
+  }, [data]);
 
   // When a line is freshly created (via Add outgoing), scroll it into view
   // once the data has been reloaded.
@@ -511,18 +538,9 @@ export default function DeclarationDetailPage() {
   const hasFx = Boolean(data.has_fx);
   const previewOpen = !!preview;
 
-  // Active tab. Default picks the most useful view given the current state:
-  //  - nothing uploaded yet → Documents (upload zones)
-  //  - extraction in flight → Documents (pending docs + progress)
-  //  - lines exist → Review
-  //  - already approved/filed/paid → Filing (next action is filing-side)
-  const defaultTab: 'documents' | 'review' | 'filing' | 'outputs' =
-    activeLines.length === 0 && data.documents.length === 0 ? 'documents'
-      : ['approved', 'filed', 'paid'].includes(data.status) ? 'filing'
-      : 'review';
-  const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs'>(defaultTab);
-  const [validatorOpen, setValidatorOpen] = useState(false);
-
+  // activeTab + validatorOpen hooks are declared at the top of the
+  // component (above the `if (!data) return` early return), per Rules
+  // of Hooks. Here we just compute the smart default for first display.
   const tabs: TabDef[] = [
     { id: 'documents', label: 'Documents', icon: <FolderArchiveIcon size={14} />,
       badge: data.documentStats.errors > 0 ? data.documentStats.errors : undefined,
