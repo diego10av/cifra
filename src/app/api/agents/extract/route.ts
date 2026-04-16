@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { query, queryOne, execute, generateId, logAudit, initializeSchema } from '@/lib/db';
+import { NextRequest } from 'next/server';
+import { query, queryOne, execute, generateId, logAudit, initializeSchema, tx, oneTx, execTx, logAuditTx } from '@/lib/db';
 import { createClient } from '@supabase/supabase-js';
 import type Anthropic from '@anthropic-ai/sdk';
 import { readFile } from 'fs/promises';
@@ -198,7 +198,7 @@ async function runExtraction(params: {
             role: 'user',
             content: [
               { type: fileType === 'pdf' ? 'document' : 'image', source: { type: 'base64', media_type: mediaType, data: base64 } } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
-              { type: 'text', text: `Extract all invoice data. Entity: ${params.entity_name} (${params.regime} regime).` },
+              { type: 'text', text: `Entity name: ${params.entity_name}\nEntity VAT number: ${params.vat_number ?? 'unknown'}\nRegime: ${params.regime}\n\nExtract all invoice data as instructed.` },
             ],
           }],
         }, { agent: 'extractor', declaration_id, entity_id, label: doc.filename });
@@ -211,78 +211,116 @@ async function runExtraction(params: {
           invoiceData = m ? JSON.parse(m[0]) : {};
         }
 
-        // Idempotent invoice creation
-        const existing = await queryOne<{ id: string }>('SELECT id FROM invoices WHERE document_id = $1 LIMIT 1', [doc.id]);
-        let invoiceId: string;
-        if (existing) {
-          invoiceId = existing.id;
-          await execute('DELETE FROM invoice_lines WHERE invoice_id = $1', [invoiceId]);
+        // Refusal path: if the extractor signals it could not read the
+        // document reliably, record an error and skip. Never emit
+        // placeholder zeros / 'Unknown' / 'LU' defaults to the DB.
+        if (invoiceData.extraction_failed === true) {
           await execute(
-            `UPDATE invoices
-               SET provider = $1, provider_vat = $2, country = $3, invoice_date = $4,
-                   invoice_number = $5, direction = $6, total_ex_vat = $7, total_vat = $8,
-                   total_incl_vat = $9, currency = $10, currency_amount = $11
-             WHERE id = $12`,
-            [
-              invoiceData.provider || 'Unknown', invoiceData.provider_vat || null,
-              invoiceData.country || 'LU', invoiceData.invoice_date || null,
-              invoiceData.invoice_number || null, invoiceData.direction || 'incoming',
-              invoiceData.total_ex_vat || 0, invoiceData.total_vat || 0,
-              invoiceData.total_incl_vat || 0, invoiceData.currency || null,
-              invoiceData.currency_amount || null, invoiceId,
-            ]
+            "UPDATE documents SET status = 'error', error_message = $1 WHERE id = $2",
+            [`Extractor refused: ${String(invoiceData.refusal_reason || 'no reason given')}`, doc.id]
           );
-        } else {
-          invoiceId = generateId();
-          await execute(
-            `INSERT INTO invoices (id, document_id, declaration_id, provider, provider_vat, country,
-              invoice_date, invoice_number, direction, total_ex_vat, total_vat, total_incl_vat,
-              currency, currency_amount, extraction_source)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'ai')
-            ON CONFLICT (document_id) WHERE document_id IS NOT NULL DO NOTHING`,
-            [
-              invoiceId, doc.id, declaration_id,
-              invoiceData.provider || 'Unknown', invoiceData.provider_vat || null,
-              invoiceData.country || 'LU', invoiceData.invoice_date || null,
-              invoiceData.invoice_number || null, invoiceData.direction || 'incoming',
-              invoiceData.total_ex_vat || 0, invoiceData.total_vat || 0,
-              invoiceData.total_incl_vat || 0, invoiceData.currency || null,
-              invoiceData.currency_amount || null,
-            ]
-          );
+          errorCount += 1;
+          continue;
         }
 
-        const lines = (invoiceData.lines as Array<Record<string, unknown>>) || [{
-          description: invoiceData.provider || 'Services',
-          amount_eur: invoiceData.total_ex_vat || 0,
-          vat_rate: invoiceData.total_vat && invoiceData.total_ex_vat
-            ? Number(invoiceData.total_vat) / Number(invoiceData.total_ex_vat) : null,
-          vat_applied: invoiceData.total_vat || null,
-          rc_amount: null,
-          amount_incl: invoiceData.total_incl_vat || invoiceData.total_ex_vat || 0,
-        }];
+        // Build line records with null propagation. Prior versions defaulted
+        // missing amounts to 0, country to 'LU', and provider to 'Unknown',
+        // which produced silent data corruption in the VAT return.
+        const lines: Array<Record<string, unknown>> = Array.isArray(invoiceData.lines) && (invoiceData.lines as unknown[]).length > 0
+          ? (invoiceData.lines as Array<Record<string, unknown>>)
+          : [{
+              description: invoiceData.provider ?? null,
+              amount_eur: invoiceData.total_ex_vat ?? null,
+              vat_rate: invoiceData.total_vat != null && invoiceData.total_ex_vat != null && Number(invoiceData.total_ex_vat) > 0
+                ? Number(invoiceData.total_vat) / Number(invoiceData.total_ex_vat) : null,
+              vat_applied: invoiceData.total_vat ?? null,
+              rc_amount: null,
+              amount_incl: invoiceData.total_incl_vat ?? invoiceData.total_ex_vat ?? null,
+              is_credit_note: invoiceData.is_credit_note ?? false,
+              is_disbursement: false,
+              exemption_reference: null,
+            }];
 
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          await execute(
-            `INSERT INTO invoice_lines (id, invoice_id, declaration_id, description, amount_eur,
-              vat_rate, vat_applied, rc_amount, amount_incl, sort_order, state)
-            VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'extracted')`,
-            [
-              generateId(), invoiceId, declaration_id,
-              line.description || '', line.amount_eur || 0,
-              line.vat_rate || null, line.vat_applied || null,
-              line.rc_amount || null, line.amount_incl || line.amount_eur || 0, i,
-            ]
+        // ════════════ Transactional invoice + lines write ════════════
+        // Creating the invoice and its lines, clearing old lines on re-extract,
+        // updating the document status, and logging audit must all commit or
+        // roll back together. A crash between DELETE and INSERT previously
+        // left orphan invoices with zero lines — silently producing EUR 0 in
+        // every eCDF box.
+        const invoiceIdFromTx: string = await tx(async (txSql) => {
+          const existing = await oneTx<{ id: string }>(
+            txSql, 'SELECT id FROM invoices WHERE document_id = $1 LIMIT 1', [doc.id]
           );
-        }
-
-        await execute("UPDATE documents SET status = 'extracted' WHERE id = $1", [doc.id]);
-        await logAudit({
-          entityId: entity_id, declarationId: declaration_id,
-          action: 'extract', targetType: 'invoice', targetId: invoiceId,
-          newValue: JSON.stringify({ provider: invoiceData.provider, lines: lines.length }),
+          let invoiceId: string;
+          if (existing) {
+            invoiceId = existing.id;
+            await execTx(txSql, 'DELETE FROM invoice_lines WHERE invoice_id = $1', [invoiceId]);
+            await execTx(txSql,
+              `UPDATE invoices
+                 SET provider = $1, provider_vat = $2, country = $3, invoice_date = $4,
+                     invoice_number = $5, direction = $6, total_ex_vat = $7, total_vat = $8,
+                     total_incl_vat = $9, currency = $10, currency_amount = $11
+               WHERE id = $12`,
+              [
+                invoiceData.provider ?? null, invoiceData.provider_vat ?? null,
+                invoiceData.country ?? invoiceData.provider_country ?? null,
+                invoiceData.invoice_date ?? null,
+                invoiceData.invoice_number ?? null,
+                invoiceData.direction ?? 'incoming',
+                invoiceData.total_ex_vat ?? null, invoiceData.total_vat ?? null,
+                invoiceData.total_incl_vat ?? null,
+                invoiceData.currency ?? null, invoiceData.currency_amount ?? null,
+                invoiceId,
+              ]
+            );
+          } else {
+            invoiceId = generateId();
+            await execTx(txSql,
+              `INSERT INTO invoices (id, document_id, declaration_id, provider, provider_vat, country,
+                invoice_date, invoice_number, direction, total_ex_vat, total_vat, total_incl_vat,
+                currency, currency_amount, extraction_source)
+              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'ai')
+              ON CONFLICT (document_id) WHERE document_id IS NOT NULL DO NOTHING`,
+              [
+                invoiceId, doc.id, declaration_id,
+                invoiceData.provider ?? null, invoiceData.provider_vat ?? null,
+                invoiceData.country ?? invoiceData.provider_country ?? null,
+                invoiceData.invoice_date ?? null,
+                invoiceData.invoice_number ?? null,
+                invoiceData.direction ?? 'incoming',
+                invoiceData.total_ex_vat ?? null, invoiceData.total_vat ?? null,
+                invoiceData.total_incl_vat ?? null,
+                invoiceData.currency ?? null, invoiceData.currency_amount ?? null,
+              ]
+            );
+          }
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            await execTx(txSql,
+              `INSERT INTO invoice_lines (id, invoice_id, declaration_id, description, amount_eur,
+                vat_rate, vat_applied, rc_amount, amount_incl, sort_order, state)
+              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'extracted')`,
+              [
+                generateId(), invoiceId, declaration_id,
+                line.description ?? null,
+                line.amount_eur ?? null,
+                line.vat_rate ?? null,
+                line.vat_applied ?? null,
+                line.rc_amount ?? null,
+                line.amount_incl ?? null,
+                i,
+              ]
+            );
+          }
+          await execTx(txSql, "UPDATE documents SET status = 'extracted' WHERE id = $1", [doc.id]);
+          await logAuditTx(txSql, {
+            entityId: entity_id, declarationId: declaration_id,
+            action: 'extract', targetType: 'invoice', targetId: invoiceId,
+            newValue: JSON.stringify({ provider: invoiceData.provider, lines: lines.length }),
+          });
+          return invoiceId;
         });
+        void invoiceIdFromTx;
         extractedCount += 1;
       } else {
         await execute("UPDATE documents SET status = 'rejected' WHERE id = $1", [doc.id]);
