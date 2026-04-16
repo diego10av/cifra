@@ -15,6 +15,35 @@ export const maxDuration = 300;
 const INTER_CALL_DELAY_MS = 500;
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// ───────────────────────────── coercion helpers ─────────────────────────────
+// The extractor returns JSON, but we must never trust it blindly. These
+// helpers turn model output into DB-safe values: null stays null, strings
+// stay strings, impossible values collapse to null rather than corrupting
+// the row.
+function str(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === 'string') return v.trim() || null;
+  return String(v);
+}
+function bool(v: unknown): boolean {
+  return v === true || v === 'true';
+}
+function num(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const n = typeof v === 'number' ? v : Number(String(v).replace(/,/g, '.'));
+  return Number.isFinite(n) ? n : null;
+}
+// direction: accept only 'incoming' | 'outgoing'; fall back to 'incoming'.
+function direction(v: unknown): 'incoming' | 'outgoing' {
+  return v === 'outgoing' ? 'outgoing' : 'incoming';
+}
+// iso-date or null. Rejects junk like "unknown", "N/A".
+function isoDate(v: unknown): string | null {
+  const s = str(v);
+  if (!s) return null;
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
+
 function getSupabase() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 }
@@ -192,13 +221,24 @@ async function runExtraction(params: {
         await execute("UPDATE documents SET status = 'extracting' WHERE id = $1", [doc.id]);
         await sleep(INTER_CALL_DELAY_MS);
 
+        // Infer entity country from its VAT prefix when we have one, so the
+        // extractor can use it to anchor direction and reverse-charge logic.
+        const entityCountry = (params.vat_number || '').slice(0, 2).toUpperCase() || 'LU';
         const extractResponse = await anthropicCreate({
           model: HAIKU_MODEL, max_tokens: 2000, system: extractPrompt,
           messages: [{
             role: 'user',
             content: [
               { type: fileType === 'pdf' ? 'document' : 'image', source: { type: 'base64', media_type: mediaType, data: base64 } } as Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam,
-              { type: 'text', text: `Entity name: ${params.entity_name}\nEntity VAT number: ${params.vat_number ?? 'unknown'}\nRegime: ${params.regime}\n\nExtract all invoice data as instructed.` },
+              { type: 'text', text:
+                `Declaration entity (the VAT subject for this return):\n` +
+                `  name: ${params.entity_name}\n` +
+                `  VAT number: ${params.vat_number || '(not provided — rely on name matching)'}\n` +
+                `  country: ${entityCountry}\n` +
+                `  regime: ${params.regime}\n\n` +
+                `Extract the invoice data as instructed in the system prompt. ` +
+                `Return JSON only, starting with '{'.`,
+              },
             ],
           }],
         }, { agent: 'extractor', declaration_id, entity_id, label: doc.filename });
@@ -223,23 +263,65 @@ async function runExtraction(params: {
           continue;
         }
 
+        // Coerce top-level invoice fields once. Every downstream write reads
+        // from this normalised object — never from invoiceData directly — so
+        // junk like "unknown" / "N/A" / empty strings can't leak into the DB.
+        const inv = {
+          provider: str(invoiceData.provider),
+          provider_vat: str(invoiceData.provider_vat),
+          // Country: prefer explicit "provider_country" from the new schema,
+          // fall back to legacy "country" for backward compat.
+          country: str(invoiceData.provider_country ?? invoiceData.country),
+          provider_address: str(invoiceData.provider_address),
+          customer_name_as_written: str(invoiceData.customer_name_as_written),
+          customer_vat: str(invoiceData.customer_vat),
+          customer_country: str(invoiceData.customer_country),
+          invoice_number: str(invoiceData.invoice_number),
+          invoice_date: isoDate(invoiceData.invoice_date),
+          due_date: isoDate(invoiceData.due_date),
+          service_period_start: isoDate(invoiceData.service_period_start),
+          service_period_end: isoDate(invoiceData.service_period_end),
+          direction: direction(invoiceData.direction),
+          is_credit_note: bool(invoiceData.is_credit_note),
+          currency: str(invoiceData.currency),
+          currency_amount: num(invoiceData.currency_amount),
+          fx_rate_on_invoice: num(invoiceData.fx_rate_on_invoice),
+          needs_fx: bool(invoiceData.needs_fx),
+          total_ex_vat: num(invoiceData.total_ex_vat),
+          total_vat: num(invoiceData.total_vat),
+          total_incl_vat: num(invoiceData.total_incl_vat),
+          exemption_reference: str(invoiceData.exemption_reference),
+          reverse_charge_mentioned: bool(invoiceData.reverse_charge_mentioned),
+          bank_account_iban: str(invoiceData.bank_account_iban),
+        };
+
         // Build line records with null propagation. Prior versions defaulted
         // missing amounts to 0, country to 'LU', and provider to 'Unknown',
         // which produced silent data corruption in the VAT return.
-        const lines: Array<Record<string, unknown>> = Array.isArray(invoiceData.lines) && (invoiceData.lines as unknown[]).length > 0
-          ? (invoiceData.lines as Array<Record<string, unknown>>)
+        type LineIn = Record<string, unknown>;
+        const rawLines: LineIn[] = Array.isArray(invoiceData.lines) && (invoiceData.lines as unknown[]).length > 0
+          ? (invoiceData.lines as LineIn[])
           : [{
-              description: invoiceData.provider ?? null,
-              amount_eur: invoiceData.total_ex_vat ?? null,
-              vat_rate: invoiceData.total_vat != null && invoiceData.total_ex_vat != null && Number(invoiceData.total_ex_vat) > 0
-                ? Number(invoiceData.total_vat) / Number(invoiceData.total_ex_vat) : null,
-              vat_applied: invoiceData.total_vat ?? null,
+              description: inv.provider,
+              amount_eur: inv.total_ex_vat,
+              vat_rate: inv.total_vat != null && inv.total_ex_vat != null && inv.total_ex_vat > 0
+                ? inv.total_vat / inv.total_ex_vat : null,
+              vat_applied: inv.total_vat,
               rc_amount: null,
-              amount_incl: invoiceData.total_incl_vat ?? invoiceData.total_ex_vat ?? null,
-              is_credit_note: invoiceData.is_credit_note ?? false,
+              amount_incl: inv.total_incl_vat ?? inv.total_ex_vat,
               is_disbursement: false,
               exemption_reference: null,
             }];
+        const lines = rawLines.map(l => ({
+          description: str(l.description),
+          amount_eur: num(l.amount_eur),
+          vat_rate: num(l.vat_rate),
+          vat_applied: num(l.vat_applied),
+          rc_amount: num(l.rc_amount),
+          amount_incl: num(l.amount_incl),
+          is_disbursement: bool(l.is_disbursement),
+          exemption_reference: str(l.exemption_reference),
+        }));
 
         // ════════════ Transactional invoice + lines write ════════════
         // Creating the invoice and its lines, clearing old lines on re-extract,
@@ -252,62 +334,75 @@ async function runExtraction(params: {
             txSql, 'SELECT id FROM invoices WHERE document_id = $1 LIMIT 1', [doc.id]
           );
           let invoiceId: string;
+          const upsertParams = [
+            inv.provider, inv.provider_vat, inv.country, inv.provider_address,
+            inv.customer_name_as_written, inv.customer_vat, inv.customer_country,
+            inv.invoice_number, inv.invoice_date, inv.due_date,
+            inv.service_period_start, inv.service_period_end,
+            inv.direction, inv.is_credit_note,
+            inv.currency, inv.currency_amount, inv.fx_rate_on_invoice, inv.needs_fx,
+            inv.total_ex_vat, inv.total_vat, inv.total_incl_vat,
+            inv.exemption_reference, inv.reverse_charge_mentioned, inv.bank_account_iban,
+          ];
           if (existing) {
             invoiceId = existing.id;
             await execTx(txSql, 'DELETE FROM invoice_lines WHERE invoice_id = $1', [invoiceId]);
             await execTx(txSql,
-              `UPDATE invoices
-                 SET provider = $1, provider_vat = $2, country = $3, invoice_date = $4,
-                     invoice_number = $5, direction = $6, total_ex_vat = $7, total_vat = $8,
-                     total_incl_vat = $9, currency = $10, currency_amount = $11
-               WHERE id = $12`,
-              [
-                invoiceData.provider ?? null, invoiceData.provider_vat ?? null,
-                invoiceData.country ?? invoiceData.provider_country ?? null,
-                invoiceData.invoice_date ?? null,
-                invoiceData.invoice_number ?? null,
-                invoiceData.direction ?? 'incoming',
-                invoiceData.total_ex_vat ?? null, invoiceData.total_vat ?? null,
-                invoiceData.total_incl_vat ?? null,
-                invoiceData.currency ?? null, invoiceData.currency_amount ?? null,
-                invoiceId,
-              ]
+              `UPDATE invoices SET
+                 provider = $1, provider_vat = $2, country = $3, provider_address = $4,
+                 customer_name_as_written = $5, customer_vat = $6, customer_country = $7,
+                 invoice_number = $8, invoice_date = $9, due_date = $10,
+                 service_period_start = $11, service_period_end = $12,
+                 direction = $13, is_credit_note = $14,
+                 currency = $15, currency_amount = $16, fx_rate_on_invoice = $17, needs_fx = $18,
+                 total_ex_vat = $19, total_vat = $20, total_incl_vat = $21,
+                 exemption_reference = $22, reverse_charge_mentioned = $23, bank_account_iban = $24
+               WHERE id = $25`,
+              [...upsertParams, invoiceId]
             );
           } else {
             invoiceId = generateId();
             await execTx(txSql,
-              `INSERT INTO invoices (id, document_id, declaration_id, provider, provider_vat, country,
-                invoice_date, invoice_number, direction, total_ex_vat, total_vat, total_incl_vat,
-                currency, currency_amount, extraction_source)
-              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,'ai')
-              ON CONFLICT (document_id) WHERE document_id IS NOT NULL DO NOTHING`,
-              [
-                invoiceId, doc.id, declaration_id,
-                invoiceData.provider ?? null, invoiceData.provider_vat ?? null,
-                invoiceData.country ?? invoiceData.provider_country ?? null,
-                invoiceData.invoice_date ?? null,
-                invoiceData.invoice_number ?? null,
-                invoiceData.direction ?? 'incoming',
-                invoiceData.total_ex_vat ?? null, invoiceData.total_vat ?? null,
-                invoiceData.total_incl_vat ?? null,
-                invoiceData.currency ?? null, invoiceData.currency_amount ?? null,
-              ]
+              `INSERT INTO invoices (
+                 id, document_id, declaration_id,
+                 provider, provider_vat, country, provider_address,
+                 customer_name_as_written, customer_vat, customer_country,
+                 invoice_number, invoice_date, due_date,
+                 service_period_start, service_period_end,
+                 direction, is_credit_note,
+                 currency, currency_amount, fx_rate_on_invoice, needs_fx,
+                 total_ex_vat, total_vat, total_incl_vat,
+                 exemption_reference, reverse_charge_mentioned, bank_account_iban,
+                 extraction_source)
+               VALUES (
+                 $1, $2, $3,
+                 $4, $5, $6, $7,
+                 $8, $9, $10,
+                 $11, $12, $13,
+                 $14, $15,
+                 $16, $17,
+                 $18, $19, $20, $21,
+                 $22, $23, $24,
+                 $25, $26, $27,
+                 'ai')
+               ON CONFLICT (document_id) WHERE document_id IS NOT NULL DO NOTHING`,
+              [invoiceId, doc.id, declaration_id, ...upsertParams]
             );
           }
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
             await execTx(txSql,
-              `INSERT INTO invoice_lines (id, invoice_id, declaration_id, description, amount_eur,
-                vat_rate, vat_applied, rc_amount, amount_incl, sort_order, state)
-              VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,'extracted')`,
+              `INSERT INTO invoice_lines (
+                 id, invoice_id, declaration_id, description, amount_eur,
+                 vat_rate, vat_applied, rc_amount, amount_incl,
+                 is_disbursement, exemption_reference,
+                 sort_order, state)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'extracted')`,
               [
                 generateId(), invoiceId, declaration_id,
-                line.description ?? null,
-                line.amount_eur ?? null,
-                line.vat_rate ?? null,
-                line.vat_applied ?? null,
-                line.rc_amount ?? null,
-                line.amount_incl ?? null,
+                line.description, line.amount_eur,
+                line.vat_rate, line.vat_applied, line.rc_amount, line.amount_incl,
+                line.is_disbursement, line.exemption_reference,
                 i,
               ]
             );
@@ -316,7 +411,12 @@ async function runExtraction(params: {
           await logAuditTx(txSql, {
             entityId: entity_id, declarationId: declaration_id,
             action: 'extract', targetType: 'invoice', targetId: invoiceId,
-            newValue: JSON.stringify({ provider: invoiceData.provider, lines: lines.length }),
+            newValue: JSON.stringify({
+              provider: inv.provider,
+              lines: lines.length,
+              needs_fx: inv.needs_fx,
+              is_credit_note: inv.is_credit_note,
+            }),
           });
           return invoiceId;
         });
