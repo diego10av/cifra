@@ -66,13 +66,20 @@ See `docs/positioning.md`.
 Current best-guess model (**hypothesis only — must be tested with 5
 customer conversations before committing**):
 
-| Plan | Monthly | Seats | Entities | Declarations/mo | Extra decl. |
-|------|---------|-------|----------|-----------------|-------------|
-| Starter | €99 | 1 | up to 3 | 1 included | €25 |
-| Firm | €299 | 3 | up to 15 | 10 included | €15 |
-| Enterprise | custom | unlimited | unlimited | unlimited | 0 |
+| Plan | Monthly | Seats | Entities | Declarations/mo | Extra decl. | Chat AI cap (€/user/mo) |
+|------|---------|-------|----------|-----------------|-------------|---------------------------|
+| Starter | €99 | 1 | up to 3 | 1 included | €25 | €1 (Haiku only) |
+| Firm | €299 | 3 | up to 15 | 10 included | €15 | €2 (Haiku + Ask-Opus) |
+| Enterprise | custom | soft-unlimited | soft-unlimited | soft-unlimited | 0 | €10 (admin can raise to €30) |
 
 Enterprise adds: SSO, SLA, white-label, account manager.
+
+**Nothing is truly unlimited** — every quantity has a soft cap
+enforced in-product, denominated either in units (seats, entities,
+declarations) or in monthly LLM spend (chat AI). Rationale: a single
+rogue user pasting huge documents into the chat on Opus can run up
+€50+/day; without caps, "unlimited" plans become gross-margin
+landmines. See `docs/MODELS.md §4` for AI cap mechanics.
 
 **Validation action:** 5 discovery calls with LU firms (varied size)
 within 14 days. Open-ended questions on pricing, not "would you pay €X".

@@ -108,55 +108,75 @@ one-line justification in the message.
 
 ---
 
-## 4. Chat model choice — the pending decision
+## 4. Chat model choice — **DECIDED 2026-04-17**
 
-cifra will ship an in-product chat assistant (ROADMAP P0 #9). The
-model choice is commercially consequential. Options:
+cifra will ship an in-product chat assistant (ROADMAP P0 #9).
+Decision: **Haiku 4.5 default + "Ask Opus" escalation button**,
+with a **hard per-user monthly AI spend cap of €2/user/month** on
+the default plan.
 
-### Option A (recommended) — Haiku default + "Ask Opus" button
+### Why Haiku default + Ask Opus
 
-- Default model: Haiku 4.5 → ~€0.08 per 10-turn conversation
-- User-triggered escalation: a "Ask Opus" button that re-runs the
-  last question with Opus 4.5, costing ~€1.40 extra
-- Includes a small toast: *"This answer used Opus — €0.X"* so the
-  user sees the cost lever
+- Haiku 4.5 resolves ~80% of realistic questions (deadlines, rule
+  explanations, invoice summaries, "is this supplier EU or foreign?")
+  at ~€0.08 per 10-turn conversation — or ~€0.03 with prompt caching.
+- The 20% of questions that genuinely need Opus (contradictory
+  jurisprudence, complex exemption arguments) are served explicitly
+  by the user pressing **Ask Opus**. UI shows: *"This answer used
+  Opus — €0.30"* toast, so the cost lever is visible.
+- Unit economics: 10 clients × 5 chats/mo × mostly Haiku ≈ €4/mo
+  total. Chat does not meaningfully dent the €75/mo budget guard.
 
-Pros: covers 80% of questions at 1/15th the cost. Reserves Opus for
-when user explicitly needs it. Transparent about the cost tradeoff.
-Pros for the unit-economics: 10 clients × 5 chats/mo × €0.08 = €4/mo
-total. Chat does not meaningfully dent the €75 budget.
+### Per-user hard cap — the "crazy user" hedge
 
-Cons: quality ceiling on default Haiku might disappoint for edge
-cases. Mitigation: clear "Ask Opus" escalation path.
+Diego's instruction: *"incluso el unlimited no lo haria unlimited
+a ver si hay un loco que se lia a poner mensajes y rompe la banca."*
 
-### Option B — Sonnet default (balanced)
+Without a cap, a single user pasting 500k-token documents into the
+chat and triggering Opus on every turn can cost €50+/day. So:
 
-- Default: Sonnet 4.5 → ~€0.25 per conversation
-- No escalation needed; Sonnet handles most LU-VAT reasoning well
+- **Default cap: €2 / user / calendar month**, tracked by `user_id`
+  in the `api_calls` table. Not by firm — per user. A firm with
+  5 users has a firm-wide envelope of €10/mo.
+- **When reached**: chat input shows a banner *"Has alcanzado tu
+  quota mensual de IA (€2). Vuelve el 1 de [mes siguiente] o pide
+  a tu admin que te suba el tope."* Chat becomes read-only.
+- **Firm admin can raise a user's cap** from the /settings page
+  (costs an extra €X/mo per user, billed pro-rata). Levels:
+  €2 (default) → €5 → €10 → €20.
+- **Anthropic cost is tracked per call** via the existing
+  `anthropic-wrapper.ts` pricing table. Caching reduces the
+  effective cost so a user has real headroom even at €2.
 
-Pros: no two-tier UX. Predictable quality.
-Cons: ~3× cost of Option A. At 10 clients × 5 chats/mo = €12.50/mo.
-At 100 clients × 10 chats/mo = €250/mo — starts eating margin.
+### Tier pricing — soft-unlimited with hard caps
 
-### Option C — Opus default (premium only)
+| Plan | Base price | Default AI cap (€/user/mo) | Notes |
+|------|-----------|------------------------------|-------|
+| Starter | €99 | €1 | Haiku only; "Ask Opus" disabled. |
+| Firm | €299 | €2 | Haiku default + Ask Opus on-demand. **Current default.** |
+| Enterprise | custom | €10 (soft) | Admin can raise per-user up to €30. Includes SSO, SLA, white-label. |
 
-- Default: Opus 4.5 → ~€1.40 per conversation
-- Implied pricing: chat is a €99+/mo "Pro tier" feature
+*Soft-unlimited* means the marketing says "unlimited Q&A with the
+AI assistant" but each user has a hard monthly ceiling denominated
+in LLM spend, not message count. This is how Slack / Notion / every
+serious SaaS operates under the hood.
 
-Pros: best answers. Differentiates Pro plan.
-Cons: economically nonviable on a €99/mo plan. Needs Enterprise
-pricing or tight per-user quotas.
+### Implementation requirements (for ROADMAP P0 #9)
 
-### Decision matrix by plan tier (proposal)
-
-| Plan | Base price | Chat default | Escalation | Monthly chat quota |
-|------|-----------|--------------|------------|---------------------|
-| Basic | €99/mo | Haiku | — | unlimited |
-| Pro | €299/mo | Sonnet | "Ask Opus" button, 20/mo included | unlimited Sonnet; 20 Opus |
-| Enterprise | €599/mo | Opus | — | unlimited Opus |
-
-This is the plan cifra should commit to when the chat ships. Pricing
-tiers in `docs/BUSINESS_PLAN.md` get updated to match.
+When building the chat:
+1. Extend `api_calls` table with `user_id` column (currently tracked
+   by firm/declaration — need per-user granularity).
+2. New function `requireUserBudget(userId)` in `src/lib/budget-guard.ts`
+   that SUMs `api_calls.cost_eur` for the user in the current month
+   and returns `{ ok, spent, cap, remaining }`.
+3. UI: header of chat drawer shows *"€0.47 / €2.00 used this month"*
+   — transparent and slightly deterrent.
+4. UI: "Ask Opus" button shows estimated cost before firing
+   (*"This will cost ~€0.30"*) and deducts from the user's monthly
+   cap upfront.
+5. Firm-admin route to raise per-user caps lives in `/settings/users`.
+6. When cap is reached → 429 response with clear message, not a
+   silent failure.
 
 ---
 
@@ -164,7 +184,8 @@ tiers in `docs/BUSINESS_PLAN.md` get updated to match.
 
 | Date | Change | Rationale |
 |------|--------|-----------|
-| 2026-04-17 | Matrix document created. Established quarterly review cadence. Chat-model decision deferred to ship-time. | Diego instruction: automatic model upgrades + transparent cost tracking. |
+| 2026-04-17 | §4 chat-model DECIDED: Haiku default + Ask-Opus button, €2/user/mo hard cap, soft-unlimited tier pricing with per-plan caps (Starter €1 / Firm €2 / Enterprise €10). | Diego confirmed direction. The "crazy user" hedge is explicit — no true unlimited anywhere. |
+| 2026-04-17 | Matrix document created. Established quarterly review cadence. | Diego instruction: automatic model upgrades + transparent cost tracking. |
 | (Historical) | Extractor moved from Opus 4 → Haiku 4.5 | Haiku 4.5 release; accuracy parity on parse tasks at 1/15 cost. |
 | (Historical) | Validator kept on Opus 4.5 | Reasoning depth justifies cost. |
 
