@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query, queryOne } from '@/lib/db';
+import { getBudgetStatus } from '@/lib/budget-guard';
 
 // GET /api/metrics — quality and operational metrics derived from audit_log
 // + invoice_lines.
@@ -93,6 +94,20 @@ export async function GET() {
        FROM api_calls GROUP BY agent ORDER BY total_eur DESC`
   );
 
+  // Current-month spend trend (daily) — useful for detecting runaways.
+  const spendByDay = await query<{ d: string; eur: number; calls: number }>(
+    `SELECT TO_CHAR(created_at, 'YYYY-MM-DD') AS d,
+            COALESCE(SUM(cost_eur),0)::float AS eur,
+            COUNT(*)::int AS calls
+       FROM api_calls
+      WHERE created_at >= date_trunc('month', NOW())
+      GROUP BY 1
+      ORDER BY 1`
+  );
+
+  // Monthly budget snapshot from the guard helper.
+  const budget = await getBudgetStatus();
+
   // Fallback estimate when no api_calls rows exist (e.g. pre-wrapper data).
   const estimatedApiCalls = (totalInvoices?.n || 0) * 2;
   const estimatedCostEUR = estimatedApiCalls * 0.003;
@@ -140,6 +155,15 @@ export async function GET() {
       note: haveRealData
         ? 'Actual spend from logged API calls.'
         : 'Estimate assumes triage + extract per invoice. No real usage logged yet.',
+    },
+    budget: {
+      month_spend_eur: budget.month_spend_eur,
+      limit_eur: budget.limit_eur,
+      pct_used: budget.pct_used,
+      remaining_eur: budget.remaining_eur,
+      over_soft_warn: budget.over_soft_warn,
+      over_budget: budget.over_budget,
+      daily_spend: spendByDay,
     },
   });
 }

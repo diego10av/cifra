@@ -1,6 +1,20 @@
 'use client';
 
+// Metrics page — ops dashboard.
+//
+// Three panels:
+//  1. Budget — monthly Anthropic spend vs the cap set by BUDGET_MONTHLY_EUR.
+//     Progress bar + daily-spend sparkline + cost-by-agent breakdown.
+//     When > 80% soft-warn a brand-pink banner; when > 100% a danger banner.
+//  2. Quality — extraction + classification accuracy KPIs vs PRD targets.
+//  3. Breakdown — rule frequency, classification-source split,
+//     declarations by status.
+
 import { useEffect, useState } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { Badge } from '@/components/ui/Badge';
+import { PageSkeleton } from '@/components/ui/Skeleton';
+import { AlertOctagonIcon, AlertTriangleIcon, SparklesIcon } from 'lucide-react';
 
 interface MetricsData {
   extraction: { total_invoices: number; corrected: number; accuracy_pct: number | null; target_pct: number };
@@ -18,182 +32,328 @@ interface MetricsData {
     by_agent: Array<{ agent: string; calls: number; total_eur: number }>;
     note: string;
   };
+  budget: {
+    month_spend_eur: number;
+    limit_eur: number;
+    pct_used: number;
+    remaining_eur: number;
+    over_soft_warn: boolean;
+    over_budget: boolean;
+    daily_spend: Array<{ d: string; eur: number; calls: number }>;
+  };
 }
 
 export default function MetricsPage() {
   const [data, setData] = useState<MetricsData | null>(null);
+  useEffect(() => { fetch('/api/metrics').then(r => r.json()).then(setData); }, []);
 
-  useEffect(() => {
-    fetch('/api/metrics').then(r => r.json()).then(setData);
-  }, []);
-
-  if (!data) return <div className="text-center py-12 text-ink-muted">Loading…</div>;
+  if (!data) return <PageSkeleton />;
 
   const exAcc = data.extraction.accuracy_pct;
   const clAcc = data.classification.accuracy_pct;
   const totalSource = Object.values(data.classification.by_source).reduce((s, n) => s + n, 0);
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-[22px] font-semibold tracking-tight text-ink" style={{ letterSpacing: '-0.015em' }}>Quality metrics</h1>
-        <p className="text-[12.5px] text-ink-muted mt-1.5">
-          Accuracy of the AI agents and the rules engine, derived from the audit log. Per PRD §17.4.
-        </p>
-      </div>
+    <div className="max-w-[1200px]">
+      <PageHeader
+        title="Metrics"
+        subtitle="Ops and quality dashboard. Monthly budget, Anthropic spend per agent, classifier accuracy, rule frequency."
+      />
 
-      {/* Top KPIs */}
-      <div className="grid grid-cols-4 gap-3 mb-5">
-        <BigKPI
-          label="Extraction accuracy"
-          value={exAcc != null ? `${exAcc.toFixed(1)}%` : '—'}
-          target={`Target ${data.extraction.target_pct}%`}
-          good={exAcc != null && exAcc >= data.extraction.target_pct}
-          subtitle={`${data.extraction.total_invoices} invoices · ${data.extraction.corrected} corrected`}
-        />
-        <BigKPI
-          label="Classification accuracy"
-          value={clAcc != null ? `${clAcc.toFixed(1)}%` : '—'}
-          target={`Target ${data.classification.target_pct}%`}
-          good={clAcc != null && clAcc >= data.classification.target_pct}
-          subtitle={`${data.classification.total_lines} lines · ${data.classification.changed_by_user} changed`}
-        />
-        <BigKPI
-          label={data.cost_estimate.is_real ? 'Anthropic spend (actual)' : 'Anthropic spend (est.)'}
-          value={`€${data.cost_estimate.anthropic_eur.toFixed(data.cost_estimate.anthropic_eur < 1 ? 4 : 2)}`}
-          subtitle={`${data.cost_estimate.anthropic_api_calls.toLocaleString()} API call${data.cost_estimate.anthropic_api_calls === 1 ? '' : 's'}${data.cost_estimate.total_tokens ? ` · ${(data.cost_estimate.total_tokens / 1000).toFixed(1)}k tokens` : ''}`}
-        />
-        <BigKPI
-          label="Active declarations"
-          value={data.declarations_by_status.filter(d => !['paid'].includes(d.status)).reduce((s, d) => s + d.n, 0)}
-          subtitle={`${data.declarations_by_status.find(d => d.status === 'paid')?.n || 0} paid (closed)`}
-        />
-      </div>
+      {/* ═══════════ BUDGET PANEL ═══════════ */}
+      <section className="mb-8">
+        {data.budget.over_budget ? (
+          <Banner tone="danger" icon={<AlertOctagonIcon size={18} />}>
+            <strong>Monthly budget reached.</strong>{' '}
+            €{data.budget.month_spend_eur.toFixed(2)} of €{data.budget.limit_eur.toFixed(2)}.
+            New AI calls are blocked until the 1st of next month, or until
+            <code className="bg-surface-alt px-1 py-0.5 rounded text-[11px] mx-1">BUDGET_MONTHLY_EUR</code>
+            is raised in Vercel env.
+          </Banner>
+        ) : data.budget.over_soft_warn ? (
+          <Banner tone="warning" icon={<AlertTriangleIcon size={18} />}>
+            <strong>Heads up — {(data.budget.pct_used * 100).toFixed(0)}% of monthly budget used.</strong>{' '}
+            €{data.budget.remaining_eur.toFixed(2)} remaining. AI calls will refuse at 100%.
+          </Banner>
+        ) : null}
 
-      {/* Two-column row */}
-      <div className="grid grid-cols-2 gap-4 mb-5">
-        {/* Classification source split */}
-        <div className="bg-surface border border-border rounded-lg p-4 shadow-xs">
-          <h3 className="text-[13px] font-semibold text-ink mb-3 tracking-tight">Classification source</h3>
-          {totalSource === 0 ? (
-            <div className="text-[12px] text-ink-faint">No classified lines yet.</div>
-          ) : (
-            <div className="space-y-2">
-              <SourceBar label="Rule" n={data.classification.by_source.rule} total={totalSource} color="bg-sky-400" />
-              <SourceBar label="Precedent" n={data.classification.by_source.precedent} total={totalSource} color="bg-blue-400" />
-              <SourceBar label="Inference" n={data.classification.by_source.inference} total={totalSource} color="bg-amber-400" />
-              <SourceBar label="Manual" n={data.classification.by_source.manual} total={totalSource} color="bg-emerald-400" />
+        <div className="bg-surface border border-border rounded-xl shadow-xs overflow-hidden">
+          <header className="px-5 py-3 border-b border-divider flex items-center justify-between bg-gradient-to-br from-brand-50/60 to-surface">
+            <div className="flex items-center gap-2">
+              <SparklesIcon size={14} className="text-brand-500" />
+              <h3 className="text-[13px] font-semibold text-ink tracking-tight">Anthropic budget · this month</h3>
             </div>
-          )}
-        </div>
+            <div className="text-[11px] text-ink-muted">
+              Configure via <code className="bg-surface-alt px-1 py-0.5 rounded text-[10.5px]">BUDGET_MONTHLY_EUR</code>
+            </div>
+          </header>
 
-        {/* Declarations by status */}
-        <div className="bg-surface border border-border rounded-lg p-4 shadow-xs">
-          <h3 className="text-[13px] font-semibold text-ink mb-3 tracking-tight">Declarations by status</h3>
-          <div className="space-y-2">
-            {data.declarations_by_status.map(s => (
-              <div key={s.status} className="flex items-center justify-between text-[12px]">
-                <span className="text-ink-soft capitalize">{s.status}</span>
-                <span className="font-semibold tabular-nums">{s.n}</span>
+          <div className="p-5">
+            <div className="flex items-baseline gap-3 flex-wrap">
+              <div className="text-[32px] font-bold text-ink tabular-nums tracking-tight leading-none" style={{ letterSpacing: '-0.02em' }}>
+                €{data.budget.month_spend_eur.toFixed(2)}
               </div>
-            ))}
-            {data.declarations_by_status.length === 0 && (
-              <div className="text-[12px] text-ink-faint">No declarations yet.</div>
+              <div className="text-[14px] text-ink-muted">
+                of €{data.budget.limit_eur.toFixed(2)} ({(data.budget.pct_used * 100).toFixed(1)}%)
+              </div>
+              <div className="flex-1" />
+              <div className="text-[13px] text-ink-soft">
+                €{data.budget.remaining_eur.toFixed(2)} remaining
+              </div>
+            </div>
+
+            {/* Progress bar */}
+            <div className="mt-3 h-2 w-full bg-surface-alt rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  data.budget.over_budget
+                    ? 'bg-danger-500'
+                    : data.budget.over_soft_warn
+                      ? 'bg-warning-500'
+                      : 'bg-brand-500'
+                }`}
+                style={{ width: `${Math.min(100, data.budget.pct_used * 100)}%` }}
+              />
+            </div>
+
+            {/* Daily sparkline */}
+            {data.budget.daily_spend.length > 0 && (
+              <div className="mt-5">
+                <div className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted mb-2">
+                  Daily spend this month
+                </div>
+                <DailySparkline days={data.budget.daily_spend} />
+              </div>
+            )}
+
+            {/* By agent */}
+            {data.cost_estimate.by_agent.length > 0 && (
+              <div className="mt-6 pt-5 border-t border-divider">
+                <div className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted mb-3">
+                  Cost by agent · all time
+                </div>
+                <div className="space-y-2">
+                  {data.cost_estimate.by_agent.map(a => (
+                    <AgentBar
+                      key={a.agent}
+                      agent={a.agent}
+                      calls={a.calls}
+                      totalEur={a.total_eur}
+                      maxEur={Math.max(...data.cost_estimate.by_agent.map(x => x.total_eur)) || 1}
+                    />
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Per-rule frequency */}
-      <div className="bg-surface border border-border rounded-lg p-4 mb-5 shadow-xs">
-        <h3 className="text-[13px] font-semibold text-ink mb-3 tracking-tight">Rules engine — usage</h3>
-        {data.classification.by_rule.length === 0 ? (
-          <div className="text-[12px] text-ink-faint">No rule applications yet.</div>
-        ) : (
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-            {data.classification.by_rule.map(r => (
-              <div key={r.classification_rule} className="flex items-center justify-between text-[12px] border-b border-divider pb-1">
-                <span className="text-ink-soft font-mono">{r.classification_rule}</span>
-                <span className="font-semibold tabular-nums">{r.n}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Spend by agent */}
-      {data.cost_estimate.is_real && data.cost_estimate.by_agent.length > 0 && (
-        <div className="bg-surface border border-border rounded-lg p-4 mb-5 shadow-xs">
-          <h3 className="text-[13px] font-semibold text-ink mb-3 tracking-tight">Spend by agent</h3>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-1.5">
-            {data.cost_estimate.by_agent.map(a => (
-              <div key={a.agent} className="flex items-center justify-between text-[12px] border-b border-divider pb-1">
-                <span className="text-ink-soft capitalize">{a.agent.replace('_', ' ')}</span>
-                <div className="flex items-center gap-3">
-                  <span className="text-ink-muted text-[11px]">{a.calls} calls</span>
-                  <span className="font-semibold tabular-nums">€{a.total_eur.toFixed(a.total_eur < 1 ? 4 : 2)}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* ═══════════ QUALITY KPIs ═══════════ */}
+      <section className="mb-8">
+        <h2 className="text-[16px] font-semibold text-ink tracking-tight mb-3">Classifier quality</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <BigKPI
+            label="Extraction accuracy"
+            value={exAcc != null ? `${exAcc.toFixed(1)}%` : '—'}
+            target={`Target ${data.extraction.target_pct}%`}
+            good={exAcc != null && exAcc >= data.extraction.target_pct}
+            subtitle={`${data.extraction.total_invoices} invoices · ${data.extraction.corrected} corrected`}
+          />
+          <BigKPI
+            label="Classification accuracy"
+            value={clAcc != null ? `${clAcc.toFixed(1)}%` : '—'}
+            target={`Target ${data.classification.target_pct}%`}
+            good={clAcc != null && clAcc >= data.classification.target_pct}
+            subtitle={`${data.classification.total_lines} lines · ${data.classification.changed_by_user} changed`}
+          />
+          <BigKPI
+            label="Total Anthropic calls"
+            value={String(data.cost_estimate.anthropic_api_calls)}
+            target={data.cost_estimate.total_tokens ? `${(data.cost_estimate.total_tokens / 1000).toFixed(1)}k tokens` : ''}
+            good={true}
+            subtitle={data.cost_estimate.is_real ? 'from api_calls log' : data.cost_estimate.note}
+          />
         </div>
-      )}
+      </section>
 
-      {/* Activity sparkline */}
-      <div className="bg-surface border border-border rounded-lg p-4 mb-5 shadow-xs">
-        <h3 className="text-[13px] font-semibold text-ink mb-3 tracking-tight">Activity, last 30 days</h3>
-        {data.activity_last_30d.length === 0 ? (
-          <div className="text-[12px] text-ink-faint">No activity in the last 30 days.</div>
-        ) : (
-          <ActivitySparkline data={data.activity_last_30d} />
-        )}
-      </div>
+      {/* ═══════════ BREAKDOWNS ═══════════ */}
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Classification source split */}
+        <Card title="Classification source · all time">
+          {totalSource === 0 ? (
+            <EmptyLine>No classified lines yet.</EmptyLine>
+          ) : (
+            <div className="space-y-2">
+              <SourceBar label="Rule"       value={data.classification.by_source.rule}       total={totalSource} tone="success" />
+              <SourceBar label="Precedent"  value={data.classification.by_source.precedent}  total={totalSource} tone="info" />
+              <SourceBar label="Inference"  value={data.classification.by_source.inference}  total={totalSource} tone="warning" />
+              <SourceBar label="Manual"     value={data.classification.by_source.manual}     total={totalSource} tone="brand" />
+            </div>
+          )}
+        </Card>
 
-      <div className="text-[11px] text-ink-faint">{data.cost_estimate.note}</div>
+        {/* Declarations by status */}
+        <Card title="Declarations by status">
+          {data.declarations_by_status.length === 0 ? (
+            <EmptyLine>No declarations yet.</EmptyLine>
+          ) : (
+            <div className="space-y-1.5">
+              {data.declarations_by_status.map(s => (
+                <div key={s.status} className="flex items-center justify-between text-[12.5px]">
+                  <span className="capitalize text-ink-soft">{s.status}</span>
+                  <span className="tabular-nums font-semibold text-ink">{s.n}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        {/* Rule frequency — full-width on md */}
+        <Card title="Rules by frequency · top 15" className="md:col-span-2">
+          {data.classification.by_rule.length === 0 ? (
+            <EmptyLine>No rule fires yet.</EmptyLine>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
+              {data.classification.by_rule.slice(0, 15).map(r => (
+                <div key={r.classification_rule} className="flex items-center justify-between text-[12px] border-b border-divider last:border-0 py-1.5">
+                  <span className="font-mono text-[11px] text-ink-soft">{r.classification_rule}</span>
+                  <span className="tabular-nums text-ink-muted">{r.n}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </section>
     </div>
   );
 }
 
-function BigKPI({ label, value, subtitle, target, good }: {
-  label: string; value: string | number; subtitle?: string; target?: string; good?: boolean;
-}) {
+// ═══════════════ Sub-components ═══════════════
+
+function Banner({
+  tone, icon, children,
+}: { tone: 'danger' | 'warning'; icon: React.ReactNode; children: React.ReactNode }) {
+  const classes =
+    tone === 'danger'
+      ? 'border-danger-500/40 bg-danger-50 text-danger-700'
+      : 'border-brand-300/50 bg-brand-50 text-brand-800';
   return (
-    <div className="bg-surface border border-border rounded-lg p-4">
-      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
-      <div className={`text-3xl font-bold mt-1 tabular-nums ${good === true ? 'text-emerald-600' : good === false ? 'text-amber-600' : 'text-ink'}`}>
-        {value}
-      </div>
-      {target && <div className="text-[10px] text-ink-faint mt-0.5">{target}</div>}
-      {subtitle && <div className="text-[11px] text-ink-muted mt-1">{subtitle}</div>}
+    <div className={`mb-4 rounded-xl border px-4 py-3 flex items-start gap-3 ${classes}`}>
+      <span className="shrink-0 mt-0.5">{icon}</span>
+      <div className="text-[12.5px] leading-relaxed">{children}</div>
     </div>
   );
 }
 
-function SourceBar({ label, n, total, color }: { label: string; n: number; total: number; color: string }) {
-  const pct = total > 0 ? (n / total) * 100 : 0;
+function AgentBar({
+  agent, calls, totalEur, maxEur,
+}: { agent: string; calls: number; totalEur: number; maxEur: number }) {
+  const pct = maxEur > 0 ? (totalEur / maxEur) * 100 : 0;
   return (
     <div>
-      <div className="flex items-center justify-between text-[11px] mb-0.5">
-        <span className="text-ink-soft">{label}</span>
-        <span className="text-ink-muted tabular-nums">{n} ({pct.toFixed(0)}%)</span>
+      <div className="flex items-baseline justify-between text-[12px] mb-1">
+        <span className="font-medium text-ink">{agent}</span>
+        <span className="text-ink-muted tabular-nums">
+          €{totalEur.toFixed(2)} · {calls} call{calls === 1 ? '' : 's'}
+        </span>
       </div>
-      <div className="h-2 bg-surface-alt rounded overflow-hidden">
-        <div className={`h-full ${color} transition-all duration-300`} style={{ width: `${pct}%` }} />
+      <div className="h-1.5 w-full bg-surface-alt rounded-full overflow-hidden">
+        <div
+          className="h-full bg-brand-500/80 rounded-full"
+          style={{ width: `${Math.min(100, pct)}%` }}
+        />
       </div>
     </div>
   );
 }
 
-function ActivitySparkline({ data }: { data: { d: string; n: number }[] }) {
-  const max = Math.max(...data.map(d => d.n), 1);
+function DailySparkline({ days }: { days: Array<{ d: string; eur: number; calls: number }> }) {
+  const max = Math.max(...days.map(d => d.eur), 0.01);
   return (
-    <div className="flex items-end gap-0.5 h-20">
-      {data.map(d => (
-        <div key={d.d} className="flex-1 flex flex-col items-center group" title={`${d.d}: ${d.n} events`}>
-          <div className="w-full bg-brand-500 rounded-sm transition-all duration-150 group-hover:bg-brand-500"
-            style={{ height: `${Math.max(2, (d.n / max) * 100)}%` }} />
-        </div>
-      ))}
+    <div className="flex items-end gap-[2px] h-16 w-full">
+      {days.map(day => {
+        const h = Math.max(2, (day.eur / max) * 100);
+        return (
+          <div
+            key={day.d}
+            className="flex-1 bg-brand-500/70 hover:bg-brand-600 rounded-sm transition-colors relative group min-w-[4px]"
+            style={{ height: `${h}%` }}
+            title={`${day.d}: €${day.eur.toFixed(2)} · ${day.calls} call${day.calls === 1 ? '' : 's'}`}
+          >
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+              {day.d.slice(5)} · €{day.eur.toFixed(2)}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
+}
+
+function SourceBar({
+  label, value, total, tone,
+}: {
+  label: string; value: number; total: number;
+  tone: 'success' | 'info' | 'warning' | 'brand';
+}) {
+  const pct = total > 0 ? (value / total) * 100 : 0;
+  const fillColor =
+    tone === 'success' ? 'bg-success-500' :
+    tone === 'info'    ? 'bg-info-500'    :
+    tone === 'warning' ? 'bg-warning-500' :
+                         'bg-brand-500';
+  return (
+    <div>
+      <div className="flex items-baseline justify-between text-[12px] mb-1">
+        <span className="text-ink-soft">{label}</span>
+        <span className="tabular-nums text-ink-muted">
+          {value} <span className="text-ink-faint">({pct.toFixed(0)}%)</span>
+        </span>
+      </div>
+      <div className="h-1.5 w-full bg-surface-alt rounded-full overflow-hidden">
+        <div className={`h-full ${fillColor} rounded-full`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function BigKPI({
+  label, value, target, good, subtitle,
+}: {
+  label: string; value: string; target?: string;
+  good: boolean; subtitle: string;
+}) {
+  return (
+    <div className="bg-surface border border-border rounded-xl p-5 shadow-xs">
+      <div className="flex items-center justify-between">
+        <div className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted">{label}</div>
+        {target && (
+          <Badge tone={good ? 'success' : 'warning'}>{good ? 'on target' : 'below target'}</Badge>
+        )}
+      </div>
+      <div className="text-[32px] font-bold text-ink tabular-nums mt-2 tracking-tight leading-none" style={{ letterSpacing: '-0.02em' }}>
+        {value}
+      </div>
+      {target && <div className="text-[11px] text-ink-muted mt-1">{target}</div>}
+      <div className="text-[11.5px] text-ink-soft mt-2 leading-relaxed">{subtitle}</div>
+    </div>
+  );
+}
+
+function Card({
+  title, children, className = '',
+}: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`bg-surface border border-border rounded-xl shadow-xs overflow-hidden ${className}`}>
+      <header className="px-4 py-3 border-b border-divider">
+        <h3 className="text-[13px] font-semibold text-ink tracking-tight">{title}</h3>
+      </header>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
+function EmptyLine({ children }: { children: React.ReactNode }) {
+  return <div className="text-[12px] text-ink-muted">{children}</div>;
 }
