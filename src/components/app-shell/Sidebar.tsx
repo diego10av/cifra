@@ -38,7 +38,12 @@ function buildGroups(badges: SidebarBadges): NavGroup[] {
     {
       items: [
         { href: '/',             label: 'Home',         icon: HomeIcon },
-        { href: '/entities',     label: 'Clients',      icon: Building2Icon },
+        // 2026-04-18 restructure: Clients is now a top-level concept
+        // with entities hanging off it. Previously "Clients" in the
+        // sidebar pointed at /entities (a flat list, no hierarchy),
+        // which confused Diego. Clients absorbs Entities per his
+        // decision — entities are reachable by drilling into a client.
+        { href: '/clients',      label: 'Clients',      icon: Building2Icon },
         { href: '/declarations', label: 'Declarations', icon: FileTextIcon,
           badge: badges.declarationsInReview },
         { href: '/aed-letters',  label: 'AED inbox',    icon: InboxIcon,
