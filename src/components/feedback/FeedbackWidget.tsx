@@ -52,6 +52,27 @@ export function FeedbackWidget() {
     p.endsWith('/') ? pathname.startsWith(p) : pathname === p || pathname.startsWith(p + '/'),
   );
 
+  // Global shortcut: "?" opens the modal from anywhere. Made for demo
+  // mode — Diego is screensharing, something looks off, he hits "?"
+  // and types a note without reaching for the mouse. Suppress the
+  // shortcut when focus is in any input / textarea / contentEditable
+  // so users who type "?" into the chat field don't get hijacked.
+  useEffect(() => {
+    if (hidden) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== '?') return;
+      const el = document.activeElement as HTMLElement | null;
+      if (!el) { setOpen(true); return; }
+      const tag = el.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (el.isContentEditable) return;
+      e.preventDefault();
+      setOpen(true);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [hidden]);
+
   if (hidden) return null;
 
   return (
@@ -59,8 +80,8 @@ export function FeedbackWidget() {
       <button
         onClick={() => setOpen(true)}
         className="fixed bottom-5 right-5 z-40 h-10 px-3 rounded-full bg-surface border border-border-strong shadow-md hover:shadow-lg hover:border-brand-400 transition-all inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-soft hover:text-brand-700"
-        aria-label="Report an issue or feedback"
-        title="Report an issue"
+        aria-label="Report an issue or feedback (shortcut: ?)"
+        title="Report an issue — press ? anywhere"
       >
         <MessageCircleIcon size={14} />
         <span className="hidden sm:inline">Feedback</span>

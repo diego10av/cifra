@@ -5,27 +5,32 @@
 // extractions.
 //
 // What it creates:
+//   - 2 clients, one of which (Acme Capital Group) is the
+//     multi-entity case (2 entities under one client) so Diego can
+//     demo the "Avallon-style" model.
 //   - 3 entities covering the three archetypes we actually target:
-//       * SOPARFI (simplified regime, annual)
-//       * AIFM SCSp (ordinary, quarterly)
-//       * Holding SARL (ordinary, annual, with EU subsidiaries)
+//       * SOPARFI (simplified regime, annual)       — Acme
+//       * AIFM SCSp (ordinary, quarterly)           — Horizon
+//       * Holding SARL (ordinary, annual, EU subs)  — Acme
+//   - Rich entity_approvers per entity: a primary contact with role +
+//     organization + country (the key demo piece — "CSP director in LU
+//     + Head of Finance in Poland") plus a CC / CSP approver.
 //   - For each entity, 1 declaration in `review` status so the user
 //     can click through the whole workflow (approve → share → portal).
-//   - For each declaration, 12-18 invoice_lines deliberately covering
+//   - For each declaration, 8-12 invoice_lines deliberately covering
 //     every treatment code in the classifier (LUX_17/8/3/0, RC_EU_17,
-//     RC_NONEU_17, IC_ACQ, AUTOLIV_17, EXEMPT_44, OUT_SCOPE, with
-//     at least one FX line).
-//   - 2 AED letters per entity (one high-urgency, one routine).
+//     RC_NONEU_17, AUTOLIV_17, EXEMPT_44, OUT_EU/NONEU, with FX lines).
+//   - 3 AED communications (one per entity) — high/medium/low urgency.
 //   - A handful of precedents so the classifier's "learned" badge
 //     shows up.
-//   - A synthetic spend row in api_calls so /metrics has data.
+//   - Synthetic api_calls rows so /metrics has data.
 //
 // Usage:
 //   npm run seed:demo             # idempotent-ish: upserts by known ids
 //   npm run seed:demo -- --reset  # wipes the demo rows first
 //
 // Safety: every row uses an id prefixed `demo-` so a reset only touches
-// seeded data — never Diego's real records. Prompts before wiping.
+// seeded data — never Diego's real records.
 // ════════════════════════════════════════════════════════════════════════
 
 import { query, execute, generateId } from '../src/lib/db';
@@ -33,11 +38,48 @@ import { query, execute, generateId } from '../src/lib/db';
 const RESET = process.argv.includes('--reset');
 const DEMO_PREFIX = 'demo-';
 
+// ───────────────────────── demo clients ─────────────────────────
+//
+// A client groups one or more entities (the Avallon case). Each has a
+// rich VAT contact at the group level — intentionally distinct from
+// the per-entity approvers below, so the UI clearly distinguishes
+// "group's main contact" from "this declaration's sign-off chain".
+
+const CLIENTS = [
+  {
+    id: `${DEMO_PREFIX}client-acme`,
+    name: 'Acme Capital Group',
+    kind: 'end_client' as const,
+    vat_contact_name: 'Jean-Marc Dubois',
+    vat_contact_email: 'jmdubois@acmecapital.demo',
+    vat_contact_phone: '+352 691 234 567',
+    vat_contact_role: 'CFO',
+    vat_contact_country: 'LU',
+    address: '1, rue de la Liberté, L-1930 Luxembourg',
+    website: 'acmecapital.demo',
+    notes: 'Family office with a SOPARFI + a holding vehicle. Jean-Marc signs both.',
+  },
+  {
+    id: `${DEMO_PREFIX}client-horizon`,
+    name: 'Horizon Real Estate Group',
+    kind: 'end_client' as const,
+    vat_contact_name: 'Sofia Ricci',
+    vat_contact_email: 'sricci@horizon-re.demo',
+    vat_contact_phone: '+39 02 1234 5678',
+    vat_contact_role: 'Head of Finance',
+    vat_contact_country: 'IT',
+    address: 'Via Monte Napoleone 8, 20121 Milano, Italy',
+    website: 'horizon-re.demo',
+    notes: 'Pan-EU RE AIFM. Sofia in Milan is the VAT point-person, but the CSP (Horizon AIFM LU) has to co-sign filings.',
+  },
+];
+
 // ───────────────────────── demo entities ─────────────────────────
 
 const ENTITIES = [
   {
     id: `${DEMO_PREFIX}ent-soparfi`,
+    client_id: `${DEMO_PREFIX}client-acme`,
     name: 'Acme Capital SARL',
     vat_number: 'LU12345678',
     matricule: '20172456346',
@@ -58,6 +100,7 @@ const ENTITIES = [
   },
   {
     id: `${DEMO_PREFIX}ent-scsp`,
+    client_id: `${DEMO_PREFIX}client-horizon`,
     name: 'Horizon Real Estate SCSp',
     vat_number: 'LU23456789',
     matricule: '20192999810',
@@ -77,7 +120,10 @@ const ENTITIES = [
     notes: 'Pan-EU real-estate AIFM, quarterly filings, multi-currency.',
   },
   {
+    // Second entity under the same client as the SOPARFI — shows the
+    // "one client, multiple entities" model on /clients/[id].
     id: `${DEMO_PREFIX}ent-hold`,
+    client_id: `${DEMO_PREFIX}client-acme`,
     name: 'Zephyr Holdings SARL',
     vat_number: 'LU34567890',
     matricule: '20152123456',
@@ -87,14 +133,85 @@ const ENTITIES = [
     regime: 'ordinary' as const,
     frequency: 'annual' as const,
     address: '15, boulevard Royal, L-2449 Luxembourg',
-    client_name: 'Marcus Verhoeven',
-    client_email: 'mverhoeven@zephyr.demo',
+    client_name: 'Jean-Marc Dubois',
+    client_email: 'jmdubois@acmecapital.demo',
     csp_name: 'Zephyr Group',
     csp_email: null,
     has_fx: true,
     has_outgoing: true,
     has_recharges: false,
-    notes: 'Operating holding with EU + non-EU subsidiaries.',
+    notes: 'Operating holding owned by Acme Capital Group — EU + non-EU subsidiaries.',
+  },
+];
+
+// ───────────────────────── demo approvers ─────────────────────────
+//
+// Multi-approver per entity (Diego's "Avallon case" spec, 2026-04-18).
+// Each row is one real person — name, email, role and country — so the
+// UI can clearly render "who signs, in what capacity, in which country".
+
+interface SeedApprover {
+  id: string;
+  entity_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: string | null;
+  organization: string | null;
+  country: string | null;
+  approver_type: 'client' | 'csp' | 'internal' | 'other';
+  is_primary: boolean;
+  sort_order: number;
+  notes: string | null;
+}
+
+const APPROVERS: SeedApprover[] = [
+  // Acme SOPARFI — CFO at client + CSP admin
+  {
+    id: `${DEMO_PREFIX}app-soparfi-1`, entity_id: `${DEMO_PREFIX}ent-soparfi`,
+    name: 'Jean-Marc Dubois', email: 'jmdubois@acmecapital.demo',
+    phone: '+352 691 234 567', role: 'CFO', organization: 'Acme Capital Group',
+    country: 'LU', approver_type: 'client', is_primary: true, sort_order: 1,
+    notes: 'Primary sign-off — expect fast turnaround.',
+  },
+  {
+    id: `${DEMO_PREFIX}app-soparfi-2`, entity_id: `${DEMO_PREFIX}ent-soparfi`,
+    name: 'Maria Schneider', email: 'mschneider@metafund.demo',
+    phone: '+352 27 12 34 56', role: 'VAT officer', organization: 'MetaFund Services SA',
+    country: 'LU', approver_type: 'csp', is_primary: false, sort_order: 2,
+    notes: 'CSP — needs to be CC-d on every filing.',
+  },
+
+  // Horizon SCSp — the headline case: Head of Finance in Italy + CSP director in LU
+  {
+    id: `${DEMO_PREFIX}app-scsp-1`, entity_id: `${DEMO_PREFIX}ent-scsp`,
+    name: 'Sofia Ricci', email: 'sricci@horizon-re.demo',
+    phone: '+39 02 1234 5678', role: 'Head of Finance', organization: 'Horizon Real Estate Group',
+    country: 'IT', approver_type: 'client', is_primary: true, sort_order: 1,
+    notes: 'Signs off on economics. Italian time zone.',
+  },
+  {
+    id: `${DEMO_PREFIX}app-scsp-2`, entity_id: `${DEMO_PREFIX}ent-scsp`,
+    name: 'Pieter van der Berg', email: 'pvdberg@horizonaifm.demo',
+    phone: '+352 26 00 12 34', role: 'Compliance Director', organization: 'Horizon AIFM Sàrl',
+    country: 'LU', approver_type: 'csp', is_primary: false, sort_order: 2,
+    notes: 'CSP director — must co-sign on compliance grounds.',
+  },
+
+  // Zephyr — one approver (CFO Jean-Marc again) + a CC to the controller
+  {
+    id: `${DEMO_PREFIX}app-hold-1`, entity_id: `${DEMO_PREFIX}ent-hold`,
+    name: 'Jean-Marc Dubois', email: 'jmdubois@acmecapital.demo',
+    phone: '+352 691 234 567', role: 'CFO', organization: 'Acme Capital Group',
+    country: 'LU', approver_type: 'client', is_primary: true, sort_order: 1,
+    notes: 'Same person who signs Acme SOPARFI — group-level CFO.',
+  },
+  {
+    id: `${DEMO_PREFIX}app-hold-2`, entity_id: `${DEMO_PREFIX}ent-hold`,
+    name: 'Tomasz Kowalski', email: 'tkowalski@zephyr.demo',
+    phone: '+48 22 555 12 34', role: 'Group Controller', organization: 'Zephyr Holdings SARL',
+    country: 'PL', approver_type: 'internal', is_primary: false, sort_order: 2,
+    notes: 'Controller based in Warsaw — needs English summaries, gets CC.',
   },
 ];
 
@@ -317,8 +434,8 @@ async function wipeDemo(): Promise<void> {
   console.log('🧹  Wiping existing demo rows (prefix: demo-)...');
   // Order matters — children first to avoid FK violations.
   const tables = [
-    'invoice_lines', 'invoices', 'aed_letters', 'precedents',
-    'declarations', 'entities',
+    'invoice_lines', 'invoices', 'aed_communications', 'precedents',
+    'entity_approvers', 'declarations', 'entities', 'clients',
   ];
   for (const t of tables) {
     await execute(`DELETE FROM ${t} WHERE id LIKE $1 OR (CASE WHEN '${t}' = 'invoice_lines' OR '${t}' = 'invoices' THEN declaration_id LIKE $1 ELSE FALSE END)`, [`${DEMO_PREFIX}%`]);
@@ -330,13 +447,67 @@ async function wipeDemo(): Promise<void> {
   console.log('   …done.');
 }
 
+async function seedClient(c: typeof CLIENTS[number]): Promise<void> {
+  await execute(
+    `INSERT INTO clients (id, name, kind, vat_contact_name, vat_contact_email,
+        vat_contact_phone, vat_contact_role, vat_contact_country,
+        address, website, notes)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+     ON CONFLICT (id) DO UPDATE SET
+       name = EXCLUDED.name,
+       kind = EXCLUDED.kind,
+       vat_contact_name = EXCLUDED.vat_contact_name,
+       vat_contact_email = EXCLUDED.vat_contact_email,
+       vat_contact_phone = EXCLUDED.vat_contact_phone,
+       vat_contact_role = EXCLUDED.vat_contact_role,
+       vat_contact_country = EXCLUDED.vat_contact_country,
+       address = EXCLUDED.address,
+       website = EXCLUDED.website,
+       notes = EXCLUDED.notes,
+       updated_at = NOW()`,
+    [
+      c.id, c.name, c.kind,
+      c.vat_contact_name, c.vat_contact_email, c.vat_contact_phone,
+      c.vat_contact_role, c.vat_contact_country,
+      c.address, c.website, c.notes,
+    ],
+  );
+  console.log(`   ✓ Client ${c.name}`);
+}
+
+async function seedApprover(a: SeedApprover): Promise<void> {
+  await execute(
+    `INSERT INTO entity_approvers (id, entity_id, name, email, phone, role,
+        organization, country, approver_type, is_primary, sort_order, notes)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+     ON CONFLICT (id) DO UPDATE SET
+       name = EXCLUDED.name,
+       email = EXCLUDED.email,
+       phone = EXCLUDED.phone,
+       role = EXCLUDED.role,
+       organization = EXCLUDED.organization,
+       country = EXCLUDED.country,
+       approver_type = EXCLUDED.approver_type,
+       is_primary = EXCLUDED.is_primary,
+       sort_order = EXCLUDED.sort_order,
+       notes = EXCLUDED.notes,
+       updated_at = NOW()`,
+    [
+      a.id, a.entity_id, a.name, a.email, a.phone, a.role,
+      a.organization, a.country, a.approver_type,
+      a.is_primary, a.sort_order, a.notes,
+    ],
+  );
+}
+
 async function seedEntity(e: typeof ENTITIES[number]): Promise<void> {
   await execute(
-    `INSERT INTO entities (id, name, vat_number, matricule, rcs_number, legal_form,
+    `INSERT INTO entities (id, client_id, name, vat_number, matricule, rcs_number, legal_form,
         entity_type, regime, frequency, address, client_name, client_email,
         csp_name, csp_email, has_fx, has_outgoing, has_recharges, notes, vat_status)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,'registered')
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,'registered')
      ON CONFLICT (id) DO UPDATE SET
+       client_id = EXCLUDED.client_id,
        name = EXCLUDED.name,
        vat_number = EXCLUDED.vat_number,
        matricule = EXCLUDED.matricule,
@@ -344,7 +515,7 @@ async function seedEntity(e: typeof ENTITIES[number]): Promise<void> {
        frequency = EXCLUDED.frequency,
        updated_at = NOW()`,
     [
-      e.id, e.name, e.vat_number, e.matricule, e.rcs_number, e.legal_form,
+      e.id, e.client_id, e.name, e.vat_number, e.matricule, e.rcs_number, e.legal_form,
       e.entity_type, e.regime, e.frequency, e.address,
       e.client_name, e.client_email, e.csp_name, e.csp_email,
       e.has_fx, e.has_outgoing, e.has_recharges, e.notes,
@@ -434,24 +605,28 @@ async function seedDeclarationAndLines(
 
 async function seedAedLetter(letter: SeedAedLetter): Promise<void> {
   const today = new Date();
+  // Real table is aed_communications (aed_letters is only a UI-layer
+  // variable name). Status enum: received / reviewed / actioned / archived.
+  const status = letter.status === 'new' ? 'received' : letter.status;
   await execute(
-    `INSERT INTO aed_letters (id, entity_id, filename, file_path, file_size, file_type,
+    `INSERT INTO aed_communications (id, entity_id, filename, file_path, file_size,
         type, urgency, status, summary, reference, amount, deadline_date,
         uploaded_at)
-     VALUES ($1, $2, $3, $4, 0, 'pdf', $5, $6, $7, $8, $9, $10, $11, $12)
+     VALUES ($1, $2, $3, $4, 0, $5, $6, $7, $8, $9, $10, $11, $12)
      ON CONFLICT (id) DO UPDATE SET
        summary = EXCLUDED.summary,
        status = EXCLUDED.status,
-       urgency = EXCLUDED.urgency`,
+       urgency = EXCLUDED.urgency,
+       updated_at = NOW()`,
     [
       letter.id, letter.entity_id, letter.filename, `demo/${letter.filename}`,
-      letter.type, letter.urgency, letter.status, letter.summary,
+      letter.type, letter.urgency, status, letter.summary,
       letter.reference, letter.amount,
       addDays(today, letter.deadline_days_from_now),
       today.toISOString(),
     ],
   );
-  console.log(`   ✓ AED letter ${letter.reference}`);
+  console.log(`   ✓ AED communication ${letter.reference}`);
 }
 
 async function seedPrecedents(): Promise<void> {
@@ -520,8 +695,15 @@ async function main() {
     await wipeDemo();
   }
 
-  console.log('👥  Seeding entities...');
+  console.log('🏢  Seeding clients...');
+  for (const c of CLIENTS) await seedClient(c);
+
+  console.log('\n👥  Seeding entities...');
   for (const e of ENTITIES) await seedEntity(e);
+
+  console.log('\n✍️  Seeding approvers...');
+  for (const a of APPROVERS) await seedApprover(a);
+  console.log(`   ✓ ${APPROVERS.length} approvers across ${ENTITIES.length} entities`);
 
   console.log('\n📄  Seeding declarations + invoices + lines...');
   // SOPARFI — annual 2024 Y1
@@ -546,20 +728,29 @@ async function main() {
   await seedApiCallSamples();
 
   // Summary
-  const counts = await query<{ entities: string; decls: string; invoices: string; lines: string }>(
+  const counts = await query<{
+    clients: string; entities: string; approvers: string;
+    decls: string; invoices: string; lines: string; aed: string;
+  }>(
     `SELECT
+       (SELECT COUNT(*)::text FROM clients WHERE id LIKE $1) AS clients,
        (SELECT COUNT(*)::text FROM entities WHERE id LIKE $1) AS entities,
+       (SELECT COUNT(*)::text FROM entity_approvers WHERE id LIKE $1) AS approvers,
        (SELECT COUNT(*)::text FROM declarations WHERE id LIKE $1) AS decls,
        (SELECT COUNT(*)::text FROM invoices WHERE id LIKE $1) AS invoices,
-       (SELECT COUNT(*)::text FROM invoice_lines WHERE id LIKE $1) AS lines`,
+       (SELECT COUNT(*)::text FROM invoice_lines WHERE id LIKE $1) AS lines,
+       (SELECT COUNT(*)::text FROM aed_communications WHERE id LIKE $1) AS aed`,
     [`${DEMO_PREFIX}%`],
   );
 
   console.log('\n✅  Done.');
-  console.log(`   entities:     ${counts[0]?.entities}`);
-  console.log(`   declarations: ${counts[0]?.decls}`);
-  console.log(`   invoices:     ${counts[0]?.invoices}`);
-  console.log(`   lines:        ${counts[0]?.lines}`);
+  console.log(`   clients:          ${counts[0]?.clients}`);
+  console.log(`   entities:         ${counts[0]?.entities}`);
+  console.log(`   approvers:        ${counts[0]?.approvers}`);
+  console.log(`   declarations:     ${counts[0]?.decls}`);
+  console.log(`   invoices:         ${counts[0]?.invoices}`);
+  console.log(`   lines:            ${counts[0]?.lines}`);
+  console.log(`   aed communications: ${counts[0]?.aed}`);
   console.log('\n  Now run:  npm run dev   then open http://localhost:3000');
   console.log('  To clear the demo data:  npm run seed:demo -- --reset\n');
 }
