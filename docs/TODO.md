@@ -97,6 +97,61 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-18 (late morning, 11:00 → 12:30)** — Sixth stint: Diego's 3-point structural audit
+
+Diego's framing: "todo lo que se ve tiene que tener una lógica y razón
+detrás para estar en un determinado sitio, tiene que aportar algún tipo
+de valor, información, sino es mejor que no esté." Grabado como
+PROTOCOLS §11. Se aplica retroactivamente.
+
+Three fases, nine commits:
+
+**Fase 1 — Clients as first-class parent + approvers**
+- ✅ `PROTOCOLS §11` — "actionable-first" principle recorded
+- ✅ `migrations/005_clients_and_approvers.sql` — new `clients` +
+  `entity_approvers` tables + `entities.client_id` FK. Auto-backfills
+  from existing `client_name`/`csp_name` inline columns.
+- ✅ Full CRUD API: `/api/clients`, `/api/clients/[id]`,
+  `/api/entities/[id]/approvers`, `/api/entities/[id]/approvers/[approverId]`
+- ✅ `/clients` — hierarchical list with expandable entities per client
+- ✅ `/clients/new` — 2-step wizard (client first, entity second)
+- ✅ `/clients/[id]` — profile + entities + actionable declaration rollup
+- ✅ `/entities/new` — standalone wizard with client picker
+- ✅ Sidebar "Clients" now routes to `/clients`
+- ✅ `ApproversCard` on entity detail: multi-approver with rich contact
+  info (role, organisation, country, email + phone tap-to-act)
+- ✅ `share-link` + `draft-email` endpoints pre-fill To / Cc from approvers
+- ✅ `ShareLinkModal` + `EmailDrafterModal` show approvers list before send
+
+**Fase 2 — Dashboard audit (actionable-first)**
+- ✅ `/entities` — removed 4 decorative KPI cards (Entities / Unique
+  clients / Simplified / Ordinary — not actionable). Removed inline
+  create form. Kept pending-registration filter (IS actionable).
+  Added search + Client column linking to `/clients/[id]`.
+- ✅ Home — removed "Active clients" KPI, duplicate "In review" counter,
+  empty "AI accuracy" placeholder. Kept priority cards (they pass the
+  test). Replaced KPI stack with single "Filed this month" momentum chip.
+- ✅ Home CTAs now route to `/clients/new` + `/clients`.
+
+**Fase 3 — Inbox replaces the bell**
+- ✅ `/api/inbox` — aggregator of 8 categories (client_approved,
+  filing/payment overdue/soon, aed_urgent, extraction_errors,
+  validator_findings, budget_warn, feedback_new, schema_missing).
+  Process-level 60s cache.
+- ✅ `InboxButton` — replaces `BellIcon` in TopBar. Badge shows
+  critical+warning count only (admin items don't pump the reviewer's
+  number). Red if any critical, amber otherwise. Empty state is a
+  positive "Inbox is clear" — reinforces "nothing for you to do now".
+- ✅ Every row has a clear next action link. Items grouped by severity
+  + admin section separated below.
+
+**Diego actions now due**:
+- 🔴 Rotate GitHub PAT with `workflow` scope, restore `.github/workflows/ci.yml`
+- 🧠 Run migrations in Supabase SQL Editor in order: 001, 002, 003, 004, 005.
+- 🎯 Pilot: open the app, go to `/clients` + create your first one via the wizard, drill in, add approvers for the Avallon case (CSP director in LU + head of finance in PL), share an approval link — see the To/Cc pre-fill.
+
+**Next: expect minor feedback from Diego, iterate.**
+
 **2026-04-18 (morning, 09:15 → 10:15)** — Fifth autonomous stint (Diego next to keyboard)
 - ✅ **`npm run seed:demo`** — 3 entities (SOPARFI, AIFM SCSp, Holding SARL), 3 review declarations, ~30 invoice_lines covering every treatment code, 3 AED letters, 5 precedents, 40 api_calls for /metrics. `--reset` wipes only `demo-*` prefixed rows.
 - ✅ **`docs/TESTING.md`** — 120-checkbox manual test plan across 13 sections. Partner-ready.
