@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { PageSkeleton } from '@/components/ui/Skeleton';
 
 interface ChecklistItem {
   key: string; label: string; description: string;
@@ -51,7 +52,7 @@ export default function RegistrationDetailPage() {
     } finally { setSaving(false); }
   }
 
-  if (!data) return <div className="text-center py-12 text-ink-muted">Loading…</div>;
+  if (!data) return <PageSkeleton />;
 
   const checklist: ChecklistItem[] = typeof data.docs_checklist === 'string'
     ? JSON.parse(data.docs_checklist || '[]')

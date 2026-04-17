@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { rateLimit, __resetRateLimitForTests } from '@/lib/rate-limit';
+import { rateLimit, checkRateLimit, keyFromRequest, __resetRateLimitForTests } from '@/lib/rate-limit';
+import { NextRequest } from 'next/server';
 
 describe('rateLimit (token bucket)', () => {
   beforeEach(() => {
@@ -87,5 +88,68 @@ describe('rateLimit (token bucket)', () => {
     }
     const blocked = rateLimit('user:default');
     expect(blocked.ok).toBe(false);
+  });
+});
+
+describe('keyFromRequest', () => {
+  it('combines ip and path for scoped buckets', () => {
+    const req = new NextRequest('https://example.com/api/agents/extract', {
+      headers: { 'x-forwarded-for': '1.2.3.4' },
+    });
+    expect(keyFromRequest(req)).toBe('1.2.3.4:/api/agents/extract');
+  });
+
+  it('falls back to "unknown" when no headers', () => {
+    const req = new NextRequest('https://example.com/api/x');
+    expect(keyFromRequest(req)).toBe('unknown:/api/x');
+  });
+
+  it('uses the first IP when x-forwarded-for has a chain', () => {
+    const req = new NextRequest('https://example.com/api/x', {
+      headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8, 9.10.11.12' },
+    });
+    expect(keyFromRequest(req).startsWith('1.2.3.4:')).toBe(true);
+  });
+
+  it('honours a custom scope', () => {
+    const req = new NextRequest('https://example.com/api/chat', {
+      headers: { 'x-forwarded-for': '1.2.3.4' },
+    });
+    expect(keyFromRequest(req, 'chat-global')).toBe('1.2.3.4:chat-global');
+  });
+});
+
+describe('checkRateLimit — 429 response', () => {
+  beforeEach(() => {
+    __resetRateLimitForTests();
+  });
+
+  it('returns ok:true with result on success', () => {
+    const req = new NextRequest('https://example.com/api/x', {
+      headers: { 'x-forwarded-for': '1.1.1.1' },
+    });
+    const r = checkRateLimit(req, { max: 3 });
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.result.remaining).toBe(2);
+    }
+  });
+
+  it('returns ok:false with a 429 Response once bucket empty', async () => {
+    const req = new NextRequest('https://example.com/api/x', {
+      headers: { 'x-forwarded-for': '2.2.2.2' },
+    });
+    const opts = { max: 1, windowMs: 60_000 };
+    checkRateLimit(req, opts); // consume
+    const r = checkRateLimit(req, opts);
+
+    expect(r.ok).toBe(false);
+    if (!r.ok) {
+      expect(r.response.status).toBe(429);
+      expect(r.response.headers.get('Retry-After')).not.toBeNull();
+      expect(r.response.headers.get('X-RateLimit-Limit')).toBe('1');
+      const body = await r.response.json() as { error: { code: string } };
+      expect(body.error.code).toBe('rate_limited');
+    }
   });
 });

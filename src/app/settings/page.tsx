@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PageSkeleton } from '@/components/ui/Skeleton';
 
 interface SystemStatus {
   storage: string;
@@ -23,7 +24,7 @@ export default function SettingsPage() {
     fetch('/api/system').then(r => r.json()).then(setStatus);
   }, []);
 
-  if (!status) return <div className="text-center py-12 text-ink-muted">Loading…</div>;
+  if (!status) return <PageSkeleton />;
 
   return (
     <div>

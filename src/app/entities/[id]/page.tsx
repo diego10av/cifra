@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { PageSkeleton } from '@/components/ui/Skeleton';
 
 interface TimelineData {
   entity: {
@@ -31,7 +32,7 @@ export default function EntityDetailPage() {
     fetch(`/api/entities/${id}/timeline`).then(r => r.json()).then(setData);
   }, [id]);
 
-  if (!data) return <div className="text-center py-12 text-ink-muted">Loading…</div>;
+  if (!data) return <PageSkeleton />;
 
   const e = data.entity;
   const totalLifetime = data.declarations.reduce((s, d) => s + Number(d.vat_payable || 0), 0);
