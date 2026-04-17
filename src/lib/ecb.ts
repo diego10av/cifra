@@ -57,7 +57,8 @@ export async function fetchECBRate(currency: string, isoDate: string): Promise<n
 
 // SDMX-JSON shape: { dataSets: [{ series: { '0:0:0:0:0': { observations: { '0': [1.087], '1': [1.089], … } } } }] }
 // Pick the highest-indexed observation (= most recent date in the requested window).
-function extractLatestRate(payload: unknown): number | null {
+// Exported for unit testing — not a stable public API.
+export function extractLatestRate(payload: unknown): number | null {
   try {
     const ds = (payload as { dataSets?: Array<{ series?: Record<string, { observations?: Record<string, [number]> }> }> }).dataSets?.[0];
     if (!ds?.series) return null;
@@ -74,7 +75,7 @@ function extractLatestRate(payload: unknown): number | null {
   }
 }
 
-function shiftDate(iso: string, days: number): string {
+export function shiftDate(iso: string, days: number): string {
   const d = new Date(iso + 'T00:00:00Z');
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);

@@ -25,6 +25,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { XIcon, SendIcon, SparklesIcon, Loader2Icon, MessageSquareIcon } from 'lucide-react';
+import { parseBlocks, type InlineNode, type BlockNode } from './render-markdown';
 
 type Role = 'user' | 'assistant';
 
@@ -406,13 +407,13 @@ function MessageBubble({
     <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
       <div
         className={[
-          'max-w-[85%] rounded-lg px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap',
+          'max-w-[85%] rounded-lg px-3 py-2 text-[13px] leading-relaxed',
           isUser
-            ? 'bg-brand-500 text-white'
+            ? 'bg-brand-500 text-white whitespace-pre-wrap'
             : 'bg-surface-alt text-ink border border-border',
         ].join(' ')}
       >
-        {renderAssistantContent(message.content)}
+        {isUser ? message.content : renderAssistantContent(message.content)}
         {message.role === 'assistant' && (
           <div className="mt-2 flex items-center justify-between gap-2 text-[10.5px] text-ink-muted">
             <div className="flex items-center gap-2">
@@ -440,23 +441,65 @@ function MessageBubble({
   );
 }
 
-// Very light-weight rendering: turn `[LTVA Art. 44]` style citations into
-// visually-distinct pills. Full legal-ref clickability is a P1 polish.
+// Render an assistant message. Parsing → AST → React. The parser
+// lives in ./render-markdown.ts so it's unit-testable.
 function renderAssistantContent(text: string): React.ReactNode {
-  const parts = text.split(/(\[[A-Z_][A-Z0-9_. §§§()-]*(?:\sArt\.?\s\d+[a-z]*)?(?:§\d+)?(?:\s\w+)?])/gi);
-  return parts.map((p, i) => {
-    if (p.startsWith('[') && p.endsWith(']')) {
+  const blocks = parseBlocks(text);
+  return <div className="leading-relaxed">{blocks.map(renderBlock)}</div>;
+}
+
+function renderBlock(b: BlockNode, i: number): React.ReactNode {
+  switch (b.kind) {
+    case 'paragraph':
+      return (
+        <p key={i} className="my-1 first:mt-0 last:mb-0">
+          {b.children.map(renderInlineNode)}
+        </p>
+      );
+    case 'ul':
+      return (
+        <ul key={i} className="list-disc pl-5 space-y-0.5 my-1">
+          {b.items.map((children, j) => (
+            <li key={j}>{children.map(renderInlineNode)}</li>
+          ))}
+        </ul>
+      );
+    case 'ol':
+      return (
+        <ol key={i} className="list-decimal pl-5 space-y-0.5 my-1">
+          {b.items.map((children, j) => (
+            <li key={j}>{children.map(renderInlineNode)}</li>
+          ))}
+        </ol>
+      );
+  }
+}
+
+function renderInlineNode(node: InlineNode, i: number): React.ReactNode {
+  switch (node.kind) {
+    case 'text':
+      return <span key={i}>{node.text}</span>;
+    case 'bold':
+      return <strong key={i} className="font-semibold">{node.text}</strong>;
+    case 'code':
+      return (
+        <code
+          key={i}
+          className="bg-surface-alt text-ink font-mono text-[11.5px] px-1 py-0.5 rounded"
+        >
+          {node.text}
+        </code>
+      );
+    case 'legal':
       return (
         <span
           key={i}
           className="inline-block bg-brand-50 text-brand-700 rounded px-1.5 py-0.5 text-[11px] font-mono mx-0.5 align-baseline"
         >
-          {p.slice(1, -1)}
+          {node.text}
         </span>
       );
-    }
-    return <span key={i}>{p}</span>;
-  });
+  }
 }
 
 function modelBadge(model?: string): string {
