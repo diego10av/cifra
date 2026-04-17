@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import NextLink from 'next/link';
-import { UsersIcon, MessageCircleIcon } from 'lucide-react';
+import { UsersIcon, MessageCircleIcon, ActivityIcon } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 
 interface SystemStatus {
@@ -71,8 +71,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Users + AI caps */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
+      {/* Sub-pages */}
+      <div className="grid grid-cols-3 gap-3 mb-5">
         <NextLink
           href="/settings/users"
           className="block bg-surface border border-border rounded-lg p-4 hover:border-border-strong hover:shadow-sm transition-all group"
@@ -84,8 +84,7 @@ export default function SettingsPage() {
             <div className="flex-1 min-w-0">
               <h3 className="text-[13px] font-semibold text-ink">Users &amp; AI caps →</h3>
               <p className="text-[12px] text-ink-soft mt-1">
-                Manage per-user monthly AI-spend caps (€1 / €2 / €5 / €10 / €20 / €30).
-                Add / deactivate users, toggle admin rights.
+                Per-user monthly AI-spend caps. Add / deactivate users, toggle admin.
               </p>
             </div>
           </div>
@@ -102,8 +101,24 @@ export default function SettingsPage() {
             <div className="flex-1 min-w-0">
               <h3 className="text-[13px] font-semibold text-ink">Feedback triage →</h3>
               <p className="text-[12px] text-ink-soft mt-1">
-                In-product reports from the floating button. Bug / UX / feature /
-                question, with severity and audit trail.
+                In-product reports from the floating button.
+              </p>
+            </div>
+          </div>
+        </NextLink>
+
+        <NextLink
+          href="/settings/logs"
+          className="block bg-surface border border-border rounded-lg p-4 hover:border-border-strong hover:shadow-sm transition-all group"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-brand-50 text-brand-700 inline-flex items-center justify-center shrink-0 group-hover:bg-brand-100 transition-colors">
+              <ActivityIcon size={16} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-[13px] font-semibold text-ink">Application logs →</h3>
+              <p className="text-[12px] text-ink-soft mt-1">
+                Recent error + warning records from the structured logger.
               </p>
             </div>
           </div>

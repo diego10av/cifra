@@ -43,3 +43,6 @@ Not today.
       "Report issue" widget; until applied, the widget returns a soft
       error to the user and no data is lost (client keeps message in
       localStorage for retry).
+- [ ] `003_app_logs.sql` — persists error/warn records from the
+      structured logger. Without it, logs stay in stdout (Vercel drawer).
+      With it, `/settings/logs` admin page shows recent issues.

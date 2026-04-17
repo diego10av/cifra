@@ -121,6 +121,74 @@ function emit(record: LogRecord): void {
   } else {
     stream(JSON.stringify(record));
   }
+
+  // Persist error + warn to app_logs (fire-and-forget). The write is
+  // awaited as a microtask, but the caller doesn't wait for it. Any
+  // DB failure is swallowed — we still have the stdout version.
+  if (record.level === 'error' || record.level === 'warn') {
+    void persistRecord(record).catch(() => { /* swallowed */ });
+  }
+}
+
+// Lazy-loaded to avoid pulling @/lib/db into environments that don't
+// have Postgres (Edge runtime, etc.). We import dynamically on first
+// log write, cache the handle. Tests mock this out.
+let dbExecutor: ((sql: string, params: unknown[]) => Promise<unknown>) | null | undefined;
+
+async function persistRecord(record: LogRecord): Promise<void> {
+  // Module may not be importable in Edge. Cache null on failure.
+  if (dbExecutor === undefined) {
+    try {
+      const mod = await import('@/lib/db');
+      dbExecutor = (sql, params) => mod.execute(sql, params);
+    } catch {
+      dbExecutor = null;
+    }
+  }
+  if (!dbExecutor) return;
+
+  const { level, ts, module: mod, msg, err_name, err_message, err_stack, ...rest } = record;
+
+  // Bound the payload size so a misbehaving caller doesn't explode
+  // the DB row.
+  const MAX_FIELD_BYTES = 8_000;
+  let fieldsJson = JSON.stringify(rest);
+  if (fieldsJson.length > MAX_FIELD_BYTES) {
+    fieldsJson = JSON.stringify({ _truncated: true, preview: fieldsJson.slice(0, MAX_FIELD_BYTES) });
+  }
+
+  const id = (typeof crypto !== 'undefined' && 'randomUUID' in crypto)
+    ? crypto.randomUUID()
+    : `log-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  try {
+    await dbExecutor(
+      `INSERT INTO app_logs (id, level, module, msg, fields,
+          err_name, err_message, err_stack, created_at)
+       VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9)`,
+      [
+        id, level, mod ?? null, msg, fieldsJson,
+        err_name ?? null,
+        err_message ?? null,
+        err_stack ? String(err_stack).slice(0, 4000) : null,
+        ts,
+      ],
+    );
+  } catch (err) {
+    // Schema missing → disable future attempts silently. Avoids per-log
+    // DB hits when migration 003 isn't applied.
+    const msgErr = (err as { message?: string } | null)?.message ?? '';
+    if (/relation ["']?app_logs["']? does not exist/i.test(msgErr)) {
+      dbExecutor = null;
+    }
+    // Other errors: let the one-off catch in emit() swallow them.
+    throw err;
+  }
+}
+
+// Test-only: reset the cached executor so mocks apply in isolation.
+export function __resetLoggerPersistenceForTests(): void {
+  dbExecutor = undefined;
 }
 
 function log(level: Level, module: string | undefined, msg: string, fields?: Record<string, unknown>): void {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { logger, __captureLogsForTests, type LogRecord } from '@/lib/logger';
+import { logger, __captureLogsForTests, __resetLoggerPersistenceForTests, type LogRecord } from '@/lib/logger';
 
 describe('structured logger', () => {
   let capture: { records: LogRecord[]; restore: () => void };
@@ -75,5 +75,11 @@ describe('structured logger', () => {
   it('debug() is suppressed by default', () => {
     logger.debug('this should not appear');
     expect(capture.records).toHaveLength(0);
+  });
+
+  it('reset persistence hook is safely callable', () => {
+    // Purely a guard: the exported helper exists and doesn't throw
+    // when called outside the normal persistence flow.
+    expect(() => __resetLoggerPersistenceForTests()).not.toThrow();
   });
 });
