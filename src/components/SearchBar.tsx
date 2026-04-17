@@ -81,14 +81,19 @@ export default function SearchBar() {
       <button
         onClick={() => { setOpen(true); requestAnimationFrame(() => inputRef.current?.focus()); }}
         className="w-full h-9 px-3 rounded-md border border-border bg-surface text-[13px] text-ink-muted hover:bg-surface-alt hover:border-border-strong transition-all duration-150 text-left flex items-center gap-2"
+        aria-label="Open global search (⌘K)"
       >
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span className="flex-1 truncate">Search…</span>
         <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-border text-ink-faint font-mono">⌘K</kbd>
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-2 w-[460px] bg-surface text-ink border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-fadeInScale">
+        <div
+          className="absolute left-0 top-full mt-2 w-[460px] bg-surface text-ink border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-fadeInScale"
+          role="dialog"
+          aria-label="Search"
+        >
           <div className="px-3 py-2.5 border-b border-divider">
             <input
               ref={inputRef}
@@ -98,6 +103,7 @@ export default function SearchBar() {
               placeholder="Find entity, declaration, provider…"
               className="w-full text-[13px] focus:outline-none"
               autoFocus
+              aria-label="Find entity, declaration, or provider"
             />
           </div>
           <div className="max-h-[400px] overflow-y-auto">

@@ -100,6 +100,7 @@ export function ShareLinkModal({
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
+        aria-labelledby="share-link-title"
       >
         {/* Header */}
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
@@ -108,7 +109,7 @@ export function ShareLinkModal({
               <ShareIcon size={13} />
             </div>
             <div>
-              <h3 className="text-[14px] font-semibold text-ink leading-tight">Share for client approval</h3>
+              <h3 id="share-link-title" className="text-[14px] font-semibold text-ink leading-tight">Share for client approval</h3>
               <div className="text-[11px] text-ink-muted leading-tight mt-0.5">
                 One-time link, no login required on the client side
               </div>

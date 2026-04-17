@@ -82,6 +82,7 @@ export function IconBtn({
     <button
       onClick={onClick}
       title={title}
+      aria-label={title}
       className="inline-flex w-7 h-7 items-center justify-center rounded text-ink-soft hover:bg-surface-alt hover:text-ink transition-colors duration-150 cursor-pointer"
     >
       {children}

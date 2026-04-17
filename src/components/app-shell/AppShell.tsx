@@ -63,6 +63,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen">
+      {/* Skip-to-content link — invisible until focused, lets keyboard
+          users bypass the sidebar and jump straight to the page content.
+          Visible on Tab from page load. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-3 focus:py-2 focus:bg-brand-500 focus:text-white focus:rounded focus:shadow-lg focus:text-[12px] focus:font-medium"
+      >
+        Skip to main content
+      </a>
       <OfflineBanner />
       <Sidebar badges={badges} />
       <div className="md:pl-[232px]">
@@ -71,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           onOpenChat={() => setChatOpen(true)}
           chatOpen={chatOpen}
         />
-        <main className="px-4 md:px-8 py-6 md:py-8 max-w-[1400px]">
+        <main id="main-content" className="px-4 md:px-8 py-6 md:py-8 max-w-[1400px]">
           {children}
         </main>
       </div>

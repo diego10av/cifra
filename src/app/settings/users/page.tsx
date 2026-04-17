@@ -373,11 +373,17 @@ function AddUserDialog({
         className="bg-surface rounded-lg w-full max-w-md shadow-2xl"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="add-user-title"
       >
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-          <h3 className="text-[14px] font-semibold text-ink">Add user</h3>
-          <button type="button" onClick={onClose} className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft">
-            <XIcon size={15} />
+          <h3 id="add-user-title" className="text-[14px] font-semibold text-ink">Add user</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft"
+            aria-label="Close"
+          >
+            <XIcon size={15} aria-hidden="true" />
           </button>
         </div>
         <div className="p-5 space-y-3">

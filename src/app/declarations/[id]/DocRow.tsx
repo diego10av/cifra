@@ -22,11 +22,26 @@ export function DocRow({
   onSelect: () => void;
   onRetry: () => void;
 }) {
+  // We use a div + role="button" + keydown handler because the row
+  // visually contains an interior button (Retry) — nesting a real
+  // <button> inside another <button> would be invalid HTML. The
+  // role+tabIndex+keydown combo gives us the same a11y surface.
+  function handleKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelect();
+    }
+  }
   return (
     <div
       id={`row-doc-${doc.id}`}
       onClick={onSelect}
-      className={`px-4 py-2 border-b border-divider last:border-0 text-[12px] cursor-pointer transition-colors duration-150 ${selected ? 'bg-blue-50' : 'hover:bg-surface-alt'}`}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-pressed={selected}
+      aria-label={`Document ${doc.filename}, status ${doc.status}${doc.triage_result ? `, triage ${doc.triage_result}` : ''}`}
+      className={`px-4 py-2 border-b border-divider last:border-0 text-[12px] cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-inset ${selected ? 'bg-blue-50' : 'hover:bg-surface-alt'}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -42,12 +57,14 @@ export function DocRow({
       {doc.status === 'error' && doc.error_message && (
         <div
           onClick={e => e.stopPropagation()}
+          onKeyDown={e => e.stopPropagation()}
           className="mt-1 ml-6 text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 break-words flex items-start justify-between gap-2"
         >
           <div className="flex-1"><span className="font-semibold">Error:</span> {doc.error_message}</div>
           <button
             disabled={loading}
             onClick={onRetry}
+            aria-label={`Retry extraction for ${doc.filename}`}
             className="text-blue-600 hover:underline shrink-0 font-semibold disabled:opacity-40 cursor-pointer flex items-center gap-1"
           >
             {loading && <Spinner small />}Retry
