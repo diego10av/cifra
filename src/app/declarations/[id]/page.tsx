@@ -26,6 +26,7 @@ import { ShareLinkModal } from './ShareLinkModal';
 import { DocRow, StatusBadge, TriageTag, FileIcon } from './DocRow';
 import { TreatmentBadge } from './TreatmentBadge';
 import { AuditTrailPanel } from './AuditTrailPanel';
+import { BulkEditModal } from './BulkEditModal';
 
 // ═══════════════════════════════════════════════════════════════
 // Page
@@ -64,6 +65,7 @@ export default function DeclarationDetailPage() {
   const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs' | 'audit'>('review');
   const [validatorOpen, setValidatorOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [bulkEditOpen, setBulkEditOpen] = useState<null | 'incoming' | 'outgoing'>(null);
 
   const fileInput = useRef<HTMLInputElement>(null);
   const precedentInput = useRef<HTMLInputElement>(null);
@@ -739,6 +741,7 @@ export default function DeclarationDetailPage() {
               count={selectedLineIds.size}
               onClear={() => setSelectedLineIds(new Set())}
               onAction={handleBulkAction}
+              onOpenEdit={() => setBulkEditOpen('incoming')}
               direction="incoming"
             />
           )}
@@ -989,6 +992,19 @@ export default function DeclarationDetailPage() {
       {/* ─────────── SHARE LINK MODAL ─────────── */}
       {shareOpen && (
         <ShareLinkModal declarationId={id} onClose={() => setShareOpen(false)} />
+      )}
+
+      {/* ─────────── BULK EDIT MODAL ─────────── */}
+      {bulkEditOpen && selectedLineIds.size > 0 && (
+        <BulkEditModal
+          lineIds={Array.from(selectedLineIds)}
+          direction={bulkEditOpen}
+          onClose={() => setBulkEditOpen(null)}
+          onApplied={async () => {
+            setSelectedLineIds(new Set());
+            await loadData();
+          }}
+        />
       )}
     </div>
   );
@@ -1398,11 +1414,13 @@ function MoveDropdown({
 // Bulk action bar — shown above the review table when lines are selected.
 // ═══════════════════════════════════════════════════════════════
 function BulkActionBar({
-  count, onClear, onAction, direction,
+  count, onClear, onAction, onOpenEdit, direction,
 }: {
   count: number;
   onClear: () => void;
   onAction: (action: string, value?: string) => void;
+  /** Open the multi-field BulkEditModal. When undefined the button hides. */
+  onOpenEdit?: () => void;
   direction: 'incoming' | 'outgoing';
 }) {
   const [treatmentOpen, setTreatmentOpen] = useState(false);
@@ -1413,6 +1431,15 @@ function BulkActionBar({
     <div className="sticky top-0 z-10 mb-2 bg-brand-500 text-white rounded-lg px-3 py-2 flex items-center gap-2 text-[12px] animate-fadeIn">
       <span className="font-semibold">{count} selected</span>
       <span className="text-white/40 mx-1">·</span>
+      {onOpenEdit && (
+        <button
+          onClick={onOpenEdit}
+          title="Edit multiple fields on the selected lines (treatment, date, description, note…)"
+          className="h-7 px-2.5 rounded bg-white/20 hover:bg-white/30 transition-colors cursor-pointer font-semibold"
+        >
+          Edit fields…
+        </button>
+      )}
       <button
         onClick={() => onAction('mark_reviewed')}
         className="h-7 px-2.5 rounded bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
