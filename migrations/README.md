@@ -50,3 +50,9 @@ Not today.
       columns (invoice_lines, declarations, invoices, audit_log,
       aed_letters, api_calls). Pure speedup, zero code change.
       Safe to re-run.
+- [ ] `005_clients_and_approvers.sql` — creates `clients` table +
+      `entity_approvers` + `entities.client_id` FK. Backfills from
+      existing `entities.client_name` / `csp_name` inline columns.
+      Must be applied before the Clients UI routes work. Retires the
+      inline columns in a follow-up migration 006 once code has fully
+      switched over.

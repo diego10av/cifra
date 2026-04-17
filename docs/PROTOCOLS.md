@@ -266,7 +266,74 @@ the synthetic corpus on the new model first, then propose with data.
 
 ---
 
-## 11. Amendment process
+## 11. Actionable-first UI principle (**critical** per Diego, 2026-04-18)
+
+Every number, card, badge, chip, tag, button or widget visible in the
+UI must survive this test:
+
+> *"If this value changes, would the user do something differently?
+> If not, it does not belong on the screen."*
+
+Diego's exact framing (2026-04-18): *"todo lo que se ve tiene que tener
+una lógica y razón detrás para estar en un determinado sitio, tiene
+que aportar algún tipo de valor, información, sino es mejor que no
+esté o que esté otra cosa que sí que lo tenga."*
+
+What this means in practice:
+
+### ✅ Belongs on screen
+
+- **Declarations in review: 3** — clicking takes you to resolve them.
+- **AED letters urgent: 1** — clicking takes you to read it.
+- **Budget at 82%** — prompts a decision about whether to run the
+  validator today.
+- **Missing matricule on Acme SARL** — blocks filing, must fix.
+
+### ❌ Does NOT belong
+
+- **"Total entities: 47"** on a page where you can't act on entities
+  in general. It's a vanity metric. Remove.
+- **"Simplified / ordinary regime split: 60/40"** — informative but
+  not actionable. Remove unless we ship a feature that uses the split.
+- **A cards strip above the New Entity creation form** — the user is
+  creating, not surveying. Remove.
+- **A bell icon that never produces a real notification** — creates
+  expectation of something that never arrives. Either make it
+  genuinely useful (cifra's "Inbox" of reviewer actions, see §11.1
+  below) or remove.
+
+### The "Inbox" model for the bell / notifications area
+
+When the UI needs a "something needs your attention" affordance, it
+must populate ONLY with items the logged-in user can act on NOW. Never:
+- "Waiting for client to upload invoices" (user can't act, just waits)
+- "X days since last activity on this client" (no decision it
+  triggers)
+
+The concrete inbox vocabulary for the reviewer:
+- **Client approved a declaration via the portal** → ready to file
+- **Filing deadline < 3 days** with unfiled declaration
+- **Payment deadline < 3 days** with unpaid declaration
+- **AED high-urgency letter** unactioned
+- **Validator high-severity findings** unresolved
+- **Extraction batch finished with errors** — reviewer must inspect
+- *(admin-only)* Budget > 80%, new feedback, migration pending
+
+### Applying the principle retroactively
+
+Every existing screen must be audited against the test. Results are
+tracked in `docs/UI-AUDIT.md` (will be created during Fase 2 of the
+2026-04-18 restructure). A screen fails the audit if it contains
+any visible element that answers "no" to "is this actionable?".
+
+### Applying the principle to new code
+
+Before adding a new card / stat / badge, write down the action it
+triggers in the commit body. If there is none, do not add it.
+
+---
+
+## 12. Amendment process
 
 Either of us can propose an amendment to these protocols:
 
@@ -279,4 +346,4 @@ bureaucratic, kill it. If we're forgetting things, tighten it.
 
 ---
 
-*Last amended: 2026-04-17 — added §10 model-review cadence.*
+*Last amended: 2026-04-18 — added §11 actionable-first UI principle.*

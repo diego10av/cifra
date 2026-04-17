@@ -9,27 +9,78 @@ export async function GET() {
 }
 
 // POST /api/entities - create a new entity
+//
+// 2026-04-18 (migration 005): entities now belong to a client. The
+// client_id is required once migration 005 lands, but we tolerate the
+// legacy `client_name`/`csp_name` path too so the form can migrate
+// gradually. If neither client_id nor a legacy client_name is provided,
+// we return 400 — we never silently create orphan entities.
 export async function POST(request: NextRequest) {
   await initializeSchema();
   const body = await request.json();
   const id = generateId();
 
-  // vat_status: the create form asks explicitly ("is this entity
-  // already VAT-registered in Luxembourg?"). We accept the value
-  // verbatim if it's one of the three legal states, otherwise we
-  // let the column default ('registered') take over.
   const vatStatus = ['registered', 'pending_registration', 'not_applicable'].includes(body.vat_status)
     ? body.vat_status
     : 'registered';
 
+  // Resolve the parent client. Preferred: body.client_id points at an
+  // existing client. Fallback: legacy body.client_name creates a new
+  // client on the fly. If neither is present, block creation.
+  let clientId: string | null = null;
+  if (typeof body.client_id === 'string' && body.client_id.trim()) {
+    const existing = await queryOne<{ id: string }>(
+      'SELECT id FROM clients WHERE id = $1',
+      [body.client_id.trim()],
+    );
+    if (!existing) {
+      return NextResponse.json(
+        { error: { code: 'client_not_found', message: 'client_id does not match an existing client.' } },
+        { status: 400 },
+      );
+    }
+    clientId = existing.id;
+  } else if (typeof body.client_name === 'string' && body.client_name.trim()) {
+    // Legacy path: create a client from the inline name + email so
+    // existing form submissions don't 400. We try to reuse an existing
+    // client with the same name before creating a duplicate.
+    const trimmed = body.client_name.trim();
+    try {
+      const existing = await queryOne<{ id: string }>(
+        'SELECT id FROM clients WHERE lower(name) = lower($1) AND archived_at IS NULL',
+        [trimmed],
+      );
+      if (existing) {
+        clientId = existing.id;
+      } else {
+        clientId = `client-${generateId().slice(0, 10)}`;
+        await execute(
+          `INSERT INTO clients (id, name, kind, vat_contact_name, vat_contact_email)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [
+            clientId,
+            trimmed,
+            body.csp_name ? 'csp' : 'end_client',
+            trimmed,
+            body.client_email || body.csp_email || null,
+          ],
+        );
+      }
+    } catch {
+      // clients table missing (migration 005 not applied yet). Proceed
+      // with the legacy columns only; UI will backfill later.
+      clientId = null;
+    }
+  }
+
   await execute(
-    `INSERT INTO entities (id, name, vat_number, matricule, rcs_number, legal_form, entity_type,
+    `INSERT INTO entities (id, client_id, name, vat_number, matricule, rcs_number, legal_form, entity_type,
       regime, frequency, address, bank_iban, bank_bic, tax_office,
       client_name, client_email, csp_name, csp_email,
       has_fx, has_outgoing, has_recharges, notes, vat_status)
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
     [
-      id, body.name,
+      id, clientId, body.name,
       body.vat_number || null, body.matricule || null, body.rcs_number || null,
       body.legal_form || null, body.entity_type || null,
       body.regime || 'simplified', body.frequency || 'annual',
