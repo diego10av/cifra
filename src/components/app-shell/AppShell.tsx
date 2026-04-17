@@ -13,8 +13,9 @@ import { Sidebar, type SidebarBadges } from './Sidebar';
 import { TopBar } from './TopBar';
 import { ChatDrawer } from '@/components/chat/ChatDrawer';
 
-// Routes that render without the shell (login, public…)
-const BARE_ROUTES = ['/login'];
+// Routes that render without the shell (login, portal…).
+// Public-facing pages use their own minimal chrome, not the operator UI.
+const BARE_ROUTES = ['/login', '/portal'];
 
 interface Declaration { id: string; status: string; }
 interface AedLetter { id: string; urgency: string | null; status: string; }

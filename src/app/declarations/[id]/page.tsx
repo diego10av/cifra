@@ -8,7 +8,7 @@ import { describeApiError } from '@/lib/ui-errors';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { LifecycleStepper } from '@/components/ui/LifecycleStepper';
 import { Tabs, type TabDef } from '@/components/ui/Tabs';
-import { FileTextIcon, ClipboardCheckIcon, DownloadCloudIcon, FolderArchiveIcon, RefreshCwIcon, CheckCircle2Icon, RotateCcwIcon, SparklesIcon } from 'lucide-react';
+import { FileTextIcon, ClipboardCheckIcon, DownloadCloudIcon, FolderArchiveIcon, RefreshCwIcon, CheckCircle2Icon, RotateCcwIcon, SparklesIcon, ShareIcon } from 'lucide-react';
 import { ValidatorPanel } from '@/components/validator/ValidatorPanel';
 
 // ───── extracted modules (2026-04-18 refactor) ─────
@@ -22,6 +22,7 @@ import {
 import { PreviewPanel } from './PreviewPanel';
 import { OutputsPanel } from './OutputsPanel';
 import { DeclarationNotes, FilingPanel } from './FilingPanel';
+import { ShareLinkModal } from './ShareLinkModal';
 
 // ═══════════════════════════════════════════════════════════════
 // Page
@@ -59,6 +60,7 @@ export default function DeclarationDetailPage() {
   // Rules of Hooks: same hooks, same order, every render.
   const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs'>('review');
   const [validatorOpen, setValidatorOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const fileInput = useRef<HTMLInputElement>(null);
   const precedentInput = useRef<HTMLInputElement>(null);
@@ -562,6 +564,17 @@ export default function DeclarationDetailPage() {
               )}
               {data.status === 'review' && (
                 <button
+                  onClick={() => setShareOpen(true)}
+                  disabled={unclassified > 0 || flagged > 0}
+                  className="h-8 px-3 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
+                  title={unclassified > 0 || flagged > 0 ? 'Resolve all issues before sharing for client approval' : 'Share a signed link with the fund manager for approval'}
+                >
+                  <ShareIcon size={13} />
+                  Share for approval
+                </button>
+              )}
+              {data.status === 'review' && (
+                <button
                   onClick={() => handleStatusChange('approved')}
                   disabled={unclassified > 0 || flagged > 0}
                   className="h-8 px-4 rounded-md bg-success-500 text-white text-[12.5px] font-semibold hover:bg-success-700 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
@@ -962,6 +975,11 @@ export default function DeclarationDetailPage() {
             />
           </div>
         </div>
+      )}
+
+      {/* ─────────── SHARE LINK MODAL ─────────── */}
+      {shareOpen && (
+        <ShareLinkModal declarationId={id} onClose={() => setShareOpen(false)} />
       )}
     </div>
   );

@@ -9,10 +9,20 @@ const PUBLIC_PATHS = new Set<string>([
   '/api/auth/login',
 ]);
 
+/**
+ * Public prefixes — anything under these paths is reachable without a
+ * valid cifra session cookie.
+ *
+ * /portal/*       → client approval portal (fund manager, no login)
+ * /api/portal/*   → the endpoints the portal page calls
+ */
+const PUBLIC_PREFIXES = ['/portal/', '/api/portal/'];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (PUBLIC_PATHS.has(pathname)) return NextResponse.next();
+  if (PUBLIC_PREFIXES.some(p => pathname.startsWith(p))) return NextResponse.next();
 
   const cookie = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const ok = await verifySessionCookie(cookie);
