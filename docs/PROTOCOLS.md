@@ -333,7 +333,63 @@ triggers in the commit body. If there is none, do not add it.
 
 ---
 
-## 12. Amendment process
+## 12. Execute, don't delegate (**critical** per Diego, 2026-04-18)
+
+Diego's exact instruction: *"todas estas cosas, si las puedes hacer tú
+y la seguridad es buena/alta, no me pidas que las haga yo de manera
+manual. pierdo un tiempo innecesario."*
+
+The default mode is: **Claude executes. Diego decides.**
+
+### When Claude executes without asking
+
+- Any `git` operation in the local repo (commit, push, branch, merge,
+  restore files, rewrite remotes).
+- Any `npm install` / `npm run` / `npx` that doesn't cost money.
+- Reading / editing any file in the repo.
+- Running migrations via the Supabase MCP when Diego has already
+  approved the migration's SQL content.
+- Rotating internal config (env.local, remotes, git hooks).
+- Deploying the preview branch via the Vercel MCP if it's configured.
+
+### When Claude DOES ask before executing
+
+- Any operation that spends money at a new rate (paid plan upgrade,
+  new Supabase tier, new domain purchase, subscribing to a third-party).
+- Destructive actions on prod data (dropping columns, deleting rows
+  beyond what a migration handles, wiping the DB).
+- Anything that touches customer-facing communication (sending an
+  email to a client, posting on LinkedIn, triggering a marketing
+  sequence).
+- Legal / tax classification rules (always defer to Diego).
+- Actions that create a binding commitment (signing a contract,
+  setting up a direct-debit, filing something with an authority).
+
+### When Claude asks Diego for a secret
+
+If an operation genuinely needs a secret that only Diego has — a
+GitHub PAT, an OAuth code from an email, a 2FA code, a password
+reset link — ask for it in the chat, use it immediately, do not
+repeat it in later messages. After the operation succeeds, remind
+Diego he can rotate the secret again for extra hygiene (optional).
+
+The chat with Anthropic is encrypted end-to-end; pasting a secret
+one-time is acceptable. Claude does not retain secrets between
+sessions.
+
+### The test for "should I ask or just do?"
+
+Before sending Diego a multi-step tutorial (open this URL, click
+this button, copy this token, paste in this field, run this
+command…), ask: *"Could I do this with a single Bash call if Diego
+just gave me the one secret / the one decision it hinges on?"* If
+yes — offer that path first. Only fall back to manual steps when
+the action genuinely requires Diego's physical presence (a 2FA
+push notification on his phone, a physical signature).
+
+---
+
+## 13. Amendment process
 
 Either of us can propose an amendment to these protocols:
 
@@ -346,4 +402,4 @@ bureaucratic, kill it. If we're forgetting things, tighten it.
 
 ---
 
-*Last amended: 2026-04-18 — added §11 actionable-first UI principle.*
+*Last amended: 2026-04-18 — added §11 actionable-first UI + §12 execute-don't-delegate.*
