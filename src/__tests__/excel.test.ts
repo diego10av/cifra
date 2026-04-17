@@ -64,7 +64,7 @@ describe('buildAppendix', () => {
 
     const { buffer } = await buildAppendix('d-1');
     const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buffer);
+    await wb.xlsx.load(buffer as unknown as ArrayBuffer);
     const sheet = wb.getWorksheet('VAT Appendix');
     expect(sheet).toBeDefined();
 
@@ -94,7 +94,7 @@ describe('buildAppendix', () => {
 
     const { buffer } = await buildAppendix('d-1');
     const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(buffer);
+    await wb.xlsx.load(buffer as unknown as ArrayBuffer);
     const sheet = wb.getWorksheet('VAT Appendix')!;
 
     // Scan the first column for the section titles — section B must not appear.
