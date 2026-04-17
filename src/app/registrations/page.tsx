@@ -140,7 +140,14 @@ export default function RegistrationsPage() {
 
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         {regs.length === 0 ? (
-          <div className="p-8 text-center text-[12px] text-ink-faint">No registrations yet.</div>
+          <div className="p-10 text-center">
+            <div className="text-[13px] font-medium text-ink mb-1">No registrations yet</div>
+            <div className="text-[11.5px] text-ink-muted max-w-sm mx-auto leading-relaxed">
+              A VAT registration tracks an entity&rsquo;s journey from
+              &ldquo;applied&rdquo; to &ldquo;VAT number issued&rdquo;.
+              Start one when a client entity first needs a Luxembourg VAT number.
+            </div>
+          </div>
         ) : (
           <table className="w-full text-[12px]">
             <thead className="bg-surface-alt text-ink-soft border-b border-border">

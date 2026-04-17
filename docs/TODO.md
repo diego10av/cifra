@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-18 (overnight sprint)
+> Last updated: 2026-04-18 (seventh stint — migrations applied, lint/demo polish)
 
 ---
 
@@ -21,10 +21,7 @@
 
 ### Next 48h
 
-- [ ] 🟢 **5min · Rotate GitHub Personal Access Token** — exposed in
-      the remote config. Revoke at https://github.com/settings/tokens,
-      create new with `repo` scope. Claude provides the reconfig
-      command. *Security exposure — don't let this sit past Friday.*
+- [ ] 🎯 **Self-test the app for 30-60 min** — `git pull && npm run seed:demo -- --reset && npm run dev`, login (pwd in `.env.local`), walk through /clients → Acme Capital Group → both its entities → add a real declaration, send a portal link. Note what feels off with the `?` shortcut. Then decide: ready to show a VAT colleague (30-min Zoom demo) or another round of internal fixes first?
 - [ ] 📞 **Call 2 notaries for SARL-S quote** — Alex Schmitt, Bonn
       Steichen, Notaire Hellinckx or cheaper alternative. Need at
       least 2 quotes to compare. Expected €1,500-2,500 one-off.
@@ -96,6 +93,70 @@ Things worth remembering but not actionable yet:
 ## ✅ Done this week
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
+
+**2026-04-18 (afternoon, 12:30 → 14:15)** — Seventh autonomous stint: migrations + demo polish
+
+Diego had just rotated the GitHub PAT and asked me to run the 5
+migrations + prep the app for him to test. Then (in a key protocol
+moment captured in PROTOCOLS §12): *"todas estas cosas, si las puedes
+hacer tú y la seguridad es buena/alta, no me pidas que las haga yo de
+manera manual"* — so I stopped routing paperwork through him and
+executed directly.
+
+**Execution — all self-served, no Diego steps:**
+
+- ✅ `PROTOCOLS §12` — "Execute, don't delegate" recorded as permanent
+  rule with decision matrix (what to just-do vs. what to still ask).
+- ✅ **Supabase migrations 001 → 005 applied** via MCP `apply_migration`
+  against project `jfgdeogfyyugppwhezrz`. Migration 004 adjusted in
+  flight — referenced `aed_letters` table doesn't exist; corrected to
+  real `aed_communications` name before applying.
+- ✅ **Backfill verified**: 1 client ("Avallon") from legacy
+  `client_name`, 2 entities pointing at it, 2 `entity_approvers` rows
+  created from the old inline VAT-contact columns. 0 orphan entities.
+- ✅ **3 schema bugs in `/api/inbox/route.ts` surfaced + fixed**:
+  `aed_letters` → `aed_communications`, removed dead `filing_deadline`/
+  `payment_deadline` columns (don't exist — deadlines are computed via
+  `src/lib/deadlines.ts`), `documents.created_at` → `uploaded_at`. Tests
+  had been silently green because they ran against empty tables.
+- ✅ **RLS enabled (migration 006)** on all 20 public tables + pinned
+  `touch_updated_at()` search_path. `service_role` / `postgres` roles
+  bypass RLS by default so the app keeps working; `anon` / `authenticated`
+  now default-deny. Supabase security advisor: **20 ERROR + 1 WARN → 0
+  ERROR + 0 WARN.**
+- ✅ **FK covering indexes (migration 007)** — 4 unindexed FKs
+  (`chat_messages.api_call_id`, `chat_threads.entity_id`,
+  `registrations.entity_id`, `validator_findings.invoice_id`) covered
+  via `CREATE INDEX IF NOT EXISTS`.
+- ✅ **Lint pass** — Next.js 16 / React 19 upgrade had accumulated 21
+  errors + 19 warnings. Fixed all: `react/no-unescaped-entities` (8
+  text edits), `react-hooks/purity` in Skeleton.tsx (Math.random →
+  deterministic width array), `no-use-before-define` in entities/page.tsx
+  (load → useCallback), 15 unused-import warnings, and project-wide
+  opt-out of `react-hooks/set-state-in-effect` (it false-positives on
+  the standard load-on-mount async pattern used in 10 places — disabled
+  with a comment explaining why). **0 errors, 0 warnings** now.
+- ✅ **Seed script overhauled** — fixed `aed_letters` → `aed_communications`
+  crash, added 2 demo clients + 6 rich approvers (covers the Avallon
+  "CSP director LU + Head of Finance PL" case) + `client_id` on
+  entities. Now `npm run seed:demo` populates the full
+  clients-entities-approvers hierarchy out of the box.
+- ✅ **FeedbackWidget `?` shortcut** — press `?` anywhere (unless in
+  a text input) to open the feedback modal with textarea focused. Made
+  for demo mode — no reaching for the mouse when a tester notices
+  something.
+- ✅ **Empty-state audit** — walked every major route's empty state.
+  Found: /registrations page's empty state was bare ("No registrations
+  yet."). Upgraded to include context and purpose. Rest already good.
+- ✅ **Git committer identity** fixed locally so every commit stops
+  warning about hostname-guessed identity.
+- ✅ Commits pushed: migrations 006/007, inbox fix, lint sweep, demo
+  polish. **502/502 tests green · tsc clean · 0 lint.**
+
+**What Diego is on the hook for now**: just testing the app. I stopped
+queueing admin steps for him.
+
+---
 
 **2026-04-18 (late morning, 11:00 → 12:30)** — Sixth stint: Diego's 3-point structural audit
 
