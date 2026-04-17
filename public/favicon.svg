@@ -1,10 +1,10 @@
 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#F14E72"/>
-      <stop offset="100%" stop-color="#C61640"/>
-    </linearGradient>
-  </defs>
-  <rect x="1" y="1" width="22" height="22" rx="5" fill="url(#g)"/>
+  <!--
+    cifra favicon — solid brand-500 (#E8264C).
+    No gradient on purpose: at 16x16 (browser tab) gradients between
+    coral and deep red blend into a muddy orange. The brand scale
+    primary renders crisp and on-brand at every size.
+  -->
+  <rect x="1" y="1" width="22" height="22" rx="5" fill="#E8264C"/>
   <path d="M16 8.5a5.5 5.5 0 1 0 0 7" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/>
 </svg>
