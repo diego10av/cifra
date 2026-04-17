@@ -46,6 +46,7 @@ import { anthropicCreate, priceCall } from '@/lib/anthropic-wrapper';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { requireBudget, requireUserBudget } from '@/lib/budget-guard';
 import { buildSystemPrompt, type ChatContextInput } from '@/lib/chat-context';
+import { persistTurn } from '@/lib/chat-persistence';
 import { logger } from '@/lib/logger';
 
 const log = logger.bind('chat');
@@ -69,6 +70,13 @@ interface ChatRequestBody {
   messages: ChatMessage[];
   use_opus?: boolean;
   context?: ChatContextInput;
+  /**
+   * Optional thread id for persistent history. If omitted a new thread
+   * is auto-created from the first user message. Tolerant of the chat_*
+   * tables not existing — then persistence is skipped and thread_id
+   * comes back null.
+   */
+  thread_id?: string | null;
 }
 
 function validateMessages(input: unknown): ChatMessage[] | null {
@@ -109,6 +117,10 @@ export async function POST(request: NextRequest) {
       entity_id: body.context?.entity_id ?? null,
       declaration_id: body.context?.declaration_id ?? null,
     };
+    const inboundThreadId =
+      typeof body.thread_id === 'string' && body.thread_id.length > 0
+        ? body.thread_id
+        : null;
     const model = useOpus ? OPUS_MODEL : HAIKU_MODEL;
 
     // ── Gate 2: per-user budget (with cost estimate for Ask-Opus) ──
@@ -178,12 +190,30 @@ export async function POST(request: NextRequest) {
       cost_eur: actualCost,
     });
 
+    // ── Persist the turn (tolerant — null threadId if tables missing) ──
+    const lastUserMessage = messages[messages.length - 1]!.content;
+    const threadId = await persistTurn({
+      threadId: inboundThreadId,
+      userId: MOCK_USER_ID,
+      userMessage: lastUserMessage,
+      assistantMessage: reply,
+      model,
+      inputTokens: usage.input_tokens || 0,
+      outputTokens: usage.output_tokens || 0,
+      cacheReadTokens: usage.cache_read_input_tokens || 0,
+      costEur: actualCost,
+      escalatedToOpus: useOpus,
+      contextEntityId: context.entity_id ?? null,
+      contextDeclarationId: context.declaration_id ?? null,
+    });
+
     // Fresh budget snapshot so the client can render the quota bar.
     const postBudget = await requireUserBudget(MOCK_USER_ID, 0);
 
     return apiOk({
       reply,
       model,
+      thread_id: threadId,
       tokens: {
         input: usage.input_tokens || 0,
         output: usage.output_tokens || 0,

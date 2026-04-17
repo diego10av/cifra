@@ -24,7 +24,10 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { XIcon, SendIcon, SparklesIcon, Loader2Icon, MessageSquareIcon } from 'lucide-react';
+import {
+  XIcon, SendIcon, SparklesIcon, Loader2Icon, MessageSquareIcon,
+  HistoryIcon, PlusIcon, Trash2Icon, ChevronLeftIcon,
+} from 'lucide-react';
 import { parseBlocks, type InlineNode, type BlockNode } from './render-markdown';
 
 type Role = 'user' | 'assistant';
@@ -45,6 +48,15 @@ interface BudgetSnapshot {
   pct_used: number;
   over_budget: boolean;
   over_soft_warn: boolean;
+}
+
+interface ThreadSummary {
+  id: string;
+  title: string;
+  total_cost_eur: number;
+  updated_at: string;
+  entity_id: string | null;
+  declaration_id: string | null;
 }
 
 // Extract entity / declaration id from the current URL if the user is
@@ -78,6 +90,14 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
   const [askingOpus, setAskingOpus] = useState(false);
   const [budget, setBudget] = useState<BudgetSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Persisted-thread state. All tolerant of migration 001 not being
+  // applied: threadId stays null, history view is empty, everything
+  // still works statelessly.
+  const [threadId, setThreadId] = useState<string | null>(null);
+  const [threads, setThreads] = useState<ThreadSummary[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [loadingThread, setLoadingThread] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -116,6 +136,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
             messages: outgoing.map((m) => ({ role: m.role, content: m.content })),
             use_opus: useOpus,
             context,
+            thread_id: threadId,
           }),
         });
         const data = await res.json();
@@ -128,10 +149,17 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
           return null;
         }
         if (data.budget) setBudget((prev) => ({ ...(prev || {} as BudgetSnapshot), ...data.budget }));
+        // The server may create or swap the thread id (e.g. first turn
+        // auto-creates; stale inbound id gets a fresh thread). Keep
+        // our local copy in sync.
+        if (typeof data.thread_id === 'string') {
+          setThreadId(data.thread_id);
+        }
         return data as {
           reply: string;
           model: string;
           cost_eur: number;
+          thread_id: string | null;
           tokens: { input: number; output: number; cache_read: number };
         };
       } catch (e) {
@@ -140,7 +168,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
         return null;
       }
     },
-    [context],
+    [context, threadId],
   );
 
   async function handleSend() {
@@ -203,6 +231,76 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
     }
   }
 
+  // ── Thread management ──
+
+  async function openHistory() {
+    setShowHistory(true);
+    try {
+      const res = await fetch('/api/chat/threads');
+      if (!res.ok) return;
+      const data = await res.json();
+      setThreads(Array.isArray(data?.threads) ? data.threads : []);
+    } catch {
+      // silent — history panel shows empty + "no saved conversations"
+    }
+  }
+
+  async function switchToThread(id: string) {
+    setLoadingThread(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/chat/threads/${id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data?.error?.message ?? 'Could not load that conversation.');
+        return;
+      }
+      type ApiMessage = {
+        id: string;
+        role: 'user' | 'assistant' | 'system';
+        content: string;
+        model: string | null;
+        cost_eur: number | null;
+        escalated_to_opus: boolean;
+      };
+      const rebuilt: ChatMessage[] = (data.messages as ApiMessage[])
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .map((m) => ({
+          id: m.id,
+          role: m.role as Role,
+          content: m.content,
+          model: m.model ?? undefined,
+          cost_eur: m.cost_eur ?? undefined,
+          escalated_to_opus: m.escalated_to_opus || undefined,
+        }));
+      setMessages(rebuilt);
+      setThreadId(id);
+      setShowHistory(false);
+    } finally {
+      setLoadingThread(false);
+    }
+  }
+
+  function newChat() {
+    setThreadId(null);
+    setMessages([]);
+    setError(null);
+    setShowHistory(false);
+  }
+
+  async function archiveCurrentThread(id: string) {
+    if (!confirm('Archive this conversation? It will disappear from the list.')) return;
+    try {
+      await fetch(`/api/chat/threads/${id}`, { method: 'DELETE' });
+      setThreads((cur) => cur.filter((t) => t.id !== id));
+      if (threadId === id) {
+        newChat();
+      }
+    } catch {
+      // silent
+    }
+  }
+
   if (!open) return null;
 
   const capReached =
@@ -233,30 +331,44 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
               ? 'Current client'
               : null
           }
+          showHistory={showHistory}
+          onToggleHistory={showHistory ? () => setShowHistory(false) : openHistory}
+          onNewChat={newChat}
+          hasMessages={messages.length > 0}
         />
 
-        {/* Message stream */}
-        <div
-          ref={scrollRef}
-          className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
-        >
-          {messages.length === 0 && <EmptyState />}
-          {messages.map((m, i) => (
-            <MessageBubble
-              key={m.id}
-              message={m}
-              isLast={i === messages.length - 1}
-              onAskOpus={
-                m.role === 'assistant' && !m.escalated_to_opus && i === messages.length - 1
-                  ? handleAskOpus
-                  : undefined
-              }
-              askingOpus={askingOpus}
-            />
-          ))}
-          {sending && <TypingIndicator model="Haiku" />}
-          {askingOpus && <TypingIndicator model="Opus" />}
-        </div>
+        {/* History panel (replaces message stream when open) */}
+        {showHistory ? (
+          <HistoryPanel
+            threads={threads}
+            currentThreadId={threadId}
+            onPick={switchToThread}
+            onArchive={archiveCurrentThread}
+            loading={loadingThread}
+          />
+        ) : (
+          <div
+            ref={scrollRef}
+            className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
+          >
+            {messages.length === 0 && <EmptyState />}
+            {messages.map((m, i) => (
+              <MessageBubble
+                key={m.id}
+                message={m}
+                isLast={i === messages.length - 1}
+                onAskOpus={
+                  m.role === 'assistant' && !m.escalated_to_opus && i === messages.length - 1
+                    ? handleAskOpus
+                    : undefined
+                }
+                askingOpus={askingOpus}
+              />
+            ))}
+            {sending && <TypingIndicator model="Haiku" />}
+            {askingOpus && <TypingIndicator model="Opus" />}
+          </div>
+        )}
 
         {/* Error bar */}
         {error && (
@@ -304,11 +416,15 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
 // ───────────────────────────── subcomponents ─────────────────────────────
 
 function Header({
-  onClose, budget, contextSummary,
+  onClose, budget, contextSummary, showHistory, onToggleHistory, onNewChat, hasMessages,
 }: {
   onClose: () => void;
   budget: BudgetSnapshot | null;
   contextSummary: string | null;
+  showHistory: boolean;
+  onToggleHistory: () => void;
+  onNewChat: () => void;
+  hasMessages: boolean;
 }) {
   const capLabel =
     budget?.cap_eur === null || budget?.cap_eur === undefined
@@ -320,29 +436,64 @@ function Header({
 
   return (
     <div className="shrink-0 border-b border-divider">
-      <div className="px-4 py-3 flex items-center justify-between">
+      <div className="px-4 py-3 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-md bg-brand-50 text-brand-700 inline-flex items-center justify-center shrink-0">
-            <SparklesIcon size={14} />
-          </div>
+          {showHistory ? (
+            <button
+              onClick={onToggleHistory}
+              className="w-7 h-7 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft"
+              aria-label="Back to chat"
+              title="Back to chat"
+            >
+              <ChevronLeftIcon size={16} />
+            </button>
+          ) : (
+            <div className="w-7 h-7 rounded-md bg-brand-50 text-brand-700 inline-flex items-center justify-center shrink-0">
+              <SparklesIcon size={14} />
+            </div>
+          )}
           <div className="min-w-0">
-            <div className="text-[13px] font-semibold text-ink leading-tight">Ask cifra</div>
-            {contextSummary && (
+            <div className="text-[13px] font-semibold text-ink leading-tight">
+              {showHistory ? 'Conversations' : 'Ask cifra'}
+            </div>
+            {!showHistory && contextSummary && (
               <div className="text-[11px] text-ink-muted leading-tight truncate">{contextSummary} · in focus</div>
             )}
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft"
-          aria-label="Close assistant"
-        >
-          <XIcon size={16} />
-        </button>
+        <div className="flex items-center gap-0.5 shrink-0">
+          {!showHistory && hasMessages && (
+            <button
+              onClick={onNewChat}
+              className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft"
+              aria-label="New chat"
+              title="New chat"
+            >
+              <PlusIcon size={15} />
+            </button>
+          )}
+          {!showHistory && (
+            <button
+              onClick={onToggleHistory}
+              className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft"
+              aria-label="Conversation history"
+              title="Conversation history"
+            >
+              <HistoryIcon size={15} />
+            </button>
+          )}
+          <button
+            onClick={onClose}
+            className="w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft"
+            aria-label="Close assistant"
+          >
+            <XIcon size={16} />
+          </button>
+        </div>
       </div>
 
-      {/* Quota bar */}
-      {budget && budget.cap_eur !== null && (
+      {/* Quota bar — hidden when showing history to keep the panel quiet */}
+      {!showHistory && budget && budget.cap_eur !== null && (
         <div className="px-4 pb-3">
           <div className="flex items-center justify-between text-[10.5px] text-ink-muted mb-1">
             <span>{spentLabel} used this month</span>
@@ -359,6 +510,83 @@ function Header({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function HistoryPanel({
+  threads, currentThreadId, onPick, onArchive, loading,
+}: {
+  threads: ThreadSummary[];
+  currentThreadId: string | null;
+  onPick: (id: string) => void;
+  onArchive: (id: string) => void;
+  loading: boolean;
+}) {
+  if (loading) {
+    return (
+      <div className="flex-1 flex items-center justify-center text-[12px] text-ink-muted gap-2">
+        <Loader2Icon size={14} className="animate-spin" /> Loading conversation…
+      </div>
+    );
+  }
+
+  if (threads.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+        <div className="w-10 h-10 rounded-lg bg-surface-alt text-ink-muted inline-flex items-center justify-center mb-3">
+          <HistoryIcon size={16} />
+        </div>
+        <div className="text-[13px] font-medium text-ink">No saved conversations</div>
+        <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-[260px] leading-relaxed">
+          Ask something to start a new conversation. Once you send a
+          message, it's saved here and you can come back to it anytime.
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <ul className="divide-y divide-divider">
+        {threads.map((t) => {
+          const updated = new Date(t.updated_at);
+          const niceDate = updated.toLocaleDateString('en-GB', {
+            day: '2-digit', month: 'short',
+            year: updated.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined,
+          });
+          const isActive = t.id === currentThreadId;
+          return (
+            <li key={t.id} className={isActive ? 'bg-brand-50/50' : ''}>
+              <div className="flex items-start gap-1 px-4 py-3 group">
+                <button
+                  onClick={() => onPick(t.id)}
+                  className="flex-1 text-left min-w-0"
+                >
+                  <div className="text-[13px] font-medium text-ink truncate">{t.title || 'Untitled'}</div>
+                  <div className="text-[11px] text-ink-muted mt-0.5 flex items-center gap-2">
+                    <span>{niceDate}</span>
+                    {t.total_cost_eur > 0 && (
+                      <>
+                        <span className="text-ink-faint">·</span>
+                        <span className="tabular-nums">€{t.total_cost_eur.toFixed(2)}</span>
+                      </>
+                    )}
+                  </div>
+                </button>
+                <button
+                  onClick={() => onArchive(t.id)}
+                  className="opacity-0 group-hover:opacity-100 w-7 h-7 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-muted hover:text-danger-600 transition-opacity"
+                  aria-label="Archive conversation"
+                  title="Archive"
+                >
+                  <Trash2Icon size={13} />
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
