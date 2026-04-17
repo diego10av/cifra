@@ -165,18 +165,23 @@ interface AuditParams {
   field?: string;
   oldValue?: string;
   newValue?: string;
+  /** Optional free-text reason provided by the user — the "why" behind
+   *  an override. Shown in the audit trail timeline and the compliance
+   *  export PDF. Added in migration 008. */
+  reason?: string;
 }
 
 export async function logAudit(p: AuditParams): Promise<void> {
   await execute(
     `INSERT INTO audit_log (id, user_id, entity_id, declaration_id, action,
-                            target_type, target_id, field, old_value, new_value)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+                            target_type, target_id, field, old_value, new_value, reason)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
     [
       generateId(), p.userId || 'founder',
       p.entityId || null, p.declarationId || null,
       p.action, p.targetType, p.targetId,
       p.field || null, p.oldValue || null, p.newValue || null,
+      p.reason || null,
     ]
   );
 }
@@ -185,13 +190,14 @@ export async function logAuditTx(txSql: TransactionSql, p: AuditParams): Promise
   await execTx(
     txSql,
     `INSERT INTO audit_log (id, user_id, entity_id, declaration_id, action,
-                            target_type, target_id, field, old_value, new_value)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+                            target_type, target_id, field, old_value, new_value, reason)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
     [
       generateId(), p.userId || 'founder',
       p.entityId || null, p.declarationId || null,
       p.action, p.targetType, p.targetId,
       p.field || null, p.oldValue || null, p.newValue || null,
+      p.reason || null,
     ]
   );
 }

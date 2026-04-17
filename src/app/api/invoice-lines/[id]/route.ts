@@ -93,6 +93,18 @@ export async function PATCH(
   ];
 
   // ─── Atomic: line + invoice updates + audit rows commit together ───
+  //
+  // If the caller sent an `override_reason` we attach it to the audit
+  // row of the treatment change (the most common AI-override case).
+  // For other field changes it's still captured in the first updated
+  // field's audit entry, so one edit = one reason. The compliance
+  // export later groups audit events by (target_id, created_at) if
+  // you want to re-bundle.
+  const overrideReason: string | undefined =
+    typeof body.override_reason === 'string' && body.override_reason.trim()
+      ? body.override_reason.trim().slice(0, 500)
+      : undefined;
+
   await tx(async (txSql) => {
     // invoice_lines update
     const lineUpdates: string[] = [];
@@ -106,10 +118,16 @@ export async function PATCH(
         lineValues.push(newVal);
         idx++;
         if (String(oldVal ?? '') !== String(newVal ?? '')) {
+          // Attach the reason to the 'treatment' change audit row
+          // (it's almost always what the reason is explaining). If the
+          // caller didn't include a treatment change but sent a reason,
+          // attach it to the first field that changed.
+          const attachReason = field === 'treatment' ? overrideReason : undefined;
           await logAuditTx(txSql, {
             entityId: line.entity_id, declarationId: line.declaration_id,
             action: 'update', targetType: 'invoice_line', targetId: id,
             field, oldValue: String(oldVal ?? ''), newValue: String(newVal ?? ''),
+            reason: attachReason,
           });
         }
       }

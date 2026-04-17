@@ -238,6 +238,15 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
               classification_rule = $3,
               flag = $4,
               flag_reason = $5,
+              -- Freeze the FIRST AI suggestion — never overwrite later.
+              -- This is the "cifra suggested X" side of every override
+              -- event in the audit trail. If the user later changes the
+              -- treatment, ai_suggested_* stays put as the evidence that
+              -- cifra recommended one thing and the professional decided
+              -- otherwise. Subsequent re-classifications also do not
+              -- rewrite history — COALESCE keeps the earliest value.
+              ai_suggested_treatment = COALESCE(ai_suggested_treatment, $1),
+              ai_suggested_rule = COALESCE(ai_suggested_rule, $3),
               state = CASE WHEN state = 'extracted' THEN 'classified' ELSE state END,
               updated_at = NOW()
         WHERE id = $6`,

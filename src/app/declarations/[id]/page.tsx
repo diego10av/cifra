@@ -8,7 +8,7 @@ import { describeApiError } from '@/lib/ui-errors';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { LifecycleStepper } from '@/components/ui/LifecycleStepper';
 import { Tabs, type TabDef } from '@/components/ui/Tabs';
-import { FileTextIcon, ClipboardCheckIcon, DownloadCloudIcon, FolderArchiveIcon, RefreshCwIcon, CheckCircle2Icon, RotateCcwIcon, SparklesIcon, ShareIcon } from 'lucide-react';
+import { FileTextIcon, ClipboardCheckIcon, DownloadCloudIcon, FolderArchiveIcon, RefreshCwIcon, CheckCircle2Icon, RotateCcwIcon, SparklesIcon, ShareIcon, ShieldCheckIcon } from 'lucide-react';
 import { ValidatorPanel } from '@/components/validator/ValidatorPanel';
 
 // ───── extracted modules (2026-04-18 refactor) ─────
@@ -25,6 +25,7 @@ import { DeclarationNotes, FilingPanel } from './FilingPanel';
 import { ShareLinkModal } from './ShareLinkModal';
 import { DocRow, StatusBadge, TriageTag, FileIcon } from './DocRow';
 import { TreatmentBadge } from './TreatmentBadge';
+import { AuditTrailPanel } from './AuditTrailPanel';
 
 // ═══════════════════════════════════════════════════════════════
 // Page
@@ -60,7 +61,7 @@ export default function DeclarationDetailPage() {
   // early return below, or React throws "Rendered more hooks than during
   // the previous render" when data transitions from null to an object.
   // Rules of Hooks: same hooks, same order, every render.
-  const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs'>('review');
+  const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs' | 'audit'>('review');
   const [validatorOpen, setValidatorOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -490,6 +491,7 @@ export default function DeclarationDetailPage() {
     { id: 'filing',    label: 'Filing',    icon: <ClipboardCheckIcon size={14} /> },
     { id: 'outputs',   label: 'Outputs',   icon: <DownloadCloudIcon size={14} />,
       badge: activeLines.length > 0 ? undefined : undefined },
+    { id: 'audit',     label: 'Audit',     icon: <ShieldCheckIcon size={14} /> },
   ];
 
   return (
@@ -943,6 +945,11 @@ export default function DeclarationDetailPage() {
                 </div>
               )}
             </>
+          )}
+
+          {/* ─── Audit tab body ─── */}
+          {activeTab === 'audit' && (
+            <AuditTrailPanel declarationId={id} />
           )}
         </div>
       </div>
