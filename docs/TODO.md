@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-17
+> Last updated: 2026-04-18 (overnight sprint)
 
 ---
 
@@ -96,6 +96,23 @@ Things worth remembering but not actionable yet:
 ## ✅ Done this week
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
+
+**2026-04-18 (overnight, 00:30 → 07:50)** — Nocturnal autonomous sprint
+- ✅ **Rate limiting** on `/api/agents/*` (token bucket per IP × path; 5/min extract, 10/min validate, 15/min draft-email, 60/min classify) — commit [shipped]
+- ✅ **Structured logger** (`src/lib/logger.ts`) — bound loggers, structured fields, Error serialization, dev pretty-print / prod JSON-lines. Integrated in 8 critical sites (api-errors, anthropic-wrapper, ecb, extract, draft-email, aed/upload, documents/upload, declarations) — commit [shipped]
+- ✅ **SQL migration 001** (`migrations/001_per_user_ai_budget_and_chat.sql`) — adds `users` table, `api_calls.user_id`, `chat_threads`, `chat_messages`. Idempotent, ready to apply in Supabase Studio.
+- ✅ **Per-user budget tracking** (`requireUserBudget(userId, estimatedCost?)`) — tolerant of missing migration (permissive fallback) + anthropic-wrapper writes user_id with graceful retry on old schema — commit [shipped]
+- ✅ **Chat MVP shipped** — "Ask cifra" drawer in TopBar, Haiku default + "Ask Opus" button, context-aware (entity/declaration from URL), quota banner w/ cost-per-message, rate-limited + budget-gated. Stateless server; client holds conversation — commit [shipped]
+- ✅ **docs/MODELS.md** central matrix created + §10 in PROTOCOLS.md, quarterly review rule
+- ✅ **Chat pricing decided**: €2/user/mo default cap, Starter/Firm/Enterprise tiers (€1/€2/€10 caps with admin raise ladder €2→€5→€10→€20→€30)
+- ✅ **Declaration page refactor** — 2,637-line monolith → 1,662 + 7 extracted modules (_types, _helpers, _atoms, PreviewPanel, OutputsPanel, EmailDrafterModal, FilingPanel). 37% reduction, zero behaviour change — commit [shipped]
+- ✅ **Error boundaries** — `app/error.tsx` + `app/global-error.tsx` prevent future white-screen crashes, Copy error details button for support
+- ✅ **Loading skeletons** everywhere — wired `PageSkeleton` into /entities/[id], /registrations/[id], /settings (list pages already had them)
+- ✅ **Test coverage +31** — rate-limit +6, lifecycle +16 NEW, api-errors +9 NEW. 319/319 total.
+
+**Diego action needed tomorrow:**
+- 🧠 Review + run `migrations/001_per_user_ai_budget_and_chat.sql` in Supabase SQL Editor (chat works without it — permissive fallback — but per-user quota only activates once applied)
+- 🎯 Try the chat: click "Ask cifra" top-right of any page, ask something
 
 **2026-04-17** — Late-night sprint
 - ✅ CRITICAL extractor prompt fix — merge-default behavior (one line per unique VAT treatment, generic descriptions) — prevents the over-splitting that was creating N lines for a single invoice
