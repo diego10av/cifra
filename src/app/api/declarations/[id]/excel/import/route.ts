@@ -28,7 +28,7 @@
 // ════════════════════════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
-import { queryOne, execTx, tx, logAuditTx, generateId } from '@/lib/db';
+import { queryOne, execTx, tx, logAuditTx, generateId, qTx } from '@/lib/db';
 import { apiError, apiOk, apiFail } from '@/lib/api-errors';
 import { checkRateLimit } from '@/lib/rate-limit';
 
@@ -81,6 +81,17 @@ export async function POST(
     const invoiceIds: string[] = [];
 
     await tx(async (txSql) => {
+      // Fresh invoice_lines from this import must not collide with existing
+      // rows' sort_order (which could already be 0..N for previously-
+      // imported/extracted lines). Offset our new sort_orders past the
+      // current max so the UI renders in a consistent, append-style order.
+      const [{ next: nextSortOrder }] = await qTx<{ next: number }>(
+        txSql,
+        `SELECT COALESCE(MAX(sort_order), -1) + 1 AS next
+           FROM invoice_lines WHERE declaration_id = $1`,
+        [declarationId],
+      );
+
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         // Minimum viable invoice: must have provider + amount_eur.
@@ -121,7 +132,13 @@ export async function POST(
             row.provider, row.provider_vat, row.country,
             row.invoice_number, row.invoice_date,
             direction,
-            currency, currency === 'EUR' ? null : netAmount + vatApplied,
+            // currency_amount is the amount in the FOREIGN currency when
+            // currency != EUR. The Excel import schema doesn't carry the
+            // foreign-currency amount separately from amount_eur, so we
+            // intentionally leave it null — the downstream FX validator
+            // will flag "needs FX" rather than silently treating the EUR
+            // amount as if it were the original foreign amount.
+            currency, null,
             netAmount, vatApplied, amountIncl,
           ],
         );
@@ -136,7 +153,7 @@ export async function POST(
             generateId(), invoiceId, declarationId,
             row.description ?? row.provider,
             netAmount, row.vat_rate, vatApplied, amountIncl,
-            i,
+            Number(nextSortOrder) + i,
           ],
         );
 
