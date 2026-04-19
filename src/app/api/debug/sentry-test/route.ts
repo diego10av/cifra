@@ -58,6 +58,54 @@ export async function GET() {
     diagnostics.flush_error = (e as Error).message;
   }
 
+  // Layer 4: direct fetch to Sentry's ingest endpoint. If THIS fails,
+  // the Lambda can't reach Sentry at all (network / egress / DNS). If
+  // it succeeds but the SDK events never arrive, the SDK transport
+  // is broken while the network path is fine.
+  const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN || '';
+  const dsnMatch = dsn.match(/^https:\/\/([^@]+)@([^/]+)\/(.+)$/);
+  if (dsnMatch) {
+    const [, publicKey, host, projectId] = dsnMatch;
+    const ingestUrl = `https://${host}/api/${projectId}/envelope/`;
+    try {
+      const started = Date.now();
+      const res = await fetch(ingestUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-sentry-envelope',
+          'X-Sentry-Auth': `Sentry sentry_version=7, sentry_client=cifra-debug/1.0, sentry_key=${publicKey}`,
+        },
+        // Minimal valid envelope: header + item header + item body.
+        body: [
+          JSON.stringify({
+            event_id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            sent_at: new Date().toISOString(),
+            dsn,
+          }),
+          JSON.stringify({
+            type: 'event',
+            content_type: 'application/json',
+          }),
+          JSON.stringify({
+            event_id: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            level: 'info',
+            platform: 'javascript',
+            message: { message: 'cifra direct-fetch envelope test' },
+            timestamp: Date.now() / 1000,
+          }),
+        ].join('\n'),
+        signal: AbortSignal.timeout(8000),
+      });
+      diagnostics.direct_fetch_status = String(res.status);
+      diagnostics.direct_fetch_ms = String(Date.now() - started);
+      diagnostics.direct_fetch_body = (await res.text()).slice(0, 200);
+    } catch (e) {
+      diagnostics.direct_fetch_error = (e as Error).message;
+    }
+  } else {
+    diagnostics.direct_fetch_error = 'Could not parse DSN';
+  }
+
   // Return JSON diagnostics — easier to read than an HTML error page
   // when iterating on the config.
   return NextResponse.json({
