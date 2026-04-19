@@ -14,9 +14,19 @@ the task requires it.
 >    start the task Diego asked for.** Don't ask permission, don't
 >    announce it. Just do it.
 > 4. Same rule applies mid-conversation: if Diego says something that
->    contradicts a living doc (CLAUDE.md, positioning.md, ROADMAP,
->    TODO, etc.), his latest word wins — update the doc in the same
->    stint.
+>    contradicts a living doc, update it silently in the same stint.
+>
+> **Exception — the "deeply-held position" checkpoint**: if Diego's
+> new direction would REVERSE something we deliberated (a PROTOCOLS
+> hard rule, a shipped feature's architectural decision, a section
+> of CLAUDE.md §2/§8) — **one-line confirmation before overwriting**:
+>
+> > *"Espera — esto revertiría [X] que acordamos en [stint Y].
+> > ¿Confirmas el pivote, o te he entendido mal?"*
+>
+> If yes → update as the new baseline. If Diego was thinking out
+> loud → the position stands, no edit. For everything incremental
+> or first-time expressed, skip the checkpoint and update silently.
 >
 > Diego should never have to say "update the docs." If he does,
 > Claude broke protocol. See PROTOCOLS §13 for the full custody rules.

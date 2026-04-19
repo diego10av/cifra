@@ -466,6 +466,66 @@ Claude somehow missed drift during the week, Monday's diff
 catches it. The brief auto-proposes the update in the same
 response; Diego doesn't have to do anything.
 
+### When in doubt: update more, not less
+
+A living doc should lean **aggressively current**, not
+diplomatically preserving old states. If a strategy changes, the
+doc says the new strategy — not "we used to think X but now Y".
+History belongs in git, not in the current state of a living doc.
+
+### Checkpoint before overwriting deeply-held positions (Diego, 2026-04-19)
+
+> *"Si es algo que es contrario de manera directa con algo que
+> estábamos muy encima, mejor comprobarlo conmigo antes de actualizar
+> nada. Pero si ya lo hemos acordado entre nosotros, sin problema."*
+
+Startups iterate fast; docs should update near-daily. **But**
+there's a difference between *Diego thinking out loud* and *Diego
+ratifying a pivot*. Auto-updating everything would remove the
+space to explore ideas without them becoming canon.
+
+**Pause-and-confirm BEFORE updating** if the change would:
+
+- Reverse a PROTOCOLS hard rule (any existing §)
+- Abandon a position that was **explicitly deliberated + agreed**
+  in a recent stint (the "we deliberately decided X" kind of
+  item, usually documented in TODO.md stint log or CLAUDE.md
+  §2/§8)
+- Require deleting an entire doc section (not just a line)
+- Contradict a feature we SHIPPED based on that position (e.g.
+  "kill the ai_mode toggle" after migration 009 + UI exist —
+  that's a real pivot with code consequences, not a tweak)
+- Invalidate an architectural decision we spent ≥ 1 stint on
+
+**How to confirm** (don't be bureaucratic, one sentence is enough):
+
+> *"Espera — esto revertiría [X] que acordamos en [stint Y].
+> ¿Confirmas el pivote, o te he entendido mal?"*
+
+If Diego says yes → update + commit + treat as the new baseline.
+If Diego clarifies he was thinking out loud → don't touch the
+doc; the position stands.
+
+**Just do it — NO confirmation needed** for:
+
+- Building on or extending our current direction
+- Tactical adjustments (pricing within a hypothesis range, minor
+  copy, feature-priority shuffling within a tier)
+- Incorporating new information that doesn't contradict prior
+  deliberation
+- Customer-call insights that sharpen positioning without flipping
+  the ICP
+- Bug discoveries that change "known quirks" (§7 of CLAUDE.md)
+- Moving an item between TODO sections (this-week / this-sprint /
+  parked) — that's just task management
+- Shipped features landing in CLAUDE.md §4 — no decision reversal,
+  just writing down what happened
+
+The rule of thumb: **if Diego wrote about the decision more than
+once, or we spent a full conversation on it, confirm before
+overwriting. If it's first-time expressed or incremental, update
+silently.**
+
 ### Accountability (ironclad)
 
 - Stale docs = Claude failed, not Diego.
@@ -475,13 +535,9 @@ response; Diego doesn't have to do anything.
   failed (so we can strengthen that gate next time).
 - Diego is explicitly freed from tracking this. He decides what to
   build / sell / pivot to; Claude keeps the written record current.
-
-### When in doubt: update more, not less
-
-A living doc should lean **aggressively current**, not
-diplomatically preserving old states. If a strategy changes, the
-doc says the new strategy — not "we used to think X but now Y".
-History belongs in git, not in the current state of a living doc.
+- The *only* thing Diego needs to do is answer a one-line
+  confirmation when Claude hits a checkpoint (see above) — and
+  only when the change reverses a deliberated position.
 
 ---
 
