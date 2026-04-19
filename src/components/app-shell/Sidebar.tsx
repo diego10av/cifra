@@ -199,15 +199,15 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
 }
 
 function UserMenu({ role }: { role: Role }) {
-  // Minimalist text-only user chip (à la Linear). Shows the session
-  // role so Diego can tell at a glance whether he's looking at the
-  // admin view or the junior-restricted view.
-  const label = role === 'junior' ? 'Junior' : role === 'reviewer' ? 'Reviewer' : 'Diego';
-  const tagline = role === 'junior'
-    ? 'cifra · client view'
-    : role === 'reviewer'
-    ? 'cifra · reviewer'
-    : 'cifra · founder';
+  // Minimalist text-only user chip (à la Linear). The internal role
+  // value ('junior') never surfaces in the UI per Diego 2026-04-19 —
+  // the restricted-view user simply reads as "Associate". Same pattern
+  // as "founder" for admin.
+  const label = role === 'junior' ? 'Associate' : role === 'reviewer' ? 'Reviewer' : 'Diego';
+  const tagline =
+    role === 'junior' ? 'cifra · associate' :
+    role === 'reviewer' ? 'cifra · reviewer' :
+    'cifra · founder';
   return (
     <div className="flex flex-col px-3 py-1.5 rounded-md hover:bg-surface-alt transition-colors cursor-pointer">
       <div className="text-[12.5px] font-medium text-ink truncate leading-tight">
