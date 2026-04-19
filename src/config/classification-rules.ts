@@ -39,6 +39,12 @@ import {
   PLATFORM_DEEMED_SUPPLIER_KEYWORDS,
   NON_DEDUCTIBLE_KEYWORDS,
   PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS,
+  DIRECTOR_FEE_KEYWORDS,
+  CARRY_INTEREST_KEYWORDS,
+  WATERFALL_DISTRIBUTION_KEYWORDS,
+  STRUCTURING_FEE_KEYWORDS,
+  IGP_KEYWORDS,
+  LEGAL_SUFFIXES,
   containsAny,
   findFirstMatch,
 } from './exemption-keywords';
@@ -60,6 +66,11 @@ export interface InvoiceLineInput {
   exemption_reference?: string | null;  // explicit Art. 44§1 b / 44§1 d / etc.
   customer_country?: string | null;     // ISO-2 of the invoice recipient (for outgoing)
   customer_vat?: string | null;         // VIES VAT number of the recipient (for outgoing B2B evidence)
+  // Supplier identity — used by RULE 32 (director fees) to route natural-
+  // person vs legal-person via LEGAL_SUFFIXES token detection. Optional:
+  // when absent, the classifier falls back to description-only heuristics.
+  supplier_name?: string | null;
+  supplier_is_legal_person?: boolean | null;  // extractor-provided, overrides heuristic
 }
 
 export interface EntityContext {
@@ -108,35 +119,64 @@ export function classifyInvoiceLine(
   precedent: PrecedentMatch | null = null,
 ): ClassificationResult {
 
+  // PRIORITY 1.3 — content-specific rules that must override every generic
+  //                pattern: director fees (C-288/22 TP / Circ. 781-2),
+  //                carry interest, waterfall distributions, IGP / cost-
+  //                sharing. These trigger on description keywords and
+  //                route to OUT_SCOPE or specific taxable treatments
+  //                with legal citations. Running them first prevents
+  //                the generic rate / exemption rules from mis-
+  //                classifying a director fee as RC_EU_TAX, etc.
+  const contentSpecific = applyContentSpecificRules(line, context);
+  if (contentSpecific) return contentSpecific;
+
   // PRIORITY 1.5 — passive-holding gate. A pure passive SOPARFI is not a
   // taxable person (Polysar C-60/90 / Cibo C-16/00) and has no RC
   // obligation. This MUST run before direct-evidence / inference /
   // taxable-backstop — otherwise the classifier auto-reverse-charges a
   // service the entity has no right (or obligation) to account for.
+  // Extended 2026-04-19 with the LU-domestic leg (RULE 15P): a LU
+  // supplier invoicing VAT to a passive holding produces non-deductible
+  // input VAT (box 087, not 085) because Polysar blocks the deduction
+  // right altogether.
   const country0 = (line.country || '').toUpperCase();
   const isLu0 = isLuxembourg(country0);
   const isEu0 = isEU(country0) && !isLu0;
-  if (context.entity_type === 'passive_holding'
-      && line.direction === 'incoming'
-      && !isLu0
-      && country0 !== ''
-      && isZeroOrNull(line.vat_applied)) {
-    const text0 = fullText(line);
-    const isHighRisk = containsAny(text0, PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS);
-    return {
-      treatment: null,
-      rule: isEu0 ? 'RULE 11P' : 'RULE 13P',
-      reason: 'Passive holding receiving a cross-border service — not a taxable person under Polysar (C-60/90) / Cibo Participations (C-16/00).',
-      source: 'rule',
-      flag: true,
-      flag_reason:
-        (isHighRisk
-          ? 'High-risk service type (legal / tax / M&A / due diligence advisory) received by a PASSIVE holding. '
-          : 'Cross-border service received by a PASSIVE holding. ')
-        + 'The supplier should have charged origin-country VAT; there is no LU reverse-charge obligation. '
-        + 'If the entity is in fact an ACTIVE holding (provides management / admin services to subsidiaries), '
-        + 'change entity_type to "active_holding" and re-run classification (Marle Participations C-320/17).',
-    };
+  if (context.entity_type === 'passive_holding' && line.direction === 'incoming') {
+    // Sub-case RULE 15P: LU supplier + VAT charged → non-deductible
+    if (isLu0 && !isZeroOrNull(line.vat_applied)) {
+      return {
+        treatment: 'LUX_17_NONDED',
+        rule: 'RULE 15P',
+        reason: 'LU input VAT received by a passive holding — not deductible per Polysar (C-60/90). No taxable activity means no deduction right (Art. 49§1 LTVA). VAT lands in box 087, not 085.',
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'This entity is classified as passive_holding. Per Polysar C-60/90 / Cibo C-16/00, a pure holding is not a taxable person and cannot deduct input VAT. '
+          + 'If the entity in fact provides active management / admin / financial services to subsidiaries (Cibo, Marle C-320/17), change entity_type to "active_holding" '
+          + 'to unlock pro-rata deduction.',
+      };
+    }
+
+    // Sub-case RULES 11P / 13P: cross-border, no VAT charged → flag-only
+    if (!isLu0 && country0 !== '' && isZeroOrNull(line.vat_applied)) {
+      const text0 = fullText(line);
+      const isHighRisk = containsAny(text0, PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS);
+      return {
+        treatment: null,
+        rule: isEu0 ? 'RULE 11P' : 'RULE 13P',
+        reason: 'Passive holding receiving a cross-border service — not a taxable person under Polysar (C-60/90) / Cibo Participations (C-16/00).',
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          (isHighRisk
+            ? 'High-risk service type (legal / tax / M&A / due diligence advisory) received by a PASSIVE holding. '
+            : 'Cross-border service received by a PASSIVE holding. ')
+          + 'The supplier should have charged origin-country VAT; there is no LU reverse-charge obligation. '
+          + 'If the entity is in fact an ACTIVE holding (provides management / admin services to subsidiaries), '
+          + 'change entity_type to "active_holding" and re-run classification (Marle Participations C-320/17).',
+      };
+    }
   }
 
   // PRIORITY 2 — direct evidence rules (always take precedence over precedent
@@ -863,14 +903,8 @@ function ruleMatch(ruleId: string, treatment: TreatmentCode, reason: string): Cl
 
 // ────────────────────────── Provider-name normalisation ──────────────────────────
 // Used for fuzzy-matching precedents by provider + country.
-const LEGAL_SUFFIXES = [
-  'sarl', 's.a.r.l.', 's.à.r.l.', 's.à r.l.', 's.a r.l.', 'sàrl',
-  'sa', 's.a.', 'scs', 'sca', 's.c.a.', 'scsp', 'sicav', 'sicaf',
-  'gmbh', 'ag', 'ltd', 'llp', 'lp', 'plc', 'inc', 'llc',
-  'sas', 'sarl', 'sprl', 'bvba', 'nv',
-  'sp. z o.o.', 'sp z o o', 'spzoo',
-];
-
+// LEGAL_SUFFIXES is now imported from exemption-keywords.ts so the
+// director-kind detection and the normaliser stay in sync.
 const COMMON_WORDS = ['luxembourg', 'the', 'and', 'de', 'des', 'du', 'la', 'le', 'les'];
 
 export function normaliseProviderName(name: string | null | undefined): string {
@@ -882,8 +916,253 @@ export function normaliseProviderName(name: string | null | undefined): string {
   s = s.replace(/[^a-z0-9\s]/g, ' ');
   // remove legal suffixes (as whole-word tokens)
   const tokens = s.split(/\s+/).filter(Boolean);
-  const cleaned = tokens.filter(t => !LEGAL_SUFFIXES.includes(t) && !COMMON_WORDS.includes(t));
+  const cleaned = tokens.filter(t => !(LEGAL_SUFFIXES as readonly string[]).includes(t) && !COMMON_WORDS.includes(t));
   return cleaned.join(' ').trim();
+}
+
+// ────────────────────────── Supplier-kind detection ──────────────────────────
+// Distinguishes a natural-person supplier from a legal-person one,
+// used by RULE 32 (director fees) to route C-288/22 TP (natural = not
+// taxable) vs AED Circ. 781-2 contested position (legal = taxable).
+//
+// Strategy:
+//  1. If the extractor explicitly provided `supplier_is_legal_person`,
+//     trust it.
+//  2. Otherwise tokenize the supplier name and check for a legal
+//     suffix (SARL, SA, Ltd, GmbH…). If present → legal. If absent
+//     AND the name looks like "FirstName LastName" (2-4 capitalised
+//     tokens, no digits) → natural. Else → unknown.
+//
+// "Unknown" triggers a reviewer flag; the classifier does not guess.
+export type SupplierKind = 'natural' | 'legal' | 'unknown';
+
+export function detectSupplierKind(
+  name: string | null | undefined,
+  extractorHint: boolean | null | undefined = undefined,
+): SupplierKind {
+  if (extractorHint === true) return 'legal';
+  if (extractorHint === false) return 'natural';
+  if (!name) return 'unknown';
+
+  const lower = name.toLowerCase();
+  // strip diacritics + punctuation for tokenisation
+  const normalised = lower
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[.,]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const tokens = normalised.split(/\s+/).filter(Boolean);
+
+  // Legal-suffix detection (whole-word match — 'sa' standalone is a
+  // legal suffix; 'sandra' is not)
+  const legalSuffixSet = new Set(LEGAL_SUFFIXES.map(s => s.toLowerCase()));
+  if (tokens.some(t => legalSuffixSet.has(t))) return 'legal';
+  // Also check multi-word suffixes ("sp z o o")
+  const joined = tokens.join(' ');
+  for (const s of LEGAL_SUFFIXES) {
+    if (s.includes(' ') && joined.includes(s.toLowerCase())) return 'legal';
+  }
+
+  // Heuristic for natural person: 2-4 tokens, all-letter (no digits),
+  // each token 2+ chars, no corporate keywords (bank, group, holding, etc).
+  const CORPORATE_HINTS = ['bank', 'group', 'holding', 'capital', 'partners',
+    'investments', 'fund', 'advisors', 'advisers', 'consulting',
+    'management', 'associates', 'company', 'trust', 'services'];
+  const hasCorporateHint = tokens.some(t => CORPORATE_HINTS.includes(t));
+  const allLetters = tokens.every(t => /^[a-z][a-zà-ÿ'-]+$/i.test(t));
+  if (!hasCorporateHint && allLetters && tokens.length >= 2 && tokens.length <= 4
+      && tokens.every(t => t.length >= 2)) {
+    return 'natural';
+  }
+
+  return 'unknown';
+}
+
+// ────────────────────────── Content-specific rules (PRIORITY 1.3) ──────────────────────────
+// These fire before generic direct-evidence rules because they carry
+// decisive content that would otherwise be steamrolled by rate/country
+// heuristics. Each rule references the legal-source id in its reason
+// string so the audit trail has the citation inline.
+function applyContentSpecificRules(
+  line: InvoiceLineInput,
+  ctx: EntityContext,
+): ClassificationResult | null {
+  if (line.direction !== 'incoming') return null;
+  const text = fullText(line);
+
+  // ═══════════════ RULE 32 — Independent director fees ═══════════════
+  // CJEU C-288/22 TP (2023-12-21) + AED Circ. 781-2 (2024).
+  // Natural person → OUT_SCOPE (settled). Legal person → taxable with
+  // a flag because the AED position is contested post-C-288/22.
+  if (containsAny(text, DIRECTOR_FEE_KEYWORDS)) {
+    const kind = detectSupplierKind(line.supplier_name, line.supplier_is_legal_person);
+    const matched = findFirstMatch(text, DIRECTOR_FEE_KEYWORDS);
+
+    if (kind === 'natural') {
+      return {
+        treatment: 'OUT_SCOPE',
+        rule: 'RULE 32a',
+        reason: `Director fee paid to a natural-person independent director — not a taxable person (CJEU C-288/22 TP, 2023-12-21; AED Circ. 781-2 post-2024). Keyword matched: "${matched}".`,
+        source: 'rule',
+        flag: false,
+      };
+    }
+
+    if (kind === 'legal') {
+      const country = (line.country || '').toUpperCase();
+      const isLu = isLuxembourg(country);
+      const isEu = isEU(country) && !isLu;
+      // LU supplier → 17% VAT on the invoice (LUX_17).
+      // EU supplier → reverse-charge (RC_EU_TAX).
+      // Non-EU supplier → reverse-charge (RC_NONEU_TAX).
+      let treatment: TreatmentCode = 'LUX_17';
+      if (!isLu && isEu) treatment = 'RC_EU_TAX';
+      else if (!isLu && !isEu && country !== '') treatment = 'RC_NONEU_TAX';
+
+      return {
+        treatment,
+        rule: 'RULE 32b',
+        reason: `Legal-person director fee — taxable per AED Circ. 781-2 post-2024 practice. The position is CONTESTED post-CJEU C-288/22 TP. Keyword matched: "${matched}".`,
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'AED maintains post-2024 that legal-person directors remain taxable persons (Circ. 781-2) — a position actively contested by LU practitioners. '
+          + 'The argument: C-288/22 TP\'s collegial-body + no-personal-risk logic extends identically to a legal person acting in the same collegial role. '
+          + 'Confirm the client\'s preferred treatment — some firms withhold VAT pending further CJEU clarification. '
+          + 'Document the chosen position in the audit trail.',
+      };
+    }
+
+    // Unknown supplier kind — flag for reviewer decision
+    return {
+      treatment: null,
+      rule: 'RULE 32?',
+      reason: `Director-fee keywords detected ("${matched}") but the supplier kind (natural vs legal person) could not be determined.`,
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Director fees to natural persons are OUT_SCOPE (CJEU C-288/22 TP). Legal-person directors are taxable per AED Circ. 781-2 (contested). '
+        + 'Identify the supplier kind and classify manually — either OUT_SCOPE (natural) or LUX_17 / RC_EU_TAX / RC_NONEU_TAX (legal).',
+    };
+  }
+
+  // ═══════════════ RULE 33 — Carry interest ═══════════════
+  // Always flagged. Default: OUT_SCOPE (investor-GP profit share).
+  // Reviewer confirms against the LPA — re-classifies to LUX_17 if
+  // the "carry" is actually a performance fee to a pure-service GP.
+  if (containsAny(text, CARRY_INTEREST_KEYWORDS)) {
+    const matched = findFirstMatch(text, CARRY_INTEREST_KEYWORDS);
+    return {
+      treatment: 'OUT_SCOPE',
+      rule: 'RULE 33',
+      reason: `Carry interest / performance allocation ("${matched}") — default OUT_SCOPE as a profit distribution on invested capital (Baštová C-432/15, Tolsma C-16/93; market practice PRAC_CARRY_INTEREST).`,
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Carry analysis depends on economic substance, not invoice label. '
+        + 'If the GP has an own economic participation (≥1% commitment alongside LPs), carry = profit share → OUT_SCOPE. '
+        + 'If the GP is a pure-service GP (nominal commitment), carry = performance fee for services → LUX_17 (or EXEMPT_44 under Art. 44§1 d if qualifying fund delegate). '
+        + 'Review the LPA / AIFM agreement before filing.',
+    };
+  }
+
+  // ═══════════════ RULE 34 — Waterfall distributions ═══════════════
+  // Profit distributions flowing through a fund waterfall are OUT_SCOPE
+  // (return on capital, not a supply — Kretztechnik C-465/03). Embedded
+  // "structuring fee" line items are independently taxable → handled
+  // at the outer classification level by the rate rules.
+  if (containsAny(text, WATERFALL_DISTRIBUTION_KEYWORDS)) {
+    const matched = findFirstMatch(text, WATERFALL_DISTRIBUTION_KEYWORDS);
+    // If a structuring-fee keyword is also present, flag as mixed — the
+    // reviewer should split the line.
+    const hasStructuringFee = containsAny(text, STRUCTURING_FEE_KEYWORDS);
+    if (hasStructuringFee) {
+      return {
+        treatment: null,
+        rule: 'RULE 34/mixed',
+        reason: `Waterfall distribution line that also mentions a structuring / set-up fee — mixed characterisation.`,
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'The waterfall distribution portion is OUT_SCOPE (return on capital — Kretztechnik C-465/03); '
+          + 'the structuring / set-up fee portion is TAXABLE 17% (service for consideration). '
+          + 'Split the line into two: one OUT_SCOPE for the distribution, one LUX_17 for the fee.',
+      };
+    }
+
+    return {
+      treatment: 'OUT_SCOPE',
+      rule: 'RULE 34',
+      reason: `Waterfall distribution ("${matched}") — out of scope as a return on capital, not a supply (Kretztechnik C-465/03; market practice PRAC_WATERFALL_DISTRIBUTION).`,
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Waterfall distributions to LPs / GP are out-of-scope profit distributions. '
+        + 'Verify the line is pure distribution — if "structuring fee" / "set-up fee" wording is embedded, re-classify the fee portion as LUX_17.',
+    };
+  }
+
+  // ═══════════════ RULE 35 — IGP / cost-sharing (Art. 44§1 y) ═══════════════
+  // Narrowed by Kaplan C-77/19 (cross-border → taxable), DNB Banka +
+  // Aviva (financial / insurance members → taxable). Classifier routes
+  // by supplier country + entity_type.
+  if (containsAny(text, IGP_KEYWORDS)) {
+    const matched = findFirstMatch(text, IGP_KEYWORDS);
+    const country = (line.country || '').toUpperCase();
+    const isLu = isLuxembourg(country);
+    const isEu = isEU(country) && !isLu;
+    const isFinancialRecipient = ctx.entity_type === 'fund' || ctx.entity_type === 'manco';
+
+    // Cross-border IGP → never exempt (Kaplan)
+    if (!isLu && country !== '') {
+      const treatment: TreatmentCode = isEu ? 'RC_EU_TAX' : 'RC_NONEU_TAX';
+      return {
+        treatment,
+        rule: 'RULE 35',
+        reason: `Cross-border cost-sharing ("${matched}") — does not qualify for Art. 44§1 y exemption per CJEU Kaplan (C-77/19, 2020-11-18). Taxable at 17%.`,
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'The Art. 44§1 y IGP exemption applies ONLY when the group and its members are in the same Member State (Kaplan C-77/19). '
+          + 'This cross-border invoice is reverse-charged at 17%. Confirm the invoice narrative does not disguise a non-IGP service.',
+      };
+    }
+
+    // LU-to-LU IGP to a financial / fund member → not exempt (DNB Banka + Aviva)
+    if (isLu && isFinancialRecipient) {
+      return {
+        treatment: 'LUX_17',
+        rule: 'RULE 35-lu',
+        reason: `LU-to-LU cost-sharing to a fund / financial-sector member ("${matched}") — the Art. 44§1 y exemption is excluded for financial + insurance sectors (CJEU DNB Banka C-326/15 + Aviva C-605/15). Taxable at 17%.`,
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'Per DNB Banka + Aviva, the IGP exemption is excluded for members active in the financial or insurance sector. '
+          + 'This entity is classified as fund / manco and therefore falls in that sector. Confirm the invoice describes a genuine IGP arrangement — otherwise treat as a standard LU-VAT service.',
+      };
+    }
+
+    // LU-to-LU IGP to a non-financial member → potentially exempt, flag the four conditions
+    if (isLu && !isFinancialRecipient) {
+      return {
+        treatment: 'LUX_00',
+        rule: 'RULE 35-ok',
+        reason: `LU-to-LU cost-sharing ("${matched}") — potentially exempt under Art. 44§1 y LTVA if the four conditions are met.`,
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'Verify all four conditions BEFORE accepting the exemption: '
+          + '(i) all members carry out exempt or non-taxable activities, '
+          + '(ii) the services are directly necessary for those activities, '
+          + '(iii) the group claims only reimbursement of the members\' share of joint expenses (no margin), '
+          + '(iv) the exemption does not distort competition. '
+          + 'Post-Commission v Luxembourg C-274/15, partial-taxable-activity members must be excluded.',
+      };
+    }
+  }
+
+  return null;
 }
 
 // Levenshtein distance (iterative DP). Used for precedent matching tolerance.

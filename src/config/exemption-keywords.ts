@@ -341,6 +341,116 @@ export const PASSIVE_HOLDING_HIGH_FLAG_KEYWORDS: readonly string[] = [
   'corporate finance advisory',
 ];
 
+// ── Independent director fees (CJEU C-288/22 TP) ──
+// Natural-person independent directors are NOT taxable persons per the
+// 21 December 2023 CJEU ruling — no VAT on their fees. Legal-person
+// directors remain taxable per AED Circ. 781-2 but the position is
+// contested. The classifier uses these keywords to trigger RULES 32a/b
+// and then inspects the supplier name to decide natural vs legal.
+export const DIRECTOR_FEE_KEYWORDS: readonly string[] = [
+  // English
+  'director fee', 'director fees', 'board fee', 'board fees',
+  'board member fee', 'board member fees',
+  'non-executive director', 'non executive director',
+  'independent director', 'directorship fee', 'directorship fees',
+  'administrator fee', 'administrator fees',
+  // French (Luxembourg)
+  'jetons de présence', 'jeton de présence',
+  'tantièmes', 'tantième',
+  'tantièmes d\'administrateur',
+  'indemnité de conseil d\'administration',
+  'rémunération d\'administrateur',
+  'rémunération du conseil d\'administration',
+  'honoraires d\'administrateur',
+  'mandat d\'administrateur', 'mandat social',
+  // German
+  'verwaltungsratsmitglied', 'aufsichtsratsmitglied',
+  'vergütung für verwaltungsratsmitglied',
+  'aufsichtsratsvergütung', 'tantieme',
+  // Italian
+  'compenso amministratore', 'compenso amministratori',
+  'gettone di presenza',
+  // Spanish
+  'honorarios del consejero', 'remuneración del consejero',
+  'dietas de asistencia al consejo',
+  // Portuguese
+  'remuneração de administrador',
+  // Dutch
+  'vergoeding bestuurder', 'bestuurderbeloning',
+  'commissaris',
+];
+
+// ── Carry interest / carried interest ──
+// Substance-driven classification: OUT_SCOPE when paid to a GP who is
+// also an investor (profit distribution on invested capital), vs
+// taxable 17% or EXEMPT_44 when paid to a pure-service GP
+// (performance fee for services). Classifier ALWAYS flags these.
+export const CARRY_INTEREST_KEYWORDS: readonly string[] = [
+  'carried interest', 'carry interest', 'carry distribution',
+  'carry payment', 'carry allocation', 'carry payable',
+  'performance allocation', 'performance participation',
+  'gp carry', 'gp profit share', 'general partner carry',
+  'promote' /* US-style equivalent */, 'promoted interest',
+  'intéressement différé', 'intéressement aux plus-values',
+  'gewinnbeteiligung', 'carried-interest tranche',
+  'incentive allocation',
+];
+
+// ── Waterfall distributions ──
+// Profit distributions flowing through a fund's waterfall to LPs / GP.
+// Default OUT_SCOPE; structuring / set-up fees embedded in the waterfall
+// are independently taxable — captured by a separate keyword list.
+export const WATERFALL_DISTRIBUTION_KEYWORDS: readonly string[] = [
+  'waterfall distribution', 'waterfall payment',
+  'distribution aux associés commanditaires',
+  'lp distribution', 'limited partner distribution',
+  'preferred return', 'preferred-return step',
+  'hurdle distribution', 'hurdle payment',
+  'catch-up distribution', 'catch up distribution',
+  'gp catch-up', 'catch-up step',
+  'capital distribution', 'return of capital',
+  'remboursement de capital', 'retour sur investissement',
+  'distribution waterfall',
+];
+
+export const STRUCTURING_FEE_KEYWORDS: readonly string[] = [
+  'structuring fee', 'structuring fees',
+  'set-up fee', 'setup fee', 'set up fee',
+  'formation fee', 'organisational fee',
+  'frais de structuration', 'frais de constitution',
+  'strukturierungsgebühr',
+];
+
+// ── IGP / cost-sharing (Art. 44§1 y LTVA / Art. 132(1)(f) Directive) ──
+// Narrowed by Kaplan C-77/19 (cross-border excluded), DNB Banka C-326/15
+// + Aviva C-605/15 (financial / insurance sectors excluded). Classifier
+// routes by country + entity_type per RULE 35 / 35-lu / 35-ok.
+export const IGP_KEYWORDS: readonly string[] = [
+  'cost-sharing', 'cost sharing', 'cost-pooling', 'cost pooling',
+  'independent group of persons', 'igp',
+  'groupement autonome de personnes', 'gap',
+  'article 132(1)(f)', 'art. 132(1)(f)', 'art. 132 (1)(f)',
+  'article 44§1 y', 'art. 44§1 y', 'art. 44 § 1 y',
+  'kostenteilungsgemeinschaft', 'kostengemeinschaft',
+  'shared-services group',
+];
+
+// ── Legal-entity suffixes (used to detect natural vs legal person directors) ──
+// Shared between provider-name normalisation and the supplier-kind
+// detection that routes RULES 32a vs 32b. Exported so the classifier
+// can inspect the supplier name without re-declaring the list.
+export const LEGAL_SUFFIXES: readonly string[] = [
+  'sarl', 's.a.r.l.', 's.à.r.l.', 's.à r.l.', 's.a r.l.', 'sàrl',
+  'sa', 's.a.', 'scs', 'sca', 's.c.a.', 'scsp',
+  'sicav', 'sicaf', 'sif', 'raif', 'sicar',
+  'gmbh', 'ag', 'ltd', 'limited', 'llp', 'lp', 'plc', 'inc', 'llc',
+  'sas', 's.a.s.', 'sprl', 'bvba', 'nv', 'bv',
+  'sp. z o.o.', 'sp z o o', 'spzoo',
+  'sl', 's.l.',
+  // Common English descriptors used where a suffix is missing
+  'company', 'corp', 'corporation', 'limited', 'partnership',
+];
+
 // ── Helpers ──
 export function containsAny(haystack: string | null | undefined, needles: readonly string[]): boolean {
   if (!haystack) return false;

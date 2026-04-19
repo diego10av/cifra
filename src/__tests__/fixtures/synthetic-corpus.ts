@@ -880,4 +880,173 @@ export const FIXTURES: InvoiceFixture[] = [
     notes: 'Credit-note sign is preserved; treatment follows the underlying service. '
       + 'Description avoids consulting / advisory to bypass INFERENCE E backstop.',
   },
+
+  // ═════════════════════ Group 8 — Content-specific PRIORITY 1.3 (directors, carry, waterfall, IGP) ═════════════════════
+  // Added 2026-04-19 (stint 11) per docs/classification-research.md.
+  {
+    id: 'F061',
+    title: 'Natural-person director fee — OUT_SCOPE per C-288/22 TP',
+    archetype: 'director_fees',
+    legal_ref: 'CJEU C-288/22 TP + AED Circ. 781-2',
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'Jean-Marc Weber',
+      description: 'Jetons de présence — conseil d\'administration Q1 2026',
+      vat_rate: null, vat_applied: 0, amount_eur: 8000,
+    },
+    expected: { treatment: 'OUT_SCOPE', rule: 'RULE 32a', flag: false },
+    notes: 'Natural-person director (no legal suffix in name). Settled post-2023-12-21. No flag.',
+  },
+  {
+    id: 'F062',
+    title: 'Legal-person director fee (LU SARL) — LUX_17 with CONTESTED flag',
+    archetype: 'director_fees',
+    legal_ref: 'AED Circ. 781-2 (contested)',
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'Fiduciaire Alpha SARL',
+      description: 'Tantièmes d\'administrateur — mandat année 2025',
+      vat_rate: 0.17, vat_applied: 1700, amount_eur: 10000,
+    },
+    expected: {
+      treatment: 'LUX_17', rule: 'RULE 32b', flag: true,
+      flag_includes: 'contested',
+    },
+  },
+  {
+    id: 'F063',
+    title: 'Legal-person director fee (FR SA) — RC_EU_TAX with CONTESTED flag',
+    archetype: 'director_fees',
+    legal_ref: 'AED Circ. 781-2 + Art. 17§1 LTVA',
+    input: {
+      direction: 'incoming', country: 'FR',
+      supplier_name: 'Paris Consulting SA',
+      description: 'Board member fees — administrator of LU SICAV',
+      vat_rate: null, vat_applied: 0, amount_eur: 12000,
+    },
+    expected: {
+      treatment: 'RC_EU_TAX', rule: 'RULE 32b', flag: true,
+      flag_includes: 'AED',
+    },
+  },
+  {
+    id: 'F064',
+    title: 'Director keyword + ambiguous supplier name → RULE 32? flag',
+    archetype: 'director_fees',
+    legal_ref: 'CJEU C-288/22 TP (unknown supplier kind)',
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'Board Services 24',
+      description: 'Director fee — Q4 meeting',
+      vat_rate: null, vat_applied: 0, amount_eur: 5000,
+    },
+    expected: {
+      treatment: null, rule: 'RULE 32?', flag: true,
+      flag_includes: 'supplier kind',
+    },
+    notes: 'Name has no suffix + no natural-name pattern (digit present) → unknown. '
+      + 'Correct classifier behaviour: flag for manual review.',
+  },
+  {
+    id: 'F065',
+    title: 'Carry interest paid to GP — default OUT_SCOPE with confirm-substance flag',
+    archetype: 'carry_interest',
+    legal_ref: 'PRAC_CARRY_INTEREST + Baštová C-432/15',
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'Fund GP SARL',
+      description: 'Carried interest distribution — Q4 2025 waterfall',
+      vat_rate: null, vat_applied: 0, amount_eur: 250000,
+    },
+    expected: {
+      treatment: 'OUT_SCOPE', rule: 'RULE 33', flag: true,
+      flag_includes: 'substance',
+    },
+  },
+  {
+    id: 'F066',
+    title: 'Waterfall LP distribution — OUT_SCOPE',
+    archetype: 'waterfall',
+    legal_ref: 'Kretztechnik C-465/03',
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'Limited Partnership Alpha SCSp',
+      description: 'Limited partner distribution — preferred return step',
+      vat_rate: null, vat_applied: 0, amount_eur: 500000,
+    },
+    expected: { treatment: 'OUT_SCOPE', rule: 'RULE 34', flag: true },
+  },
+  {
+    id: 'F067',
+    title: 'Waterfall distribution that ALSO mentions a structuring fee — mixed',
+    archetype: 'waterfall_mixed',
+    legal_ref: 'Kretztechnik + LUX_17',
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'Fund Services SARL',
+      description: 'Waterfall distribution + set-up fee on closing',
+      vat_rate: null, vat_applied: 0, amount_eur: 75000,
+    },
+    expected: {
+      treatment: null, rule: 'RULE 34/mixed', flag: true,
+      flag_includes: 'split',
+    },
+  },
+  {
+    id: 'F068',
+    title: 'Cross-border IGP cost-sharing invoice from FR → Kaplan, taxable',
+    archetype: 'igp',
+    legal_ref: 'CJEU Kaplan C-77/19',
+    context: FUND_CTX,
+    input: {
+      direction: 'incoming', country: 'FR',
+      supplier_name: 'Paris Shared Services GIE',
+      description: 'Cost-sharing invoice (art. 132(1)(f)) — shared IT platform',
+      vat_rate: null, vat_applied: 0, amount_eur: 25000,
+    },
+    expected: { treatment: 'RC_EU_TAX', rule: 'RULE 35', flag: true, flag_includes: 'Kaplan' },
+  },
+  {
+    id: 'F069',
+    title: 'LU-to-LU IGP invoice to a fund entity → DNB Banka / Aviva, taxable',
+    archetype: 'igp',
+    legal_ref: 'DNB Banka C-326/15 + Aviva C-605/15',
+    context: FUND_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LuxShared Services SCS',
+      description: 'Independent Group of Persons — back-office allocation',
+      vat_rate: 0.17, vat_applied: 4250, amount_eur: 25000,
+    },
+    expected: { treatment: 'LUX_17', rule: 'RULE 35-lu', flag: true, flag_includes: 'DNB' },
+  },
+  {
+    id: 'F070',
+    title: 'LU-to-LU IGP to a non-financial active holding — potentially exempt',
+    archetype: 'igp',
+    legal_ref: 'Art. 44§1 y LTVA (four conditions)',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LuxShared Services SCS',
+      description: 'Cost-pooling allocation for IT infrastructure',
+      vat_rate: null, vat_applied: 0, amount_eur: 12000,
+    },
+    expected: { treatment: 'LUX_00', rule: 'RULE 35-ok', flag: true, flag_includes: 'four conditions' },
+  },
+  {
+    id: 'F071',
+    title: 'Passive holding receives LU 17% invoice → non-deductible (RULE 15P)',
+    archetype: 'passive_holding_lu',
+    legal_ref: 'Polysar C-60/90 + Art. 49§1 LTVA',
+    context: PASSIVE_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LUX Fiduciary SA',
+      description: 'Corporate secretarial services Q1',
+      vat_rate: 0.17, vat_applied: 850, amount_eur: 5000,
+    },
+    expected: { treatment: 'LUX_17_NONDED', rule: 'RULE 15P', flag: true, flag_includes: 'Polysar' },
+    notes: 'Key Polysar domestic-leg case. Prior to 2026-04-19 this would have silently classified as LUX_17 (deductible).',
+  },
 ];
