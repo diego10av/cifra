@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-19 (Sentry DSN live in production — EU region)
+> Last updated: 2026-04-19 (Sentry + PostHog both live in production — EU region)
 
 ---
 
