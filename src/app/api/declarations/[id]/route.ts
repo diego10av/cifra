@@ -110,6 +110,21 @@ export async function PATCH(
       }
     }
 
+    // Reopen side-effects — clear the forward-state artefacts so the
+    // active record is clean for a new approval cycle. The audit log
+    // still carries the old_value so the history is recoverable.
+    if (newStatus === 'review') {
+      if (currentStatus === 'filed' || currentStatus === 'paid') {
+        extra += `, filing_ref = NULL, filed_at = NULL`;
+      }
+      if (currentStatus === 'paid') {
+        extra += `, payment_ref = NULL, payment_confirmed_at = NULL`;
+      }
+      if (currentStatus === 'approved' || currentStatus === 'filed' || currentStatus === 'paid') {
+        extra += `, approved_at = NULL, approved_by = NULL`;
+      }
+    }
+
     values.push(id);
     await execute(`UPDATE declarations SET status = $1, updated_at = NOW()${extra} WHERE id = $${idx}`, values);
 

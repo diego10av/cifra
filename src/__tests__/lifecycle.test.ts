@@ -48,8 +48,11 @@ describe('getValidNextStates', () => {
     expect(next).not.toContain('paid');
   });
 
-  it('returns the single allowed step from paid: none', () => {
-    expect(getValidNextStates('paid')).toEqual([]);
+  it('allows reopening from paid back to review (rectification path)', () => {
+    // Post-stint-12: paid → review is legal for rectification after
+    // payment. The UI surfaces it as a danger-styled "Un-file & reopen"
+    // button with strong confirmation copy.
+    expect(getValidNextStates('paid')).toEqual(['review']);
   });
 
   it('returns the single next step from created', () => {

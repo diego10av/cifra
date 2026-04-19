@@ -608,11 +608,43 @@ export default function DeclarationDetailPage() {
               )}
               {data.status === 'approved' && (
                 <button
-                  onClick={() => handleStatusChange('review')}
+                  onClick={() => {
+                    const ok = confirm(
+                      `Reopen this approved declaration?\n\n`
+                      + `• All locked invoice lines become editable again.\n`
+                      + `• Any ongoing client approval process on this declaration resets.\n`
+                      + `• The action appears in the audit trail as a reopen event.\n\n`
+                      + `Continue?`,
+                    );
+                    if (ok) handleStatusChange('review');
+                  }}
                   className="h-8 px-3 rounded-md border border-warning-500/40 text-[12.5px] font-medium text-warning-700 hover:bg-warning-50 transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5"
+                  title="Reopens the declaration for editing. Requires confirmation."
                 >
                   <RotateCcwIcon size={13} />
                   Reopen
+                </button>
+              )}
+              {(data.status === 'filed' || data.status === 'paid') && (
+                <button
+                  onClick={() => {
+                    const ok = confirm(
+                      `⚠ Reopen a ${data.status.toUpperCase()} declaration?\n\n`
+                      + `This declaration has already been filed with the AED`
+                      + (data.status === 'paid' ? ' AND paid' : '')
+                      + `. Reopening is a serious operation:\n\n`
+                      + `• The filing reference + date are retained in the audit log but cleared from the active record.\n`
+                      + `• You will need to re-file to resubmit a corrected return.\n`
+                      + `• If the AED has already confirmed receipt, this may require a rectification letter.\n\n`
+                      + `Only do this if you are certain the submitted return contains an error that cannot be corrected otherwise. Continue?`,
+                    );
+                    if (ok) handleStatusChange('review');
+                  }}
+                  className="h-8 px-3 rounded-md border border-danger-300 text-[12.5px] font-medium text-danger-700 hover:bg-danger-50 transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5"
+                  title="Reopen a filed or paid declaration — requires explicit confirmation."
+                >
+                  <RotateCcwIcon size={13} />
+                  Un-file &amp; reopen
                 </button>
               )}
               {(data.status === 'created' || data.status === 'review') && (

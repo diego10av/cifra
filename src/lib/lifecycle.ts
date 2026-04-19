@@ -23,6 +23,7 @@ const VALID_TRANSITIONS: [DeclarationStatus, DeclarationStatus][] = [
   ['review', 'uploading'],      // User adds more invoices
   ['approved', 'review'],       // User reopens for changes
   ['filed', 'review'],          // AED rejection or post-filing error (critical audit event)
+  ['paid', 'review'],           // Rectification after payment (rare but legally necessary)
 ];
 
 export function canTransition(from: DeclarationStatus, to: DeclarationStatus): boolean {
