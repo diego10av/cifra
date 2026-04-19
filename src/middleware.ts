@@ -7,6 +7,7 @@ import { verifySession, AUTH_COOKIE_NAME, canRoleAccess } from '@/lib/auth';
 const PUBLIC_PATHS = new Set<string>([
   '/login',
   '/api/auth/login',
+  '/marketing',   // exact match — prefix below covers nested paths
 ]);
 
 /**
