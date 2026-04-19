@@ -389,7 +389,54 @@ push notification on his phone, a physical signature).
 
 ---
 
-## 13. Amendment process
+## 13. CLAUDE.md maintenance (**critical** per Diego, 2026-04-19)
+
+`CLAUDE.md` at the repo root is the onboarding briefing that Claude
+Code auto-reads at every new session. **If it goes stale, it
+actively misleads future sessions** — worse than no doc at all.
+
+**Rule**: `CLAUDE.md` is updated BY CLAUDE, at every stint end,
+BEFORE the final push of that stint. Not weekly, not on demand —
+every stint that lands ≥ 1 commit on main.
+
+### When to edit CLAUDE.md (mandatory)
+
+- A new hard rule is recorded → update §2
+- Stack / dependency / directory structure changes → update §3
+- Any feature shipped or major refactor lands → update §4 (Current
+  state) + potentially §7 (Known quirks) or §8 (YAGNI)
+- A "known quirk" gets fixed (not worked around — genuinely fixed)
+  → remove from §7
+- A previously-parked item moves into "build" → remove from §8
+- A migration pattern / working-protocol changes → update §5
+
+### When to leave CLAUDE.md alone
+
+- Pure bugfix, test-only commit, lint cleanup, docs tweak — no
+  change in state, rules, architecture, or quirks. Leave it.
+- Cosmetic UI polish that doesn't affect user-visible behaviour.
+
+### How to prevent drift (self-audit)
+
+Every Monday morning brief (§2 of this file) Claude diffs:
+- Last `CLAUDE.md` modification date vs the 10 most recent
+  commits.
+- If ≥ 3 significant commits landed since CLAUDE.md was last
+  touched AND none of them touched CLAUDE.md → flag in the brief.
+
+If Diego sees the flag, a one-line reply (*"update CLAUDE.md"*) is
+enough — Claude does the pass.
+
+### Accountability
+
+This protocol makes CLAUDE.md maintenance **Claude's job**, not
+Diego's. Diego never has to remember to ask for it. If CLAUDE.md
+is stale, Claude broke protocol — Diego can call it out at any
+time and the correct response is an immediate update commit.
+
+---
+
+## 14. Amendment process
 
 Either of us can propose an amendment to these protocols:
 
@@ -402,4 +449,4 @@ bureaucratic, kill it. If we're forgetting things, tighten it.
 
 ---
 
-*Last amended: 2026-04-18 — added §11 actionable-first UI + §12 execute-don't-delegate.*
+*Last amended: 2026-04-19 — added §13 CLAUDE.md maintenance discipline.*

@@ -5,6 +5,15 @@ of truth for what cifra is, how we work, and the non-negotiable rules.
 Everything else (`docs/*`, `src/*`) is detail that only matters when
 the task requires it.
 
+> **⚠️ Self-audit — first thing you do after reading this file:**
+> compare `git log --oneline -15` against §4 (Current state) and §7
+> (Known quirks). If ≥ 3 significant commits landed since this file
+> was last touched AND §4/§7 don't reflect them, **stop and update
+> CLAUDE.md before anything else**. See PROTOCOLS §13.
+>
+> *Last meaningfully updated: 2026-04-19 (commit `7526745` ↦ added
+> stint 10 state + sentry-send workaround in §7). Next edit is yours.*
+
 ---
 
 ## 1 · What cifra is
