@@ -11,10 +11,17 @@ import { query, queryOne, execute, logAudit } from '@/lib/db';
 import { apiError, apiOk, apiFail } from '@/lib/api-errors';
 import { logger } from '@/lib/logger';
 import { cascadeDeleteClient, previewClientDelete } from '@/lib/cascade-delete';
+import { requireRole } from '@/lib/require-role';
 
 const log = logger.bind('clients/[id]');
 
 const VALID_KINDS = ['end_client', 'csp', 'other'] as const;
+
+function formatStatuses(by: Record<string, number>): string {
+  return Object.entries(by)
+    .map(([status, n]) => `${n} ${status}`)
+    .join(', ');
+}
 
 function isSchemaMissing(err: unknown): boolean {
   const msg = (err as { message?: string } | null)?.message ?? '';
@@ -180,6 +187,7 @@ export async function DELETE(
     const url = new URL(request.url);
     const cascade = url.searchParams.get('cascade') === 'true';
     const confirmName = url.searchParams.get('confirm');
+    const ackFiled = url.searchParams.get('acknowledge_filed') === 'true';
 
     const existing = await queryOne<{ id: string; name: string; archived_at: string | null }>(
       'SELECT id, name, archived_at FROM clients WHERE id = $1',
@@ -189,6 +197,10 @@ export async function DELETE(
 
     // ─── Cascade hard delete path ───
     if (cascade) {
+      // Admin-only gate — reviewer can read + edit but cannot cascade.
+      const roleFail = await requireRole(request, 'admin');
+      if (roleFail) return roleFail;
+
       if (confirmName !== null && confirmName !== existing.name) {
         return apiError(
           'confirm_mismatch',
@@ -196,7 +208,24 @@ export async function DELETE(
           { status: 400 },
         );
       }
+
       const preview = await previewClientDelete(id);
+
+      // Filed / paid declarations → require explicit acknowledgement.
+      // Per Art. 70 LTVA (10-year retention) the audit of a filing
+      // record should not disappear silently. The UI surfaces a
+      // second confirmation; the endpoint requires the flag.
+      if (preview && preview.filed_declaration_count > 0 && !ackFiled) {
+        return apiError(
+          'committed_declarations_present',
+          `This client has ${preview.filed_declaration_count} declaration${preview.filed_declaration_count === 1 ? '' : 's'} already committed (${formatStatuses(preview.committed_statuses)}).`,
+          {
+            status: 409,
+            hint: 'Per Art. 70 LTVA, filed/paid returns should be retained for 10 years. To proceed anyway, the UI must add acknowledge_filed=true to the delete URL.',
+          },
+        );
+      }
+
       await cascadeDeleteClient(id);
       await logAudit({
         action: 'delete_cascade',
@@ -205,12 +234,16 @@ export async function DELETE(
         oldValue: JSON.stringify({
           name: existing.name,
           cascaded: preview?.counts,
+          filed_declarations_deleted: preview?.filed_declaration_count ?? 0,
+          committed_statuses: preview?.committed_statuses ?? {},
+          acknowledged_filed: ackFiled,
         }),
       });
-      log.info('client cascade-deleted', {
+      log.warn('client cascade-deleted', {
         client_id: id,
         name: existing.name,
         cascaded: preview?.counts,
+        filed_declarations_deleted: preview?.filed_declaration_count ?? 0,
       });
       return apiOk({ ok: true, cascaded: preview?.counts });
     }

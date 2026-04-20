@@ -94,6 +94,50 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-20 (mid-morning)** — Thirteenth stint: deletion + retention maturity (Fase 1 of the Veeva-grade roadmap)
+
+Context: after the cascade-delete shipped, Diego asked "¿así lo tienen los
+grandes o podemos ir a mejor?". I mapped cifra against Stripe / Veeva /
+Salesforce / GitHub and split the gap into three phases. Fase 1 shipped
+in this stint (below). Fase 2 + 3 logged to ROADMAP (deletion maturity
+section) for next iterations.
+
+**Shipped**:
+- ✅ Migration 015 applied: immutable `audit_log` (triggers block UPDATE +
+  DELETE on the table; raise with code 45000 + maintenance hint).
+- ✅ Admin-only gate on `?cascade=true` via new `src/lib/require-role.ts`
+  helper. Reviewer can read / soft-archive; only admin can cascade.
+- ✅ Committed-declaration guardrail: cascade refuses if any child
+  declaration is approved / filed / paid, unless
+  `?acknowledge_filed=true` is passed. UI surfaces an Art. 70 LTVA
+  warning card + a checkbox the reviewer must tick.
+- ✅ `/settings/trash` page + `/api/trash` endpoint + restore routes
+  (`POST /api/clients/[id]/restore`, `POST /api/entities/[id]/restore`).
+- ✅ Retention notice in the modal + the trash page. Honest copy:
+  "archived items stay indefinitely today; 90-day auto-purge is on
+  the roadmap".
+
+**Fase 2 queued in ROADMAP.md "Deletion + retention maturity" section**:
+- D1 Export ZIP before cascade delete (data portability)
+- D2 Email-confirmation cooldown for destructive acts on > 50 rows
+- D3 Retention policy per-firm (configurable 30/60/90/365d)
+- D4 Scheduled purge job with dry-run + preview
+- D5 Delete-reason field (required when > 10 entities)
+- D6 Auto-snapshot to cold-storage bucket (30d window)
+
+**Fase 3 queued**:
+- D7 Write-once audit bucket (S3 Object Lock / WORM)
+- D8 Hash-chain on audit_log rows (tamper detection beyond triggers)
+- D9 SOC 2 Type I readiness
+- D10 21 CFR Part 11 alignment (pharma fund customers)
+- D11 Granular cascade control in UI
+- D12 Dry-run API flag
+- D13 Time-delayed admin-account delete
+
+529 tests green. Typecheck clean.
+
+---
+
 **2026-04-20 (continued pre-dawn, 7am → 10am LU)** — Twelfth stint continued: all the post-audit extras Diego greenlit
 
 After the main Gassner-list commits landed, Diego asked for every

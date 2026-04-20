@@ -3,6 +3,7 @@ import { query, queryOne, execute, logAudit, initializeSchema } from '@/lib/db';
 import { canTransition, type DeclarationStatus } from '@/lib/lifecycle';
 import { upsertPrecedentsFromDeclaration } from '@/lib/precedents';
 import { logger } from '@/lib/logger';
+import { requireRole } from '@/lib/require-role';
 
 const log = logger.bind('declarations/[id]');
 
@@ -201,6 +202,14 @@ export async function DELETE(
       error: 'declaration_locked',
       message: `Cannot delete a ${decl.status} declaration without explicit force. The UI should ask the reviewer to confirm twice before sending ?force=true.`,
     }, { status: 409 });
+  }
+
+  // Admin-only gate when forcing deletion of a committed declaration.
+  // Reviewer can delete `created`/`review`; admin required for
+  // `approved` / `filed` / `paid`.
+  if (locked && force) {
+    const roleFail = await requireRole(request, 'admin');
+    if (roleFail) return roleFail;
   }
 
   // The schema's FK cascades don't chain through declarations →

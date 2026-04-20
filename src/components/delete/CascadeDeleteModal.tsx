@@ -26,6 +26,8 @@ interface Preview {
   name: string;
   summary: string[];
   counts: Record<string, number | undefined>;
+  filed_declaration_count: number;
+  committed_statuses: Record<string, number>;
 }
 
 export function CascadeDeleteModal({
@@ -48,6 +50,9 @@ export function CascadeDeleteModal({
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [typed, setTyped] = useState('');
   const [busy, setBusy] = useState(false);
+  // When the preview shows committed declarations, the reviewer must
+  // tick this box to confirm they understand Art. 70 LTVA retention.
+  const [acknowledgedFiled, setAcknowledgedFiled] = useState(false);
 
   useEffect(() => {
     if (!open || scope === 'declaration') { setPreview(null); return; }
@@ -62,6 +67,8 @@ export function CascadeDeleteModal({
             name: body.preview?.name ?? targetName,
             summary: body.summary ?? [],
             counts: body.preview?.counts ?? {},
+            filed_declaration_count: body.preview?.filed_declaration_count ?? 0,
+            committed_statuses: body.preview?.committed_statuses ?? {},
           });
         }
       } catch { /* fall through */ }
@@ -71,7 +78,7 @@ export function CascadeDeleteModal({
   }, [open, scope, targetId, targetName]);
 
   useEffect(() => {
-    if (!open) { setTyped(''); }
+    if (!open) { setTyped(''); setAcknowledgedFiled(false); }
   }, [open]);
 
   async function archiveOnly() {
@@ -107,7 +114,14 @@ export function CascadeDeleteModal({
         const isLocked = status === 'approved' || status === 'filed' || status === 'paid';
         url = `/api/declarations/${targetId}${isLocked ? '?force=true' : ''}`;
       } else {
-        url = `/api/${scope === 'client' ? 'clients' : 'entities'}/${targetId}?cascade=true&confirm=${encodeURIComponent(targetName)}`;
+        const p = new URLSearchParams({
+          cascade: 'true',
+          confirm: targetName,
+        });
+        if (preview && preview.filed_declaration_count > 0) {
+          p.set('acknowledge_filed', 'true');
+        }
+        url = `/api/${scope === 'client' ? 'clients' : 'entities'}/${targetId}?${p.toString()}`;
       }
       const res = await fetch(url, { method: 'DELETE' });
       if (!res.ok) {
@@ -128,6 +142,8 @@ export function CascadeDeleteModal({
   const isDeclaration = scope === 'declaration';
   const scopeLabel = scope === 'client' ? 'client' : scope === 'entity' ? 'entity' : 'declaration';
   const locked = status && (status === 'approved' || status === 'filed' || status === 'paid');
+  const hasFiled = !!preview && preview.filed_declaration_count > 0;
+  const canProceed = typedMatches && (!hasFiled || acknowledgedFiled);
 
   return (
     <Modal
@@ -213,7 +229,36 @@ export function CascadeDeleteModal({
               </div>
               <p className="text-[11.5px] text-danger-900 leading-relaxed">
                 Removes the {scopeLabel} AND everything attached. Cannot be undone.
+                Admin role required.
               </p>
+
+              {/* Filed-declaration guardrail — Art. 70 LTVA */}
+              {hasFiled && (
+                <div className="rounded border border-danger-400 bg-white/70 p-2.5">
+                  <div className="text-[11px] text-danger-900 font-semibold mb-1 inline-flex items-center gap-1">
+                    <AlertTriangleIcon size={11} /> Art. 70 LTVA · retention warning
+                  </div>
+                  <p className="text-[11px] text-danger-800 mb-2 leading-relaxed">
+                    {preview!.filed_declaration_count} declaration{preview!.filed_declaration_count === 1 ? '' : 's'} already committed
+                    {' '}({Object.entries(preview!.committed_statuses).map(([s, n]) => `${n} ${s}`).join(', ')}).
+                    Luxembourg law requires retention of filed returns for 10 years.
+                  </p>
+                  <label className="inline-flex items-start gap-1.5 text-[11px] text-danger-900 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={acknowledgedFiled}
+                      onChange={e => setAcknowledgedFiled(e.target.checked)}
+                      className="mt-0.5 accent-danger-600"
+                    />
+                    <span>
+                      I understand this deletion is audit-logged, acknowledge the
+                      retention implication, and am deleting intentionally
+                      (e.g. test data or client termination).
+                    </span>
+                  </label>
+                </div>
+              )}
+
               <label className="block">
                 <span className="text-[10.5px] uppercase tracking-wide font-semibold text-danger-800">
                   Type <code className="font-mono bg-white/80 px-1 rounded">{targetName}</code> to confirm
@@ -230,7 +275,7 @@ export function CascadeDeleteModal({
               </label>
               <button
                 onClick={cascadeDelete}
-                disabled={busy || !typedMatches}
+                disabled={busy || !canProceed}
                 className="mt-auto h-9 px-3 rounded-md bg-danger-600 text-white text-[12.5px] font-semibold hover:bg-danger-700 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5"
               >
                 {busy ? <Loader2Icon size={12} className="animate-spin" /> : <Trash2Icon size={12} />}
@@ -273,10 +318,11 @@ export function CascadeDeleteModal({
           </div>
         )}
 
-        <div className="text-[10.5px] text-ink-muted italic">
-          All deletes are recorded in the audit log (action = delete_cascade) with the
-          blast-radius counts. That event stays in the DB even after the {scopeLabel}
-          is gone.
+        <div className="text-[10.5px] text-ink-muted italic leading-relaxed">
+          All deletes are recorded in the audit log (action = delete_cascade) with
+          the blast-radius counts. The audit log itself is immutable (migration 015):
+          no admin can rewrite or remove the record of this action.{' '}
+          {scope !== 'declaration' && 'Soft-archived items stay in the Trash (Settings → Trash) indefinitely; auto-purge after 90 days is on the roadmap.'}
         </div>
       </div>
     </Modal>

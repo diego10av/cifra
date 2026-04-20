@@ -44,12 +44,55 @@ export interface DeletionPreview {
     validator_findings: number;
     invoice_attachments: number;
   };
+  /** How many of the cascaded declarations are in a committed state
+   *  (approved / filed / paid). Non-zero means the cascade touches
+   *  records the AED has already seen — a stronger warning is
+   *  required. */
+  filed_declaration_count: number;
+  /** Breakdown by status so the UI can render precise copy. */
+  committed_statuses: Record<string, number>;
 }
 
 /**
  * Compute a preview of what a client cascade-delete would remove.
  * Used by the confirm-modal to show the reviewer the blast radius.
  */
+async function countCommittedDeclarations(
+  scope: 'client' | 'entity' | 'declaration',
+  id: string,
+): Promise<{ total: number; by_status: Record<string, number> }> {
+  let sql: string;
+  if (scope === 'client') {
+    sql = `SELECT d.status, COUNT(*)::text AS n
+             FROM declarations d
+             JOIN entities e ON d.entity_id = e.id
+            WHERE e.client_id = $1
+              AND d.status IN ('approved', 'filed', 'paid')
+            GROUP BY d.status`;
+  } else if (scope === 'entity') {
+    sql = `SELECT status, COUNT(*)::text AS n
+             FROM declarations
+            WHERE entity_id = $1
+              AND status IN ('approved', 'filed', 'paid')
+            GROUP BY status`;
+  } else {
+    sql = `SELECT status, COUNT(*)::text AS n
+             FROM declarations
+            WHERE id = $1
+              AND status IN ('approved', 'filed', 'paid')
+            GROUP BY status`;
+  }
+  const rows = await query<{ status: string; n: string }>(sql, [id]);
+  const by_status: Record<string, number> = {};
+  let total = 0;
+  for (const r of rows) {
+    const n = Number(r.n);
+    by_status[r.status] = n;
+    total += n;
+  }
+  return { total, by_status };
+}
+
 export async function previewClientDelete(clientId: string): Promise<DeletionPreview | null> {
   const client = await queryOne<{ id: string; name: string }>(
     `SELECT id, name FROM clients WHERE id = $1`,
@@ -92,6 +135,8 @@ export async function previewClientDelete(clientId: string): Promise<DeletionPre
     [clientId],
   );
 
+  const committed = await countCommittedDeclarations('client', clientId);
+
   return {
     client_id: client.id,
     name: client.name,
@@ -111,6 +156,8 @@ export async function previewClientDelete(clientId: string): Promise<DeletionPre
       validator_findings: Number(row?.findings ?? 0),
       invoice_attachments: Number(row?.attachments ?? 0),
     },
+    filed_declaration_count: committed.total,
+    committed_statuses: committed.by_status,
   };
 }
 
@@ -172,6 +219,8 @@ export async function previewEntityDelete(entityId: string): Promise<DeletionPre
     [entityId],
   );
 
+  const committed = await countCommittedDeclarations('entity', entityId);
+
   return {
     entity_id: e.id,
     name: e.name,
@@ -190,6 +239,8 @@ export async function previewEntityDelete(entityId: string): Promise<DeletionPre
       validator_findings: Number(row?.findings ?? 0),
       invoice_attachments: Number(row?.attachments ?? 0),
     },
+    filed_declaration_count: committed.total,
+    committed_statuses: committed.by_status,
   };
 }
 
@@ -231,6 +282,8 @@ export async function previewDeclarationDelete(declarationId: string): Promise<D
     [declarationId],
   );
 
+  const committed = await countCommittedDeclarations('declaration', declarationId);
+
   return {
     declaration_id: d.id,
     name: `${d.year} ${d.period}`,
@@ -249,6 +302,8 @@ export async function previewDeclarationDelete(declarationId: string): Promise<D
       validator_findings: Number(row?.findings ?? 0),
       invoice_attachments: Number(row?.attachments ?? 0),
     },
+    filed_declaration_count: committed.total,
+    committed_statuses: committed.by_status,
   };
 }
 

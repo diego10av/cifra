@@ -3,6 +3,7 @@ import { queryOne, execute, logAudit, initializeSchema } from '@/lib/db';
 import { validateVatNumber, validateIban } from '@/lib/validation';
 import { apiError } from '@/lib/api-errors';
 import { cascadeDeleteEntity, previewEntityDelete } from '@/lib/cascade-delete';
+import { requireRole } from '@/lib/require-role';
 
 // GET /api/entities/:id
 export async function GET(
@@ -121,6 +122,9 @@ export async function DELETE(
   if (!existing) return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
 
   if (cascade) {
+    const roleFail = await requireRole(request, 'admin');
+    if (roleFail) return roleFail;
+
     if (confirmName !== null && confirmName !== existing.name) {
       return apiError(
         'confirm_mismatch',
@@ -128,7 +132,22 @@ export async function DELETE(
         { status: 400 },
       );
     }
+
+    const ackFiled = url.searchParams.get('acknowledge_filed') === 'true';
     const preview = await previewEntityDelete(id);
+    if (preview && preview.filed_declaration_count > 0 && !ackFiled) {
+      const byStatus = Object.entries(preview.committed_statuses)
+        .map(([s, n]) => `${n} ${s}`).join(', ');
+      return apiError(
+        'committed_declarations_present',
+        `This entity has ${preview.filed_declaration_count} declaration${preview.filed_declaration_count === 1 ? '' : 's'} already committed (${byStatus}).`,
+        {
+          status: 409,
+          hint: 'Per Art. 70 LTVA, filed/paid returns should be retained for 10 years. The UI must surface a second confirmation and add acknowledge_filed=true to proceed.',
+        },
+      );
+    }
+
     await cascadeDeleteEntity(id);
     await logAudit({
       entityId: id,
@@ -138,6 +157,9 @@ export async function DELETE(
       oldValue: JSON.stringify({
         name: existing.name,
         cascaded: preview?.counts,
+        filed_declarations_deleted: preview?.filed_declaration_count ?? 0,
+        committed_statuses: preview?.committed_statuses ?? {},
+        acknowledged_filed: ackFiled,
       }),
     });
     return NextResponse.json({ ok: true, cascaded: preview?.counts });

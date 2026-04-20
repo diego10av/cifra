@@ -42,6 +42,47 @@ Effort: S (< 1 day) · M (1-3 days) · L (3-10 days) · XL (> 10 days)
 
 ---
 
+## 🧬 Deletion + retention maturity (Veeva-level roadmap)
+
+The Fase 1 items below SHIPPED stint 13 (2026-04-20). Fase 2 + 3 are
+the queue for continuing to raise cifra's destructive-action posture
+to enterprise / compliance-SaaS standards.
+
+### ✅ Fase 1 — shipped stint 13
+- Immutable audit log (trigger blocks UPDATE/DELETE on `audit_log`)
+- Admin-only gate on cascade delete endpoints
+- Art. 70 LTVA guardrail: cascade refuses if committed declarations
+  (approved / filed / paid) are touched, unless the UI passes an
+  explicit `acknowledge_filed=true` flag AND the reviewer ticks a
+  retention-awareness checkbox
+- `/settings/trash`: browsable soft-archived clients + entities
+  with one-click restore + retention copy
+- Destructive modal copy now mentions audit immutability +
+  auto-purge roadmap
+
+### 🟠 P1 — Fase 2 (before 2nd paying customer)
+| # | Item | Effort |
+|---|---|---|
+| D1 | **Export ZIP before cascade delete** | M |
+| D2 | **Email-confirmation cooldown** (destructive acts on > 50 rows → confirm link in inbox, 15 min expiry) | M |
+| D3 | **Retention policy per-firm** — configurable 30/60/90/365 day auto-purge of archived items (excludes committed declarations) | L |
+| D4 | **Scheduled purge job** — cron that enforces the retention policy; dry-run mode + notification preview | L |
+| D5 | **Delete reason / justification** — free-text field required when cascade-deleting a client with > 10 entities | S |
+| D6 | **Auto-snapshot before delete** — dumps JSON of the target + cascaded children to a cold-storage bucket for 30 days | M |
+
+### 🟡 P2 — Fase 3 (before Big 4 / ALFI presentation)
+| # | Item | Effort |
+|---|---|---|
+| D7 | **Write-once audit bucket** — mirror `audit_log` INSERTs to S3 Object Lock (WORM). Survives even a DB drop. | L |
+| D8 | **Hash-chain on audit_log** — each row carries SHA256(prev_row_hash \|\| this_row_cols). Detects tampering even if triggers bypassed. | M |
+| D9 | **SOC 2 Type I readiness** — control-mapping doc + change-management log for the triggers | L |
+| D10 | **21 CFR Part 11 alignment** — for future pharma-fund customers requiring FDA-grade electronic records | XL |
+| D11 | **Granular cascade control** — UI checklist in the delete modal: "delete declarations but keep AED letters", etc. | M |
+| D12 | **Dry-run API flag** (`?dry_run=true`) — server runs the transaction then ROLLBACKs + returns exact row counts that would have been affected | S |
+| D13 | **Time-delayed account delete** — 72h cooldown on admin-account deletion with email reversal link (AWS pattern) | S |
+
+---
+
 ## 🟠 P1 — first 3-6 months of live product
 
 | # | Item | Effort | Notes |
