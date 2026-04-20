@@ -64,9 +64,9 @@ const COMMANDS: readonly Command[] = [
     kind: 'command',
     id: 'cmd-new-entity',
     label: 'Create new entity',
-    hint: 'SOPARFI, AIFM, SCSp, Holding…',
+    hint: 'Fund, SV, SOPARFI, AIFM, SCSp…',
     href: '/entities/new',
-    keywords: ['create', 'new', 'entity', 'add', 'soparfi', 'fund', 'aifm'],
+    keywords: ['create', 'new', 'entity', 'add', 'soparfi', 'fund', 'aifm', 'securitisation', 'securitization', 'sv', 'raif', 'sif', 'sicar'],
     icon: Building2Icon,
   },
   {

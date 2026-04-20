@@ -355,10 +355,11 @@ function NewEntityPageInner() {
               className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </Field>
-          <Field label="Type" hint="soparfi / aifm / holding">
+          <Field label="Type" hint="fund / securitization_vehicle / active_holding / passive_holding / gp / manco / other">
             <input
               value={form.entity_type}
               onChange={(e) => setForm({ ...form, entity_type: e.target.value })}
+              placeholder="active_holding"
               className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </Field>

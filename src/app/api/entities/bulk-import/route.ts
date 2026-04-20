@@ -31,7 +31,15 @@ import { validateVatNumber } from '@/lib/validation';
 
 const VALID_REGIMES = new Set(['simplified', 'ordinary']);
 const VALID_FREQUENCIES = new Set(['monthly', 'quarterly', 'yearly']);
-const VALID_ENTITY_TYPES = new Set(['fund', 'active_holding', 'passive_holding', 'gp', 'manco', 'other']);
+const VALID_ENTITY_TYPES = new Set([
+  'fund',
+  'securitization_vehicle',
+  'active_holding',
+  'passive_holding',
+  'gp',
+  'manco',
+  'other',
+]);
 
 interface InputRow {
   name?: string;

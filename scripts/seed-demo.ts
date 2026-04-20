@@ -85,7 +85,11 @@ const ENTITIES = [
     matricule: '20172456346',
     rcs_number: 'B212345',
     legal_form: 'SARL',
-    entity_type: 'soparfi',
+    // `active_holding` — the demo narrative is "dividends + limited
+    // intra-group services", which is Cibo-style active management.
+    // A pure passive holding (Polysar) has no VAT registration and
+    // would not appear in a demo return.
+    entity_type: 'active_holding',
     regime: 'simplified' as const,
     frequency: 'annual' as const,
     address: '1, rue de la Liberté, L-1930 Luxembourg',

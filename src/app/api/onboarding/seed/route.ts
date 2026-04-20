@@ -67,8 +67,8 @@ export async function POST() {
          legal_form, entity_type, regime, frequency, address,
          has_fx, has_outgoing, has_recharges,
          notes, vat_status, client_name, client_email)
-       VALUES ($1, $2, 'Demo SOPARFI SARL', 'LU99999999', '20170099999', 'B99999',
-         'SARL', 'soparfi', 'simplified', 'annual',
+       VALUES ($1, $2, 'Demo Active Holding SARL', 'LU99999999', '20170099999', 'B99999',
+         'SARL', 'active_holding', 'simplified', 'annual',
          '15 Boulevard Royal, L-2449 Luxembourg',
          false, false, false,
          'Auto-created demo entity. You can rename or delete from /entities/[id] settings.',
