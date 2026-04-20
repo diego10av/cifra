@@ -10,6 +10,7 @@ import { NextRequest } from 'next/server';
 import { query, queryOne, execute, logAudit } from '@/lib/db';
 import { apiError, apiOk, apiFail } from '@/lib/api-errors';
 import { logger } from '@/lib/logger';
+import { cascadeDeleteClient, previewClientDelete } from '@/lib/cascade-delete';
 
 const log = logger.bind('clients/[id]');
 
@@ -151,22 +152,72 @@ export async function PATCH(
   }
 }
 
+/**
+ * DELETE /api/clients/[id]
+ *
+ * Default (no query): soft-archive. Refuses when the client has
+ * active entities — archiving with orphaned entities corrupts the
+ * hierarchy.
+ *
+ * ?cascade=true: hard-delete the client AND everything underneath
+ * it (entities → declarations → invoices → lines → documents → AED
+ * letters → precedents → registrations → approvers → prorata →
+ * contacts → validator findings → attachments). Atomic — either
+ * everything vanishes or nothing does. No recovery; the reviewer
+ * must acknowledge with a typed-name confirmation in the UI before
+ * this endpoint is called.
+ *
+ * ?confirm=<name> is OPTIONAL server-side check: if provided, must
+ * exactly match the client's current name. Guards against UI
+ * bugs that would accidentally cascade the wrong record.
+ */
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
-    const existing = await queryOne<{ id: string; archived_at: string | null }>(
-      'SELECT id, archived_at FROM clients WHERE id = $1',
+    const url = new URL(request.url);
+    const cascade = url.searchParams.get('cascade') === 'true';
+    const confirmName = url.searchParams.get('confirm');
+
+    const existing = await queryOne<{ id: string; name: string; archived_at: string | null }>(
+      'SELECT id, name, archived_at FROM clients WHERE id = $1',
       [id],
     );
     if (!existing) return apiError('not_found', 'Client not found.', { status: 404 });
+
+    // ─── Cascade hard delete path ───
+    if (cascade) {
+      if (confirmName !== null && confirmName !== existing.name) {
+        return apiError(
+          'confirm_mismatch',
+          `The typed name didn't match. To permanently delete, type "${existing.name}" exactly.`,
+          { status: 400 },
+        );
+      }
+      const preview = await previewClientDelete(id);
+      await cascadeDeleteClient(id);
+      await logAudit({
+        action: 'delete_cascade',
+        targetType: 'client',
+        targetId: id,
+        oldValue: JSON.stringify({
+          name: existing.name,
+          cascaded: preview?.counts,
+        }),
+      });
+      log.info('client cascade-deleted', {
+        client_id: id,
+        name: existing.name,
+        cascaded: preview?.counts,
+      });
+      return apiOk({ ok: true, cascaded: preview?.counts });
+    }
+
+    // ─── Soft archive path (default, safe) ───
     if (existing.archived_at) return apiOk({ already_archived: true });
 
-    // Safety check: refuse to archive a client with active entities.
-    // The user must move or explicitly archive entities first. Avoids
-    // orphaning live workflows.
     const activeEntities = await queryOne<{ n: string }>(
       `SELECT COUNT(*)::text AS n FROM entities WHERE client_id = $1`,
       [id],
@@ -174,8 +225,8 @@ export async function DELETE(
     if (Number(activeEntities?.n) > 0) {
       return apiError(
         'has_entities',
-        `This client owns ${activeEntities?.n} entities. Move or archive them first.`,
-        { status: 409 },
+        `This client owns ${activeEntities?.n} entities. Archive them first, or use "Delete permanently" for a cascade delete.`,
+        { status: 409, hint: 'The confirm-delete modal on the client page offers both paths.' },
       );
     }
 
@@ -187,7 +238,7 @@ export async function DELETE(
     });
 
     log.info('client archived', { client_id: id });
-    return apiOk({ ok: true });
+    return apiOk({ ok: true, archived: true });
   } catch (err) {
     if (isSchemaMissing(err)) {
       return apiError('schema_missing', 'Apply migration 005 first.', { status: 501 });

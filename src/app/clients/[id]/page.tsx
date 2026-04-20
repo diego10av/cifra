@@ -22,6 +22,7 @@ import {
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { ContactsCard } from '@/components/clients/ContactsCard';
 import { describeApiError, formatUiError } from '@/lib/ui-errors';
+import { CascadeDeleteModal } from '@/components/delete/CascadeDeleteModal';
 
 interface Client {
   id: string;
@@ -64,6 +65,7 @@ export default function ClientDetailPage() {
 
   const [data, setData] = useState<ClientData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -82,21 +84,9 @@ export default function ClientDetailPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  async function archiveClient() {
-    if (!data) return;
-    if (!confirm(`Archive ${data.client.name}? This client can't have active entities — move or archive them first if needed.`)) return;
-    try {
-      const res = await fetch(`/api/clients/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const e = await describeApiError(res, `Could not archive ${data.client.name}.`);
-        setError(formatUiError(e));
-        return;
-      }
-      router.push('/clients');
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Network error.');
-    }
-  }
+  // Archive/delete is now routed through CascadeDeleteModal — the
+  // old inline confirm() call couldn't explain the blast radius
+  // or offer archive-vs-cascade-delete paths.
 
   if (!data && !error) return <PageSkeleton />;
 
@@ -146,11 +136,11 @@ export default function ClientDetailPage() {
         </div>
         <div className="flex gap-2 shrink-0">
           <button
-            onClick={archiveClient}
-            className="h-8 px-3 rounded-md border border-border-strong text-[12px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-200"
-            title="Archive client"
+            onClick={() => setDeleteOpen(true)}
+            className="h-8 px-3 rounded-md border border-border-strong text-[12px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-200 inline-flex items-center gap-1.5"
+            title="Archive or permanently delete this client"
           >
-            <Trash2Icon size={13} />
+            <Trash2Icon size={13} /> Delete
           </button>
           <Link
             href={`/clients/${client.id}/bulk-import`}
@@ -270,6 +260,16 @@ export default function ClientDetailPage() {
           )}
         </div>
       </div>
+
+      {/* Cascade-delete modal — Archive or delete permanently */}
+      <CascadeDeleteModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDone={() => { setDeleteOpen(false); router.push('/clients'); }}
+        scope="client"
+        targetId={client.id}
+        targetName={client.name}
+      />
     </div>
   );
 }

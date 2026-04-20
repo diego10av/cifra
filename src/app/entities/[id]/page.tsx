@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Trash2Icon } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { ApproversCard } from '@/components/entity/ApproversCard';
 import { EntityEditCard } from '@/components/entity/EntityEditCard';
+import { CascadeDeleteModal } from '@/components/delete/CascadeDeleteModal';
 
 interface TimelineData {
   entity: {
@@ -29,8 +31,10 @@ interface TimelineData {
 
 export default function EntityDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [data, setData] = useState<TimelineData | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     fetch(`/api/entities/${id}/timeline`).then(r => r.json()).then(setData);
@@ -59,14 +63,37 @@ export default function EntityDetailPage() {
               {e.vat_number && <><span className="text-ink-faint">·</span><span>{e.vat_number}</span></>}
             </div>
           </div>
-          <Link
-            href={`/declarations?entity_id=${id}`}
-            className="h-8 px-3 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 inline-flex items-center cursor-pointer"
-          >
-            All declarations
-          </Link>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setDeleteOpen(true)}
+              className="h-8 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-200 transition-all duration-150 inline-flex items-center gap-1.5"
+              title="Archive or permanently delete this entity"
+            >
+              <Trash2Icon size={12} /> Delete
+            </button>
+            <Link
+              href={`/declarations?entity_id=${id}`}
+              className="h-8 px-3 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 inline-flex items-center cursor-pointer"
+            >
+              All declarations
+            </Link>
+          </div>
         </div>
       </div>
+
+      <CascadeDeleteModal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDone={() => {
+          setDeleteOpen(false);
+          // If we have a parent client, return to that client detail;
+          // else go to the flat entities list.
+          router.push('/entities');
+        }}
+        scope="entity"
+        targetId={id}
+        targetName={e.name}
+      />
 
       <EntityEditCard
         entity={{

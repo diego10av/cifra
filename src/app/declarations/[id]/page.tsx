@@ -30,6 +30,7 @@ import { ProrataPanel } from '@/components/declaration/ProrataPanel';
 import { BulkEditModal } from './BulkEditModal';
 import { ExcelImportModal } from './ExcelImportModal';
 import { AttachmentsModal } from './AttachmentsModal';
+import { CascadeDeleteModal } from '@/components/delete/CascadeDeleteModal';
 import { track } from '@/lib/posthog-client';
 
 // ═══════════════════════════════════════════════════════════════
@@ -42,6 +43,7 @@ export default function DeclarationDetailPage() {
   const toast = useToast();
 
   const [data, setData] = useState<DeclarationData | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [extracting, setExtracting] = useState(false);
   const [classifying, setClassifying] = useState(false);
@@ -647,35 +649,17 @@ export default function DeclarationDetailPage() {
                   Un-file &amp; reopen
                 </button>
               )}
-              {(data.status === 'created' || data.status === 'review') && (
-                <button
-                  onClick={async () => {
-                    const confirmed = confirm(
-                      `Delete this declaration (${data.year} ${data.period})?\n\n`
-                      + `This removes the declaration + all its invoices + classified lines. `
-                      + `The audit log keeps the deletion record. This cannot be undone.`,
-                    );
-                    if (!confirmed) return;
-                    try {
-                      const res = await fetch(`/api/declarations/${id}`, { method: 'DELETE' });
-                      if (!res.ok) {
-                        const e = await describeApiError(res, 'Could not delete the declaration.');
-                        toast.error(e.message, e.hint);
-                        return;
-                      }
-                      toast.success('Declaration deleted.');
-                      router.push('/declarations');
-                    } catch {
-                      toast.error('Network error while deleting.');
-                    }
-                  }}
-                  className="h-8 px-3 rounded-md border border-danger-200 text-[12.5px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-400 transition-all duration-150 inline-flex items-center gap-1.5"
-                  title="Delete this declaration (only allowed before approval)"
-                >
-                  <Trash2Icon size={13} />
-                  Delete
-                </button>
-              )}
+              {/* Delete is now available in ANY status — the modal
+                  surfaces a stronger confirmation when the declaration
+                  is already approved / filed / paid. */}
+              <button
+                onClick={() => setDeleteOpen(true)}
+                className="h-8 px-3 rounded-md border border-danger-200 text-[12.5px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-400 transition-all duration-150 inline-flex items-center gap-1.5"
+                title="Delete this declaration"
+              >
+                <Trash2Icon size={13} />
+                Delete
+              </button>
             </div>
           </header>
 
@@ -1119,6 +1103,19 @@ export default function DeclarationDetailPage() {
           // (added to TimelineData in a parallel tweak).
           aiModeEntity={(data?.entity_ai_mode as 'full' | 'classifier_only') || 'full'}
           onClose={() => setAttachmentsOpen(null)}
+        />
+      )}
+
+      {/* ─────────── CASCADE-DELETE MODAL ─────────── */}
+      {data && (
+        <CascadeDeleteModal
+          open={deleteOpen}
+          onClose={() => setDeleteOpen(false)}
+          onDone={() => { setDeleteOpen(false); router.push('/declarations'); }}
+          scope="declaration"
+          targetId={id}
+          targetName={`${data.entity_name} · ${data.year} ${data.period}`}
+          status={data.status}
         />
       )}
     </div>

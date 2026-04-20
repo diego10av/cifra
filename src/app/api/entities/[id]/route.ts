@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, execute, logAudit, initializeSchema } from '@/lib/db';
 import { validateVatNumber, validateIban } from '@/lib/validation';
 import { apiError } from '@/lib/api-errors';
+import { cascadeDeleteEntity, previewEntityDelete } from '@/lib/cascade-delete';
 
 // GET /api/entities/:id
 export async function GET(
@@ -88,30 +89,71 @@ export async function PUT(
 }
 
 // DELETE /api/entities/:id - soft delete
+/**
+ * DELETE /api/entities/[id]
+ *
+ * Default: soft-archive (sets deleted_at + deleted_reason; keeps
+ * children intact). Good for "moving to bin" on active workspaces.
+ *
+ * ?cascade=true: hard-delete the entity + all declarations under
+ * it + all invoices + lines + documents + AED letters + precedents
+ * + registrations + approvers + prorata. Atomic.
+ *
+ * ?confirm=<name> optional server-side guard against UI bugs.
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   await initializeSchema();
   const { id } = await params;
+  const url = new URL(request.url);
+  const cascade = url.searchParams.get('cascade') === 'true';
+  const confirmName = url.searchParams.get('confirm');
   const body = await request.json().catch(() => ({}));
 
-  const existing = await queryOne('SELECT * FROM entities WHERE id = $1', [id]);
+  const existing = await queryOne<{
+    id: string; name: string; deleted_at: string | null;
+  }>(
+    'SELECT id, name, deleted_at FROM entities WHERE id = $1',
+    [id],
+  );
   if (!existing) return NextResponse.json({ error: 'Entity not found' }, { status: 404 });
+
+  if (cascade) {
+    if (confirmName !== null && confirmName !== existing.name) {
+      return apiError(
+        'confirm_mismatch',
+        `The typed name didn't match. To permanently delete, type "${existing.name}" exactly.`,
+        { status: 400 },
+      );
+    }
+    const preview = await previewEntityDelete(id);
+    await cascadeDeleteEntity(id);
+    await logAudit({
+      entityId: id,
+      action: 'delete_cascade',
+      targetType: 'entity',
+      targetId: id,
+      oldValue: JSON.stringify({
+        name: existing.name,
+        cascaded: preview?.counts,
+      }),
+    });
+    return NextResponse.json({ ok: true, cascaded: preview?.counts });
+  }
+
+  // Soft-archive path (default).
   if (existing.deleted_at) return NextResponse.json({ error: 'Entity already deleted' }, { status: 409 });
-
   const reason = body.reason || 'user_deleted';
-
   await execute(
     "UPDATE entities SET deleted_at = NOW(), deleted_reason = $1, updated_at = NOW() WHERE id = $2",
     [reason, id]
   );
-
   await logAudit({
     entityId: id, action: 'delete', targetType: 'entity', targetId: id,
     oldValue: JSON.stringify({ name: existing.name }),
     newValue: reason,
   });
-
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, archived: true });
 }

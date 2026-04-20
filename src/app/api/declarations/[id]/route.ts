@@ -170,19 +170,21 @@ export async function PATCH(
 
 // DELETE /api/declarations/:id
 //
-// Only allowed in statuses 'created' or 'review' — i.e. BEFORE the
-// reviewer has approved. Once approved / filed / paid, the declaration
-// is legally committed and we never delete: the reviewer must Reopen
-// and then transition through the lifecycle if something needs fixing.
+// Defaults to "refuse unless status ∈ {created, review}" — the safety
+// rail. A ?force=true query param bypasses the status check; callers
+// (the UI confirm modal) must surface the stronger warning first.
 //
-// Added stint 11 (2026-04-19) — blocked tomorrow's real-use test
-// because mistakes-during-creation had no exit path.
+// Added stint 11 (2026-04-19); extended stint 13 (2026-04-20) to
+// allow cascade-delete of filed/paid declarations after a stronger
+// UI confirmation, per Diego's "can't clear test data" feedback.
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   await initializeSchema();
   const { id } = await params;
+  const url = new URL(request.url);
+  const force = url.searchParams.get('force') === 'true';
 
   const decl = await queryOne<{
     id: string; status: string; year: number; period: string; entity_id: string;
@@ -192,11 +194,12 @@ export async function DELETE(
   );
   if (!decl) return NextResponse.json({ error: 'Declaration not found' }, { status: 404 });
 
-  // Guard: approved/filed/paid → refuse.
-  if (decl.status === 'approved' || decl.status === 'filed' || decl.status === 'paid') {
+  // Guard: approved/filed/paid → refuse UNLESS ?force=true.
+  const locked = decl.status === 'approved' || decl.status === 'filed' || decl.status === 'paid';
+  if (locked && !force) {
     return NextResponse.json({
       error: 'declaration_locked',
-      message: `Cannot delete a ${decl.status} declaration. Reopen it to review first, then contact support if it needs to be permanently removed.`,
+      message: `Cannot delete a ${decl.status} declaration without explicit force. The UI should ask the reviewer to confirm twice before sending ?force=true.`,
     }, { status: 409 });
   }
 
@@ -230,6 +233,6 @@ export async function DELETE(
     oldValue: JSON.stringify({ status: decl.status, year: decl.year, period: decl.period }),
   });
 
-  log.info('declaration deleted', { declaration_id: id, status: decl.status });
-  return NextResponse.json({ ok: true });
+  log.info('declaration deleted', { declaration_id: id, status: decl.status, forced: force });
+  return NextResponse.json({ ok: true, forced: force });
 }
