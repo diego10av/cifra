@@ -286,16 +286,16 @@ function DeclarationsContent() {
       {declarations.length === 0 ? (
         <Card>
           <EmptyState
-            icon={<FileTextIcon size={22} />}
+            illustration="empty_declarations"
             title="No declarations yet"
             description={
               entities.length === 0
-                ? 'Create a client entity first, then start your first declaration.'
-                : 'Click "New declaration" above to start your first one.'
+                ? 'Declarations hang off entities. Create a client and its first entity, then start your first declaration.'
+                : 'Each declaration follows the lifecycle: upload invoices → extract → classify → approve → file. Click "New declaration" above to start the first one.'
             }
             action={
               entities.length === 0
-                ? <Link href="/entities"><Button variant="primary">Create a client</Button></Link>
+                ? <Link href="/clients/new"><Button variant="primary">Create first client</Button></Link>
                 : <Button variant="primary" icon={<PlusIcon size={14} />} onClick={() => setShowForm(true)}>New declaration</Button>
             }
           />
@@ -303,9 +303,14 @@ function DeclarationsContent() {
       ) : visible.length === 0 ? (
         <Card>
           <EmptyState
-            icon={<FileTextIcon size={22} />}
+            illustration="empty_search"
             title="No declarations match"
-            description={search.trim() ? `Nothing matches "${search}". Try a different search or clear the filter.` : 'Try a different status filter.'}
+            description={search.trim() ? `Nothing matches "${search}". Try a different search or clear the filter.` : 'Try a different status filter or clear it to see everything.'}
+            action={
+              search.trim() || statusFilter !== 'all'
+                ? <Button variant="secondary" onClick={() => { setSearch(''); setStatusFilter('all'); }}>Clear filters</Button>
+                : undefined
+            }
           />
         </Card>
       ) : (

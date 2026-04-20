@@ -66,9 +66,9 @@ export default function DeadlinesPage() {
       <Card className="overflow-hidden">
         {visible.length === 0 ? (
           <EmptyState
-            icon={<CalendarIcon size={22} />}
+            illustration="empty_deadlines"
             title="Nothing here"
-            description="No items match this filter. Try 'All' to see the full list."
+            description="No items match this filter. Switch to 'All' to see the full list — or nothing is actually due."
           />
         ) : (
           <table className="w-full text-[12.5px]">

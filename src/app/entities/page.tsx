@@ -121,18 +121,16 @@ export default function EntitiesPage() {
       {entities.length === 0 && (
         <Card>
           <EmptyState
-            icon={<BuildingIcon size={22} />}
+            illustration="empty_clients"
             title="No entities yet"
-            description="Start by creating a client. Entities hang off clients — you can't create an entity without one."
+            description="Entities (SOPARFIs, AIFMs, SCSps, holdings) hang off clients. Create a client and its first entity to start preparing returns."
             action={
-              <div className="flex gap-2 justify-center">
-                <Link
-                  href="/clients/new"
-                  className="h-9 px-4 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
-                >
-                  <PlusIcon size={13} /> Create first client
-                </Link>
-              </div>
+              <Link
+                href="/clients/new"
+                className="h-9 px-4 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
+              >
+                <PlusIcon size={13} /> Create first client
+              </Link>
             }
           />
         </Card>
@@ -165,11 +163,11 @@ export default function EntitiesPage() {
       {entities.length > 0 && filtered.length === 0 && (
         <Card>
           <EmptyState
-            icon={<BuildingIcon size={22} />}
+            illustration={vatFilter === 'pending' && !q ? 'empty_approved' : 'empty_search'}
             title={q ? 'No matches' : (vatFilter === 'pending' ? 'No pending registrations' : 'No matches')}
             description={
               vatFilter === 'pending' && !q
-                ? 'All entities are already VAT-registered.'
+                ? 'All entities are already VAT-registered — nothing waiting for AED paperwork.'
                 : 'Adjust the search or switch filter to see more.'
             }
           />

@@ -186,11 +186,11 @@ export default function AEDLettersPage() {
       {visible.length === 0 ? (
         <div className="bg-surface border border-border rounded-xl shadow-xs">
           <EmptyState
-            icon={<InboxIcon size={22} />}
+            illustration={statusFilter === 'open' ? 'empty_approved' : 'empty_inbox'}
             title={statusFilter === 'open' ? 'Inbox is clear' : 'No letters here'}
             description={
               statusFilter === 'open'
-                ? 'No AED letters awaiting action right now. When a new letter is uploaded, Claude reads it and it lands here with a suggested next step.'
+                ? 'No AED letters awaiting action right now. When you upload a letter, Claude reads it and it lands here with a suggested next step + per-category appeal deadline.'
                 : 'Try switching the filter, or upload an AED letter to see it classified automatically.'
             }
             action={
