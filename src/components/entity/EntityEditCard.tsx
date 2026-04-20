@@ -14,8 +14,9 @@
 // ════════════════════════════════════════════════════════════════════════
 
 import { useEffect, useState } from 'react';
-import { PencilIcon, CheckIcon, XIcon, Loader2Icon } from 'lucide-react';
+import { PencilIcon, CheckIcon, XIcon, Loader2Icon, ClockIcon } from 'lucide-react';
 import { useToast } from '@/components/Toaster';
+import { useDraft } from '@/lib/use-draft';
 
 export interface EntityEditable {
   id: string;
@@ -52,12 +53,24 @@ export function EntityEditCard({
   onSaved: (next: EntityEditable) => void;
 }) {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState<EntityEditable>(entity);
+  // Persist the in-progress draft to localStorage so a closed tab
+  // doesn't lose the reviewer's changes. Cleared on a successful save
+  // or explicit cancel + "discard draft".
+  const [draft, setDraft, draftMeta] = useDraft<EntityEditable>(
+    `entity-edit:${entity.id}`,
+    entity,
+  );
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const toast = useToast();
 
-  useEffect(() => { if (!editing) setDraft(entity); }, [entity, editing]);
+  // When the entity prop changes AND we're not editing, reset the draft
+  // to the authoritative server value. If a draft exists, we leave it
+  // so the reviewer can choose to resume.
+  useEffect(() => {
+    if (!editing && !draftMeta.hasDraft) setDraft(entity);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entity, editing, draftMeta.hasDraft]);
 
   async function save() {
     if (!draft.name || draft.name.trim().length === 0) {
@@ -93,6 +106,7 @@ export function EntityEditCard({
       toast.success('Entity updated.');
       onSaved(draft);
       setEditing(false);
+      draftMeta.clear();
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Network error.');
     } finally {
@@ -108,6 +122,12 @@ export function EntityEditCard({
             <span className="uppercase tracking-wide font-semibold text-ink-muted text-[10px]">
               Entity profile
             </span>
+            {draftMeta.hasDraft && (
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide font-semibold bg-amber-50 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5">
+                <ClockIcon size={9} />
+                Unsaved draft
+              </span>
+            )}
           </div>
           <dl className="mt-2 grid grid-cols-3 md:grid-cols-6 gap-x-4 gap-y-2 text-[11.5px]">
             <MetaField label="Legal form" value={entity.legal_form} />
@@ -274,25 +294,53 @@ export function EntityEditCard({
         </label>
       </div>
 
-      <div className="mt-3 flex justify-end gap-2">
-        <button
-          onClick={() => { setEditing(false); setErr(null); setDraft(entity); }}
-          disabled={saving}
-          className="h-8 px-3 rounded border border-border-strong text-[12px] text-ink-muted hover:text-ink"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={save}
-          disabled={saving}
-          className="h-8 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
-        >
-          {saving ? <Loader2Icon size={12} className="animate-spin" /> : <CheckIcon size={12} />}
-          {saving ? 'Saving…' : 'Save changes'}
-        </button>
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="text-[10.5px] text-ink-muted inline-flex items-center gap-1.5">
+          {draftMeta.lastSavedAt && (
+            <>
+              <ClockIcon size={10} />
+              Draft auto-saved {formatRelativeTime(draftMeta.lastSavedAt)}
+            </>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {draftMeta.hasDraft && (
+            <button
+              onClick={() => { draftMeta.clear(); setDraft(entity); }}
+              className="h-8 px-3 rounded border border-border text-[12px] text-ink-muted hover:text-ink"
+              title="Discard the auto-saved draft and revert to the current saved values"
+            >
+              Discard draft
+            </button>
+          )}
+          <button
+            onClick={() => { setEditing(false); setErr(null); }}
+            disabled={saving}
+            className="h-8 px-3 rounded border border-border-strong text-[12px] text-ink-muted hover:text-ink"
+            title="Close the editor — the draft stays in your browser and restores next time"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={save}
+            disabled={saving}
+            className="h-8 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
+          >
+            {saving ? <Loader2Icon size={12} className="animate-spin" /> : <CheckIcon size={12} />}
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+        </div>
       </div>
     </div>
   );
+}
+
+function formatRelativeTime(ts: number): string {
+  const secs = Math.round((Date.now() - ts) / 1000);
+  if (secs < 5) return 'just now';
+  if (secs < 60) return `${secs}s ago`;
+  if (secs < 3600) return `${Math.round(secs / 60)}m ago`;
+  return `${Math.round(secs / 3600)}h ago`;
 }
 
 function formatEntityType(v: string | null): string | null {
