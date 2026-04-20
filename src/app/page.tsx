@@ -54,6 +54,13 @@ interface AedLetter {
 
 type Role = 'admin' | 'reviewer' | 'junior' | 'client';
 
+interface BudgetStatus {
+  month_spend_eur: number;
+  limit_eur: number;
+  pct_used: number;
+  remaining_eur: number;
+}
+
 export default function Home() {
   const router = useRouter();
   const [entities, setEntities] = useState<Entity[] | null>(null);
@@ -64,6 +71,7 @@ export default function Home() {
   const [seeding, setSeeding] = useState(false);
   const [seedError, setSeedError] = useState<string | null>(null);
   const [role, setRole] = useState<Role>('admin');
+  const [budget, setBudget] = useState<BudgetStatus | null>(null);
 
   // Read the dismiss flag once on mount. SSR-safe (client-only component).
   useEffect(() => {
@@ -87,6 +95,12 @@ export default function Home() {
       setDeadlines(dl.status === 'fulfilled' ? dl.value : []);
       setAed(a.status === 'fulfilled' ? a.value : []);
     });
+    // Budget — silent 403 for junior role (middleware blocks it); admin
+    // + reviewer see the status.
+    fetch('/api/metrics')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.budget) setBudget(data.budget as BudgetStatus); })
+      .catch(() => { /* ignore */ });
   }, []);
 
   if (!entities || !declarations || !deadlines || !aed) return <PageSkeleton />;
@@ -239,6 +253,9 @@ export default function Home() {
 
       {/* ── Today's focus banner — the single most-leveraged action ── */}
       {!isFirstTime && <TodaysFocusBanner focus={focus} />}
+
+      {/* ── Budget warning (admin/reviewer only; junior never sees this) ── */}
+      {budget && budget.pct_used >= 0.75 && <BudgetWarningBanner budget={budget} />}
 
       {/* ── Priority cards (attention + AED + overdue) ─────────────── */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
@@ -679,6 +696,50 @@ function computeTodaysFocus({
     href: '/declarations',
     cta: 'Open declarations',
   };
+}
+
+function BudgetWarningBanner({ budget }: { budget: BudgetStatus }) {
+  const pct = Math.round(budget.pct_used * 100);
+  const tone =
+    pct >= 100 ? { bar: 'bg-danger-500', pill: 'bg-danger-500 text-white', border: 'border-danger-300', bg: 'bg-danger-50' }
+    : pct >= 90 ? { bar: 'bg-danger-500', pill: 'bg-danger-500 text-white', border: 'border-danger-200', bg: 'bg-danger-50/60' }
+    : { bar: 'bg-amber-500', pill: 'bg-amber-500 text-white', border: 'border-amber-200', bg: 'bg-amber-50/60' };
+  const verb =
+    pct >= 100 ? 'over budget'
+    : pct >= 90 ? 'near the cap'
+    : 'building fast';
+  return (
+    <div className={`mb-6 rounded-xl border ${tone.border} ${tone.bg} p-4 md:p-5`}>
+      <div className="flex items-start gap-4">
+        <div className={`shrink-0 inline-flex items-center justify-center h-8 px-2.5 rounded-md text-[10.5px] font-semibold tracking-wide uppercase ${tone.pill}`}>
+          Anthropic budget
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[14.5px] font-semibold text-ink leading-tight">
+            AI spend at {pct}% of €{budget.limit_eur.toFixed(0)} monthly cap — {verb}.
+          </h3>
+          <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+            €{budget.month_spend_eur.toFixed(2)} used · €{budget.remaining_eur.toFixed(2)} remaining.
+            {pct >= 100
+              ? ' Extract / validate / chat endpoints are blocked until next month or you raise the cap.'
+              : pct >= 90
+                ? ' Approaching the hard cap. Raise it now or defer heavy runs to next month.'
+                : ' Keep an eye on validator runs — they\'re the costliest calls.'}
+          </p>
+          <div className={`mt-3 h-1.5 w-full bg-surface-alt rounded-full overflow-hidden`}>
+            <div className={`h-full ${tone.bar} transition-all duration-300`} style={{ width: `${Math.min(pct, 100)}%` }} />
+          </div>
+        </div>
+        <Link
+          href="/metrics"
+          className="shrink-0 h-8 px-3.5 rounded-md bg-ink text-white text-[12px] font-semibold hover:bg-ink-soft inline-flex items-center gap-1.5"
+        >
+          Open metrics
+          <ArrowRightIcon size={12} />
+        </Link>
+      </div>
+    </div>
+  );
 }
 
 function TodaysFocusBanner({ focus }: { focus: Focus }) {

@@ -127,14 +127,24 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
             that <strong>you</strong> made the final call, not the AI.
           </p>
         </div>
-        <a
-          href={`/api/declarations/${declarationId}/audit-log.pdf`}
-          target="_blank"
-          rel="noreferrer"
-          className="shrink-0 h-9 px-3.5 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 transition-colors inline-flex items-center gap-1.5"
-        >
-          <DownloadIcon size={14} /> Export PDF
-        </a>
+        <div className="shrink-0 flex gap-2">
+          <a
+            href={`/api/declarations/${declarationId}/audit-log.csv`}
+            className="h-9 px-3.5 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:text-ink transition-colors inline-flex items-center gap-1.5"
+            title="Download as CSV for accounting / reconciliation"
+          >
+            <DownloadIcon size={14} /> CSV
+          </a>
+          <a
+            href={`/api/declarations/${declarationId}/audit-log.pdf`}
+            target="_blank"
+            rel="noreferrer"
+            className="h-9 px-3.5 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 transition-colors inline-flex items-center gap-1.5"
+            title="Formal audit PDF for AED defence + retention"
+          >
+            <DownloadIcon size={14} /> PDF
+          </a>
+        </div>
       </div>
 
       {/* ─── Summary stats ─── */}
