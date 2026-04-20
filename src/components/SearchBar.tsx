@@ -103,6 +103,15 @@ const COMMANDS: readonly Command[] = [
   },
   {
     kind: 'command',
+    id: 'cmd-goto-closing',
+    label: 'Open closing dashboard',
+    hint: 'Which entities still need this quarter?',
+    href: '/closing',
+    keywords: ['closing', 'quarter', 'dashboard', 'q1', 'q2', 'q3', 'q4', 'go', 'open'],
+    icon: CalendarIcon,
+  },
+  {
+    kind: 'command',
     id: 'cmd-goto-legal-watch',
     label: 'Open Legal watch',
     hint: 'LTVA + Directive + CJEU + circulars',

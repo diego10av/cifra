@@ -87,6 +87,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
           case 's': e.preventDefault(); goTo('/settings'); return;
           case 'a': e.preventDefault(); goTo('/audit'); return;
           case 'i': e.preventDefault(); goTo('/aed-letters'); return;
+          case 'p': e.preventDefault(); goTo('/closing'); return;
           default:
             setPendingLeader(null);
             return;
@@ -148,6 +149,7 @@ function ShortcutsHelp({ currentPath }: { currentPath: string }) {
         <Row keys={['g', 'e']} desc="Go to Entities" />
         <Row keys={['g', 'd']} desc="Go to Declarations" />
         <Row keys={['g', 'i']} desc="Go to AED inbox" />
+        <Row keys={['g', 'p']} desc="Go to Closing dashboard (current quarter)" />
         <Row keys={['g', 'l']} desc="Go to Legal watch (admin / reviewer)" />
         <Row keys={['g', 'a']} desc="Go to Audit (admin / reviewer)" />
         <Row keys={['g', 's']} desc="Go to Settings (admin / reviewer)" />
