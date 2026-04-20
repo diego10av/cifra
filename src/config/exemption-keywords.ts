@@ -307,9 +307,13 @@ export const BAD_DEBT_KEYWORDS: readonly string[] = [
   'debt write-off', 'radiation de créance',
 ];
 
-// ── Platform economy — deemed supplier (Versãofast / Fenix / ViDA) ──
+// ── Platform economy — deemed supplier (Fenix / ViDA) ──
 // Identifies invoices from platforms that are deemed the supplier for
 // B2C transactions under Art. 9a Reg. 282/2011 + ViDA 2027 extension.
+// Authority: Fenix International C-695/20 (validity of Art. 9a).
+// NOTE: Versãofast T-657/24 was PREVIOUSLY cited here but is a CREDIT
+// INTERMEDIATION case, not a platform-economy case — the correct
+// attribution is in CREDIT_INTERMEDIATION_KEYWORDS (RULE 36).
 export const PLATFORM_DEEMED_SUPPLIER_KEYWORDS: readonly string[] = [
   'marketplace facilitator', 'deemed supplier',
   'plateforme de distribution', 'intermédiaire numérique',
@@ -419,6 +423,104 @@ export const STRUCTURING_FEE_KEYWORDS: readonly string[] = [
   'formation fee', 'organisational fee',
   'frais de structuration', 'frais de constitution',
   'strukturierungsgebühr',
+];
+
+// ── Credit intermediation (Versãofast T-657/24 / Ludwig C-453/05) ──
+// Materially widened safe harbour post-26 November 2025. Drives RULE 36:
+// LU → LUX_00, EU → RC_EU_EX, non-EU → RC_NONEU_EX (Art. 44§1 a LTVA).
+// Counter-examples (still taxable): pure marketing, generic info, data
+// enrichment to a bank, debt collection (Aspiro C-40/15 — handled on the
+// SV servicer path in RULE 37, not here).
+export const CREDIT_INTERMEDIATION_KEYWORDS: readonly string[] = [
+  // English
+  'credit intermediation', 'credit broker', 'credit brokering',
+  'mortgage broker', 'mortgage brokering', 'mortgage intermediation',
+  'loan broker', 'loan brokering', 'loan intermediation',
+  'loan origination', 'loan originator', 'loan referral',
+  'home loan broker', 'consumer-credit intermediation', 'consumer credit broker',
+  'credit application assistance', 'credit mediation',
+  'negotiation of credit', 'negotiation of loan', 'negotiation of loans',
+  'private-debt placement', 'private debt placement',
+  'placement agent private debt',
+  'loan arrangement fee — intermediation', // flagged variant
+  // French
+  'intermédiation crédit', 'intermédiation de crédit', 'intermédiaire en crédit',
+  'courtier en crédit', 'courtier en prêts', 'courtier en prêts immobiliers',
+  'courtage de prêt', 'courtage en prêts', 'courtage en crédits',
+  'apporteur d\'affaires crédit', 'apport d\'affaires crédit',
+  'intermédiation en opérations de banque',
+  // German
+  'kreditvermittlung', 'kreditvermittler', 'kreditmakler',
+  'darlehensvermittlung', 'hypothekenvermittler',
+  // Italian
+  'mediazione creditizia', 'mediatore creditizio', 'intermediazione creditizia',
+  // Spanish
+  'intermediación crediticia', 'intermediación de crédito', 'mediación crediticia',
+  'corredor de créditos', 'corredor de préstamos',
+  // Portuguese
+  'mediação de crédito', 'mediador de crédito', 'intermediário de crédito',
+  'corretor de crédito', 'corretor de empréstimos',
+  // Dutch
+  'kredietbemiddeling', 'kredietbemiddelaar', 'hypotheekbemiddeling',
+];
+
+// ── Securitization vehicle — fund-management exemption perimeter ──
+// For entity_type = 'securitization_vehicle'. Management services received
+// by the SV are exempt Art. 44§1 d per Fiscale Eenheid X C-595/13 extension,
+// Loi du 22 mars 2004 (modifiée 2022). The classifier path piggy-backs on
+// the existing FUND_MGMT_KEYWORDS list — these are the additional SV-specific
+// phrases that the fund list did not cover.
+export const SECURITIZATION_MGMT_KEYWORDS: readonly string[] = [
+  // English — SV-specific management / admin
+  'securitization vehicle management', 'securitisation vehicle management',
+  'sv management', 'sv administration',
+  'compartment management', 'compartment administration',
+  'securitisation administration', 'securitization administration',
+  'calculation agent', 'agent de calcul',
+  'paying agent', 'agent payeur',
+  'listing agent', 'agent de cotation',
+  'corporate administration services', // SV-specific when combined with SV-vehicle context
+  'asset-backed note administration', 'notes administration',
+  'waterfall calculation', 'waterfall administration', // distinct from the distribution keywords
+  // French
+  'administration du véhicule de titrisation', 'gestion du véhicule de titrisation',
+  'administration des compartiments', 'gestion des compartiments',
+  // German
+  'verbriefungsverwaltung', 'verwaltung der verbriefungsgesellschaft',
+  // Italian
+  'amministrazione veicolo di cartolarizzazione',
+  // Portuguese
+  'administração veículo de titularização',
+];
+
+// ── Securitization-vehicle SERVICER / debt-collection keywords ──
+// Triggers the Aspiro C-40/15 split-analysis flag when the recipient is a
+// securitization_vehicle. Servicer agreements often bundle exempt management
+// (cash management, reporting) with taxable collection / enforcement — cifra
+// refuses to auto-exempt and routes to the reviewer.
+export const SECURITIZATION_SERVICER_KEYWORDS: readonly string[] = [
+  // English
+  'servicing agreement', 'servicer fee', 'servicer fees',
+  'master servicer', 'special servicer', 'back-up servicer',
+  'debt collection', 'collection services', 'collections administration',
+  'loan recovery', 'receivables recovery', 'recovery services',
+  'delinquency management', 'delinquent loan servicing',
+  'enforcement services', 'enforcement against debtor',
+  'portfolio servicing',
+  'npl servicing', 'non-performing loan servicing',
+  // French
+  'convention de servicing', 'accord de servicing',
+  'recouvrement de créances', 'recouvrement amiable', 'recouvrement contentieux',
+  'gestion des impayés', 'gestion du contentieux créances',
+  // German
+  'servicing-vertrag', 'forderungseinzug', 'inkassotätigkeit',
+  'mahnwesen', 'forderungsmanagement',
+  // Italian
+  'contratto di servicing', 'recupero crediti',
+  // Spanish
+  'contrato de servicing', 'recuperación de créditos',
+  // Portuguese
+  'contrato de servicing', 'recuperação de créditos',
 ];
 
 // ── IGP / cost-sharing (Art. 44§1 y LTVA / Art. 132(1)(f) Directive) ──

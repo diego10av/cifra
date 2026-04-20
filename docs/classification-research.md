@@ -449,8 +449,449 @@ the cross-border leg.
 
 ---
 
+## 9. Credit intermediation — Versãofast T-657/24 (the Portuguese broker case)
+
+### Why this matters for LU
+
+Luxembourg hosts a dense network of **credit intermediaries**: mortgage
+brokers, placement agents for private-debt funds, loan-origination
+platforms, and fund-level intermediaries bringing lenders and borrowers
+together. Each of these issues fees whose VAT treatment pivots on
+whether the service qualifies as *negotiation of credit* under
+**Art. 44§1 (a) LTVA** / **Art. 135(1)(b) Directive 2006/112/EC**.
+
+Prior to 2025 the exemption perimeter was narrowly read post-**CSC
+Financial C-235/00** (2001) and **DTZ Zadelhoff C-259/11** (2012):
+generic marketing / referral / informational services were taxable;
+only services that brought specific named parties to a specific contract
+qualified. The **26 November 2025** ruling of the General Court in
+**Versãofast T-657/24** (Portuguese mortgage broker) materially widened
+the safe harbour.
+
+### Statutory + case-law scaffold
+
+| Source | Year | Summary |
+|---|---|---|
+| **LTVA Art. 44§1 (a)** | — | Exempts "financial operations, including the granting, negotiation and management of credit". |
+| **Directive 2006/112 Art. 135(1)(b)** | — | EU source for credit exemption. |
+| **CJEU C-235/00 CSC Financial** | 2001 | "Negotiation" requires bringing specific parties to a specific contract, not generic information provision. |
+| **CJEU C-453/05 Ludwig** | 2007 | Credit-intermediation services provided to a loan-broker principal by a sub-agent are exempt — the exemption is not limited to the direct contract party. |
+| **CJEU C-259/11 DTZ Zadelhoff** | 2012 | Reinforces CSC's narrow reading for securities intermediation. |
+| **CJEU C-40/15 Aspiro** | 2016 | Insurance-claims handling is NOT exempt — the services outsourced must retain their "essential and specific" character of insurance intermediation. |
+| **CJEU C-801/19 Franck** | 2020 | Factoring-adjacent financing arrangements may still fall within the granting-of-credit exemption; the economic substance test governs. |
+| **GC T-657/24 Versãofast** | **2025-11-26** | The VAT exemption for credit intermediation applies to a broker who actively searches for and recruits customers for home-loan agreements. Pre-contractual activities AND administrative tasks qualify, provided the overall aim is to bring parties together. The intermediary need NOT have power to bind the credit institution. Applies to professional AND non-professional intermediaries. |
+
+### The Versãofast test (applied)
+
+The General Court clarified that an activity qualifies for the credit-
+intermediation exemption when **all** of the following hold:
+
+1. **The overall aim is to bring a lender and a borrower into a contract.** Not just information, not just lead-generation without follow-through.
+2. **The intermediary is active** (searches for customers, recruits them, follows up through pre-contract + application phases).
+3. **Administrative / ancillary tasks do not disqualify** — credit-application paperwork, identity / credit checks, document forwarding, even signing assistance are all within the exemption when they are part of the intermediation mandate.
+4. **The intermediary need not have contractual power to bind** the credit institution. A "mere recruiter" qualifies.
+5. **Professional status is not required.** The exemption applies whether or not the intermediary is regulated / authorised.
+
+**Counter-examples (still taxable post-Versãofast):**
+- Pure marketing / advertising placement without customer recruitment
+- Generic information platforms with no follow-through on specific contracts
+- Data-enrichment / lead-scoring services sold to a bank (not intermediation of a credit contract)
+- Debt-collection / servicing (Aspiro C-40/15 — not intermediation; see §11 on SV debt-collection)
+- Insurance-policy administration where the core insurance service has already been contracted
+
+### cifra classifier behaviour (new RULE 36)
+
+New keyword family `CREDIT_INTERMEDIATION_KEYWORDS` covering:
+
+```
+'credit intermediation', 'credit broker', 'mortgage broker', 'mortgage intermediation',
+'loan broker', 'loan intermediation', 'loan origination', 'loan referral',
+'credit application assistance', 'home loan broker', 'consumer-credit intermediation',
+'intermédiation crédit', 'intermédiation de crédit', 'courtier en crédit',
+'courtier en prêts', 'courtage de prêt', 'courtage en prêts immobiliers',
+'apporteur d''affaires crédit', 'apport d''affaires crédit',
+'kreditvermittlung', 'kreditvermittler', 'kreditmakler',
+'mediação de crédito', 'mediador de crédito' /* Portuguese */,
+'intermediación crediticia', 'intermediación de crédito',
+'mediazione creditizia',
+'negotiation of credit', 'negotiation of loan',
+'placement-agent private debt', 'private-debt placement',
+```
+
+**Routing** (first match wins):
+- Direction: `incoming`
+- Exemption-reference `exRef` empty OR does not already hit Art. 44§1(a) (otherwise RULE 7A handles it)
+- Keyword in `CREDIT_INTERMEDIATION_KEYWORDS` present
+
+| Supplier country | No VAT charged | Treatment | Reason |
+|---|---|---|---|
+| LU | Yes | `LUX_00` | Exempt Art. 44§1 (a) LTVA — credit intermediation (Versãofast T-657/24; Ludwig C-453/05). |
+| EU | Yes | `RC_EU_EX` | Reverse charge, exempt Art. 44§1 (a) LTVA (Versãofast). |
+| Non-EU | Yes | `RC_NONEU_EX` | Reverse charge, exempt Art. 44§1 (a) LTVA. Deduction allowed if recipient is LU → non-EU (Art. 49§2). |
+
+**Flag**: always `true`. The flag reason invites the reviewer to verify:
+- Whether the service is genuinely intermediation (CSC/DTZ) versus a marketing/advisory carve-out
+- Whether the Ludwig sub-agent extension applies if there is a chain
+- Whether the recipient entity's activity justifies deduction (pro-rata / Art. 49§2)
+
+### The Versãofast misattribution (fix in stint 2026-04-20)
+
+Prior to this stint, `legal-sources.ts` attributed Versãofast T-657/24
+to *"referral fees and fund management exemption"* and the classifier
+cited it in **RULE 22** (platform deemed supplier, alongside Fenix
+C-695/20). Both attributions are wrong:
+
+- Versãofast is about **Art. 135(1)(b) credit intermediation**, not Art. 135(1)(g) fund management.
+- Versãofast is NOT a platform-economy case. The deemed-supplier authority is Fenix C-695/20; Versãofast does not belong in RULE 22.
+
+Fix: (i) rewrite the `VERSAOFAST` entry in `legal-sources.ts` to reflect
+the actual subject; (ii) remove the Versãofast citation from RULE 22;
+(iii) add RULE 36 with the correct attribution.
+
+---
+
+## 10. SOPARFI as a VAT subject — the default-not-registered rule
+
+### The market-practice reality
+
+A **SOPARFI** (*société de participations financières*) is a regime
+label, not a corporate form and not a VAT status. Strictly it refers
+to any LU-incorporated company (SA / SARL / SCA / …) that relies on the
+**participation-exemption regime under Art. 166 LIR** for its
+income-tax position on dividend and capital-gain flows from qualifying
+subsidiaries. Nothing in the SOPARFI label itself says anything about
+VAT.
+
+**BUT:** in LU market practice, the overwhelming majority of SOPARFIs
+operate as *pure passive holding vehicles* — they hold shares, receive
+dividends, pay out dividends. They do not provide services to their
+subsidiaries.
+
+### The VAT consequences of that market reality
+
+| SOPARFI profile | VAT status | Can register for VAT? | Input-VAT deduction |
+|---|---|---|---|
+| **Pure passive holding** (dividends only) | **NOT a taxable person** (Polysar C-60/90) | **NO** — no economic activity → no VAT registration available | None (Art. 49§1 LTVA) |
+| **Active / mixed holding** (charges services to subsidiaries: management, financing with management, admin) | Taxable person for those services (Cibo C-16/00, Marle C-320/17) | YES for the active part | Pro-rata on common costs; full on taxable-related |
+| **Financing-only holding** (loans to subs, no other services) | Taxable person if loans are an economic activity at scale; otherwise passive | Case-by-case; often passive | Art. 44§1 (a) exempt supplies → no deduction unless Art. 49§2 non-EU exception |
+
+### What Diego flagged and what cifra does about it
+
+**Diego 2026-04-20:** *"las SOPARFI que son las entidades puras holding
+no están, no se pueden ni registrar efectos de IVA"*. Absolutely correct
+as a default — **any entity tagged as `entity_type = 'passive_holding'`
+in cifra should be understood as "cannot register for VAT" by default**,
+with a reviewer pathway to re-classify as `active_holding` if evidence
+of Cibo-type activities surfaces.
+
+**Implications for the platform (applied 2026-04-20):**
+
+1. **Entity creation UI** must explicitly warn the user when choosing
+   `passive_holding` that the entity typically has no VAT registration,
+   no matricule, and no declaration to file — and that cifra should
+   only hold it for *information / audit-trail context*, not for
+   return preparation.
+2. **Every reference to "SOPARFI" in user-facing copy** is tightened:
+   the platform refers to *pure holding* / *active holding* (behaviour)
+   rather than SOPARFI (regime label) wherever the distinction matters
+   for VAT logic.
+3. **Seed data + search keywords** no longer use "soparfi" as a
+   shorthand for "entity type". The label survives only as a
+   provider-name suffix in `legal-suffixes.ts` (for fuzzy name
+   matching) and in the list of LU company descriptors.
+4. **Classifier gate** (already in place from stint 11): RULE 15P
+   (LU VAT → LUX_17_NONDED) + RULES 11P / 13P (cross-border → flag
+   only) enforce Polysar's consequences on the passive-holding path.
+
+### The "pure passive SOPARFI created in error" flow
+
+If a user creates an entity with `entity_type = 'passive_holding'` AND
+tries to enter a VAT number or matricule, the UI surfaces an amber
+warning:
+
+> *"A pure passive holding typically is not a VAT-registered taxable
+> person (Polysar C-60/90). Confirm the entity provides active
+> management / administrative / financial services to its subsidiaries
+> before entering a VAT number — otherwise change the entity type to
+> `active_holding` or remove the entity from cifra."*
+
+No hard block — there are edge cases where a passive holding must
+nevertheless hold a VAT number (historical registration, prospective
+re-activation, or specific reverse-charge obligations). The reviewer
+decides.
+
+---
+
+## 11. Luxembourg securitization vehicles (Loi 2004 as amended 9 Feb 2022)
+
+### The legal framework in one paragraph
+
+The **Luxembourg Securitisation Law of 22 March 2004**, as amended by
+the **Law of 9 February 2022**, governs securitisation vehicles (SVs)
+established in LU. An SV may take the form of a company (SA, SARL,
+SCA, SCS, SCSp) or of a common fund (*fonds de titrisation* without
+legal personality). SVs acquire or assume risks relating to claims,
+other assets, or commitments, and finance that acquisition by issuing
+securities (debt / equity / hybrid). The 2022 amendment notably
+extended the permitted funding sources (loans in addition to
+securities) and clarified the active-management permitted scope.
+
+### VAT status of an SV — what actually happens
+
+Unlike a pure passive holding, **an SV is considered a taxable person
+for VAT purposes**. It has economic activity (acquiring and managing
+financial risks in exchange for consideration from investors); it can
+make outgoing supplies (to investors in the form of the claim /
+security / distribution); and it has input-side consumption (management
+fees, service-provider fees).
+
+This gives the SV two practical VAT consequences:
+
+1. **VAT registration is typically required**, even though most
+   outgoing flows are either exempt (under Art. 44§1 a / d) or out of
+   scope (dividends, capital distributions). The registration arises
+   primarily because cross-border incoming services must be reverse-
+   charged (Art. 17§1 LTVA) — and a reverse-charge obligation implies
+   registration.
+2. **Input VAT is mostly non-deductible** (exempt outgoing flows → no
+   credit), except under Art. 49§2 LTVA when the SV supplies to non-EU
+   recipients (investors, asset sellers) — the "non-EU exception"
+   window applies here exactly as to a LU fund manager.
+
+### Management services to a Luxembourg SV — Art. 44§1 d
+
+**The key practice point for cifra's classifier:** management services
+rendered to a Luxembourg SV are **exempt under Art. 44§1 d LTVA** (via
+Fiscale Eenheid X C-595/13 extension of the Art. 135(1)(g) concept of
+"special investment funds" to SVs and assimilated vehicles). The exemption
+captures:
+
+- **Core management** (asset-management, investment management, risk-
+  management services) — exempt.
+- **Outsourced administration** — NAV/portfolio valuation, transfer
+  agency, depositary services — exempt if "specific and essential"
+  (DBKAG C-58/20).
+- **Collateral management** — exempt where specific and essential to
+  the SV's operations.
+- **Investment advisory** — exempt under the GfBk standard (continuous
+  advisory that in practice drives portfolio decisions). Otherwise
+  taxable per CSC / DTZ.
+
+### The servicer / debt-collection boundary
+
+**Servicer agreements** are the zone of practical uncertainty for SVs.
+A servicer typically performs: (i) collection of receivables, (ii)
+cash management, (iii) enforcement against defaulting debtors, (iv)
+reporting to investors. Some of these activities are unambiguously
+within the Art. 44§1 d management exemption; others (debt collection)
+may fall outside per **Aspiro C-40/15** (insurance-claims handling
+does not qualify for the insurance-adjacent exemptions).
+
+**cifra policy**: servicer-agreement invoices carrying `servicing`,
+`debt collection`, `recovery`, `enforcement`, or `collections` keywords
+are **flagged** rather than auto-exempted. The reviewer inspects the
+servicing agreement to decide the treatment split (a single servicing
+fee often covers a mix of exempt management + taxable collection that
+must be apportioned).
+
+### cifra classifier behaviour (new RULE 37)
+
+**New entity type**: `entity_type = 'securitization_vehicle'` (joining
+`fund` / `active_holding` / `passive_holding` / `gp` / `manco` /
+`other`).
+
+**Behaviour**: where the existing classifier gates `isFundEntity` to
+allow RC_EU_EX / RC_NONEU_EX on fund-management-style incoming services
+(RULES 10, 12, INFERENCE C/D), we introduce a helper
+`isQualifyingForArt44D(ctx)` that returns `true` for both
+`entity_type = 'fund'` and `entity_type = 'securitization_vehicle'`.
+The reason string for SV entities cites **Fiscale Eenheid X C-595/13**
+and the **Loi du 22 mars 2004** (as amended 2022) alongside Art. 44§1 d.
+
+**New `SECURITIZATION_SERVICER_KEYWORDS`** list for the servicer /
+debt-collection flag:
+
+```
+'servicing agreement', 'servicer fee', 'master servicer', 'special servicer',
+'debt collection', 'collection services', 'loan recovery', 'delinquency management',
+'enforcement services', 'collections administration',
+'cash flow administration', 'portfolio servicing',
+'convention de servicing', 'recouvrement de créances',
+'gestion des impayés', 'enforcement de créances',
+'servicing-vertrag', 'forderungseinzug',
+```
+
+When `entity_type = 'securitization_vehicle'` AND a
+`SECURITIZATION_SERVICER_KEYWORDS` hit AND direction = incoming:
+→ flag but do NOT auto-exempt. Reason cites Aspiro C-40/15 and the
+servicer-agreement split practice.
+
+### Schema requirement
+
+Add `'securitization_vehicle'` to the `entity_type` CHECK constraint on
+the `entities` table (migration appended in a follow-up stint). The
+helper `isQualifyingForArt44D(ctx)` lives in
+`src/config/classification-rules.ts`.
+
+### UI hint
+
+The entity-creation / entity-edit form shows, when `securitization_vehicle`
+is selected:
+
+> *"An SV under Loi du 22 mars 2004 (as amended 2022) is a taxable
+> person for VAT purposes. Management services received from LU / EU /
+> non-EU providers are exempt under Art. 44§1 d LTVA per Fiscale Eenheid
+> X C-595/13, but a servicing agreement with debt-collection components
+> may need to be split (Aspiro C-40/15). Registration typically required
+> to handle reverse-charge on cross-border incoming services."*
+
+---
+
+## 12. Fund-vehicle taxonomy — what qualifies as a "special investment fund"
+
+The Art. 44§1 d LTVA exemption (transposing Art. 135(1)(g) Directive)
+turns on whether the recipient of the management service is a
+"special investment fund" within the meaning of the exemption. This
+is the most common classification question in LU VAT compliance.
+
+### Qualifying vehicles (management service → EXEMPT)
+
+Per Fiscale Eenheid X C-595/13's comparability test, an entity
+qualifies when it is subject to specific state supervision AND is
+comparable to a UCITS. Applied to LU vehicles:
+
+| Vehicle | Regulatory basis | Qualifies? | Notes |
+|---|---|---|---|
+| **UCITS** (Part I of Loi 2010) | UCITSD | **✅ Yes** | Core case. CSSF-regulated. |
+| **UCI Part II** (Loi 2010) | Retail AIF | **✅ Yes** | CSSF-regulated. |
+| **SIF** (Loi 2007) | Specialised investment fund | **✅ Yes** | CSSF-regulated (light). |
+| **SICAR** (Loi 2004) | Investment in risk capital | **✅ Yes** | CSSF-regulated. |
+| **RAIF** (Loi 2016) | Reserved AIF | **✅ Yes** if managed by an authorised AIFM | Not CSSF-supervised directly — supervision flows through the AIFM. |
+| **Regulated AIF** (Loi 2013) | AIFMD | **✅ Yes** | ATP-style. |
+| **SCSp / SCS used as AIF** | AIFMD | **✅ Yes** if AIFMD-regulated | The vehicle need not be CSSF-regulated if it qualifies through AIFM regulation. |
+| **Securitization vehicle** (Loi 2004/2022) | LU SV Law | **✅ Yes** | Per §11 above (Fiscale Eenheid X extension). |
+| **Pension funds (ASSEP / SEPCAV)** | Loi 2005 + IORP2 | **✅ Yes** | ATP PensionService C-464/12. |
+
+### Non-qualifying (management fees → TAXABLE, 17% RC)
+
+| Vehicle | Why not |
+|---|---|
+| **SOPARFI / pure passive holding** | Not a "fund" — no investment-management activity (Polysar). See §10. |
+| **AIFM / ManCo / third-party Manco** | Provides management services — doesn't receive them AS a fund. An invoice *to* an AIFM is taxable unless the AIFM is itself invoicing a qualifying fund (and the onward supply is captured on the AIFM's outgoing side). |
+| **General Partner (GP) of an SCSp** | The GP typically charges the fund (that fee is exempt). But the GP entity itself receiving services is NOT a qualifying fund. |
+| **Carried-interest vehicle / feeder management company** | Service vehicle, not fund. |
+| **Club-deal / co-investment SPVs lacking AIFM registration** | Co-investment vehicles qualify only when they meet the Fiscale Eenheid X test — CSSF-regulated or AIFM-managed. Most club-deal SPVs do NOT. |
+
+### The BlackRock single-supply rule
+
+**Critical for mixed-portfolio AIFMs**: per **BlackRock C-231/19**
+(2 July 2020), a SINGLE supply of management services to an AIFM that
+manages BOTH qualifying funds AND non-qualifying entities (like a
+SOPARFI family) is **entirely TAXABLE**. The supply is indivisible
+and the exemption requires that the ENTIRE recipient perimeter be
+qualifying.
+
+Practical consequence: an outsourced portfolio-management platform
+(SaaS-type) sold to an AIFM with a mixed book receives 17% VAT on the
+WHOLE fee, not pro-rata. Many LU AIFMs are unaware of this and the
+classifier must flag the ambiguity.
+
+The current INFERENCE C/D + RULES 10/12 already enforce the narrow
+reading via the `entity_type === 'fund'` guard and the
+`FUND_MGMT_EXCLUSION_KEYWORDS` list.
+
+### Newly-surfaced legal sources (added 2026-04-20)
+
+- **BBL C-8/03** (2004) — distinguishes pure fund holding from
+  management services; frames the BlackRock perimeter.
+- **Wheels Common Investment Fund C-424/11** (2013) — comparability
+  test for defined-benefit pension funds: not comparable to UCITS on
+  investor-risk grounds → does NOT qualify.
+- **GfBk C-275/11** (2013) — already in sources; reinforces narrow
+  reading of "management" for advisory.
+- **Fiscale Eenheid X C-595/13** (2015) — already in sources; baseline
+  for comparability test.
+
+---
+
+## 13. Legal-watch as a living system (2026-04-20 protocol upgrade)
+
+### Principle
+
+The LU + EU VAT landscape moves weekly — new CJEU judgments (Versãofast
+November 2025, Finanzamt T II July 2024), new AED circulars, new LU
+tribunal decisions, new Big-4 practice notes. A Magic-Circle-grade
+compliance tool must **feel these shifts in days, not quarters**. The
+classifier's output is only as trustworthy as the freshness of its
+legal references.
+
+### Data sources to subscribe to (daily / weekly feeds)
+
+| Source | Feed | Cadence | Watch for |
+|---|---|---|---|
+| **curia.europa.eu** | RSS on VAT judgments + AG opinions | Daily | Art. 11, 44, 47, 135, 169, 196 rulings; General Court decisions on Art. 135/44 exemptions |
+| **legilux.public.lu** | Mémorial A (laws + règlements grand-ducaux) | Daily | LTVA amendments, implementing RGDs, annual budget law |
+| **impotsdirects.public.lu** | AED publications (circulaires, bulletins, communiqués) | Weekly | New circulars, press releases, guidance notes |
+| **PwC LU tax alerts** | Newsletter + blog | Weekly | Market-practice shifts; emerging CJEU analysis |
+| **KPMG / EY / Deloitte LU** | Tax alerts | Weekly | Same |
+| **ALFI circulars** | Industry body | As published | Fund-industry-specific VAT positions |
+| **ABBL** | Banking association | As published | Banking + financial-sector-specific |
+| **CSSF circulars** | Regulator | As published | AIFM / UCITS / depositary impact on VAT |
+| **VATupdate.com** | Aggregator | Daily | Fast-feed of EU VAT judgments + summaries |
+| **Chambers / Legal 500 practice guides** | Annual | Yearly baseline | Year-in-review compilations |
+
+### Automated triage flow (to be built, P1)
+
+1. **Daily cron** reads the RSS / scrapes the sources above.
+2. **Deduplication + filtering** by keyword (LTVA article, Directive
+   article, known VAT-practice vocabulary).
+3. **Classification** of each new item into one of:
+   - Relevant-to-classifier (affects rules we already have)
+   - Potentially-relevant (new topic — flag for reviewer)
+   - Irrelevant (non-VAT tax, out-of-scope jurisdiction)
+4. **Inbox notification** to the reviewer with a 2-line summary + link
+   to the source.
+5. **Review decision**:
+   - Confirm relevant → add legal-source entry, flag affected rules,
+     update `last_reviewed` on touched entries, create a
+     legal-watch-triage ticket for the code change.
+   - Dismiss → archive, capture rationale for audit.
+6. **Staleness detection**: any `last_reviewed` older than 6 months
+   surfaces in a "Due for review" dashboard.
+
+### Code-level obligations
+
+- Every `LegalSource` entry carries `last_reviewed` (ISO date). Never
+  write a new rule without setting this field.
+- Every `PRACTICE` entry cites the underlying law + case as its
+  basis. Market practice is never presented alone.
+- Every `flag_reason` string references a specific source id from
+  `legal-sources.ts`; the UI can then render it as a hyperlink to the
+  structured source.
+
+### "Living" reporting cadence
+
+- **Monday morning brief (Claude)** includes a "Legal movement" section
+  when any source shipped a weekend publication (AG opinion Friday,
+  CJEU judgment Thursday typically).
+- **Quarterly review** — Claude runs `sourcesDueForReview(3)` on the
+  legal-sources map and proposes refreshes.
+- **Trigger-based review** — any new CJEU judgment on Art. 135 triggers
+  a 30-day review of every RULE citing Art. 44§1 (a) or (d).
+
+### How this section ties back to the classifier
+
+The rules registered in this document (RULES 32a/b, 33, 34, 35, 35-lu,
+35-ok, 15P, 36, 37) each carry a source-id list. When a new judgment
+affects one of those ids, the classifier's fixture corpus re-runs and
+any regression is surfaced in the classifier-accuracy dashboard at
+`/settings/classifier`. This is the feedback loop that keeps the tool
+honest.
+
+---
+
 *This document is the source of truth for the classifier changes in
-stint 11. When AED issues a superseding circular or a new CJEU ruling
-lands on any of these topics, update the relevant section + propagate
-to `legal-sources.ts` + flag the affected rule in
+stints 11 + 2026-04-20. When AED issues a superseding circular or a new
+CJEU ruling lands on any of these topics, update the relevant section +
+propagate to `legal-sources.ts` + flag the affected rule in
 `docs/legal-watch-triage.md`.*
