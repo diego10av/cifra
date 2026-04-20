@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 type ApproverType = 'client' | 'csp' | 'other';
+type ApproverRole = 'approver' | 'cc' | 'both';
 
 interface Approver {
   id: string;
@@ -38,6 +39,7 @@ interface Approver {
   organization: string | null;
   country: string | null;
   approver_type: ApproverType;
+  approver_role: ApproverRole;
   is_primary: boolean;
   sort_order: number;
   notes: string | null;
@@ -229,6 +231,16 @@ function ApproverRow({
               <StarIcon size={9} /> Primary
             </span>
           )}
+          {approver.approver_role === 'cc' && (
+            <span className="inline-flex items-center text-[9.5px] font-bold uppercase tracking-wider bg-surface-alt text-ink-muted border border-border rounded px-1.5 py-0.5">
+              CC only
+            </span>
+          )}
+          {approver.approver_role === 'both' && (
+            <span className="inline-flex items-center text-[9.5px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-1.5 py-0.5">
+              Approver + CC
+            </span>
+          )}
           {approver.country && (
             <span className="text-[10px] font-mono text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
               {approver.country}
@@ -325,6 +337,7 @@ function ApproverEditor({
     organization: approver?.organization ?? '',
     country: approver?.country ?? '',
     approver_type: (approver?.approver_type ?? 'client') as ApproverType,
+    approver_role: (approver?.approver_role ?? 'approver') as ApproverRole,
     is_primary: approver?.is_primary ?? false,
     notes: approver?.notes ?? '',
   });
@@ -359,6 +372,7 @@ function ApproverEditor({
       organization: c.organization ?? '',
       country: c.country ?? '',
       approver_type: form.approver_type,
+      approver_role: form.approver_role,
       is_primary: form.is_primary,
       notes: form.notes,
     });
@@ -381,6 +395,7 @@ function ApproverEditor({
         organization: form.organization.trim() || null,
         country: form.country.trim().toUpperCase().slice(0, 2) || null,
         approver_type: form.approver_type,
+        approver_role: form.approver_role,
         is_primary: form.is_primary,
         notes: form.notes.trim() || null,
         // Propagate the FK only when the user picked from client contacts.
@@ -556,6 +571,35 @@ function ApproverEditor({
             </select>
           </Field>
         </div>
+
+        {/* Approver vs CC distinction — new stint 14. */}
+        <Field
+          label="Role on declarations"
+          hint="Who signs off, who just needs to be kept in the loop"
+        >
+          <div className="grid grid-cols-3 gap-1.5">
+            {([
+              { key: 'approver', label: 'Approver', hint: 'Signs off' },
+              { key: 'cc',       label: 'CC only',  hint: 'Keep in the loop' },
+              { key: 'both',     label: 'Both',     hint: 'Approves + on CC list' },
+            ] as const).map(opt => (
+              <button
+                type="button"
+                key={opt.key}
+                onClick={() => setForm({ ...form, approver_role: opt.key })}
+                className={[
+                  'text-left px-3 py-2 rounded border text-[12px] transition-all',
+                  form.approver_role === opt.key
+                    ? 'border-brand-500 bg-brand-50 text-brand-800'
+                    : 'border-border bg-surface text-ink-soft hover:border-border-strong',
+                ].join(' ')}
+              >
+                <div className="font-semibold">{opt.label}</div>
+                <div className="text-[10.5px] text-ink-muted mt-0.5">{opt.hint}</div>
+              </button>
+            ))}
+          </div>
+        </Field>
 
         <Field label="Notes (optional)">
           <textarea

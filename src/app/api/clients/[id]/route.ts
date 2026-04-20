@@ -39,6 +39,9 @@ export async function GET(
               vat_contact_name, vat_contact_email, vat_contact_phone,
               vat_contact_role, vat_contact_country,
               address, website, notes,
+              engaged_via_name, engaged_via_contact_name,
+              engaged_via_contact_email, engaged_via_contact_role,
+              engaged_via_notes,
               created_at::text AS created_at,
               updated_at::text AS updated_at,
               archived_at
@@ -103,6 +106,9 @@ export async function PATCH(
       'name', 'vat_contact_name', 'vat_contact_email', 'vat_contact_phone',
       'vat_contact_role', 'vat_contact_country',
       'address', 'website', 'notes',
+      'engaged_via_name', 'engaged_via_contact_name',
+      'engaged_via_contact_email', 'engaged_via_contact_role',
+      'engaged_via_notes',
     ] as const;
 
     for (const f of stringFields) {

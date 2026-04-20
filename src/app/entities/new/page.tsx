@@ -20,6 +20,7 @@ import {
   ChevronLeftIcon,
 } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
+import { VatLetterUpload, type ExtractedVatLetter } from '@/components/entity/VatLetterUpload';
 
 interface ClientSlim {
   id: string;
@@ -257,12 +258,45 @@ function NewEntityPageInner() {
         </div>
       )}
 
+      {/* VAT letter auto-fill — quick way to populate the whole form
+          from the AED registration letter. */}
+      <div className="bg-brand-50/30 border border-brand-200 rounded-lg p-4 mb-4">
+        <div className="flex items-start justify-between gap-3 flex-wrap">
+          <div className="min-w-0">
+            <div className="text-[13px] font-semibold text-ink">Got the VAT registration letter?</div>
+            <div className="text-[11.5px] text-ink-soft mt-0.5 leading-relaxed">
+              Upload the AED &ldquo;Attestation d&apos;immatriculation à la TVA&rdquo;
+              and cifra will fill name, VAT, matricule, RCS, address, regime
+              and frequency. You review + correct whatever is missing.
+            </div>
+          </div>
+          <VatLetterUpload
+            compact
+            onExtracted={(f: ExtractedVatLetter) => {
+              setForm((prev) => ({
+                ...prev,
+                name: f.name ?? prev.name,
+                vat_number: f.vat_number ?? prev.vat_number,
+                matricule: f.matricule ?? prev.matricule,
+                rcs_number: f.rcs_number ?? prev.rcs_number,
+                legal_form: f.legal_form ?? prev.legal_form,
+                entity_type: f.entity_type ?? prev.entity_type,
+                regime: f.regime ?? prev.regime,
+                // Normalise 'yearly' → 'annual' to match the existing field's enum.
+                frequency: f.frequency === 'yearly' ? 'annual'
+                           : f.frequency ?? prev.frequency,
+              }));
+            }}
+          />
+        </div>
+      </div>
+
       <div className="bg-surface border border-border rounded-lg p-5 space-y-4">
         <Field label="Entity name" required>
           <input
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="e.g. Avallon LuxCo 1 SARL"
+            placeholder="e.g. Luxor LuxCo 1 SARL"
             className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             autoFocus
           />

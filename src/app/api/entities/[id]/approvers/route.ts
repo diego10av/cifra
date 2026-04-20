@@ -14,6 +14,7 @@ import { query, queryOne, execute, generateId, logAudit } from '@/lib/db';
 import { apiError, apiOk, apiFail } from '@/lib/api-errors';
 
 const VALID_TYPES = ['client', 'csp', 'other'] as const;
+const VALID_ROLES = ['approver', 'cc', 'both'] as const;
 
 function isSchemaMissing(err: unknown): boolean {
   const msg = (err as { message?: string } | null)?.message ?? '';
@@ -29,7 +30,7 @@ export async function GET(
     const rows = await query(
       `SELECT id, entity_id, name, email, phone, role,
               organization, country, approver_type, is_primary,
-              sort_order, notes, client_contact_id,
+              sort_order, notes, client_contact_id, approver_role,
               created_at::text AS created_at,
               updated_at::text AS updated_at
          FROM entity_approvers
@@ -67,6 +68,7 @@ export async function POST(
       organization?: string | null;
       country?: string | null;
       approver_type?: string;
+      approver_role?: string;  // 'approver' | 'cc' | 'both'
       is_primary?: boolean;
       notes?: string | null;
       client_contact_id?: string | null;  // stint 11 — reuse a client_contact
@@ -113,6 +115,10 @@ export async function POST(
       ? (body.approver_type as typeof VALID_TYPES[number])
       : 'client';
 
+    const approverRole = (VALID_ROLES as readonly string[]).includes(body.approver_role ?? '')
+      ? (body.approver_role as typeof VALID_ROLES[number])
+      : 'approver';
+
     const isPrimary = body.is_primary === true;
 
     // Enforce one-primary-per-entity at the application level in addition
@@ -149,8 +155,8 @@ export async function POST(
       `INSERT INTO entity_approvers
          (id, entity_id, name, email, phone, role, organization,
           country, approver_type, is_primary, sort_order, notes,
-          client_contact_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+          client_contact_id, approver_role)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)`,
       [
         id, entityId, name, email,
         body.phone?.trim() || null,
@@ -162,6 +168,7 @@ export async function POST(
         sortOrder,
         body.notes?.trim() || null,
         clientContactId,
+        approverRole,
       ],
     );
 

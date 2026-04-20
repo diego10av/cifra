@@ -23,13 +23,14 @@ import { useRouter } from 'next/navigation';
 import {
   PlusIcon, FileTextIcon, InboxIcon, CalendarIcon,
   ArrowRightIcon, AlertTriangleIcon, ClockIcon,
-  SparklesIcon, TrendingUpIcon, BuildingIcon,
+  SparklesIcon, TrendingUpIcon,
   WandIcon, Loader2Icon, XIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/Skeleton';
+import { NewDeclarationModal } from '@/components/declaration/NewDeclarationModal';
 
 // Local-storage key for the "first-time seed offer" dismiss state.
 // Bumps to v2 if we ever change the banner copy materially.
@@ -72,6 +73,7 @@ export default function Home() {
   const [seedError, setSeedError] = useState<string | null>(null);
   const [role, setRole] = useState<Role>('admin');
   const [budget, setBudget] = useState<BudgetStatus | null>(null);
+  const [newDeclOpen, setNewDeclOpen] = useState(false);
 
   // Read the dismiss flag once on mount. SSR-safe (client-only component).
   useEffect(() => {
@@ -238,18 +240,31 @@ export default function Home() {
           })}
         </p>
 
+        {/* Quick actions — the two things a reviewer does most often when
+            creating new records. "Add client" moved to the sidebar + ⌘K
+            + onboarding banner (happens rarely, once per new client).
+            Frequency bias over aesthetic symmetry. */}
         <div className="mt-5 flex flex-wrap items-center gap-2">
-          <Link href="/declarations">
-            <Button variant="primary" size="md" icon={<PlusIcon size={14} />}>New declaration</Button>
-          </Link>
-          <Link href="/clients/new">
-            <Button variant="secondary" size="md" icon={<BuildingIcon size={14} />}>Add client</Button>
-          </Link>
+          <Button
+            variant="primary"
+            size="md"
+            icon={<PlusIcon size={14} />}
+            onClick={() => setNewDeclOpen(true)}
+          >
+            New declaration
+          </Button>
           <Link href="/aed-letters">
             <Button variant="secondary" size="md" icon={<InboxIcon size={14} />}>Upload AED letter</Button>
           </Link>
+          <span className="text-[10.5px] text-ink-muted ml-2 hidden md:inline-flex items-center gap-1.5">
+            or press
+            <kbd className="inline-flex items-center h-5 px-1.5 rounded bg-surface-alt border border-border font-mono text-[10px]">⌘K</kbd>
+            for any other action
+          </span>
         </div>
       </header>
+
+      <NewDeclarationModal open={newDeclOpen} onClose={() => setNewDeclOpen(false)} />
 
       {/* ── Today's focus banner — the single most-leveraged action ── */}
       {!isFirstTime && <TodaysFocusBanner focus={focus} />}

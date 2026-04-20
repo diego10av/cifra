@@ -24,6 +24,7 @@ import {
   CheckIcon, ChevronLeftIcon, ChevronRightIcon, Loader2Icon,
   AlertTriangleIcon, Building2Icon, UserIcon,
 } from 'lucide-react';
+import { VatLetterUpload } from '@/components/entity/VatLetterUpload';
 
 type Kind = 'end_client' | 'csp' | 'other';
 
@@ -38,6 +39,14 @@ interface ClientForm {
   address: string;
   website: string;
   notes: string;
+  // Intermediary / engaged-via fields (optional; usually null).
+  // Captured when the firm was engaged by a CSP or another party on
+  // behalf of the end client. The end client is still the record of
+  // truth; these are metadata.
+  engaged_via_name: string;
+  engaged_via_contact_name: string;
+  engaged_via_contact_email: string;
+  engaged_via_contact_role: string;
 }
 
 interface EntityForm {
@@ -66,7 +75,12 @@ export default function NewClientWizardPage() {
     address: '',
     website: '',
     notes: '',
+    engaged_via_name: '',
+    engaged_via_contact_name: '',
+    engaged_via_contact_email: '',
+    engaged_via_contact_role: '',
   });
+  const [engagedViaOpen, setEngagedViaOpen] = useState(false);
 
   const [entity, setEntity] = useState<EntityForm>({
     name: '',
@@ -102,6 +116,13 @@ export default function NewClientWizardPage() {
           address: client.address.trim() || null,
           website: client.website.trim() || null,
           notes: client.notes.trim() || null,
+          // Only send intermediary fields when the section is open AND
+          // there's at least a name — avoids creating "engaged via
+          // NULL" metadata on every client.
+          engaged_via_name: (engagedViaOpen && client.engaged_via_name.trim()) ? client.engaged_via_name.trim() : null,
+          engaged_via_contact_name: (engagedViaOpen && client.engaged_via_contact_name.trim()) ? client.engaged_via_contact_name.trim() : null,
+          engaged_via_contact_email: (engagedViaOpen && client.engaged_via_contact_email.trim()) ? client.engaged_via_contact_email.trim() : null,
+          engaged_via_contact_role: (engagedViaOpen && client.engaged_via_contact_role.trim()) ? client.engaged_via_contact_role.trim() : null,
         }),
       });
       const data = await res.json();
@@ -184,9 +205,11 @@ export default function NewClientWizardPage() {
         <div className="text-[11px] text-ink-faint mb-1">
           <Link href="/clients" className="hover:underline">Clients</Link> ›
         </div>
-        <h1 className="text-[20px] font-semibold tracking-tight">New client</h1>
-        <p className="text-[12.5px] text-ink-muted mt-1">
-          First the client profile, then (optionally) the first entity.
+        <h1 className="text-[22px] font-semibold tracking-tight">Create client</h1>
+        <p className="text-[12.5px] text-ink-muted mt-1 max-w-[540px] leading-relaxed">
+          A client is the beneficial owner you prepare filings for. Step&nbsp;1 captures the
+          relationship + the primary point of contact. Step&nbsp;2 (optional) creates the
+          first Luxembourg entity under this client — you can always add more later.
         </p>
       </div>
 
@@ -215,7 +238,7 @@ export default function NewClientWizardPage() {
               <input
                 value={client.name}
                 onChange={(e) => setClient({ ...client, name: e.target.value })}
-                placeholder="e.g. Avallon Group, Acme Capital SARL"
+                placeholder="e.g. Luxor Capital Group, Meridien Partners SARL"
                 className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 autoFocus
               />
@@ -224,7 +247,7 @@ export default function NewClientWizardPage() {
               <div className="grid grid-cols-3 gap-1.5">
                 <KindOption
                   label="End client"
-                  hint="Actual beneficial owner"
+                  hint="Beneficial owner you file for"
                   active={client.kind === 'end_client'}
                   onClick={() => setClient({ ...client, kind: 'end_client' })}
                 />
@@ -242,6 +265,71 @@ export default function NewClientWizardPage() {
                 />
               </div>
             </Field>
+
+            {/* ─── Engaged-via intermediary (shown only for end clients) ─── */}
+            {client.kind === 'end_client' && (
+              <div className="mt-5 pt-5 border-t border-divider">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={engagedViaOpen}
+                    onChange={(e) => setEngagedViaOpen(e.target.checked)}
+                    className="mt-1 accent-brand-500"
+                  />
+                  <span className="text-[12.5px] text-ink-soft leading-relaxed">
+                    <strong className="text-ink">Engaged through an intermediary (optional)</strong>
+                    <br />
+                    <span className="text-ink-muted">
+                      Tick when you were asked to prepare this client&rsquo;s filings by
+                      a CSP / fiduciary / another firm rather than by the client
+                      directly. The end client stays the record of truth; the
+                      intermediary is who you actually talk to.
+                    </span>
+                  </span>
+                </label>
+
+                {engagedViaOpen && (
+                  <div className="mt-4 ml-6 space-y-3">
+                    <Field label="Intermediary company" hint="e.g. JTC, Vistra, Circum">
+                      <input
+                        value={client.engaged_via_name}
+                        onChange={(e) => setClient({ ...client, engaged_via_name: e.target.value })}
+                        placeholder="e.g. JTC Luxembourg SA"
+                        className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      />
+                    </Field>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="Your contact there" hint="person you email">
+                        <input
+                          value={client.engaged_via_contact_name}
+                          onChange={(e) => setClient({ ...client, engaged_via_contact_name: e.target.value })}
+                          className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        />
+                      </Field>
+                      <Field label="Role / title" hint="e.g. Accounting Manager">
+                        <input
+                          value={client.engaged_via_contact_role}
+                          onChange={(e) => setClient({ ...client, engaged_via_contact_role: e.target.value })}
+                          className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        />
+                      </Field>
+                    </div>
+                    <Field label="Email">
+                      <input
+                        type="email"
+                        value={client.engaged_via_contact_email}
+                        onChange={(e) => setClient({ ...client, engaged_via_contact_email: e.target.value })}
+                        className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                      />
+                    </Field>
+                    <div className="text-[11px] text-ink-muted italic">
+                      When filled, the Primary VAT contact below defaults to this
+                      person on subsequent entities under this client.
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Primary VAT contact */}
@@ -284,7 +372,7 @@ export default function NewClientWizardPage() {
                   className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 />
               </Field>
-              <Field label="Country (ISO-2)" hint="e.g. LU, PL, FR">
+              <Field label="Country" hint="Where they sit · helps with timezones when scheduling calls (optional)">
                 <input
                   value={client.vat_contact_country}
                   onChange={(e) => setClient({ ...client, vat_contact_country: e.target.value.toUpperCase().slice(0, 2) })}
@@ -336,14 +424,32 @@ export default function NewClientWizardPage() {
           </div>
 
           <div className="bg-surface border border-border rounded-lg p-5">
-            <h3 className="text-[13px] font-semibold text-ink mb-4 flex items-center gap-2">
-              <Building2Icon size={15} className="text-brand-500" /> First entity
-            </h3>
+            <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
+              <h3 className="text-[13px] font-semibold text-ink flex items-center gap-2">
+                <Building2Icon size={15} className="text-brand-500" /> First entity
+              </h3>
+              <VatLetterUpload
+                compact
+                onExtracted={(f) => {
+                  setEntity((prev) => ({
+                    ...prev,
+                    name: f.name ?? prev.name,
+                    vat_number: f.vat_number ?? prev.vat_number,
+                    matricule: f.matricule ?? prev.matricule,
+                    legal_form: f.legal_form ?? prev.legal_form,
+                    entity_type: f.entity_type ?? prev.entity_type,
+                    regime: f.regime ?? prev.regime,
+                    frequency: f.frequency === 'yearly' ? 'annual'
+                               : f.frequency ?? prev.frequency,
+                  }));
+                }}
+              />
+            </div>
             <Field label="Entity name" required>
               <input
                 value={entity.name}
                 onChange={(e) => setEntity({ ...entity, name: e.target.value })}
-                placeholder="e.g. Avallon LuxCo 1 SARL"
+                placeholder="e.g. Luxor LuxCo 1 SARL"
                 className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
                 autoFocus
               />

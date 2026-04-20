@@ -91,6 +91,11 @@ export async function POST(request: NextRequest) {
       address?: string | null;
       website?: string | null;
       notes?: string | null;
+      engaged_via_name?: string | null;
+      engaged_via_contact_name?: string | null;
+      engaged_via_contact_email?: string | null;
+      engaged_via_contact_role?: string | null;
+      engaged_via_notes?: string | null;
     };
 
     const name = typeof body.name === 'string' ? body.name.trim() : '';
@@ -120,13 +125,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const engagedEmail = body.engaged_via_contact_email?.trim() || null;
+    if (engagedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(engagedEmail)) {
+      return apiError('bad_engaged_via_email', 'engaged_via_contact_email is not a valid address.', { status: 400 });
+    }
+
     const id = `client-${generateId().slice(0, 10)}`;
     await execute(
       `INSERT INTO clients (id, name, kind,
          vat_contact_name, vat_contact_email, vat_contact_phone,
          vat_contact_role, vat_contact_country,
-         address, website, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+         address, website, notes,
+         engaged_via_name, engaged_via_contact_name, engaged_via_contact_email,
+         engaged_via_contact_role, engaged_via_notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
       [
         id, name, kind,
         body.vat_contact_name?.trim() || null,
@@ -137,6 +149,11 @@ export async function POST(request: NextRequest) {
         body.address?.trim() || null,
         body.website?.trim() || null,
         body.notes?.trim() || null,
+        body.engaged_via_name?.trim() || null,
+        body.engaged_via_contact_name?.trim() || null,
+        engagedEmail,
+        body.engaged_via_contact_role?.trim() || null,
+        body.engaged_via_notes?.trim() || null,
       ],
     );
 

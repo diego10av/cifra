@@ -98,6 +98,67 @@ export async function POST(request: NextRequest) {
     newValue: JSON.stringify(body),
   });
 
+  // Auto-populate entity approvers from the client's contact roster.
+  // When the parent client has client_contacts:
+  //   - the is_main=true contact becomes the entity's primary approver
+  //   - any other contact with contact_role in ('approver','cc','both')
+  //     becomes a secondary approver with the matching role
+  // This saves the reviewer from re-typing the same contact on every
+  // entity under a client. Diego specifically asked for this on
+  // 2026-04-20.
+  //
+  // Soft-fails: if client_contacts table is missing (migration 012
+  // not applied) or the client has no contacts, the entity is created
+  // without approvers — the user can add them manually via
+  // ApproversCard.
+  if (clientId) {
+    try {
+      const contacts = await queryAll<{
+        id: string; name: string; email: string | null; phone: string | null;
+        role: string | null; organization: string | null; country: string | null;
+        is_main: boolean; contact_role: string;
+      }>(
+        `SELECT id, name, email, phone, role, organization, country, is_main, contact_role
+           FROM client_contacts
+          WHERE client_id = $1
+          ORDER BY is_main DESC, lower(name) ASC`,
+        [clientId],
+      );
+      let sortOrder = 0;
+      for (const c of contacts) {
+        const approverId = `appr-${generateId().slice(0, 10)}`;
+        const isPrimary = c.is_main && sortOrder === 0;
+        await execute(
+          `INSERT INTO entity_approvers
+             (id, entity_id, name, email, phone, role, organization,
+              country, approver_type, is_primary, sort_order, notes,
+              client_contact_id, approver_role)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
+          [
+            approverId, id, c.name, c.email, c.phone, c.role,
+            c.organization, c.country,
+            'client',
+            isPrimary,
+            sortOrder,
+            null,
+            c.id,
+            c.contact_role || 'approver',
+          ],
+        );
+        sortOrder += 1;
+      }
+    } catch {
+      // client_contacts table missing or other failure — non-fatal.
+    }
+  }
+
   const entity = await queryOne('SELECT * FROM entities WHERE id = $1', [id]);
   return NextResponse.json(entity, { status: 201 });
+}
+
+// Small helper local to this module — wraps the shared query() but
+// typed to return an array explicitly.
+async function queryAll<T>(sql: string, params: unknown[]): Promise<T[]> {
+  const { query } = await import('@/lib/db');
+  return query<T>(sql, params);
 }

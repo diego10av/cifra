@@ -68,6 +68,15 @@ export async function PATCH(
       vals.push(body.approver_type);
     }
 
+    if (typeof body.approver_role === 'string') {
+      const VALID_ROLES = ['approver', 'cc', 'both'] as const;
+      if (!(VALID_ROLES as readonly string[]).includes(body.approver_role)) {
+        return apiError('bad_role', `approver_role must be one of: ${VALID_ROLES.join(', ')}`, { status: 400 });
+      }
+      sets.push(`approver_role = $${i++}`);
+      vals.push(body.approver_role);
+    }
+
     // Special-case is_primary — swap with the current primary in a
     // single transaction so we never leave two primaries or zero.
     if (typeof body.is_primary === 'boolean') {
