@@ -1,18 +1,182 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+// ════════════════════════════════════════════════════════════════════════
+// Command palette (⌘K) — was a pure search; stint 12 (2026-04-19)
+// upgraded it with actionable verbs per the Gassner audit item #8
+// and ROADMAP P1.6.
+//
+// Four result groups, in priority order:
+//   1. Commands (go to, create, open) — keyboard-only power moves
+//   2. Entities (names)
+//   3. Declarations (recent + matching)
+//   4. Providers (from prior invoices)
+//
+// When the user types, commands are matched by keyword substring
+// AND by verb match. When the input is empty, a curated starter set
+// appears ("Create new client", "Go to settings", etc.).
+// ════════════════════════════════════════════════════════════════════════
+
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import {
+  PlusIcon, FileTextIcon, Building2Icon, BookOpenIcon,
+  BarChart3Icon, InboxIcon, SettingsIcon, HelpCircleIcon,
+  UsersIcon, CalendarIcon, MailIcon, type LucideIcon,
+} from 'lucide-react';
 
 interface EntityHit { kind: 'entity'; id: string; name: string; client_name: string | null; regime: string }
 interface DeclarationHit { kind: 'declaration'; id: string; year: number; period: string; status: string; entity_name: string }
 interface ProviderHit { kind: 'provider'; provider: string; entity_name: string; entity_id: string; declaration_id: string; year: number; period: string }
-type Hit = EntityHit | DeclarationHit | ProviderHit;
+interface Command {
+  kind: 'command';
+  id: string;
+  label: string;
+  hint?: string;
+  href?: string;
+  keywords: string[];
+  icon: LucideIcon;
+  shortcut?: string;
+}
+type Hit = EntityHit | DeclarationHit | ProviderHit | Command;
 
 interface SearchResults {
   entities: EntityHit[];
   declarations: DeclarationHit[];
   providers: ProviderHit[];
 }
+
+// The static command registry — the set of "verbs" the palette knows.
+// Kept static (no prop drilling from page state) so the palette works
+// from every route. Page-contextual commands (e.g. "delete current
+// declaration") can be added in a future pass when we thread route
+// params into the palette.
+const COMMANDS: readonly Command[] = [
+  {
+    kind: 'command',
+    id: 'cmd-new-client',
+    label: 'Create new client',
+    hint: 'Start a client + optional first entity',
+    href: '/clients/new',
+    keywords: ['create', 'new', 'client', 'add', 'firm'],
+    icon: PlusIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-new-entity',
+    label: 'Create new entity',
+    hint: 'SOPARFI, AIFM, SCSp, Holding…',
+    href: '/entities/new',
+    keywords: ['create', 'new', 'entity', 'add', 'soparfi', 'fund', 'aifm'],
+    icon: Building2Icon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-clients',
+    label: 'Go to clients',
+    href: '/clients',
+    keywords: ['clients', 'go', 'open'],
+    icon: Building2Icon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-entities',
+    label: 'Go to entities',
+    href: '/entities',
+    keywords: ['entities', 'go', 'open'],
+    icon: Building2Icon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-declarations',
+    label: 'Go to declarations',
+    href: '/declarations',
+    keywords: ['declarations', 'returns', 'go', 'open', 'vat'],
+    icon: FileTextIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-deadlines',
+    label: 'Go to deadlines',
+    href: '/deadlines',
+    keywords: ['deadlines', 'calendar', 'go', 'open'],
+    icon: CalendarIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-legal-watch',
+    label: 'Open Legal watch',
+    hint: 'LTVA + Directive + CJEU + circulars',
+    href: '/legal-watch',
+    keywords: ['legal', 'watch', 'ltva', 'cjeu', 'circular', 'directive', 'open'],
+    icon: BookOpenIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-classifier',
+    label: 'Open classifier health',
+    hint: '60-fixture corpus · pass rate',
+    href: '/settings/classifier',
+    keywords: ['classifier', 'accuracy', 'corpus', 'rules', 'health', 'open'],
+    icon: BarChart3Icon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-metrics',
+    label: 'Open metrics / budget',
+    href: '/metrics',
+    keywords: ['metrics', 'budget', 'cost', 'anthropic', 'open'],
+    icon: BarChart3Icon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-audit',
+    label: 'Open audit trail',
+    href: '/audit',
+    keywords: ['audit', 'history', 'log', 'open'],
+    icon: FileTextIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-users',
+    label: 'Manage users',
+    href: '/settings/users',
+    keywords: ['users', 'team', 'role', 'manage', 'settings'],
+    icon: UsersIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-aed',
+    label: 'Open AED inbox',
+    hint: '17-category letter classifier',
+    href: '/aed-letters',
+    keywords: ['aed', 'letters', 'inbox', 'open'],
+    icon: InboxIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-goto-settings',
+    label: 'Open settings',
+    href: '/settings',
+    keywords: ['settings', 'preferences', 'open'],
+    icon: SettingsIcon,
+  },
+  {
+    kind: 'command',
+    id: 'cmd-help',
+    label: 'Keyboard shortcuts',
+    hint: '⌘K · ? feedback · ↑↓ Enter',
+    href: '#',
+    keywords: ['help', 'shortcut', 'keys', 'keyboard'],
+    icon: HelpCircleIcon,
+  },
+];
+
+// Starter set shown when the input is empty.
+const STARTER_IDS: readonly string[] = [
+  'cmd-new-client', 'cmd-new-entity',
+  'cmd-goto-declarations', 'cmd-goto-legal-watch',
+  'cmd-goto-classifier', 'cmd-goto-audit',
+];
 
 export default function SearchBar() {
   const [open, setOpen] = useState(false);
@@ -46,7 +210,7 @@ export default function SearchBar() {
     return () => window.removeEventListener('mousedown', onMouse);
   }, [open]);
 
-  // Debounced fetch
+  // Debounced fetch for backend search (entities / declarations / providers).
   useEffect(() => {
     if (!q || q.length < 2) { setResults(null); return; }
     const t = setTimeout(async () => {
@@ -56,17 +220,42 @@ export default function SearchBar() {
     return () => clearTimeout(t);
   }, [q]);
 
+  // Filter commands by query text.
+  const matchedCommands = useMemo<Command[]>(() => {
+    if (!q.trim()) {
+      // Starter set when empty input.
+      const starters = STARTER_IDS
+        .map(id => COMMANDS.find(c => c.id === id))
+        .filter((c): c is Command => !!c);
+      return starters;
+    }
+    const query = q.toLowerCase();
+    const scored: Array<{ c: Command; score: number }> = [];
+    for (const c of COMMANDS) {
+      let score = 0;
+      if (c.label.toLowerCase().includes(query)) score += 3;
+      for (const k of c.keywords) {
+        if (k.includes(query) || query.includes(k)) score += 1;
+      }
+      if (score > 0) scored.push({ c, score });
+    }
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 6).map(s => s.c);
+  }, [q]);
+
   const flat: Hit[] = results
-    ? [...results.entities, ...results.declarations, ...results.providers]
-    : [];
+    ? [...matchedCommands, ...results.entities, ...results.declarations, ...results.providers]
+    : matchedCommands;
 
   function go(h: Hit) {
     setOpen(false);
     setQ('');
     setResults(null);
+    setHighlight(0);
     if (h.kind === 'entity') router.push(`/declarations?entity_id=${h.id}`);
     else if (h.kind === 'declaration') router.push(`/declarations/${h.id}`);
-    else router.push(`/declarations/${h.declaration_id}`);
+    else if (h.kind === 'provider') router.push(`/declarations/${h.declaration_id}`);
+    else if (h.href && h.href !== '#') router.push(h.href);
   }
 
   function onKey(e: React.KeyboardEvent) {
@@ -81,18 +270,18 @@ export default function SearchBar() {
       <button
         onClick={() => { setOpen(true); requestAnimationFrame(() => inputRef.current?.focus()); }}
         className="w-full h-9 px-3 rounded-md border border-border bg-surface text-[13px] text-ink-muted hover:bg-surface-alt hover:border-border-strong transition-all duration-150 text-left flex items-center gap-2"
-        aria-label="Open global search (⌘K)"
+        aria-label="Open command palette (⌘K)"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <span className="flex-1 truncate">Search…</span>
+        <span className="flex-1 truncate">Search · Command…</span>
         <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-border text-ink-faint font-mono">⌘K</kbd>
       </button>
 
       {open && (
         <div
-          className="absolute left-0 top-full mt-2 w-[460px] bg-surface text-ink border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-fadeInScale"
+          className="absolute left-0 top-full mt-2 w-[520px] bg-surface text-ink border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-fadeInScale"
           role="dialog"
-          aria-label="Search"
+          aria-label="Command palette"
         >
           <div className="px-3 py-2.5 border-b border-divider">
             <input
@@ -100,62 +289,85 @@ export default function SearchBar() {
               value={q}
               onChange={e => { setQ(e.target.value); setHighlight(0); }}
               onKeyDown={onKey}
-              placeholder="Find entity, declaration, provider…"
+              placeholder="Command (create client), or find (Acme, Q4 2026, a provider)…"
               className="w-full text-[13px] focus:outline-none"
               autoFocus
-              aria-label="Find entity, declaration, or provider"
+              aria-label="Command or search query"
             />
           </div>
-          <div className="max-h-[400px] overflow-y-auto">
-            {q.length < 2 ? (
-              <Tip>Type at least 2 characters.</Tip>
-            ) : !results ? (
+          <div className="max-h-[440px] overflow-y-auto">
+            {matchedCommands.length > 0 && (
+              <Group title={q.trim() ? 'Commands' : 'Quick actions'}>
+                {matchedCommands.map((c, i) => {
+                  const Icon = c.icon;
+                  return (
+                    <Item key={c.id} active={highlight === i} onClick={() => go(c)}>
+                      <span className="inline-flex items-center gap-2">
+                        <Icon size={13} className="text-ink-muted shrink-0" />
+                        <span className="font-medium">{c.label}</span>
+                        {c.hint && (
+                          <span className="text-[11px] text-ink-muted ml-1">{c.hint}</span>
+                        )}
+                      </span>
+                    </Item>
+                  );
+                })}
+              </Group>
+            )}
+
+            {q.length >= 2 && !results && (
               <Tip>Searching…</Tip>
-            ) : flat.length === 0 ? (
+            )}
+
+            {results && results.entities.length > 0 && (
+              <Group title="Entities">
+                {results.entities.map((e, i) => {
+                  const idx = matchedCommands.length + i;
+                  return (
+                    <Item key={e.id} active={highlight === idx} onClick={() => go(e)}>
+                      <span className="font-medium">{e.name}</span>
+                      <span className="text-[11px] text-ink-muted ml-2">{e.client_name || ''} · {e.regime}</span>
+                    </Item>
+                  );
+                })}
+              </Group>
+            )}
+            {results && results.declarations.length > 0 && (
+              <Group title="Declarations">
+                {results.declarations.map((d, i) => {
+                  const idx = matchedCommands.length + results.entities.length + i;
+                  return (
+                    <Item key={d.id} active={highlight === idx} onClick={() => go(d)}>
+                      <span className="font-medium">{d.entity_name}</span>
+                      <span className="text-[11px] text-ink-muted ml-2">{d.year} {d.period} · {d.status}</span>
+                    </Item>
+                  );
+                })}
+              </Group>
+            )}
+            {results && results.providers.length > 0 && (
+              <Group title="Providers">
+                {results.providers.map((p, i) => {
+                  const idx = matchedCommands.length + results.entities.length + results.declarations.length + i;
+                  return (
+                    <Item key={p.provider + p.declaration_id} active={highlight === idx} onClick={() => go(p)}>
+                      <span className="font-medium">{p.provider}</span>
+                      <span className="text-[11px] text-ink-muted ml-2">{p.entity_name} · {p.year} {p.period}</span>
+                    </Item>
+                  );
+                })}
+              </Group>
+            )}
+
+            {q.length >= 2 && results && matchedCommands.length === 0
+              && results.entities.length === 0
+              && results.declarations.length === 0
+              && results.providers.length === 0 && (
               <Tip>No results.</Tip>
-            ) : (
-              <>
-                {results.entities.length > 0 && (
-                  <Group title="Entities">
-                    {results.entities.map((e, i) => (
-                      <Item key={e.id} active={highlight === i} onClick={() => go(e)}>
-                        <span className="font-medium">{e.name}</span>
-                        <span className="text-[11px] text-ink-muted ml-2">{e.client_name || ''} · {e.regime}</span>
-                      </Item>
-                    ))}
-                  </Group>
-                )}
-                {results.declarations.length > 0 && (
-                  <Group title="Declarations">
-                    {results.declarations.map((d, i) => {
-                      const idx = results.entities.length + i;
-                      return (
-                        <Item key={d.id} active={highlight === idx} onClick={() => go(d)}>
-                          <span className="font-medium">{d.entity_name}</span>
-                          <span className="text-[11px] text-ink-muted ml-2">{d.year} {d.period} · {d.status}</span>
-                        </Item>
-                      );
-                    })}
-                  </Group>
-                )}
-                {results.providers.length > 0 && (
-                  <Group title="Providers">
-                    {results.providers.map((p, i) => {
-                      const idx = results.entities.length + results.declarations.length + i;
-                      return (
-                        <Item key={p.provider + p.declaration_id} active={highlight === idx} onClick={() => go(p)}>
-                          <span className="font-medium">{p.provider}</span>
-                          <span className="text-[11px] text-ink-muted ml-2">{p.entity_name} · {p.year} {p.period}</span>
-                        </Item>
-                      );
-                    })}
-                  </Group>
-                )}
-              </>
             )}
           </div>
           <div className="px-3 py-1.5 border-t border-divider text-[10px] text-ink-muted flex items-center justify-between bg-surface-alt">
-            <span>↑↓ navigate · Enter to open · Esc to close</span>
+            <span>↑↓ navigate · Enter to run · Esc to close</span>
             <span>{flat.length} result{flat.length === 1 ? '' : 's'}</span>
           </div>
         </div>
@@ -167,7 +379,9 @@ export default function SearchBar() {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="px-3 py-1 text-[10px] uppercase tracking-[0.06em] font-semibold text-ink-muted bg-surface-alt border-y border-divider">{title}</div>
+      <div className="px-3 py-1 text-[10px] uppercase tracking-[0.06em] font-semibold text-ink-muted bg-surface-alt border-y border-divider">
+        {title}
+      </div>
       {children}
     </div>
   );
@@ -183,5 +397,10 @@ function Item({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 function Tip({ children }: { children: React.ReactNode }) {
-  return <div className="px-3 py-3 text-[12px] text-ink-muted">{children}</div>;
+  return (
+    <div className="px-3 py-4 text-[12px] text-ink-muted text-center">{children}</div>
+  );
 }
+
+// Icons for hint list; also expose MailIcon (for completeness / future).
+export { MailIcon };
