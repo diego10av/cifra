@@ -236,6 +236,7 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
           SET treatment = $1,
               treatment_source = $2,
               classification_rule = $3,
+              classification_reason = $6,
               flag = $4,
               flag_reason = $5,
               -- Freeze the FIRST AI suggestion — never overwrite later.
@@ -249,8 +250,8 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
               ai_suggested_rule = COALESCE(ai_suggested_rule, $3),
               state = CASE WHEN state = 'extracted' THEN 'classified' ELSE state END,
               updated_at = NOW()
-        WHERE id = $6`,
-      [result.treatment, result.source, result.rule, result.flag, result.flag_reason ?? null, line.id]
+        WHERE id = $7`,
+      [result.treatment, result.source, result.rule, result.flag, result.flag_reason ?? null, result.reason ?? null, line.id]
     );
 
     byRule[result.rule] = (byRule[result.rule] || 0) + 1;

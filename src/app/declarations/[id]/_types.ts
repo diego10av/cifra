@@ -22,6 +22,11 @@ export interface InvoiceLine {
   treatment_source: string | null;
   ai_confidence: number | null;
   classification_rule: string | null;
+  /** Human-readable legal reason from the classifier. Stores the LTVA
+   *  article + CJEU case + AED circular citations as plain text;
+   *  the TreatmentBadge tooltip highlights them as pills. Populated
+   *  from migration 014 onward — older rows may still be null. */
+  classification_reason: string | null;
   flag: number | boolean;
   flag_reason: string | null;
   flag_acknowledged: number | boolean;

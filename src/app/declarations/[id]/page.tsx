@@ -1445,6 +1445,7 @@ function TableRow({
             source={line.treatment_source}
             rule={line.classification_rule}
             flagReason={line.flag_reason}
+            reason={line.classification_reason}
           />
         )}
       </td>
