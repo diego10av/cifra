@@ -44,6 +44,9 @@ import {
   WATERFALL_DISTRIBUTION_KEYWORDS,
   STRUCTURING_FEE_KEYWORDS,
   IGP_KEYWORDS,
+  CREDIT_INTERMEDIATION_KEYWORDS,
+  SECURITIZATION_MGMT_KEYWORDS,
+  SECURITIZATION_SERVICER_KEYWORDS,
   LEGAL_SUFFIXES,
   containsAny,
   findFirstMatch,
@@ -74,7 +77,7 @@ export interface InvoiceLineInput {
 }
 
 export interface EntityContext {
-  entity_type?: 'fund' | 'active_holding' | 'passive_holding' | 'gp' | 'manco' | 'other' | null;
+  entity_type?: 'fund' | 'active_holding' | 'passive_holding' | 'gp' | 'manco' | 'securitization_vehicle' | 'other' | null;
   // The total value of outgoing OUT_LUX_00 invoices on this declaration.
   // Used by inference rules A/B to compare orders of magnitude.
   exempt_outgoing_total?: number;
@@ -86,6 +89,31 @@ export interface EntityContext {
   // least one rental property. Used by RULE 28 to accept 17% on outgoing
   // rent invoices.
   has_art_45_option?: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// isQualifyingForArt44D
+//   Centralises the test of whether the recipient entity qualifies for
+//   the Art. 44§1 d LTVA / Art. 135(1)(g) Directive management-of-special-
+//   investment-funds exemption.
+//
+//   Today this returns TRUE for both:
+//     - entity_type === 'fund'                  (UCITS, SIF, RAIF, SICAR,
+//                                                UCI Part II, qualifying AIF)
+//     - entity_type === 'securitization_vehicle' (Loi du 22 mars 2004 as
+//                                                amended 2022, per
+//                                                Fiscale Eenheid X C-595/13)
+//
+//   Do NOT include: 'manco' / 'gp' / 'active_holding' / 'passive_holding'
+//   (they are not "special investment funds" within the exemption).
+//
+//   When a future case widens the perimeter (e.g. DB pension funds
+//   confirmed qualifying, or a specific SV sub-type carved out), this is
+//   the single place to change — every classifier rule uses this helper.
+// ─────────────────────────────────────────────────────────────────────────
+export function isQualifyingForArt44D(ctx: EntityContext | null | undefined): boolean {
+  const t = ctx?.entity_type;
+  return t === 'fund' || t === 'securitization_vehicle';
 }
 
 export interface PrecedentMatch {
@@ -243,7 +271,11 @@ function applyDirectEvidenceRules(
   const isLu = isLuxembourg(country);
   const isEu = isEU(country) && !isLu;
   const entityType = ctx.entity_type;
-  const isFundEntity = entityType === 'fund';
+  // Qualifies for Art. 44§1 d LTVA fund-management exemption — covers
+  // both entity_type='fund' and 'securitization_vehicle' per Fiscale
+  // Eenheid X C-595/13 extension.
+  const isFundEntity = isQualifyingForArt44D(ctx);
+  const isSvEntity = entityType === 'securitization_vehicle';
 
   // ═══════════════ RULE 16 — Extractor-flagged disbursement ═══════════════
   // Art. 28§3 c LTVA débours have four evidentiary conditions (expense
@@ -292,12 +324,16 @@ function applyDirectEvidenceRules(
   // Invoice from a digital platform covered by Art. 9a Reg. 282/2011 /
   // ViDA 2027 extension. Classifies as PLATFORM_DEEMED with a flag so
   // the reviewer checks whether the platform is truly the VAT-relevant
-  // supplier (CJEU Fenix C-695/20; General Court Versãofast T-657/24).
+  // supplier.
+  // Authority: CJEU Fenix International C-695/20 (validity of Art. 9a).
+  // NOTE: Versãofast T-657/24 was previously cited here in error —
+  // Versãofast is a CREDIT INTERMEDIATION case (Art. 135(1)(b)), not
+  // platform-economy. Credit intermediation lives in RULE 36.
   if (containsAny(text, PLATFORM_DEEMED_SUPPLIER_KEYWORDS)) {
     return {
       treatment: 'PLATFORM_DEEMED',
       rule: 'RULE 22',
-      reason: 'Digital platform deemed the supplier under Art. 9a Reg. 282/2011 (Fenix C-695/20; Versãofast T-657/24).',
+      reason: 'Digital platform deemed the supplier under Art. 9a Reg. 282/2011 (Fenix International C-695/20).',
       source: 'rule',
       flag: true,
       flag_reason:
@@ -549,8 +585,10 @@ function applyDirectEvidenceRules(
         && containsAny(text, FUND_MGMT_KEYWORDS)
         && containsAny(text, EXEMPTION_KEYWORDS)) {
       if (isFundEntity) {
-        return ruleMatch('RULE 10', 'RC_EU_EX',
-          'Reverse charge, exempt under Art. 44§1 d LTVA (fund management to a qualifying special investment fund) — eCDF box 435.');
+        const reason = isSvEntity
+          ? 'Reverse charge, exempt under Art. 44§1 d LTVA — management of a Luxembourg securitisation vehicle (Fiscale Eenheid X C-595/13; Loi du 22 mars 2004 modifiée 2022) — eCDF box 435.'
+          : 'Reverse charge, exempt under Art. 44§1 d LTVA (fund management to a qualifying special investment fund) — eCDF box 435.';
+        return ruleMatch('RULE 10', 'RC_EU_EX', reason);
       }
       // Non-fund entity — do NOT auto-exempt.
       return {
@@ -560,7 +598,8 @@ function applyDirectEvidenceRules(
         flag_reason:
           'Invoice cites Art. 44 but the recipient is not classified as a qualifying special investment fund '
           + '(per BlackRock C-231/19 / Fiscale Eenheid X C-595/13). Treated as taxable reverse-charge. '
-          + 'If the entity IS a qualifying fund (UCITS, SIF, RAIF, SICAR, Part II UCI), change entity_type and re-run.',
+          + 'If the entity IS a qualifying fund (UCITS, SIF, RAIF, SICAR, Part II UCI) or a Luxembourg '
+          + 'securitisation vehicle (Loi 2004/2022), change entity_type to fund / securitization_vehicle and re-run.',
       };
     }
 
@@ -595,8 +634,10 @@ function applyDirectEvidenceRules(
         && containsAny(text, FUND_MGMT_KEYWORDS)
         && containsAny(text, EXEMPTION_KEYWORDS)) {
       if (isFundEntity) {
-        return ruleMatch('RULE 12', 'RC_NONEU_EX',
-          'Reverse charge, exempt under Art. 44§1 d LTVA (fund management to a qualifying special investment fund, non-EU supplier) — eCDF box 445.');
+        const reason = isSvEntity
+          ? 'Reverse charge, exempt under Art. 44§1 d LTVA — management of a Luxembourg securitisation vehicle (Fiscale Eenheid X C-595/13; non-EU supplier) — eCDF box 445.'
+          : 'Reverse charge, exempt under Art. 44§1 d LTVA (fund management to a qualifying special investment fund, non-EU supplier) — eCDF box 445.';
+        return ruleMatch('RULE 12', 'RC_NONEU_EX', reason);
       }
       return {
         treatment: 'RC_NONEU_TAX', rule: 'RULE 12X',
@@ -604,7 +645,7 @@ function applyDirectEvidenceRules(
         source: 'rule', flag: true,
         flag_reason:
           'Invoice cites Art. 44 but the recipient is not classified as a qualifying special investment fund. '
-          + 'Treated as taxable reverse-charge. Change entity_type to fund and re-run if this is a UCITS / SIF / RAIF / etc.',
+          + 'Treated as taxable reverse-charge. Change entity_type to fund / securitization_vehicle and re-run if applicable.',
       };
     }
   }
@@ -755,8 +796,11 @@ function applyInferenceRules(line: InvoiceLineInput, ctx: EntityContext): Classi
   // legal/tax/audit advisory, etc.) is present — BlackRock holds that
   // services outside "specific and essential to fund management" fall
   // outside Art. 44§1 d.
-  const isFundEntity = ctx.entity_type === 'fund';
-  const hasFundMgmtKeywords = containsAny(text, FUND_MGMT_KEYWORDS);
+  // isFundEntity covers both 'fund' and 'securitization_vehicle' per
+  // Fiscale Eenheid X C-595/13 extension — see isQualifyingForArt44D.
+  const isFundEntity = isQualifyingForArt44D(ctx);
+  const isSvEntity = ctx.entity_type === 'securitization_vehicle';
+  const hasFundMgmtKeywords = containsAny(text, FUND_MGMT_KEYWORDS) || containsAny(text, SECURITIZATION_MGMT_KEYWORDS);
   const hasExemptionReference = containsAny(text, EXEMPTION_KEYWORDS);
   const hasExclusionKeyword = containsAny(text, FUND_MGMT_EXCLUSION_KEYWORDS);
 
@@ -1112,7 +1156,13 @@ function applyContentSpecificRules(
     const country = (line.country || '').toUpperCase();
     const isLu = isLuxembourg(country);
     const isEu = isEU(country) && !isLu;
-    const isFinancialRecipient = ctx.entity_type === 'fund' || ctx.entity_type === 'manco';
+    // Financial-sector member test per DNB Banka C-326/15 + Aviva C-605/15.
+    // Includes fund / AIFM / ManCo and securitisation vehicles (also a
+    // financial-sector classification).
+    const isFinancialRecipient =
+      ctx.entity_type === 'fund'
+      || ctx.entity_type === 'manco'
+      || ctx.entity_type === 'securitization_vehicle';
 
     // Cross-border IGP → never exempt (Kaplan)
     if (!isLu && country !== '') {
@@ -1160,6 +1210,122 @@ function applyContentSpecificRules(
           + 'Post-Commission v Luxembourg C-274/15, partial-taxable-activity members must be excluded.',
       };
     }
+  }
+
+  // ═══════════════ RULE 36 — Credit intermediation (Art. 44§1 (a)) ═══════════════
+  // GC Versãofast T-657/24 (26 Nov 2025) materially widened the credit-
+  // intermediation safe harbour under Art. 135(1)(b) Directive / Art. 44§1 (a)
+  // LTVA. Mortgage brokers, loan-origination platforms, placement agents
+  // for private debt, and chain sub-agents (Ludwig C-453/05) all qualify
+  // when (i) the overall aim is to bring a lender + borrower into a
+  // contract, (ii) the intermediary actively searches and recruits,
+  // (iii) pre-contractual and administrative tasks are included. Binding
+  // power over the credit institution is NOT required; professional status
+  // is NOT required.
+  //
+  // Counter-examples still taxable: pure marketing / generic information,
+  // data-enrichment sold to a bank, debt-collection (Aspiro C-40/15 —
+  // handled separately on the SV servicer path in RULE 37).
+  //
+  // Priority note: when the extractor captured an explicit Art. 44§1 (a)
+  // exemption reference, we DEFER to the direct-evidence rule (RULE 7A →
+  // EXEMPT_44A_FIN) which emits the more specific treatment code with
+  // proper Annexe B placement. RULE 36 fires for the keyword-only path.
+  if (line.exemption_reference && containsAny(line.exemption_reference, ART_44_PARA_A_REFS)) {
+    // Fall through — direct-evidence RULE 7A handles this case.
+  } else if (containsAny(text, CREDIT_INTERMEDIATION_KEYWORDS)) {
+    // Only applies when no VAT was actually charged (exempt = zero-rated).
+    // If the supplier mistakenly charged VAT, fall through — the direct-
+    // evidence rate rules will pick it up and the reviewer can manually
+    // override to EXEMPT_44A_FIN after obtaining a corrected invoice.
+    if (isZeroOrNull(line.vat_applied)) {
+      const matched = findFirstMatch(text, CREDIT_INTERMEDIATION_KEYWORDS);
+      const country = (line.country || '').toUpperCase();
+      const isLu = isLuxembourg(country);
+      const isEu = isEU(country) && !isLu;
+      const flagText =
+        'Versãofast (GC 2025-11-26) materially widened the credit-intermediation safe harbour: '
+        + 'a broker who actively searches for and recruits customers for loan agreements qualifies '
+        + 'even when (i) the intermediary cannot bind the credit institution, (ii) the mandate '
+        + 'includes pre-contractual + administrative work, (iii) the intermediary is not a regulated '
+        + 'professional. Confirm the invoice falls within this perimeter — NOT: pure marketing, '
+        + 'generic information provision, data-enrichment sold to a bank, or debt-collection '
+        + '(Aspiro C-40/15). If the supplier is a sub-agent to a broker, Ludwig C-453/05 extends '
+        + 'the exemption to the sub-chain.';
+
+      if (isLu) {
+        return {
+          treatment: 'LUX_00',
+          rule: 'RULE 36',
+          reason: `Credit intermediation ("${matched}") — exempt under Art. 44§1 (a) LTVA / Art. 135(1)(b) Directive 2006/112/EC (Versãofast T-657/24; Ludwig C-453/05).`,
+          source: 'rule',
+          flag: true,
+          flag_reason: flagText,
+        };
+      }
+
+      if (isEu) {
+        return {
+          treatment: 'RC_EU_EX',
+          rule: 'RULE 36',
+          reason: `Credit intermediation ("${matched}"), reverse-charge exempt under Art. 44§1 (a) LTVA (Versãofast T-657/24, GC 2025-11-26; EU supplier).`,
+          source: 'rule',
+          flag: true,
+          flag_reason: flagText,
+        };
+      }
+
+      if (!isLu && !isEu && country !== '') {
+        return {
+          treatment: 'RC_NONEU_EX',
+          rule: 'RULE 36',
+          reason: `Credit intermediation ("${matched}"), reverse-charge exempt under Art. 44§1 (a) LTVA (Versãofast T-657/24; non-EU supplier). Deduction may be available for LU recipient under Art. 49§2 non-EU exception.`,
+          source: 'rule',
+          flag: true,
+          flag_reason: flagText,
+        };
+      }
+
+      // Country missing — flag only, no treatment
+      return {
+        treatment: null,
+        rule: 'RULE 36?',
+        reason: `Credit intermediation keyword detected ("${matched}") but supplier country is missing.`,
+        source: 'rule',
+        flag: true,
+        flag_reason:
+          'Credit intermediation is potentially exempt under Art. 44§1 (a) LTVA post-Versãofast T-657/24. '
+          + 'Capture the supplier country to apply the correct treatment (LUX_00 / RC_EU_EX / RC_NONEU_EX) '
+          + 'or override manually with a documented basis.',
+      };
+    }
+  }
+
+  // ═══════════════ RULE 37 — Securitisation-vehicle servicer split ═══════════════
+  // For entity_type = 'securitization_vehicle', a servicing / debt-collection
+  // invoice carries a mixed character. Per Aspiro C-40/15, outsourced
+  // handling that does not retain the "specific and essential" character
+  // of the exempt underlying service is NOT exempt — debt collection is
+  // the canonical example. Cifra refuses to auto-exempt and routes to
+  // the reviewer for apportionment.
+  if (ctx.entity_type === 'securitization_vehicle'
+      && containsAny(text, SECURITIZATION_SERVICER_KEYWORDS)) {
+    const matched = findFirstMatch(text, SECURITIZATION_SERVICER_KEYWORDS);
+    return {
+      treatment: null,
+      rule: 'RULE 37',
+      reason: `Servicer / debt-collection line on a securitisation vehicle ("${matched}") — mixed characterisation requires reviewer apportionment.`,
+      source: 'rule',
+      flag: true,
+      flag_reason:
+        'Servicer agreements for LU securitisation vehicles typically bundle (i) exempt management / cash-flow / '
+        + 'reporting activities (Art. 44§1 d per Fiscale Eenheid X C-595/13) with (ii) taxable debt-collection / '
+        + 'enforcement activities (Aspiro C-40/15 — back-office handling without the "specific and essential" '
+        + 'character of the exempt service loses the exemption). Inspect the servicing agreement and split the fee: '
+        + 'management-flavoured components (cash management, reporting, monitoring) → RC_EU_EX / RC_NONEU_EX / LUX_00; '
+        + 'recovery / enforcement / delinquency-management components → LUX_17 / RC_EU_TAX / RC_NONEU_TAX. '
+        + 'Document the apportionment methodology in the audit trail.',
+    };
   }
 
   return null;

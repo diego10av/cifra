@@ -63,6 +63,13 @@ const MANCO_CTX: Partial<EntityContext> = {
   entity_type: 'manco',
   exempt_outgoing_total: 3_000_000,
 };
+// Securitisation vehicle (Loi du 22 mars 2004 as amended 2022). SV IS a
+// taxable person; management services received are exempt Art. 44§1 d
+// via Fiscale Eenheid X C-595/13 extension. See classification-research §11.
+const SV_CTX: Partial<EntityContext> = {
+  entity_type: 'securitization_vehicle',
+  exempt_outgoing_total: 2_000_000,
+};
 
 export const FIXTURES: InvoiceFixture[] = [
   // ═════════════════════ Group 1 — LU standard / reduced rates (RULES 1-4) ═════════════════════
@@ -1048,5 +1055,389 @@ export const FIXTURES: InvoiceFixture[] = [
     },
     expected: { treatment: 'LUX_17_NONDED', rule: 'RULE 15P', flag: true, flag_includes: 'Polysar' },
     notes: 'Key Polysar domestic-leg case. Prior to 2026-04-19 this would have silently classified as LUX_17 (deductible).',
+  },
+
+  // ═════════════════════ Group 14 — Credit intermediation (RULE 36, Versãofast T-657/24) ═════════════════════
+  // 26 November 2025 — GC materially widened the Art. 135(1)(b) /
+  // Art. 44§1 (a) LTVA safe harbour for credit intermediaries. The
+  // following fixtures exercise LU / EU / non-EU routing and the
+  // Ludwig C-453/05 sub-agent chain extension.
+  {
+    id: 'F072',
+    title: 'LU mortgage broker invoices a LU active holding (no VAT) → RULE 36 LUX_00',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Versãofast T-657/24 + LTVA Art. 44§1 (a)',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LUX Mortgage Brokers SARL',
+      description: 'Courtage de prêt immobilier — recherche client + dossier de crédit',
+      vat_rate: 0, vat_applied: 0, amount_eur: 8500,
+    },
+    expected: { treatment: 'LUX_00', rule: 'RULE 36', flag: true, flag_includes: 'Versãofast' },
+    notes: 'LU supplier, credit intermediation keyword matched. Exempt under Art. 44§1 (a) post-Versãofast.',
+  },
+  {
+    id: 'F073',
+    title: 'Portuguese loan broker to LU fund → RULE 36 RC_EU_EX',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Versãofast T-657/24 (GC 2025-11-26)',
+    context: FUND_CTX,
+    input: {
+      direction: 'incoming', country: 'PT',
+      supplier_name: 'Versãofast Mediação de Crédito Lda',
+      description: 'Mediação de crédito — angariação de clientes para contrato de mútuo',
+      vat_rate: null, vat_applied: 0, amount_eur: 22000,
+    },
+    expected: { treatment: 'RC_EU_EX', rule: 'RULE 36', flag: true, flag_includes: 'Versãofast' },
+    notes: 'The canonical Versãofast case — Portuguese credit intermediary, EU supplier.',
+  },
+  {
+    id: 'F074',
+    title: 'UK non-EU mortgage broker to LU fund → RULE 36 RC_NONEU_EX',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Versãofast T-657/24; LTVA Art. 49§2 non-EU exception',
+    context: FUND_CTX,
+    input: {
+      direction: 'incoming', country: 'GB',
+      supplier_name: 'London Mortgage Brokers Ltd',
+      description: 'Home loan broker — customer search and credit application assistance',
+      vat_rate: null, vat_applied: 0, amount_eur: 35000,
+    },
+    expected: { treatment: 'RC_NONEU_EX', rule: 'RULE 36', flag: true, flag_includes: 'Versãofast' },
+    notes: 'Art. 49§2 non-EU exception allows the LU recipient to deduct input VAT on related costs if it has Art. 44§1(a) outgoing.',
+  },
+  {
+    id: 'F075',
+    title: 'French courtier en crédit to LU active holding → RULE 36 RC_EU_EX',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Versãofast T-657/24',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'FR',
+      supplier_name: 'Paris Courtage Financier SAS',
+      description: 'Intermédiation de crédit immobilier — apporteur d\'affaires bancaire',
+      vat_rate: null, vat_applied: 0, amount_eur: 15000,
+    },
+    expected: { treatment: 'RC_EU_EX', rule: 'RULE 36', flag: true },
+  },
+  {
+    id: 'F076',
+    title: 'German Kreditvermittler to LU SV → RULE 36 RC_EU_EX',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Versãofast T-657/24',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'DE',
+      supplier_name: 'München Kreditvermittlung GmbH',
+      description: 'Kreditvermittlung für gewerbliche Finanzierung — Darlehensvermittlung',
+      vat_rate: null, vat_applied: 0, amount_eur: 18000,
+    },
+    expected: { treatment: 'RC_EU_EX', rule: 'RULE 36', flag: true },
+    notes: 'German credit intermediation to a LU securitisation vehicle — exempt via Versãofast.',
+  },
+  {
+    id: 'F077',
+    title: 'Sub-agent chain: placement agent for private debt → RULE 36 RC_EU_EX (Ludwig extension)',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Ludwig C-453/05 sub-agent extension + Versãofast T-657/24',
+    context: FUND_CTX,
+    input: {
+      direction: 'incoming', country: 'IE',
+      supplier_name: 'Dublin Private Debt Placement DAC',
+      description: 'Private-debt placement services — sourcing institutional lenders',
+      vat_rate: null, vat_applied: 0, amount_eur: 45000,
+    },
+    expected: { treatment: 'RC_EU_EX', rule: 'RULE 36', flag: true, flag_includes: 'Ludwig' },
+  },
+  {
+    id: 'F078',
+    title: 'Pure marketing / advertising to a bank — NOT credit intermediation → falls through',
+    archetype: 'marketing',
+    legal_ref: 'CSC Financial C-235/00 — negotiation not mere information',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'DE',
+      supplier_name: 'Berlin Marketing GmbH',
+      description: 'Marketing campaign — digital brand promotion for financial service providers',
+      vat_rate: null, vat_applied: 0, amount_eur: 15000,
+    },
+    expected: { treatment: 'RC_EU_TAX', rule: 'RULE 11' },
+    notes: 'Counter-example: no credit-intermediation keyword in description, RULE 36 does not fire, falls to generic RC. Description avoids GOODS_KEYWORDS (e.g. German "waren" substring inside "awareness").',
+  },
+  {
+    id: 'F079',
+    title: 'Credit broker VAT mistakenly charged → RULE 36 does NOT fire, direct-evidence wins',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Versãofast T-657/24 + RULE 36 guard on vat_applied',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LUX Credit Broker SARL',
+      description: 'Mortgage broker fee for home-loan intermediation',
+      vat_rate: 0.17, vat_applied: 1275, amount_eur: 7500,
+    },
+    expected: { treatment: 'LUX_17', rule: 'RULE 1' },
+    notes: 'VAT was mistakenly charged — RULE 36 only fires when vat_applied is zero (exempt = zero-rated). Reviewer can override after obtaining a corrected invoice.',
+  },
+
+  // ═════════════════════ Group 15 — Securitisation vehicle (new entity_type) ═════════════════════
+  // SVs are taxable persons; management services received are exempt
+  // Art. 44§1 d via Fiscale Eenheid X C-595/13. Servicer agreements need
+  // per-Aspiro-C-40/15 split review.
+  {
+    id: 'F080',
+    title: 'SV receives EU management fee with Art. 44 → RULE 10 RC_EU_EX (SV-specific reason)',
+    archetype: 'fund_admin',
+    legal_ref: 'Fiscale Eenheid X C-595/13 + Loi du 22 mars 2004 modifiée 2022',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'NL',
+      supplier_name: 'Amsterdam Asset Management BV',
+      description: 'Fund management services Q1 — exempt under Article 44',
+      vat_rate: null, vat_applied: 0, amount_eur: 40000,
+    },
+    expected: {
+      treatment: 'RC_EU_EX', rule: 'RULE 10',
+      reason_includes: 'securitisation vehicle',
+    },
+  },
+  {
+    id: 'F081',
+    title: 'SV receives EU advisory without explicit Art. 44 → INFERENCE C RC_EU_EX',
+    archetype: 'cross_border_advisor',
+    legal_ref: 'BlackRock C-231/19 + Fiscale Eenheid X C-595/13',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'IE',
+      supplier_name: 'Dublin Portfolio Advisors DAC',
+      description: 'Portfolio management services — collateral management and investment decisions',
+      vat_rate: null, vat_applied: 0, amount_eur: 55000,
+    },
+    expected: { treatment: 'RC_EU_EX', rule: 'INFERENCE C', flag: true },
+    notes: 'SV qualifies alongside fund under isQualifyingForArt44D — INFERENCE C fires.',
+  },
+  {
+    id: 'F082',
+    title: 'SV servicer agreement (LU) → RULE 37 flag, no auto-classification',
+    archetype: 'sv_servicer',
+    legal_ref: 'Aspiro C-40/15 + PRAC_SV_SERVICER_SPLIT',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LUX Servicing Agent SA',
+      description: 'Master servicer fee — collection services and delinquency management for underlying receivables',
+      vat_rate: null, vat_applied: 0, amount_eur: 30000,
+    },
+    expected: { treatment: null, rule: 'RULE 37', flag: true, flag_includes: 'Aspiro' },
+  },
+  {
+    id: 'F083',
+    title: 'SV servicer agreement (EU) — debt collection component → RULE 37 flag',
+    archetype: 'sv_servicer',
+    legal_ref: 'Aspiro C-40/15',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'FR',
+      supplier_name: 'Paris Recouvrement SA',
+      description: 'Convention de servicing — recouvrement de créances et gestion des impayés',
+      vat_rate: null, vat_applied: 0, amount_eur: 28000,
+    },
+    expected: { treatment: null, rule: 'RULE 37', flag: true, flag_includes: 'apportionment' },
+  },
+  {
+    id: 'F084',
+    title: 'SV receives "portfolio servicing" from non-EU → RULE 37 flag (mixed)',
+    archetype: 'sv_servicer',
+    legal_ref: 'Aspiro C-40/15',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'US',
+      supplier_name: 'Delaware Portfolio Servicing LLC',
+      description: 'Portfolio servicing and loan recovery services',
+      vat_rate: null, vat_applied: 0, amount_eur: 42000,
+    },
+    expected: { treatment: null, rule: 'RULE 37', flag: true },
+  },
+  {
+    id: 'F085',
+    title: 'SV receives NAV calculation (pure admin, no servicer keyword) → RULE 10 RC_EU_EX',
+    archetype: 'fund_admin',
+    legal_ref: 'DBKAG C-58/20 + Fiscale Eenheid X C-595/13',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'IE',
+      supplier_name: 'Dublin Fund Admin DAC',
+      description: 'NAV calculation and calcul de la vni — monthly valuation; exempt Article 44 paragraphe 1er lettre d',
+      vat_rate: null, vat_applied: 0, amount_eur: 15000,
+    },
+    expected: { treatment: 'RC_EU_EX', rule: 'RULE 10' },
+  },
+
+  // ═════════════════════ Group 16 — BlackRock single-supply rule ═════════════════════
+  // Per BlackRock C-231/19, a single supply to an AIFM managing BOTH
+  // qualifying funds AND non-qualifying entities (SOPARFIs) is ENTIRELY
+  // taxable. The exemption is indivisible.
+  {
+    id: 'F086',
+    title: 'ManCo (mixed book) receives SaaS platform → taxable, entity_type=manco (RULE 10X route)',
+    archetype: 'platform',
+    legal_ref: 'BlackRock C-231/19 — single supply not partially exempt',
+    context: MANCO_CTX,
+    input: {
+      direction: 'incoming', country: 'US',
+      supplier_name: 'BlackRock Solutions Inc',
+      description: 'Aladdin platform licence — portfolio management services exempt under Article 135',
+      vat_rate: null, vat_applied: 0, amount_eur: 250000,
+    },
+    expected: { treatment: 'RC_NONEU_TAX', rule: 'RULE 12X', flag: true, flag_includes: 'qualifying special investment fund' },
+    notes: 'The canonical BlackRock scenario. ManCo is not a qualifying fund — the supply is entirely taxable even though it mentions Art. 135.',
+  },
+  {
+    id: 'F087',
+    title: 'Mixed-book AIFM (manco) receives EU management services → RULE 10X taxable',
+    archetype: 'cross_border_advisor',
+    legal_ref: 'BlackRock C-231/19',
+    context: MANCO_CTX,
+    input: {
+      direction: 'incoming', country: 'DE',
+      supplier_name: 'Frankfurt AM GmbH',
+      description: 'Delegated portfolio management under AIFMD — exempt Art. 44 d',
+      vat_rate: null, vat_applied: 0, amount_eur: 85000,
+    },
+    expected: { treatment: 'RC_EU_TAX', rule: 'RULE 10X', flag: true },
+    notes: 'Manco is the AIFM itself, not a fund. Incoming management = taxable.',
+  },
+
+  // ═════════════════════ Group 17 — Art. 56bis explicit margin-scheme ═════════════════════
+  {
+    id: 'F088',
+    title: 'Travel agency margin-scheme invoice → RULE 24 MARGIN_NONDED',
+    archetype: 'travel',
+    legal_ref: 'LTVA Art. 56bis + Dir. Art. 311-325',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'FR',
+      supplier_name: 'Paris Travel Agency SAS',
+      description: 'Voyage affaires — régime de la marge Art. 56bis',
+      vat_rate: null, vat_applied: 0, amount_eur: 3200,
+    },
+    expected: { treatment: 'MARGIN_NONDED', rule: 'RULE 24', flag: true },
+  },
+  {
+    id: 'F089',
+    title: 'Second-hand dealer margin invoice (German) → RULE 24 MARGIN_NONDED',
+    archetype: 'second_hand',
+    legal_ref: 'LTVA Art. 56bis',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'DE',
+      supplier_name: 'Berlin Gebrauchtwagen GmbH',
+      description: 'Used equipment purchase — Sonderregelung für Reisebüros — no VAT separated',
+      vat_rate: null, vat_applied: 0, amount_eur: 18000,
+    },
+    expected: { treatment: 'MARGIN_NONDED', rule: 'RULE 24', flag: true },
+  },
+
+  // ═════════════════════ Group 18 — Passive holding + credit intermediation edge case ═════════════════════
+  {
+    id: 'F090',
+    title: 'Passive holding receives mortgage broker fee (EU) → RULE 36 still exempt (zero-rated)',
+    archetype: 'credit_intermediary',
+    legal_ref: 'Versãofast T-657/24 — exempt regardless of recipient status',
+    context: PASSIVE_CTX,
+    input: {
+      direction: 'incoming', country: 'FR',
+      supplier_name: 'Paris Courtage SAS',
+      description: 'Intermédiation de crédit — recherche de financement pour acquisition',
+      vat_rate: null, vat_applied: 0, amount_eur: 12000,
+    },
+    expected: { treatment: 'RC_EU_EX', rule: 'RULE 36', flag: true },
+    notes: 'A passive holding receiving an exempt intermediation service has no VAT impact either way (Polysar = non-taxable, Art. 44§1(a) = exempt). RULE 36 wins on content-specific priority; the economic result is the same as RULE 11P.',
+  },
+
+  // ═════════════════════ Group 19 — Wheels / DB pension fund non-qualifying ═════════════════════
+  {
+    id: 'F091',
+    title: 'DB pension vehicle treated as entity_type=other → no fund exemption, taxable',
+    archetype: 'pension',
+    legal_ref: 'Wheels C-424/11 — DB pension not comparable to UCITS',
+    context: { entity_type: 'other', exempt_outgoing_total: 0 },
+    input: {
+      direction: 'incoming', country: 'DE',
+      supplier_name: 'Frankfurt Pension Consulting GmbH',
+      description: 'Investment management services — fund management for DB scheme exempt under Art. 44',
+      vat_rate: null, vat_applied: 0, amount_eur: 48000,
+    },
+    expected: { treatment: 'RC_EU_TAX', rule: 'RULE 10X', flag: true },
+    notes: 'A DB pension vehicle does NOT qualify (Wheels). Reviewer should classify as entity_type=other and the classifier refuses auto-exemption.',
+  },
+
+  // ═════════════════════ Group 20 — VAT group intra-supply (reinforcement) ═════════════════════
+  {
+    id: 'F092',
+    title: 'VAT group LU intra-supply, no VAT → RULE 20 VAT_GROUP_OUT',
+    archetype: 'vat_group_intra',
+    legal_ref: 'LTVA Art. 60ter + Finanzamt T II C-184/23',
+    context: { entity_type: 'active_holding', vat_group_id: 'LUGRP12345' },
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'Lux Group Services SA',
+      description: 'Intra-group administrative services Q2',
+      vat_rate: null, vat_applied: 0, amount_eur: 95000,
+    },
+    expected: { treatment: 'VAT_GROUP_OUT', rule: 'RULE 20', flag: true },
+  },
+
+  // ═════════════════════ Group 21 — IGP extended to SV entity ═════════════════════
+  {
+    id: 'F093',
+    title: 'LU-to-LU IGP to SV entity → RULE 35-lu (financial-sector exclusion extended to SV)',
+    archetype: 'igp',
+    legal_ref: 'DNB Banka C-326/15 + Aviva C-605/15 extended to SV',
+    context: SV_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LuxShared Services SCS',
+      description: 'Cost-pooling allocation — IGP Art. 132(1)(f)',
+      vat_rate: 0.17, vat_applied: 4250, amount_eur: 25000,
+    },
+    expected: { treatment: 'LUX_17', rule: 'RULE 35-lu', flag: true, flag_includes: 'DNB' },
+    notes: 'SV is classified as financial-sector for the IGP exclusion per DNB Banka / Aviva logic.',
+  },
+
+  // ═════════════════════ Group 22 — Credit intermediation explicit LU with Art. 44 ═════════════════════
+  {
+    id: 'F094',
+    title: 'Explicit Art. 44§1 a on an LU intermediation invoice → RULE 7A wins (direct evidence)',
+    archetype: 'credit_intermediary',
+    legal_ref: 'LTVA Art. 44§1 a (extractor-captured reference)',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'LU',
+      supplier_name: 'LUX Mortgage Brokers SARL',
+      description: 'Credit intermediation fee — exempt',
+      exemption_reference: 'Art. 44 § 1 a LTVA',
+      vat_rate: 0, vat_applied: 0, amount_eur: 6000,
+    },
+    expected: { treatment: 'EXEMPT_44A_FIN', rule: 'RULE 7A' },
+    notes: 'When the extractor captures the explicit Art. 44§1 a reference, RULE 7A (direct evidence) wins over RULE 36 (content-specific keyword) because direct evidence has higher priority within the direct-evidence rules. The outcome is economically equivalent.',
+  },
+
+  // ═════════════════════ Group 23 — Platform deemed supplier (Fenix) clean-room test ═════════════════════
+  {
+    id: 'F095',
+    title: 'Platform deemed supplier invoice → RULE 22 PLATFORM_DEEMED',
+    archetype: 'platform',
+    legal_ref: 'Fenix C-695/20 + Art. 9a Reg. 282/2011',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'IE',
+      supplier_name: 'Dublin Marketplace DAC',
+      description: 'Marketplace facilitator fee — Art. 9a deemed supplier for electronic services',
+      vat_rate: null, vat_applied: 0, amount_eur: 5000,
+    },
+    expected: { treatment: 'PLATFORM_DEEMED', rule: 'RULE 22', flag: true, flag_includes: 'Art. 9a' },
+    notes: 'Verifies RULE 22 still fires after the Versãofast misattribution fix — platform-economy keyword path, Fenix C-695/20.',
   },
 ];
