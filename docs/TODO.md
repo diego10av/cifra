@@ -94,6 +94,40 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-22** — Stint 20: Opus 4.7 sweep + §11 actionable-first pruning
+
+Two coordinated passes driven by Diego's two-part question: (a) where could Opus 4.7 materially lift SaaS quality, and (b) which buttons fail the PROTOCOLS §11 test ("if this element disappeared, would the user act differently?").
+
+**Commits `88ab763` + `31e4101` pushed.**
+
+**Opus 4.7 upgrades (5 call paths):**
+- **Validator** Opus 4.5 → 4.7. The pitch-killer agent for Big-4 objections; strictly better multi-hop LU-VAT reasoning.
+- **Chat "Ask Opus"** Opus 4.5 → 4.7 (both `/api/chat` and `/api/chat/stream` + the ChatDrawer client).
+- **Attachment L2 analyze (Opus path)** Opus 4.5 → 4.7. Contract + engagement-letter + advisor-email deep reads with CJEU citations.
+- **VAT registration letter extractor** Haiku → Opus 4.7. Diego 2026-04-21 flagged this was "almost completely wrong" on his first real letter. High-stakes (creates entity profile), low-volume (1/entity lifetime).
+- **Tier 4 AI proposer** Haiku → Opus 4.7. Avoids a short-lived Haiku bake-in on the brand-new proposer; NO_MATCH cases are the hardest legal reasoning in the corpus so Opus 4.7 is justified.
+
+Pricing table in `anthropic-wrapper.ts` extended with `claude-opus-4-7` (pegged to 4.5 as placeholder until Anthropic public pricing is verified; budget guard is token-authoritative so a wrong peg under-reports cost but doesn't mis-cap). `docs/MODELS.md` matrix + changelog updated.
+
+**Not done autonomously (proposals for Diego):**
+- **Memo Drafter agent** (Opus 4.7) — takes a flagged line or override, generates a formal defense memo with CJEU citations. Diego mentioned he wanted this; waiting for OK.
+- **Legal-watch auto-triage** (Opus 4.7 on queue items) — proposes which existing RULE each new item affects + severity.
+- **eCDF sanity-check explainer** (Opus 4.7 pre-filing) — flags suspicious box deltas vs prior period.
+
+**§11 actionable-first pruning (3 fixes):**
+- **Home header** — removed "Upload AED letter" button. An AED arrives ~1x/entity/quarter; permanent button was noise. Stays in ⌘K + entity detail AED tab + Inbox urgent items.
+- **Declaration Documents tab** — "Client Excel" + "Prior-year appendix" dropzones collapsed behind a "More upload options" disclosure. Main "Invoices" dropzone now takes full-row width (90%+ of uploads). The secondary zones (10-30% and ~5% of flows) are 1 click away when needed.
+- **Review tab** — "Services Rendered — Overall Turnover" section now hides when `entity.has_outgoing=false` AND `outgoingLines.length=0`. Empty "Add outgoing invoice" button on a pure-inbound entity is vanity. Legacy lines always render; reviewer can flip `has_outgoing` on entity edit if needed.
+
+Tests 577/577 green. Typecheck clean. Prod build clean. All 12 critical routes return 200.
+
+**Diego actions when back:**
+- 🎯 Send the VAT registration letter sample (tomorrow's promise) — now hits Opus 4.7 extractor + should extract materially better
+- 🎯 Test the Ask Opus button in chat → now calls 4.7
+- 📝 Decide on the three deferred agents (Memo Drafter / Legal-watch auto-triage / eCDF explainer) — any or all worth ~2-3h each
+
+---
+
 **2026-04-21 (evening, post first-use catastrophe)** — Stint 19: bug-fix + UX overhaul + Tier 4 AI proposer
 
 **Context:** Diego's first real walk-through of the app surfaced multiple critical bugs + UX issues. His blunt feedback: *"de momento la utilidad de la aplicación es 0 porque está llena de BUGS… estamos muy muy lejos de tener algo operativo."* Fully deserved. My classifier moat work was irrelevant without a working basic flow. This stint fixed everything he flagged + added the Tier 4 AI proposer he greenlit.
