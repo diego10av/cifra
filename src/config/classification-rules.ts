@@ -124,9 +124,9 @@ export interface PrecedentMatch {
 
 export interface ClassificationResult {
   treatment: TreatmentCode | null;
-  rule: string;                // e.g. "RULE 11", "INFERENCE A", "PRECEDENT", "OVERRIDE · X", "NO_MATCH"
+  rule: string;                // e.g. "RULE 11", "INFERENCE A", "PRECEDENT", "OVERRIDE · X", "TIER 4 · AI PROPOSER", "NO_MATCH"
   reason: string;              // human/legal explanation
-  source: 'rule' | 'precedent' | 'inference' | 'override';
+  source: 'rule' | 'precedent' | 'inference' | 'override' | 'ai_proposer';
   flag: boolean;
   flag_reason?: string;
 }

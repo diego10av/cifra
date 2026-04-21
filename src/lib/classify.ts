@@ -11,6 +11,7 @@ import {
   type PrecedentMatch,
 } from '@/config/classification-rules';
 import type { TreatmentCode } from '@/config/treatment-codes';
+import { proposeClassification } from '@/lib/ai-proposer';
 
 export interface ClassifyReport {
   processed: number;
@@ -30,10 +31,17 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
   );
   if (!declaration) throw new Error('Declaration not found');
 
-  const entity = await queryOne<{ entity_type: string | null }>(
-    'SELECT entity_type FROM entities WHERE id = $1',
+  const entity = await queryOne<{ entity_type: string | null; ai_mode: string | null }>(
+    'SELECT entity_type, ai_mode FROM entities WHERE id = $1',
     [declaration.entity_id]
   );
+  // Entities can opt out of AI-level features via ai_mode='classifier_only'
+  // (set per-entity in /entities/[id] for compliance-sensitive clients
+  // who need deterministic-only classification). When this flag is on,
+  // the Tier 4 AI proposer is skipped and NO_MATCH lines stay unclassified
+  // for the reviewer to triage manually — same behaviour as before
+  // Tier 4 existed.
+  const tier4Enabled = entity?.ai_mode !== 'classifier_only';
 
   // Build entity context: outgoing exempt total for INFERENCE A/B magnitude check
   const outSum = await queryOne<{ sum: number | null }>(
@@ -229,6 +237,23 @@ export async function classifyDeclaration(declarationId: string): Promise<Classi
       }
     } else {
       result = classifyInvoiceLine(lineInput, ctx, precedent);
+    }
+
+    // Tier 4 — AI proposer. Only fires when Tiers 1-3 (rules + precedent
+    // + inference) and any legal-override fell through, AND the entity
+    // allows AI calls (ai_mode !== 'classifier_only'), AND the line
+    // wasn't manually classified (guarded upstream).
+    //
+    // Defensibility: source='ai_proposer' + flag=true ensure the audit
+    // trail and UI clearly distinguish this from deterministic rules.
+    // The proposer never wins over a rule — it only fills in when
+    // nothing else would.
+    if (tier4Enabled && result.treatment === null && result.rule === 'NO_MATCH') {
+      const proposal = await proposeClassification(lineInput, ctx, {
+        entityId: declaration.entity_id,
+        declarationId: declarationId,
+      });
+      if (proposal) result = proposal;
     }
 
     await execute(
