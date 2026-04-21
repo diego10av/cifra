@@ -94,6 +94,30 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-21 (morning)** — Stint 17: landing page sign-in affordance
+
+Diego's ask: a "chula, bonita, elegante" landing with login top-right like Stripe / Linear / Vercel. The landing was already shipped (stint 11, Factorial + Linear + Veeva + Stripe inspired) — what was missing was the prominent login access.
+
+Also recording Diego's broader framing shift: this is dogfooding, not an urgency-driven commercial push. The product is first an artifact he enjoys building and using as a LU VAT professional. Sales will follow from signal — no artificial pressure. Saved as feedback memory so future sessions don't over-rotate on "McKinsey" framings again.
+
+**Commit `9b36384`:**
+- TopNav gets a "Sign in →" text link with hover-arrow micro-interaction, between the section anchors and the primary "Get in touch" dark pill. Vertical divider separates the anchor group from the CTA cluster.
+- Backdrop-blur bumped from sm to md for crisper frosted-glass.
+- Login routing: `<a href="/login">` works on both the app subdomain and the root domain (via the existing middleware host-based redirect).
+- Fixed the Versãofast citation in the Depth grid — it was still showing the old "Referral fees to a non-LU intermediary" wording; now correctly describes credit intermediation per GC T-657/24.
+
+**Infrastructure: no code change needed.** `src/middleware.ts` already rewrites `cifracompliance.com/` → `/marketing` and redirects every other root-domain path to `app.cifracompliance.com`. When Diego completes the DNS step (see Parked below), the landing will serve at the root URL automatically.
+
+**Diego's DNS step (5–10 min, only he can do this):**
+1. Vercel → cifra project → Settings → Domains → add `cifracompliance.com` and `www.cifracompliance.com`.
+2. Vercel will show DNS records to add at the registrar:
+   - `cifracompliance.com` → A record `76.76.21.21`
+   - `www.cifracompliance.com` → CNAME `cname.vercel-dns.com`
+3. Wait for DNS propagation (5–60 min). Vercel auto-provisions the SSL cert.
+4. Visit `https://cifracompliance.com` → lands on the marketing page with Sign in top-right.
+
+---
+
 **2026-04-20 (evening)** — Stint 16: classifier deep-dive · Versãofast, SV entity type, SOPARFI clarification
 
 Context: Diego flagged three linked issues. (1) Recent CJEU on credit intermediation (Versãofast T-657/24, GC 2025-11-26) not yet reflected — "hace poco una sentencia muy relevante… negociación del crédito para un broker portugués". (2) SOPARFI handling wrong — pure passive SOPARFIs cannot register for VAT; the platform was treating them as generic holdings. (3) Securitisation vehicles (SV) missing entirely — common LU structure with its own Art. 44§1 d pathway via Fiscale Eenheid X C-595/13. Instruction: "pásate el tiempo que haga falta, una hora, dos, tres, dos días, pero hazlo bien. El clasificador como Dios manda… vivo, vivo, vivo."
