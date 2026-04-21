@@ -19,6 +19,8 @@ import {
   ExternalLinkIcon, Loader2Icon,
 } from 'lucide-react';
 
+type TriageSeverity = 'critical' | 'high' | 'medium' | 'low';
+
 interface QueueItem {
   id: string;
   source: string;
@@ -30,6 +32,13 @@ interface QueueItem {
   matched_keywords: string[];
   status: 'new' | 'flagged' | 'dismissed' | 'escalated';
   created_at: string;
+  ai_triage_severity: TriageSeverity | null;
+  ai_triage_affected_rules: string[] | null;
+  ai_triage_summary: string | null;
+  ai_triage_proposed_action: string | null;
+  ai_triage_confidence: number | null;
+  ai_triage_model: string | null;
+  ai_triage_at: string | null;
 }
 
 interface ScanReport {
@@ -118,6 +127,15 @@ export function LegalWatchQueueCard() {
     return 'bg-surface-alt text-ink-muted border-border';
   };
 
+  const severityPill = (sev: TriageSeverity): string => {
+    switch (sev) {
+      case 'critical': return 'bg-red-50 text-red-800 border-red-300';
+      case 'high':     return 'bg-orange-50 text-orange-800 border-orange-300';
+      case 'medium':   return 'bg-amber-50 text-amber-800 border-amber-200';
+      case 'low':      return 'bg-surface-alt text-ink-muted border-border';
+    }
+  };
+
   return (
     <section className="mb-6 rounded-xl border border-border bg-surface shadow-xs overflow-hidden">
       <header className="px-5 py-4 flex items-start gap-4 border-b border-divider">
@@ -181,6 +199,13 @@ export function LegalWatchQueueCard() {
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
+                    {item.ai_triage_severity && (
+                      <span className={`inline-flex items-center h-[17px] px-1.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${severityPill(item.ai_triage_severity)}`}
+                        title={item.ai_triage_summary ?? undefined}
+                      >
+                        {item.ai_triage_severity}
+                      </span>
+                    )}
                     <span className={`inline-flex items-center h-[17px] px-1.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${pill(item.status)}`}>
                       {item.status}
                     </span>
@@ -204,8 +229,46 @@ export function LegalWatchQueueCard() {
                       item.title
                     )}
                   </div>
+
+                  {/* AI triage block — Opus 4.7 reasoning, shown above
+                      the human summary when present. */}
+                  {item.ai_triage_summary && (
+                    <div className="mt-2 rounded border border-violet-200 bg-violet-50/60 px-2.5 py-2">
+                      <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-violet-800 uppercase tracking-wide">
+                        <SparklesIcon size={10} />
+                        AI triage
+                        {item.ai_triage_confidence != null && (
+                          <span className="font-normal text-violet-600">
+                            · confidence {Math.round(item.ai_triage_confidence * 100)}%
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-1 text-[12px] text-ink leading-relaxed">
+                        {item.ai_triage_summary}
+                      </p>
+                      {item.ai_triage_proposed_action && (
+                        <p className="mt-1 text-[11.5px] text-ink-soft leading-relaxed">
+                          <strong className="font-semibold">Proposed action:</strong> {item.ai_triage_proposed_action}
+                        </p>
+                      )}
+                      {item.ai_triage_affected_rules && item.ai_triage_affected_rules.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {item.ai_triage_affected_rules.map(r => (
+                            <span
+                              key={r}
+                              className="inline-flex items-center h-[17px] px-1.5 rounded bg-white text-violet-800 border border-violet-200 text-[10px] font-semibold"
+                            >
+                              {r}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {item.summary && (
-                    <p className="mt-1.5 text-[12px] text-ink-soft leading-relaxed line-clamp-3">
+                    <p className="mt-2 text-[11.5px] text-ink-muted leading-relaxed line-clamp-2">
+                      <span className="uppercase text-[9.5px] tracking-wider font-semibold text-ink-faint mr-1">source</span>
                       {item.summary}
                     </p>
                   )}

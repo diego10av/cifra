@@ -71,6 +71,14 @@ export default function DeclarationDetailPage() {
   // Rules of Hooks: same hooks, same order, every render.
   const [activeTab, setActiveTab] = useState<'documents' | 'review' | 'filing' | 'outputs' | 'audit'>('review');
   const [validatorOpen, setValidatorOpen] = useState(false);
+  const [sanityOpen, setSanityOpen] = useState(false);
+  const [sanityLoading, setSanityLoading] = useState(false);
+  const [sanityResult, setSanityResult] = useState<null | {
+    findings: Array<{ severity: string; category: string; boxes: string[]; narrative: string; suggested_check: string }>;
+    overall: string;
+    prior_period: string | null;
+    model: string;
+  }>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [bulkEditOpen, setBulkEditOpen] = useState<null | 'incoming' | 'outgoing'>(null);
   const [excelImportOpen, setExcelImportOpen] = useState(false);
@@ -586,6 +594,25 @@ export default function DeclarationDetailPage() {
                   Second opinion
                 </button>
               )}
+              {/* Sanity check — Opus 4.7 period-over-period anomaly
+                  detector. Complements the line-level validator by
+                  catching aggregate-level issues: "box 076 jumped 3×
+                  vs. Q1 while turnover is flat". Shown when there are
+                  active lines to analyse. */}
+              {activeLines.length > 0 && (
+                <button
+                  onClick={() => setSanityOpen(v => !v)}
+                  className={`h-8 px-3 rounded-md border text-[12.5px] font-medium transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 ${
+                    sanityOpen
+                      ? 'border-violet-500 bg-violet-50 text-violet-700'
+                      : 'border-border text-ink-soft hover:bg-violet-50 hover:border-violet-300 hover:text-violet-700'
+                  }`}
+                  title="Opus 4.7 pre-filing sanity check — aggregate anomaly detection vs. prior period (€0.03-0.08 per run)"
+                >
+                  <SparklesIcon size={13} />
+                  Sanity check
+                </button>
+              )}
               {data.status === 'review' && (
                 <button
                   onClick={() => setShareOpen(true)}
@@ -1096,6 +1123,84 @@ export default function DeclarationDetailPage() {
         </div>
       )}
 
+      {/* ─────────── SANITY-CHECK PANEL ─────────── */}
+      {sanityOpen && (
+        <div className="w-[440px] min-w-[380px] pl-2 shrink-0">
+          <div className="sticky top-4 bg-surface border border-violet-200 rounded-lg overflow-hidden shadow-xs">
+            <div className="px-4 py-3 bg-violet-50 border-b border-violet-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <SparklesIcon size={14} className="text-violet-700" />
+                <h3 className="text-[13px] font-semibold text-violet-900">Pre-filing sanity check</h3>
+              </div>
+              <button onClick={() => setSanityOpen(false)} className="text-violet-600 hover:text-violet-900 text-[12px]">✕</button>
+            </div>
+            <div className="p-4 space-y-3">
+              <button
+                onClick={async () => {
+                  setSanityLoading(true);
+                  setSanityResult(null);
+                  try {
+                    const res = await fetch(`/api/declarations/${id}/sanity-check`, { method: 'POST' });
+                    const body = await res.json();
+                    if (!res.ok) {
+                      window.alert(body?.error?.message ?? 'Sanity check failed.');
+                      return;
+                    }
+                    setSanityResult(body);
+                  } finally {
+                    setSanityLoading(false);
+                  }
+                }}
+                disabled={sanityLoading}
+                className="w-full h-8 px-3 rounded bg-violet-600 text-white text-[12px] font-medium hover:bg-violet-700 transition-colors disabled:opacity-40 disabled:cursor-wait inline-flex items-center justify-center gap-1.5"
+              >
+                {sanityLoading ? <Spinner small /> : <SparklesIcon size={12} />}
+                {sanityLoading ? 'Analysing with Opus 4.7…' : sanityResult ? 'Re-run' : 'Run sanity check'}
+              </button>
+
+              {sanityResult && (
+                <div>
+                  <div className="text-[11px] text-ink-muted mb-2 leading-snug">
+                    Comparing against {sanityResult.prior_period
+                      ? <>prior period <strong className="font-semibold text-ink">{sanityResult.prior_period}</strong></>
+                      : <>no prior period (first declaration for this entity)</>}
+                    . Overall: <strong className={`font-semibold ${sanityResult.overall === 'clean' ? 'text-emerald-700' : sanityResult.overall === 'significant_issues' ? 'text-red-700' : 'text-amber-700'}`}>{sanityResult.overall.replace('_', ' ')}</strong>.
+                  </div>
+                  {sanityResult.findings.length === 0 ? (
+                    <div className="text-[11.5px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
+                      No anomalies flagged. Opus 4.7 thinks the aggregate numbers look consistent with prior filings.
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {sanityResult.findings.map((f, i) => (
+                        <li key={i} className={`rounded border px-3 py-2 text-[11.5px] ${
+                          f.severity === 'critical' ? 'bg-red-50 border-red-300 text-red-900' :
+                          f.severity === 'high' ? 'bg-orange-50 border-orange-300 text-orange-900' :
+                          f.severity === 'medium' ? 'bg-amber-50 border-amber-200 text-amber-900' :
+                          'bg-surface-alt border-border text-ink-soft'
+                        }`}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <span className="uppercase text-[9.5px] font-semibold tracking-wide">{f.severity}</span>
+                            <span className="text-[9.5px] font-mono opacity-70">{f.category}</span>
+                            {f.boxes.length > 0 && (
+                              <span className="text-[9.5px] font-mono opacity-70">· box {f.boxes.join(', ')}</span>
+                            )}
+                          </div>
+                          <p className="leading-relaxed">{f.narrative}</p>
+                          {f.suggested_check && (
+                            <p className="mt-1 text-[10.5px] opacity-80 italic">→ {f.suggested_check}</p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─────────── SHARE LINK MODAL ─────────── */}
       {shareOpen && (
         <ShareLinkModal declarationId={id} onClose={() => setShareOpen(false)} />
@@ -1368,6 +1473,47 @@ function TableRow({
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57a4 4 0 0 1 5.66 5.66l-8.58 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             </button>
           )}
+          {/* Draft memo (Opus 4.7) — generates a defensible markdown
+              memo citing LTVA + CJEU + circulars for this line. Useful
+              for audit-ready documentation when the reviewer overrides
+              a classification or wants a paper trail for a novel case. */}
+          <button
+            onClick={async e => {
+              e.stopPropagation();
+              const btn = e.currentTarget;
+              btn.setAttribute('data-busy', '1');
+              try {
+                const res = await fetch(`/api/invoice-lines/${line.id}/memo`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({}),
+                });
+                const body = await res.json().catch(() => ({}));
+                if (!res.ok || !body?.markdown) {
+                  window.alert(body?.error?.message ?? 'Memo generation failed. Try again in a minute.');
+                  return;
+                }
+                // Download the memo as a .md file the reviewer can
+                // stash in their deal folder or paste into Word.
+                const blob = new Blob([body.markdown], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `memo-${line.provider?.replace(/[^a-z0-9]+/gi, '-').toLowerCase() ?? 'line'}-${line.id.slice(0, 8)}.md`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } finally {
+                btn.removeAttribute('data-busy');
+              }
+            }}
+            className="inline-flex w-6 h-6 items-center justify-center rounded text-ink-faint hover:text-violet-600 hover:bg-surface-alt transition-all duration-150 cursor-pointer data-[busy='1']:opacity-40 data-[busy='1']:cursor-wait"
+            title="Draft a defense memo for this line (Opus 4.7) — markdown download"
+          >
+            {/* sparkles / feather */}
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v18"/><path d="M5 12h14"/><path d="m5 5 14 14"/><path d="m19 5-14 14"/></svg>
+          </button>
         </div>
       </td>
 
