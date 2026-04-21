@@ -94,6 +94,31 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-21 (morning, autonomous block)** — Stint 18: three-slice autonomy push while Diego at the office
+
+Context: Diego asked me to execute autonomously on three high-leverage tasks while he was out. Also this session formalised two things: (1) `.claude/settings.local.json` switched to `defaultMode: "bypassPermissions"` + `Bash(*)` so routine actions stop triggering popups; (2) new feedback memory `feedback_framing_dogfood.md` — cifra is equally a dogfooding + craft project, not purely commercial urgency.
+
+**Three commits pushed, 577/577 tests green, typecheck clean:**
+
+1. **`9011bb3` — Migration 019: CHECK constraint on `entity_type`.** Repairs the stale `soparfi` row inherited from an older seed (onboard-entity → `active_holding`, "Demo SOPARFI SARL" → "Demo Active Holding SARL"), then adds `entities_entity_type_valid` CHECK (NOT VALID → VALIDATE) with the 7 canonical values. Future raw-SQL inserts cannot sneak invalid values back in. Applied to Supabase via MCP.
+
+2. **`d3a7ab7` — Legal-watch automated feed (941 LOC).** Operationalises the "living classifier" principle from `classification-research.md §13`. Migration 020 creates `legal_watch_queue`. `src/lib/legal-watch-scan.ts` fetches public feeds (VATupdate live + built-in sample) and filters by ~90 watchlist keywords (Directive articles, LTVA articles, concepts, jurisdictions, recent case names). API: `POST /api/legal-watch/scan`, `GET /api/legal-watch/queue`, `PATCH /api/legal-watch/queue/[id]` for triage. UI: `LegalWatchQueueCard` at the top of `/legal-watch` with "Scan now" + "Seed samples" buttons; triage via Flag / Escalate / Dismiss. Scheduled task `cifra-legal-watch-scan` runs daily at 07:15 and injects a line into the 08:30 morning brief when new items queue. Never auto-escalates into `src/config/legal-sources.ts` — that stays a reviewer decision + manual code change so every rule change is attributable. 12 new unit tests on the pure parts (`matchKeywords`, `sampleFeedItems`, etc.).
+
+3. **`8b18ef2` — Corpus expansion: 12 borderline fixtures (F096–F107).** Tightens coverage on rule boundaries where earlier reviewer call-outs surfaced blind spots: LU construction with VAT-charged regression guard, Art. 54 hotel non-deductibility, Art. 199a scrap domestic-RC, Art. 57 franchise supplier, credit-intermediation sub-agent chain (Ludwig C-453/05), Skandia/Danske Bank VAT-group cross-border taxable regression guard, BlackRock exclusion of SaaS to funds, Art. 45 opt-in outgoing rent, SV pure cash-flow admin (contrast with servicer-split flag), EU supplier with mistaken foreign VAT as NO_MATCH (reviewer-flag edge case documented), carry to service-GP default-OUT_SCOPE-with-flag per PRAC_CARRY Case B. Extended `CREDIT_INTERMEDIATION_KEYWORDS` with French sub-agent vocabulary needed for F100.
+
+**Diego actions when back at the keyboard:**
+- 🎯 Visit `/legal-watch` → click **Seed samples** → see the three flagship cases populate the queue → Flag / Escalate / Dismiss each
+- 🎯 Then click **Scan now** → watch live VATupdate fetch result (may be noisy — the watchlist is broad on purpose)
+- 🎯 At 07:15 tomorrow the cron fires; check the 08:30 morning brief for "🟪 Legal feed" line
+- 🟡 Known deferred: RULE 11X ("EU supplier charged foreign VAT on a service") — logged in F105/F106 fixture notes
+
+**Items flagged from this stint for the ROADMAP**:
+- `P1 RULE 11X` — mirror RULE 17X for services (20 lines, clean reviewer message)
+- `P1 Legal-watch curia.europa.eu direct fetcher` — VATupdate is a broad aggregator; a direct curia RSS would be more signal-rich
+- `P1 Legal-watch AED scraper` — impotsdirects.public.lu has no RSS; worth a scheduled HTML diff
+
+---
+
 **2026-04-21 (morning)** — Stint 17: landing page sign-in affordance
 
 Diego's ask: a "chula, bonita, elegante" landing with login top-right like Stripe / Linear / Vercel. The landing was already shipped (stint 11, Factorial + Linear + Veeva + Stripe inspired) — what was missing was the prominent login access.
