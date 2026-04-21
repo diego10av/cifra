@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { BookOpenIcon, AlertOctagonIcon, GavelIcon, ScaleIcon, BuildingIcon, ArrowUpRightIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Badge } from '@/components/ui/Badge';
+import { LegalWatchQueueCard } from '@/components/legal-watch/LegalWatchQueueCard';
 import {
   LU_LAW, EU_LAW, CIRCULARS, CASES_EU, CASES_LU, PRACTICE,
   sourcesDueForReview, type LegalSource,
@@ -84,6 +85,12 @@ export default async function LegalWatchPage() {
           </div>
         </div>
       )}
+
+      {/* Live feed queue — auto-fetched candidate jurisprudence for
+          reviewer triage. The "living classifier" principle from
+          classification-research §13 — the reason cifra stays current
+          as the CJEU + AED publish new positions. */}
+      <LegalWatchQueueCard />
 
       {/* Your overrides — firm-specific rules that deviate from the
           default interpretation of the sources below. Surfaced
