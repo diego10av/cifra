@@ -78,9 +78,13 @@ export async function GET(
     // treatment is deductible. For simplicity we sum across every
     // incoming line's vat_applied — the reviewer can drill down if
     // needed. Keep this aligned with the eCDF box 093 computation.
+    // Schema note: `direction` lives on `invoices` (i.direction), NOT on
+    // `invoice_lines`. An earlier version of this query referenced
+    // `il.direction` and 500'd every declaration page load — Diego
+    // surfaced the bug 2026-04-21.
     const sumRow = await queryOne<{ total: string | null }>(
       `SELECT SUM(CASE
-                    WHEN il.direction = 'incoming' AND il.vat_applied IS NOT NULL
+                    WHEN i.direction = 'incoming' AND il.vat_applied IS NOT NULL
                     THEN il.vat_applied::numeric
                     ELSE 0
                   END)::text AS total

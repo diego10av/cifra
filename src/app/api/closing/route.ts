@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
               d.status AS declaration_status,
               (SELECT COUNT(*)::text FROM invoice_lines il
                  WHERE il.declaration_id = d.id AND il.state != 'deleted') AS line_count,
-              d.vat_payable::text AS vat_payable,
+              d.vat_due::text AS vat_payable,
               d.filed_at::text AS filed_at
          FROM entities e
     LEFT JOIN clients c ON e.client_id = c.id
