@@ -94,6 +94,35 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-22 (continued)** — Stint 21: three Opus 4.7 agents + auto-model-tier-watch
+
+Commits `bc3b0eb` + `da1f767` (+ already-queued `cifra-model-tier-watch` scheduled task).
+
+Diego's instruction: *"puedes mantener estas actualizaciones vivas. quiero decir cada vez que haya unos modelos nuevos analiza cual seria el mas conveniente para que se aplique y haz los cambios. luego a parte construyeme las 3 cosas que me propones."* Both done.
+
+**Auto-model-tier-watch**: new scheduled task `cifra-model-tier-watch` fires Mondays at 06:30 local. Lists Anthropic models via SDK + compares to `PRICING_USD` in `src/lib/anthropic-wrapper.ts`. On detecting a new tier: adds pricing entry + logs to `docs/MODELS.md` "Recent changes" + emits a morning-brief line. Does NOT auto-swap call paths — that stays a Diego-confirmed change so a regression on a specific workload doesn't ship silently.
+
+**Three agents shipped in `bc3b0eb`:**
+
+1. **Memo Drafter** (`src/lib/memo-drafter.ts`, Opus 4.7). POST `/api/invoice-lines/[id]/memo` returns a formal markdown defense memo for a single line. 6-section structure (Summary / Facts / Legal analysis / Classification decision / Audit-trail / Conclusion). System prompt primes Claude on cifra's CJEU anchors. UI: new pill button next to the paperclip on every Review-table line; click downloads `memo-<provider>-<lineid>.md`.
+
+2. **Legal-watch auto-triage** (`src/lib/legal-watch-triage.ts`, Opus 4.7 with prompt caching). Hooked into the scanner — every new item runs through triage BEFORE landing on the reviewer's screen. Returns severity (critical/high/medium/low), affected_rules[] (`RULE 36`, etc.), summary, proposed_action, confidence. On-demand re-trigger via POST `/api/legal-watch/queue/[id]/triage-with-ai` (admin-only). Prompt cached (ephemeral) so second call onward pays ~€0.005 instead of ~€0.03. Migration 022 adds 7 columns on `legal_watch_queue`. UI: LegalWatchQueueCard shows a violet AI triage block under each item with severity pill + summary + proposed action + affected-rule pills. Queue sorts by severity so criticals float to the top.
+
+3. **eCDF sanity check** (`src/lib/ecdf-sanity-check.ts`, Opus 4.7). POST `/api/declarations/[id]/sanity-check` — reads current declaration's eCDF box values + prior period + treatment histogram + invoice histogram, returns findings[] per 7 anomaly categories (period_delta / missing_box / rc_pattern / direction_mix / exemption_mix / consistency / completeness). UI: violet "Sanity check" button in declaration header next to "Second opinion"; opens right-rail panel with findings coloured by severity.
+
+**Cost impact**: ~€6-7/mo extra at 10 clients. Budget cap €75/mo intact.
+
+**Tests**: 577/577 green. Typecheck clean. Prod build clean. All 3 endpoints route correctly + return proper JSON error envelopes when the Anthropic key is missing (verified via local prod curl tests).
+
+**Diego actions when back:**
+- 🎯 Visit `/legal-watch` → click **Seed samples** (they already exist in prod from my walkthrough) → click **Triage with AI** on any item, see Opus 4.7 severity pill + affected RULEs + proposed action
+- 🎯 Visit any declaration → click **Sanity check** in the header → **Run sanity check** → findings render below
+- 🎯 Open a declaration with classified lines → hover a line in Review table → click the new sparkle icon → memo downloads as .md
+
+**Known defer**: Diego still hasn't sent the real VAT registration letter for extractor iteration — that's tomorrow's priority.
+
+---
+
 **2026-04-22** — Stint 20: Opus 4.7 sweep + §11 actionable-first pruning
 
 Two coordinated passes driven by Diego's two-part question: (a) where could Opus 4.7 materially lift SaaS quality, and (b) which buttons fail the PROTOCOLS §11 test ("if this element disappeared, would the user act differently?").
