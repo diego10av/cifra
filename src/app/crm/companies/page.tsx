@@ -1,0 +1,130 @@
+'use client';
+
+import { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
+import { SearchIcon } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageSkeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import {
+  LABELS_CLASSIFICATION, LABELS_INDUSTRY, LABELS_SIZE,
+  type CompanyClassification,
+} from '@/lib/crm-types';
+
+interface Company {
+  id: string;
+  company_name: string;
+  country: string | null;
+  industry: string | null;
+  size: string | null;
+  classification: string | null;
+  website: string | null;
+  linkedin_url: string | null;
+  tags: string[];
+  entity_id: string | null;
+}
+
+export default function CompaniesPage() {
+  const [rows, setRows] = useState<Company[] | null>(null);
+  const [q, setQ] = useState('');
+  const [classFilter, setClassFilter] = useState<string>('');
+
+  useEffect(() => {
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (classFilter) qs.set('classification', classFilter);
+    fetch(`/api/crm/companies?${qs}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(setRows)
+      .catch(() => setRows([]));
+  }, [q, classFilter]);
+
+  const counts = useMemo(() => {
+    const by: Record<string, number> = {};
+    for (const r of rows ?? []) by[r.classification ?? 'none'] = (by[r.classification ?? 'none'] || 0) + 1;
+    return by;
+  }, [rows]);
+
+  if (rows === null) return <PageSkeleton />;
+
+  return (
+    <div>
+      <PageHeader
+        title="Companies"
+        subtitle="CRM accounts — firms, prospects, service providers, referrers."
+      />
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="relative flex-1 min-w-[220px] max-w-xs">
+          <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <input
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            placeholder="Search company name..."
+            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500"
+          />
+        </div>
+        <select
+          value={classFilter}
+          onChange={e => setClassFilter(e.target.value)}
+          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white"
+        >
+          <option value="">All classifications</option>
+          {Object.entries(LABELS_CLASSIFICATION).map(([k, label]) => (
+            <option key={k} value={k}>{label}{counts[k] ? ` · ${counts[k]}` : ''}</option>
+          ))}
+        </select>
+        <span className="ml-auto text-[11.5px] text-ink-muted">{rows.length} companies</span>
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState
+          illustration="clients"
+          title="No companies yet"
+          description="Run the Notion import (scripts/import-notion-crm.md) to bring your CRM data in."
+        />
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden bg-white">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-surface-alt text-ink-muted">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Company</th>
+                <th className="text-left px-3 py-2 font-medium">Classification</th>
+                <th className="text-left px-3 py-2 font-medium">Country</th>
+                <th className="text-left px-3 py-2 font-medium">Industry</th>
+                <th className="text-left px-3 py-2 font-medium">Size</th>
+                <th className="text-left px-3 py-2 font-medium">Tags</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} className="border-t border-border hover:bg-surface-alt/50">
+                  <td className="px-3 py-2">
+                    <Link href={`/crm/companies/${r.id}`} className="font-medium text-brand-700 hover:underline">
+                      {r.company_name}
+                    </Link>
+                    {r.entity_id && (
+                      <span className="ml-2 text-[10px] uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1 py-0.5">
+                        Tax entity linked
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {r.classification ? LABELS_CLASSIFICATION[r.classification as CompanyClassification] ?? r.classification : '—'}
+                  </td>
+                  <td className="px-3 py-2 tabular-nums">{r.country ?? '—'}</td>
+                  <td className="px-3 py-2">
+                    {r.industry ? LABELS_INDUSTRY[r.industry as keyof typeof LABELS_INDUSTRY] ?? r.industry : '—'}
+                  </td>
+                  <td className="px-3 py-2">
+                    {r.size ? LABELS_SIZE[r.size as keyof typeof LABELS_SIZE] ?? r.size : '—'}
+                  </td>
+                  <td className="px-3 py-2 text-ink-muted">{(r.tags ?? []).join(', ') || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}

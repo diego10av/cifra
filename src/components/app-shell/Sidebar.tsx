@@ -11,7 +11,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import {
   HomeIcon, Building2Icon, FileTextIcon, CalendarIcon,
-  BookOpenIcon,
+  BookOpenIcon, BriefcaseIcon,
   BarChart3Icon, ShieldCheckIcon, SettingsIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -66,6 +66,13 @@ function buildGroups(badges: SidebarBadges): NavGroup[] {
         // Route /aed-letters stays alive for back-compat deep-links.
         { href: '/deadlines',    label: 'Deadlines',    icon: CalendarIcon,
           badge: badges.deadlinesUrgent },
+      ],
+    },
+    {
+      label: 'CRM',
+      roles: ['admin', 'reviewer'],
+      items: [
+        { href: '/crm',          label: 'CRM',           icon: BriefcaseIcon },
       ],
     },
     {

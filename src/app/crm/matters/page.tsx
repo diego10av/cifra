@@ -1,0 +1,108 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { SearchIcon } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageSkeleton } from '@/components/ui/Skeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import {
+  LABELS_MATTER_STATUS, MATTER_STATUSES, formatEur, formatDate,
+  type MatterStatus,
+} from '@/lib/crm-types';
+
+interface Matter {
+  id: string;
+  matter_reference: string;
+  title: string;
+  status: string;
+  practice_areas: string[];
+  fee_type: string | null;
+  hourly_rate_eur: number | null;
+  opening_date: string | null;
+  closing_date: string | null;
+  conflict_check_done: boolean;
+  client_name: string | null;
+  client_id: string | null;
+  total_billed: number | string;
+  total_hours: number | string;
+}
+
+export default function MattersPage() {
+  const [rows, setRows] = useState<Matter[] | null>(null);
+  const [q, setQ] = useState('');
+  const [status, setStatus] = useState<string>('');
+
+  useEffect(() => {
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (status) qs.set('status', status);
+    fetch(`/api/crm/matters?${qs}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(setRows)
+      .catch(() => setRows([]));
+  }, [q, status]);
+
+  if (rows === null) return <PageSkeleton />;
+
+  return (
+    <div>
+      <PageHeader title="Matters" subtitle="Client engagements — active and historical." />
+      <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="relative flex-1 min-w-[220px] max-w-xs">
+          <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search reference or title..."
+            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+        </div>
+        <select value={status} onChange={e => setStatus(e.target.value)}
+          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          <option value="">All statuses</option>
+          {MATTER_STATUSES.map(s => <option key={s} value={s}>{LABELS_MATTER_STATUS[s]}</option>)}
+        </select>
+        <span className="ml-auto text-[11.5px] text-ink-muted">{rows.length} matters</span>
+      </div>
+
+      {rows.length === 0 ? (
+        <EmptyState illustration="folder" title="No matters yet" description="Matters typically arrive from won opportunities, or direct from Notion import." />
+      ) : (
+        <div className="border border-border rounded-lg overflow-hidden bg-white">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-surface-alt text-ink-muted">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium">Reference</th>
+                <th className="text-left px-3 py-2 font-medium">Client</th>
+                <th className="text-left px-3 py-2 font-medium">Status</th>
+                <th className="text-left px-3 py-2 font-medium">Practice</th>
+                <th className="text-left px-3 py-2 font-medium">Fee</th>
+                <th className="text-right px-3 py-2 font-medium">Total billed</th>
+                <th className="text-right px-3 py-2 font-medium">Hours</th>
+                <th className="text-left px-3 py-2 font-medium">Opened</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} className="border-t border-border hover:bg-surface-alt/50">
+                  <td className="px-3 py-2">
+                    <Link href={`/crm/matters/${r.id}`} className="font-medium text-brand-700 hover:underline font-mono">{r.matter_reference}</Link>
+                    {!r.conflict_check_done && r.status === 'active' && (
+                      <span className="ml-2 text-[9.5px] uppercase tracking-wide text-danger-700 bg-danger-50 border border-danger-200 rounded px-1 py-0.5" title="Conflict check pending">No conflict check</span>
+                    )}
+                  </td>
+                  <td className="px-3 py-2">
+                    {r.client_id ? <Link href={`/crm/companies/${r.client_id}`} className="text-ink-muted hover:underline">{r.client_name}</Link> : <span className="text-ink-muted">—</span>}
+                  </td>
+                  <td className="px-3 py-2">{LABELS_MATTER_STATUS[r.status as MatterStatus] ?? r.status}</td>
+                  <td className="px-3 py-2 text-ink-muted">{(r.practice_areas ?? []).join(', ') || '—'}</td>
+                  <td className="px-3 py-2 text-ink-muted">{r.fee_type ?? '—'}{r.hourly_rate_eur ? ` · ${formatEur(r.hourly_rate_eur)}/h` : ''}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{formatEur(r.total_billed)}</td>
+                  <td className="px-3 py-2 text-right tabular-nums">{Number(r.total_hours).toFixed(1)}h</td>
+                  <td className="px-3 py-2 text-ink-muted">{formatDate(r.opening_date)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
