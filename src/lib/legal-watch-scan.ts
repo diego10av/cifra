@@ -227,6 +227,26 @@ export async function runLegalWatchScan(opts: ScanOptions = {}): Promise<ScanRep
               published_at: item.published_at,
             });
             if (triaged) {
+              // Relevance gate — Diego 2026-04-22: "únicamente lo que
+              // me pongas, hay que que sea relevante. No me pongas
+              // cualquier publicación que encuentres por ahí."
+              //
+              // If the AI triage judges the item either genuinely
+              // irrelevant OR low-severity with high confidence, we
+              // auto-dismiss it so it never reaches the reviewer's
+              // main queue. It stays in the DB (audit / spot-check
+              // via the "Show dismissed" toggle) but status=dismissed
+              // with triaged_by='ai_auto' so Diego can separate AI
+              // auto-dismissals from his own manual dismissals.
+              const autoDismiss =
+                triaged.relevant === false
+                || (triaged.severity === 'low' && triaged.confidence >= 0.7);
+
+              const targetStatus = autoDismiss ? 'dismissed' : undefined;
+              const triageNote = autoDismiss
+                ? `AI auto-dismiss: ${triaged.relevant === false ? 'marked not relevant' : 'low severity at high confidence'} (${triaged.confidence.toFixed(2)})`
+                : null;
+
               await execute(
                 `UPDATE legal_watch_queue
                     SET ai_triage_severity = $1,
@@ -236,8 +256,12 @@ export async function runLegalWatchScan(opts: ScanOptions = {}): Promise<ScanRep
                         ai_triage_confidence = $5,
                         ai_triage_model = $6,
                         ai_triage_at = NOW(),
+                        status = COALESCE($7, status),
+                        triaged_at = CASE WHEN $7 IS NOT NULL THEN NOW() ELSE triaged_at END,
+                        triaged_by = CASE WHEN $7 IS NOT NULL THEN 'ai_auto' ELSE triaged_by END,
+                        triage_note = COALESCE($8, triage_note),
                         updated_at = NOW()
-                  WHERE source = $7 AND external_id = $8`,
+                  WHERE source = $9 AND external_id = $10`,
                 [
                   triaged.severity,
                   triaged.affected_rules,
@@ -245,6 +269,8 @@ export async function runLegalWatchScan(opts: ScanOptions = {}): Promise<ScanRep
                   triaged.proposed_action,
                   triaged.confidence,
                   triaged.model,
+                  targetStatus ?? null,
+                  triageNote,
                   item.source,
                   item.external_id,
                 ],
