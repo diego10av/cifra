@@ -118,6 +118,73 @@ export default function DeclarationDetailPage() {
     setActiveTab(smart);
   }, [data]);
 
+  // Auto-tab-switch on status change — the 2026-04-22 "stuck after
+  // upload" fix. When the server auto-transitions a declaration's
+  // status (e.g. classify finishes → status goes review), the client
+  // previously stayed on whatever tab it was on, leaving the user
+  // wondering if anything happened. This effect watches data.status,
+  // detects a forward transition, switches to the natural next tab,
+  // and fires a toast so the user has visible confirmation.
+  //
+  // Guards:
+  //  - First observation (no prior status) → just record, no switch.
+  //  - Reverse transitions (review ← approved on Reopen) → respect
+  //    the user's current tab; don't hijack.
+  //  - Same status → no-op.
+  const lastStatusRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!data) return;
+    const prev = lastStatusRef.current;
+    const next = data.status;
+    lastStatusRef.current = next;
+    if (!prev || prev === next) return;
+
+    const FORWARD_ORDER = [
+      'created', 'uploading', 'extracting', 'classifying',
+      'review', 'pending_review', 'approved', 'filed', 'paid',
+    ];
+    const isForward = FORWARD_ORDER.indexOf(next) > FORWARD_ORDER.indexOf(prev);
+    if (!isForward) return;
+
+    // Map the new status to a tab. Intermediate statuses (extracting /
+    // classifying) keep the user on documents so they see the job
+    // progress pill; the interesting switches are at review / approved /
+    // filed / paid.
+    const STATUS_TO_TAB: Record<string, typeof activeTab | undefined> = {
+      review: 'review',
+      approved: 'filing',
+      filed: 'filing',
+      paid: 'filing',
+    };
+    const target = STATUS_TO_TAB[next];
+    if (target && target !== activeTab) setActiveTab(target);
+
+    // Toast copy per transition. Suppress for extracting / classifying
+    // because the progress pill is already the visible feedback.
+    const activeCount = (data.lines || []).filter(l => l.state !== 'deleted').length;
+    switch (next) {
+      case 'review':
+        toast.success(
+          'Ready for review',
+          activeCount > 0
+            ? `${activeCount} line${activeCount === 1 ? '' : 's'} classified — review the incoming / outgoing sections before approving.`
+            : 'Classifier finished. Check the Review tab for the breakdown.',
+        );
+        break;
+      case 'approved':
+        toast.success('Approved', 'Move to Filing to enter the AED filing reference.');
+        break;
+      case 'filed':
+        toast.success('Marked as filed', 'Record the payment once the SEPA transfer settles.');
+        break;
+      case 'paid':
+        toast.success('Marked as paid', 'Declaration cycle complete.');
+        break;
+      // No toast for created / uploading / extracting / classifying /
+      // pending_review — they're transient or have their own UI signals.
+    }
+  }, [data, activeTab, toast]);
+
   // When a line is freshly created (via Add outgoing), scroll it into view
   // once the data has been reloaded.
   useEffect(() => {
