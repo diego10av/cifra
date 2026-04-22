@@ -239,6 +239,7 @@ export function LegalWatchQueueCard() {
               mutatingId={mutatingId}
               onTriage={triage}
               severityPill={severityPill}
+              onReload={load}
             />
           )}
 
@@ -257,6 +258,7 @@ export function LegalWatchQueueCard() {
                 onTriage={triage}
                 severityPill={severityPill}
                 sectionTone="escalated"
+                onReload={load}
               />
             </SectionToggle>
           )}
@@ -276,6 +278,7 @@ export function LegalWatchQueueCard() {
                 onTriage={triage}
                 severityPill={severityPill}
                 sectionTone="flagged"
+                onReload={load}
               />
             </SectionToggle>
           )}
@@ -307,6 +310,7 @@ export function LegalWatchQueueCard() {
                     onTriage={triage}
                     severityPill={severityPill}
                     sectionTone="dismissed"
+                    onReload={load}
                   />
                 )}
               </div>
@@ -347,13 +351,14 @@ function SectionToggle({
 }
 
 function ItemList({
-  items, mutatingId, onTriage, severityPill, sectionTone,
+  items, mutatingId, onTriage, severityPill, sectionTone, onReload,
 }: {
   items: QueueItem[];
   mutatingId: string | null;
   onTriage: (id: string, status: 'flagged' | 'dismissed' | 'escalated') => void;
   severityPill: (sev: TriageSeverity) => string;
   sectionTone?: 'flagged' | 'escalated' | 'dismissed';
+  onReload: () => Promise<void> | void;
 }) {
   const rowOpacity = sectionTone === 'flagged' || sectionTone === 'escalated' ? 'opacity-90'
     : sectionTone === 'dismissed' ? 'opacity-60'
@@ -446,12 +451,15 @@ function ItemList({
                   by default; expand to inspect the diff + reasoning. */}
               {item.ai_patch_diff && (
                 <PatchProposalBlock
+                  id={item.id}
                   diff={item.ai_patch_diff}
                   reasoning={item.ai_patch_reasoning}
                   confidence={item.ai_patch_confidence}
                   targetFiles={item.ai_patch_target_files}
                   appliedAt={item.patch_applied_at}
                   commitSha={item.patch_commit_sha}
+                  severity={item.ai_triage_severity}
+                  onReload={onReload}
                 />
               )}
 
@@ -570,38 +578,92 @@ function ItemList({
 }
 
 // Rendered inside an item when the rule-patch drafter produced a diff.
-// The MVP surfaces the diff + reasoning + a copy-to-clipboard button
-// for the `git apply` command. The reviewer reads the diff, decides
-// whether to accept, and applies locally. A follow-up stint will wire
-// the accept button to apply + commit on the server.
+// Three-button review: Accept (server-side apply via GitHub API) /
+// Reject (clears the draft) / Copy command (fallback when
+// GITHUB_TOKEN is not configured).
+//
+// Severity=critical requires the reviewer to tick "I've read the diff"
+// before Accept is enabled. Everything else below critical is
+// click-through with a second-level confirmation in the client.
 function PatchProposalBlock({
-  diff, reasoning, confidence, targetFiles, appliedAt, commitSha,
+  id, diff, reasoning, confidence, targetFiles, appliedAt, commitSha,
+  severity, onReload,
 }: {
+  id: string;
   diff: string;
   reasoning: string | null;
   confidence: number | null;
   targetFiles: string[] | null;
   appliedAt: string | null;
   commitSha: string | null;
+  severity: 'critical' | 'high' | 'medium' | 'low' | null;
+  onReload: () => Promise<void> | void;
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [readChecked, setReadChecked] = useState(false);
+  const [accepting, setAccepting] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successSha, setSuccessSha] = useState<string | null>(null);
 
   const copyCommand = async () => {
-    // The reviewer pastes this into their terminal at the repo root.
-    // stdin-piped `git apply` handles unified diffs reliably.
     const cmd = `cd "/Users/gonzalezmansodiego/Desktop/VAT Platform/vat-platform" && git apply <<'PATCH'\n${diff}\nPATCH`;
     try {
       await navigator.clipboard.writeText(cmd);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // clipboard API disabled in some browser sandboxes — fall back
-      // to showing the user a selectable <pre> block.
+      /* clipboard API disabled */
+    }
+  };
+
+  const accept = async () => {
+    setAccepting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/legal-watch/queue/${id}/accept-patch`, { method: 'POST' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body?.error?.message ?? `Accept failed (${res.status})`);
+        return;
+      }
+      setSuccessSha(body.commit_sha ?? null);
+      // Reload the queue so the item shows applied state and the
+      // Accept/Reject UI collapses.
+      await onReload();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Network error');
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  const reject = async () => {
+    if (!window.confirm('Reject this AI-drafted patch? The item stays in the queue but the draft is discarded. A future scan may produce a new draft.')) {
+      return;
+    }
+    setRejecting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/legal-watch/queue/${id}/reject-patch`, { method: 'POST' });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body?.error?.message ?? `Reject failed (${res.status})`);
+        return;
+      }
+      await onReload();
+    } finally {
+      setRejecting(false);
     }
   };
 
   const pct = confidence != null ? Math.round(confidence * 100) : null;
+  const isCritical = severity === 'critical';
+  const acceptDisabled = accepting || rejecting || (isCritical && !readChecked);
+  const acceptTooltip = isCritical && !readChecked
+    ? 'Critical-severity change — tick "I\'ve read the diff" before accepting.'
+    : undefined;
 
   return (
     <div className="mt-2 rounded border border-emerald-300 bg-emerald-50/60 px-2.5 py-2">
@@ -617,9 +679,9 @@ function PatchProposalBlock({
         {pct != null && (
           <span className="text-[10.5px] text-emerald-700 font-normal">· confidence {pct}%</span>
         )}
-        {appliedAt && (
+        {(appliedAt || successSha) && (
           <span className="text-[10.5px] text-emerald-700 font-normal">
-            · applied {commitSha ? `(${commitSha.slice(0, 7)})` : ''}
+            · applied {(commitSha || successSha) ? `(${(commitSha || successSha)!.slice(0, 7)})` : ''}
           </span>
         )}
       </button>
@@ -652,18 +714,63 @@ function PatchProposalBlock({
               return <div key={i} className={colour}>{line || '\u00A0'}</div>;
             })}
           </pre>
-          {!appliedAt && (
-            <div className="mt-2 flex items-center gap-2">
-              <button
-                onClick={copyCommand}
-                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors"
-              >
-                <CheckCheckIcon size={11} />
-                {copied ? 'Copied ✓' : 'Copy git apply command'}
-              </button>
-              <span className="text-[10.5px] text-ink-muted italic">
-                Paste into your terminal to apply. A follow-up stint will auto-apply + commit.
-              </span>
+
+          {error && (
+            <div className="mt-2 text-[11px] text-red-800 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+              {error}
+              {error.includes('GITHUB_TOKEN') && (
+                <div className="mt-1 text-[10.5px] text-red-700">
+                  Fallback: copy the git-apply command and paste it in your terminal.
+                </div>
+              )}
+            </div>
+          )}
+
+          {!appliedAt && !successSha && (
+            <div className="mt-2 space-y-2">
+              {isCritical && (
+                <label className="flex items-center gap-2 text-[11px] text-red-800 bg-red-50 border border-red-200 rounded px-2 py-1.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={readChecked}
+                    onChange={e => setReadChecked(e.target.checked)}
+                    className="h-3.5 w-3.5 accent-red-600"
+                  />
+                  <span>
+                    <strong className="font-semibold">Critical change</strong> — I&apos;ve read the diff and accept responsibility for this rule update.
+                  </span>
+                </label>
+              )}
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  onClick={accept}
+                  disabled={acceptDisabled}
+                  title={acceptTooltip}
+                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {accepting ? <Loader2Icon size={11} className="animate-spin" /> : <CheckCheckIcon size={11} />}
+                  {accepting ? 'Committing…' : 'Accept & commit'}
+                </button>
+                <button
+                  onClick={reject}
+                  disabled={accepting || rejecting}
+                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
+                >
+                  <XIcon size={11} />
+                  {rejecting ? 'Rejecting…' : 'Reject'}
+                </button>
+                <button
+                  onClick={copyCommand}
+                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors"
+                  title="Fallback: copy the git-apply command to run locally if the Accept button is blocked (e.g. GITHUB_TOKEN not configured in Vercel env)."
+                >
+                  <BookmarkIcon size={11} />
+                  {copied ? 'Copied ✓' : 'Copy git apply command'}
+                </button>
+              </div>
+              <div className="text-[10px] text-ink-muted italic">
+                Accept uses the GitHub API to commit the diff to main with a signed <code className="bg-white px-1 rounded">ai_drafted=true</code> attribution. Vercel auto-deploys.
+              </div>
             </div>
           )}
         </div>
