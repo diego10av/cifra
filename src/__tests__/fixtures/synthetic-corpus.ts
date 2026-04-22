@@ -1671,6 +1671,107 @@ export const FIXTURES: InvoiceFixture[] = [
     notes: 'Before PREPAYMENT_KEYWORDS was narrowed, bare "deposit" would substring-match "depositary" and incorrectly decorate every depositary invoice with the Art. 61§1 tax-point warning. This fixture locks the fix — the keyword list now uses multi-word phrases (deposit received, deposit invoice, advance deposit) so "depositary" no longer triggers RULE 30.',
   },
   {
+    id: 'F115',
+    title: 'EU supplier depositary 14% to a holding (non-fund) — RC at LU 14% (RULE 11B)',
+    archetype: 'it',
+    legal_ref: 'Art. 40-1 LTVA — reduced 14% intermediate rate',
+    // HOLDING_CTX (active_holding) so RULE 10 (fund-mgmt exempt, needs
+    // fund/SV entity type per BlackRock gate) does NOT fire. Then the
+    // reduced-rate path takes over.
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'FR',
+      supplier_name: 'Paribas Depositary France',
+      description: 'Depositary 14 service — garde de valeurs mobilières Q2',
+      vat_rate: null, vat_applied: 0, amount_eur: 18000,
+    },
+    expected: { treatment: 'RC_EU_TAX_14', rule: 'RULE 11B' },
+    notes: 'EU supplier, zero VAT, REDUCED_RATE_14_KEYWORDS ("depositary 14" / "garde de valeurs mobilières"). With entity_type=active_holding, RULE 10 cannot fire (gate requires fund/SV) and the 14% RC path (RULE 11B) takes over. Fills the missing fixture slot for the 14% RC branch.',
+  },
+  {
+    id: 'F116',
+    title: 'Non-EU supplier district heating — RC at LU 8% (RULE 13C)',
+    archetype: 'utility',
+    legal_ref: 'Art. 40-1 LTVA reduced 8% + Art. 17§1 reverse-charge for non-EU supplier',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'CH',
+      supplier_name: 'Zurich Energie AG',
+      description: 'District heating quarterly subscription — chauffage urbain',
+      vat_rate: null, vat_applied: 0, amount_eur: 6000,
+    },
+    expected: { treatment: 'RC_NONEU_TAX_08', rule: 'RULE 13C' },
+    notes: 'Non-EU (CH) supplier + zero VAT + REDUCED_RATE_08_KEYWORDS ("district heating"). Routes to RULE 13C → RC_NONEU_TAX_08. Fills the 8% non-EU RC fixture gap; symmetric to RULE 11C (EU) which F074 already covers.',
+  },
+  {
+    id: 'F117',
+    title: 'Non-EU supplier depositary 14% to a holding (non-fund) — RC at LU 14% (RULE 13B)',
+    archetype: 'depositary',
+    legal_ref: 'Art. 40-1 LTVA intermediate 14% + Art. 17§1 non-EU reverse-charge',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'incoming', country: 'US',
+      supplier_name: 'State Street Depositary LLC',
+      description: 'Depositary 14 service — garde de valeurs mobilières trimestre 3',
+      vat_rate: null, vat_applied: 0, amount_eur: 22000,
+    },
+    expected: { treatment: 'RC_NONEU_TAX_14', rule: 'RULE 13B' },
+    notes: 'Non-EU supplier, zero VAT, depositary-14 keyword — RULE 13B is the non-EU mirror of RULE 11B. Active-holding context so RULE 10 (fund-mgmt exempt) does not preempt. Fills the last RC rate-split gap.',
+  },
+  {
+    id: 'F118',
+    title: 'LU outgoing service at reduced 8% — RULE 15C',
+    archetype: 'cross_border_outgoing',
+    legal_ref: 'Art. 40-1 LTVA reduced 8% on outgoing supply',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'outgoing', country: 'LU',
+      customer_country: 'LU',
+      supplier_name: 'cifra active holding SARL',
+      description: 'District heating charge to tenant — rate 8%',
+      vat_rate: 0.08, vat_applied: 1600, amount_eur: 20000,
+    },
+    expected: { treatment: 'OUT_LUX_08', rule: 'RULE 15C' },
+    notes: 'Outgoing LU supply at the reduced 8% rate. Previously no fixture exercised RULE 15C (outgoing 8%) — only the 17% and 14% branches were covered.',
+  },
+  {
+    id: 'F119',
+    title: 'LU outgoing e-book at super-reduced 3% — RULE 15D',
+    archetype: 'publishing',
+    legal_ref: 'Art. 40-1 LTVA super-reduced 3% on books',
+    context: HOLDING_CTX,
+    input: {
+      direction: 'outgoing', country: 'LU',
+      customer_country: 'LU',
+      supplier_name: 'cifra active holding SARL',
+      description: 'Invoice for printed book and e-book sale — rate 3%',
+      vat_rate: 0.03, vat_applied: 90, amount_eur: 3000,
+    },
+    expected: { treatment: 'OUT_LUX_03', rule: 'RULE 15D' },
+    notes: 'Outgoing LU supply at super-reduced 3% (books / e-books). Completes the 15A/15B/15C/15D family of outgoing-rate fixtures.',
+  },
+  {
+    id: 'F120',
+    title: 'Non-EU advisory matching entity outgoing exempt pattern — INFERENCE B',
+    archetype: 'cross_border_advisor',
+    legal_ref: 'Inference from own outgoing pattern (analogy, not direct evidence)',
+    // Smaller exempt_outgoing_total than MANCO_CTX (€3M) so the fixture\'s
+    // €42k line is "same order of magnitude" with the €45k outgoing total.
+    // sameMagnitude uses a ratio check, so amount matters.
+    context: {
+      entity_type: 'manco',
+      exempt_outgoing_total: 45000,
+    },
+    input: {
+      direction: 'incoming', country: 'US',
+      supplier_name: 'Chicago Sub-Advisor Inc',
+      description: 'Portfolio advisory services — sub-advisory delegation',
+      vat_rate: null, vat_applied: 0, amount_eur: 42000,
+    },
+    expected: { treatment: 'RC_NONEU_EX', rule: 'INFERENCE B', flag: true, flag_includes: 'similar nature and scale' },
+    notes: 'Entity (manco) issues its own exempt fund-management fees (€45k). An incoming non-EU sub-advisory fee of similar magnitude (€42k) triggers INFERENCE B: classifier infers this is delegated fund management by analogy with the entity\'s outgoing pattern. Proposes exempt (RC_NONEU_EX) with a flag asking the reviewer to confirm vs. general consulting (which would be RC_NONEU_TAX). Completes the INFERENCE A/B/C/D/E family fixtures.',
+  },
+  {
     id: 'F107',
     title: 'Carry payment to service-GP (nominal commitment) — flagged for reviewer reclassification',
     archetype: 'carry_service_gp',
