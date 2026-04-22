@@ -1,10 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { SearchIcon } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import { SearchIcon, PlusIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { ACTIVITY_FIELDS } from '@/components/crm/schemas';
+import { useToast } from '@/components/Toaster';
 import {
   LABELS_ACTIVITY_TYPE, ACTIVITY_TYPES, formatDate,
   type ActivityType,
@@ -28,8 +32,10 @@ export default function ActivitiesPage() {
   const [rows, setRows] = useState<Activity[] | null>(null);
   const [q, setQ] = useState('');
   const [type, setType] = useState<string>('');
+  const [newOpen, setNewOpen] = useState(false);
+  const toast = useToast();
 
-  useEffect(() => {
+  const load = useCallback(() => {
     const qs = new URLSearchParams();
     if (q) qs.set('q', q);
     if (type) qs.set('type', type);
@@ -39,11 +45,49 @@ export default function ActivitiesPage() {
       .catch(() => setRows([]));
   }, [q, type]);
 
+  useEffect(() => { load(); }, [load]);
+
+  async function handleCreate(values: Record<string, unknown>) {
+    const res = await fetch('/api/crm/activities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message ?? `Create failed (${res.status})`);
+    }
+    toast.success('Activity logged');
+    await load();
+  }
+
   if (rows === null) return <PageSkeleton />;
 
   return (
     <div>
-      <PageHeader title="Activities" subtitle="Calls, meetings, emails, hearings, deadlines — the timeline." />
+      <PageHeader
+        title="Activities"
+        subtitle="Calls, meetings, emails, hearings, deadlines — the timeline."
+        actions={
+          <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
+            Log activity
+          </Button>
+        }
+      />
+      <CrmFormModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        mode="create"
+        title="Log new activity"
+        subtitle="Call, meeting, email, or deadline that just happened or is scheduled."
+        fields={ACTIVITY_FIELDS}
+        initial={{
+          activity_type: 'call',
+          activity_date: new Date().toISOString().slice(0, 10),
+          billable: false,
+        }}
+        onSave={handleCreate}
+      />
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />

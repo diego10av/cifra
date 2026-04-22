@@ -16,6 +16,10 @@ import {
   ENGAGEMENT_LEVELS, LABELS_ENGAGEMENT,
   OPPORTUNITY_STAGES, LABELS_STAGE,
   MATTER_STATUSES, LABELS_MATTER_STATUS,
+  ACTIVITY_TYPES, LABELS_ACTIVITY_TYPE,
+  TASK_STATUSES, LABELS_TASK_STATUS,
+  TASK_PRIORITIES, LABELS_TASK_PRIORITY,
+  INVOICE_STATUSES, LABELS_INVOICE_STATUS,
 } from '@/lib/crm-types';
 import type { FieldSchema } from './CrmFormModal';
 
@@ -439,6 +443,175 @@ export const MATTER_FIELDS: FieldSchema[] = [
     name: 'tags',
     label: 'Tags',
     type: 'tags',
+  },
+  {
+    name: 'notes',
+    label: 'Notes',
+    type: 'textarea',
+  },
+];
+
+// ────────────────────────── Activity schema ───────────────────────────
+
+export const ACTIVITY_FIELDS: FieldSchema[] = [
+  {
+    name: 'name',
+    label: 'Activity name',
+    type: 'text',
+    required: true,
+    placeholder: 'e.g. "Call with Alex re: Fund II term sheet"',
+  },
+  {
+    name: 'activity_type',
+    label: 'Type',
+    type: 'select',
+    required: true,
+    options: asOptions(ACTIVITY_TYPES, LABELS_ACTIVITY_TYPE),
+  },
+  {
+    name: 'activity_date',
+    label: 'Date',
+    type: 'date',
+    required: true,
+  },
+  {
+    name: 'duration_hours',
+    label: 'Duration (hours)',
+    type: 'number',
+    placeholder: '1.5',
+  },
+  {
+    name: 'billable',
+    label: 'Billable',
+    type: 'checkbox',
+    placeholder: 'This activity counts against a matter\'s billable hours.',
+  },
+  {
+    name: 'outcome',
+    label: 'Outcome',
+    type: 'textarea',
+    placeholder: 'What happened? Summary of the call / meeting.',
+  },
+  {
+    name: 'notes',
+    label: 'Notes',
+    type: 'textarea',
+    placeholder: 'Context, prep, follow-up items.',
+  },
+];
+
+// ────────────────────────── Task schema ────────────────────────────────
+
+export const TASK_FIELDS: FieldSchema[] = [
+  {
+    name: 'title',
+    label: 'Task',
+    type: 'text',
+    required: true,
+    placeholder: 'e.g. "Follow up with Client X on engagement letter"',
+    maxLength: 200,
+  },
+  {
+    name: 'priority',
+    label: 'Priority',
+    type: 'select',
+    options: asOptions(TASK_PRIORITIES, LABELS_TASK_PRIORITY),
+  },
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    options: asOptions(TASK_STATUSES, LABELS_TASK_STATUS),
+  },
+  {
+    name: 'due_date',
+    label: 'Due date',
+    type: 'date',
+  },
+  {
+    name: 'reminder_at',
+    label: 'Reminder (optional)',
+    type: 'date',
+    help: 'When cifra should nudge you about this task.',
+  },
+  {
+    name: 'description',
+    label: 'Description',
+    type: 'textarea',
+  },
+];
+
+// ────────────────────────── Invoice schema ─────────────────────────────
+
+export const INVOICE_FIELDS: FieldSchema[] = [
+  {
+    name: 'invoice_number',
+    label: 'Invoice number',
+    type: 'text',
+    placeholder: 'Auto-generated (MP-YYYY-NNNN) if left blank',
+  },
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    options: asOptions(INVOICE_STATUSES, LABELS_INVOICE_STATUS),
+  },
+  {
+    name: 'issue_date',
+    label: 'Issue date',
+    type: 'date',
+  },
+  {
+    name: 'due_date',
+    label: 'Due date',
+    type: 'date',
+  },
+  {
+    name: 'currency',
+    label: 'Currency',
+    type: 'select',
+    options: [
+      { value: 'EUR', label: 'EUR · Euro' },
+      { value: 'GBP', label: 'GBP · British Pound' },
+      { value: 'USD', label: 'USD · US Dollar' },
+      { value: 'CHF', label: 'CHF · Swiss Franc' },
+    ],
+  },
+  {
+    name: 'amount_excl_vat',
+    label: 'Amount (excl. VAT)',
+    type: 'number',
+    required: true,
+    placeholder: '5000',
+  },
+  {
+    name: 'vat_rate',
+    label: 'VAT rate (%)',
+    type: 'number',
+    placeholder: '17',
+    help: 'VAT amount auto-computed. Use 17 for LU standard, 0 for exempt / reverse charge.',
+  },
+  {
+    name: 'amount_incl_vat',
+    label: 'Amount (incl. VAT)',
+    type: 'number',
+    help: 'Optional — computed from excl. + VAT when left blank.',
+  },
+  {
+    name: 'payment_method',
+    label: 'Payment method',
+    type: 'select',
+    options: [
+      { value: 'bank_transfer', label: 'Bank transfer' },
+      { value: 'direct_debit',  label: 'Direct debit' },
+      { value: 'other',         label: 'Other' },
+    ],
+  },
+  {
+    name: 'payment_reference',
+    label: 'Payment reference',
+    type: 'text',
+    help: 'Client-side reference when payment arrives (matching bank statement).',
   },
   {
     name: 'notes',

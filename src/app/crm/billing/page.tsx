@@ -1,11 +1,15 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, PlusIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { INVOICE_FIELDS } from '@/components/crm/schemas';
+import { useToast } from '@/components/Toaster';
 import {
   LABELS_INVOICE_STATUS, INVOICE_STATUSES, formatEur, formatDate,
   type InvoiceStatus,
@@ -47,8 +51,10 @@ export default function BillingPage() {
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<string>('');
   const [year, setYear] = useState<string>(String(thisYear));
+  const [newOpen, setNewOpen] = useState(false);
+  const toast = useToast();
 
-  useEffect(() => {
+  const load = useCallback(() => {
     const qs = new URLSearchParams();
     if (q) qs.set('q', q);
     if (status) qs.set('status', status);
@@ -56,6 +62,31 @@ export default function BillingPage() {
     fetch(`/api/crm/billing?${qs}`, { cache: 'no-store' })
       .then(r => r.json()).then(setData).catch(() => setData({ invoices: [], summary: null }));
   }, [q, status, year]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleCreate(values: Record<string, unknown>) {
+    // Note: company_id is required by API. For stint 26 we don't yet
+    // have a Company picker inside the form (needs an async-search
+    // component). Short-term: instruct user to create an invoice from
+    // within a Matter or Company detail page. Show friendly error if
+    // they try from here.
+    const res = await fetch('/api/crm/billing', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      const code = err?.error?.code ?? '';
+      if (code === 'company_required') {
+        throw new Error('To create an invoice from here, add company_id. For now, create invoices from the Matter detail page (upcoming stint adds company picker to this form).');
+      }
+      throw new Error(err?.error?.message ?? `Create failed (${res.status})`);
+    }
+    toast.success('Invoice created');
+    await load();
+  }
 
   const years = useMemo(() => {
     const current = new Date().getFullYear();
@@ -66,7 +97,30 @@ export default function BillingPage() {
 
   return (
     <div>
-      <PageHeader title="Billing" subtitle={`${year || 'All years'} · ${data.invoices.length} invoices`} />
+      <PageHeader
+        title="Billing"
+        subtitle={`${year || 'All years'} · ${data.invoices.length} invoices`}
+        actions={
+          <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
+            New invoice
+          </Button>
+        }
+      />
+      <CrmFormModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        mode="create"
+        title="New invoice"
+        subtitle="Issue a new invoice. Number auto-generates (MP-YYYY-NNNN). Company + matter pickers coming in Billing Pro."
+        fields={INVOICE_FIELDS}
+        initial={{
+          status: 'draft',
+          currency: 'EUR',
+          vat_rate: 17,
+          issue_date: new Date().toISOString().slice(0, 10),
+        }}
+        onSave={handleCreate}
+      />
 
       {data.summary && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
@@ -117,7 +171,9 @@ export default function BillingPage() {
             <tbody>
               {data.invoices.map(r => (
                 <tr key={r.id} className="border-t border-border hover:bg-surface-alt/50">
-                  <td className="px-3 py-2 font-mono">{r.invoice_number}</td>
+                  <td className="px-3 py-2 font-mono">
+                    <Link href={`/crm/billing/${r.id}`} className="text-brand-700 hover:underline">{r.invoice_number}</Link>
+                  </td>
                   <td className="px-3 py-2">
                     {r.client_id ? <Link href={`/crm/companies/${r.client_id}`} className="text-brand-700 hover:underline">{r.client_name}</Link> : '—'}
                   </td>

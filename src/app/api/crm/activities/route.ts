@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, execute, generateId, logAudit } from '@/lib/db';
+import { apiError } from '@/lib/api-errors';
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -37,4 +38,68 @@ export async function GET(request: NextRequest) {
     params,
   );
   return NextResponse.json(rows);
+}
+
+// POST /api/crm/activities — log a new activity (call/meeting/email/...).
+// Required: name, activity_type, activity_date.
+// Optional relations: primary_contact_id, company_id, opportunity_id,
+// matter_id, additional_contact_ids[] (for multi-contact meetings).
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => ({}));
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  if (!name) return apiError('name_required', 'name is required.', { status: 400 });
+  const activityType = typeof body.activity_type === 'string' ? body.activity_type : '';
+  if (!activityType) return apiError('activity_type_required', 'activity_type is required.', { status: 400 });
+  const activityDate = body.activity_date;
+  if (!activityDate) return apiError('date_required', 'activity_date is required.', { status: 400 });
+
+  const id = generateId();
+  await execute(
+    `INSERT INTO crm_activities
+       (id, name, activity_type, activity_date, duration_hours, billable,
+        lawyer, primary_contact_id, company_id, opportunity_id, matter_id,
+        outcome, notes, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,NOW())`,
+    [
+      id, name, activityType, activityDate,
+      body.duration_hours ?? null,
+      !!body.billable,
+      body.lawyer ?? null,
+      body.primary_contact_id ?? null,
+      body.company_id ?? null,
+      body.opportunity_id ?? null,
+      body.matter_id ?? null,
+      body.outcome ?? null,
+      body.notes ?? null,
+    ],
+  );
+
+  // Additional contacts via junction.
+  if (Array.isArray(body.additional_contact_ids)) {
+    for (const cid of body.additional_contact_ids) {
+      if (typeof cid !== 'string') continue;
+      await execute(
+        `INSERT INTO crm_activity_contacts (activity_id, contact_id)
+         VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [id, cid],
+      );
+    }
+  }
+
+  // Update contact's last_activity_at (used for auto-engagement in fase 5).
+  if (body.primary_contact_id) {
+    await execute(
+      `UPDATE crm_contacts SET last_activity_at = GREATEST(COALESCE(last_activity_at, $1), $1) WHERE id = $2`,
+      [activityDate, body.primary_contact_id],
+    );
+  }
+
+  await logAudit({
+    action: 'create',
+    targetType: 'crm_activity',
+    targetId: id,
+    newValue: name,
+    reason: `New ${activityType}`,
+  });
+  return NextResponse.json({ id, name, activity_type: activityType }, { status: 201 });
 }

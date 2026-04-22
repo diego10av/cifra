@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, execute, generateId, logAudit } from '@/lib/db';
+import { apiError } from '@/lib/api-errors';
+import { nextInvoiceNumber } from '@/lib/crm-invoice-number';
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -64,4 +66,66 @@ export async function GET(request: NextRequest) {
   );
 
   return NextResponse.json({ invoices: rows, summary: summary[0] ?? null });
+}
+
+// POST /api/crm/billing — create an invoice.
+// Required: company_id + amount_excl_vat + vat_rate OR (amount_incl_vat + vat_amount).
+// Invoice number auto-generated unless provided. Status defaults to 'draft'.
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => ({}));
+  const companyId = typeof body.company_id === 'string' ? body.company_id : null;
+  const amountExcl = body.amount_excl_vat !== undefined ? Number(body.amount_excl_vat) : null;
+  const vatRate = body.vat_rate !== undefined && body.vat_rate !== null ? Number(body.vat_rate) : null;
+  const providedIncl = body.amount_incl_vat !== undefined ? Number(body.amount_incl_vat) : null;
+
+  if (!companyId) return apiError('company_required', 'company_id is required.', { status: 400 });
+  if (amountExcl === null || !Number.isFinite(amountExcl)) {
+    return apiError('amount_required', 'amount_excl_vat is required.', { status: 400 });
+  }
+
+  // Compute VAT if not provided explicitly.
+  const vatAmount = vatRate !== null && Number.isFinite(vatRate)
+    ? Math.round(amountExcl * vatRate) / 100 * (Math.abs(vatRate) < 1 ? 100 : 1)  // handle both 17 and 0.17 inputs
+    : (providedIncl !== null ? providedIncl - amountExcl : null);
+  const amountIncl = providedIncl !== null && Number.isFinite(providedIncl)
+    ? providedIncl
+    : amountExcl + (vatAmount ?? 0);
+
+  const invoiceNumber = typeof body.invoice_number === 'string' && body.invoice_number.trim()
+    ? body.invoice_number.trim()
+    : await nextInvoiceNumber();
+
+  const id = generateId();
+  await execute(
+    `INSERT INTO crm_billing_invoices
+       (id, invoice_number, company_id, matter_id, primary_contact_id,
+        issue_date, due_date, currency, amount_excl_vat, vat_rate, vat_amount,
+        amount_incl_vat, status, payment_method, line_items, notes, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::jsonb,$16,NOW())`,
+    [
+      id, invoiceNumber, companyId,
+      body.matter_id ?? null,
+      body.primary_contact_id ?? null,
+      body.issue_date ?? null,
+      body.due_date ?? null,
+      body.currency ?? 'EUR',
+      amountExcl,
+      vatRate,
+      vatAmount,
+      amountIncl,
+      body.status ?? 'draft',
+      body.payment_method ?? null,
+      JSON.stringify(Array.isArray(body.line_items) ? body.line_items : []),
+      body.notes ?? null,
+    ],
+  );
+
+  await logAudit({
+    action: 'create',
+    targetType: 'crm_invoice',
+    targetId: id,
+    newValue: `${invoiceNumber} · €${amountIncl.toFixed(2)}`,
+    reason: 'New invoice',
+  });
+  return NextResponse.json({ id, invoice_number: invoiceNumber, amount_incl_vat: amountIncl }, { status: 201 });
 }
