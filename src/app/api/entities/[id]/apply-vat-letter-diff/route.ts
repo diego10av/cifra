@@ -36,6 +36,12 @@ import { validateVatNumber } from '@/lib/validation';
 const APPLICABLE_FIELDS = [
   'name', 'legal_form', 'vat_number', 'matricule', 'rcs_number',
   'address', 'entity_type', 'regime', 'frequency',
+  // Stint 24 — fields added after benchmarking extractor on real paper.
+  // All are persisted on entities via migration 027. The reviewer can
+  // opt in / out per field in the diff modal.
+  'tax_office', 'activity_code', 'activity_description',
+  'bank_name', 'bank_iban', 'bank_bic',
+  'deregistration_date',
 ] as const;
 
 type ApplicableField = typeof APPLICABLE_FIELDS[number];
@@ -55,7 +61,9 @@ export async function POST(
 
     const entity = await queryOne<Record<string, unknown>>(
       `SELECT id, name, legal_form, vat_number, matricule, rcs_number,
-              address, entity_type, regime, frequency
+              address, entity_type, regime, frequency,
+              tax_office, activity_code, activity_description,
+              bank_name, bank_iban, bank_bic, deregistration_date
          FROM entities
         WHERE id = $1 AND deleted_at IS NULL`,
       [entityId],
@@ -102,6 +110,20 @@ export async function POST(
       }
       if (f === 'frequency' && next != null && !['monthly', 'quarterly', 'annual'].includes(next as string)) {
         continue;
+      }
+      // Stint 24 — new field normalisation.
+      if ((f === 'bank_iban' || f === 'bank_bic') && typeof next === 'string') {
+        next = next.replace(/\s+/g, '').toUpperCase() || null;
+      }
+      if (f === 'activity_code' && typeof next === 'string') {
+        next = next.toUpperCase() || null;
+      }
+      if (f === 'deregistration_date' && next != null) {
+        // Must be ISO YYYY-MM-DD. Anything else is silently skipped
+        // (same lenient approach as the other fields).
+        if (typeof next !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(next)) {
+          continue;
+        }
       }
 
       const before = entity[f] ?? null;
