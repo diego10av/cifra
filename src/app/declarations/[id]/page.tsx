@@ -23,6 +23,7 @@ import { PreviewPanel } from './PreviewPanel';
 import { OutputsPanel } from './OutputsPanel';
 import { DeclarationNotes, FilingPanel } from './FilingPanel';
 import { ShareLinkModal } from './ShareLinkModal';
+import { PhaseCTA, SummaryApproveCTA } from './PhaseCTA';
 import { DocRow, StatusBadge, TriageTag, FileIcon } from './DocRow';
 import { TreatmentBadge } from './TreatmentBadge';
 import { AuditTrailPanel } from './AuditTrailPanel';
@@ -584,7 +585,7 @@ export default function DeclarationDetailPage() {
       badge: unclassified + flagged > 0 ? unclassified + flagged : undefined,
       badgeTone: 'warning' },
     { id: 'filing',    label: 'Filing',    icon: <ClipboardCheckIcon size={14} /> },
-    { id: 'outputs',   label: 'Outputs',   icon: <DownloadCloudIcon size={14} />,
+    { id: 'outputs',   label: 'Summary',   icon: <DownloadCloudIcon size={14} />,
       badge: activeLines.length > 0 ? undefined : undefined },
     { id: 'audit',     label: 'Audit',     icon: <ShieldCheckIcon size={14} /> },
   ];
@@ -626,6 +627,36 @@ export default function DeclarationDetailPage() {
               </div>
             </div>
             <div className="flex flex-wrap gap-2 items-center shrink-0">
+              {/* PhaseCTA — the "what do I click next?" button.
+                  Sticky in header, always the primary next-step affordance.
+                  When on Summary tab (outputs) with unblocked blockers,
+                  switch to SummaryApproveCTA so the primary action is
+                  Approve (or Submit for partner review). */}
+              {activeTab === 'outputs' && data.status === 'review' ? (
+                <SummaryApproveCTA
+                  blockers={{ unclassified, flagged }}
+                  requiresPartnerReview={false}
+                  onApprove={() => handleStatusChange('approved')}
+                  onSubmitForReview={() => handleStatusChange('approved') /* migration 023 replaces with pending_review */}
+                />
+              ) : (
+                <PhaseCTA
+                  status={data.status as 'created' | 'uploading' | 'extracting' | 'classifying' | 'review' | 'pending_review' | 'approved' | 'filed' | 'paid'}
+                  blockers={{ unclassified, flagged }}
+                  requiresPartnerReview={false}
+                  viewerIsSubmitter={false}
+                  hasPendingDocs={pendingDocs.some(d => d.status === 'uploaded' || d.status === 'error')}
+                  jobRunning={!!activeJobId}
+                  activeLineCount={activeLines.length}
+                  onGoToDocuments={() => setActiveTab('documents')}
+                  onExtractAll={handleExtract}
+                  onGoToSummary={() => setActiveTab('outputs')}
+                  onApprove={() => handleStatusChange('approved')}
+                  onSubmitForReview={() => handleStatusChange('approved')}
+                  onPartnerApprove={() => handleStatusChange('approved')}
+                  onGoToFiling={() => setActiveTab('filing')}
+                />
+              )}
               {hasFx && activeLines.length > 0 && !locked && (
                 <button
                   onClick={handleFillFx}
