@@ -146,6 +146,22 @@ export function classifyInvoiceLine(
   context: EntityContext = {},
   precedent: PrecedentMatch | null = null,
 ): ClassificationResult {
+  // Delegate to the inner classifier, then run a thin post-processor that
+  // decorates the result with audit hints (RULE 30 pre-payment Art. 61§1
+  // chargeability) without altering the treatment. The reason we don't
+  // fold the pre-payment check into each rule branch: it needs to fire
+  // on top of whatever normal classification applies (taxable, exempt,
+  // reverse-charge — all still correct; only the tax point timing is
+  // special).
+  const result = classifyInvoiceLineInner(line, context, precedent);
+  return decorateWithPrepaymentHint(result, line);
+}
+
+function classifyInvoiceLineInner(
+  line: InvoiceLineInput,
+  context: EntityContext = {},
+  precedent: PrecedentMatch | null = null,
+): ClassificationResult {
 
   // PRIORITY 1.3 — content-specific rules that must override every generic
   //                pattern: director fees (C-288/22 TP / Circ. 781-2),
@@ -249,6 +265,60 @@ export function classifyInvoiceLine(
     source: 'rule',
     flag: true,
     flag_reason: 'No classification rule matched — manual review required.',
+  };
+}
+
+// ────────────────────────── Post-processors ──────────────────────────
+//
+// Decorators applied AFTER the main rule pipeline returns. They don't
+// change the classification decision — they enrich the audit trail
+// (flag + reason) with cross-cutting observations the per-rule branches
+// would have had to duplicate.
+//
+// Today: pre-payment chargeability (RULE 30 / Art. 61§1 LTVA).
+// Future candidates: bad-debt relief regularisation, credit-note
+// context when the original invoice period is closed.
+//
+
+/** RULE 30 post-processor — adds tax-point timing warning when the line
+ *  references a pre-payment / advance / deposit / acompte.
+ *
+ *  Art. 61§1 LTVA (transposing Art. 65 Directive): for pre-payments,
+ *  VAT chargeability arises at the date of receipt of payment, BEFORE
+ *  the goods / services are rendered. This means a pre-payment invoice
+ *  can land in a declaration period that doesn't match the actual
+ *  performance period — reviewers need to verify the tax point vs. the
+ *  return's start/end dates. The normal classification (taxable / exempt
+ *  / reverse-charge) is correct; only the timing is special.
+ *
+ *  We force flag=true and append to flag_reason; we never change the
+ *  treatment or the rule name. The line keeps its original RULE X
+ *  attribution with a "+ RULE 30 pre-payment note" suffix so the audit
+ *  trail shows both rationales. */
+function decorateWithPrepaymentHint(
+  result: ClassificationResult,
+  line: InvoiceLineInput,
+): ClassificationResult {
+  const text = fullText(line);
+  if (!containsAny(text, PREPAYMENT_KEYWORDS)) return result;
+  // Don't decorate NO_MATCH lines — they're already flagged; adding a
+  // second hint muddies the primary "no rule fired" signal. Reviewer
+  // will see PREPAYMENT_KEYWORDS in the description anyway.
+  if (result.rule === 'NO_MATCH') return result;
+  const matched = findFirstMatch(text, PREPAYMENT_KEYWORDS) ?? 'pre-payment';
+  const prepaymentNote =
+    `Pre-payment reference detected ("${matched}") — Art. 61§1 LTVA (Art. 65 Directive) makes VAT chargeable at the DATE OF PAYMENT, `
+    + `not the performance date. Verify the tax point aligns with the declaration period: a pre-payment received near a period boundary `
+    + `can legitimately fall in a different return than the underlying service. When the final invoice is issued, treat it as a balance `
+    + `(only the delta not yet pre-paid bears new VAT).`;
+  const combinedReason = result.flag_reason
+    ? `${result.flag_reason}\n\n${prepaymentNote}`
+    : prepaymentNote;
+  return {
+    ...result,
+    flag: true,
+    flag_reason: combinedReason,
+    rule: result.rule.includes('+ RULE 30') ? result.rule : `${result.rule} + RULE 30`,
   };
 }
 
@@ -415,18 +485,16 @@ function applyDirectEvidenceRules(
   }
 
   // ═══════════════ RULE 30 — Pre-payment / advance (Art. 61§1 LTVA) ═══════
-  // Pre-payments trigger chargeability at the payment date, before the
-  // service is rendered. Flag-only — the reviewer confirms tax point.
-  if (containsAny(text, PREPAYMENT_KEYWORDS)) {
-    // Don't return — just flag via extending the rule chain. Keep
-    // processing so the rate / service rules still fire. We surface
-    // the flag by setting result.flag downstream — but since we're
-    // returning a structured result at each match, we'd need a shared
-    // mechanism. For now, route pre-payments through as a low-
-    // confidence signal in the reason of whatever later rule fires.
-    // Intentional no-op here; the drafter observation block will
-    // surface pre-payment lines via the `classification_rule` audit.
-  }
+  // Pre-payments trigger chargeability at the PAYMENT date, before the
+  // service is rendered (Art. 61§1 LTVA / Art. 65 Directive). Classification
+  // (taxable / exempt / reverse-charge) is unchanged — only the tax point
+  // timing differs, which may straddle declaration periods. Actual flagging
+  // happens in decorateWithPrepaymentHint at the top-level of
+  // classifyInvoiceLine — the post-processor inspects PREPAYMENT_KEYWORDS
+  // in the combined text and adds flag + reason guidance to whatever rule
+  // fires. The explicit no-op here is retained so the rule is documented
+  // at the numeric ordering location where a future refactor would expect
+  // it. See decorateWithPrepaymentHint below.
 
   // ═══════════════ RULE 31 — Autolivraison (Art. 12 LTVA) ═══════════════
   // Extractor flagged the document as a self-supply.

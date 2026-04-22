@@ -292,11 +292,39 @@ export const REDUCED_RATE_03_KEYWORDS: readonly string[] = [
 ];
 
 // ── Pre-payment / advance / deposit keywords (Art. 61§1 LTVA chargeability) ──
+//
+// CAREFUL about substring matching: `containsAny` does plain .includes()
+// so bare "deposit" would match "depositary" / "depositary bank" which
+// are fund-admin service descriptions, not pre-payments. Every entry
+// here must be either (a) a standalone word that has no substring
+// overlap with legitimate service descriptions, or (b) a multi-word
+// phrase that only appears in pre-payment contexts.
 export const PREPAYMENT_KEYWORDS: readonly string[] = [
-  'acompte', 'avance', 'deposit', 'advance payment',
-  'pre-payment', 'prepayment', 'prepaid',
-  'anzahlung', 'vorauszahlung',
+  // French — "acompte" is unambiguous (no substring collisions). "avance
+  // de paiement" / "acompte sur" are the full phrases reviewers write.
+  'acompte',
+  'avance de paiement',
+  'avance sur',
+  'paiement anticipé',
+  // English — bare "deposit" would collide with "depositary" (fund custody),
+  // so require a qualifying phrase.
+  'advance payment',
+  'deposit received',
+  'advance deposit',
+  'deposit invoice',
+  'payment on account',
+  'pre-payment',
+  'prepayment',
+  'prepaid invoice',
+  // German
+  'anzahlung',
+  'vorauszahlung',
+  // Italian
   'anticipo',
+  'pagamento anticipato',
+  // Spanish
+  'pago anticipado',
+  'anticipo de pago',
 ];
 
 // ── Bad-debt relief (Art. 62 LTVA regularisation) ──
