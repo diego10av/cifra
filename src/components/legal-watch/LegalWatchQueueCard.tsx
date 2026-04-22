@@ -26,7 +26,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   SparklesIcon, RadioIcon, XIcon, CheckCheckIcon, BookmarkIcon,
   ExternalLinkIcon, Loader2Icon, EyeIcon, EyeOffIcon,
-  ChevronDownIcon, ChevronRightIcon,
+  ChevronDownIcon, ChevronRightIcon, PencilIcon,
 } from 'lucide-react';
 
 type TriageSeverity = 'critical' | 'high' | 'medium' | 'low';
@@ -61,6 +61,11 @@ interface QueueItem {
   patch_applied_at: string | null;
   patch_applied_by: string | null;
   patch_commit_sha: string | null;
+  // Migration 025 — human edit audit on top of AI-drafted patches
+  ai_patch_modified_by_human: boolean | null;
+  ai_patch_modified_by: string | null;
+  ai_patch_modified_at: string | null;
+  ai_patch_original_diff: string | null;
 }
 
 interface ScanReport {
@@ -459,6 +464,8 @@ function ItemList({
                   appliedAt={item.patch_applied_at}
                   commitSha={item.patch_commit_sha}
                   severity={item.ai_triage_severity}
+                  modifiedByHuman={item.ai_patch_modified_by_human}
+                  modifiedBy={item.ai_patch_modified_by}
                   onReload={onReload}
                 />
               )}
@@ -587,7 +594,7 @@ function ItemList({
 // click-through with a second-level confirmation in the client.
 function PatchProposalBlock({
   id, diff, reasoning, confidence, targetFiles, appliedAt, commitSha,
-  severity, onReload,
+  severity, modifiedByHuman, modifiedBy, onReload,
 }: {
   id: string;
   diff: string;
@@ -597,6 +604,8 @@ function PatchProposalBlock({
   appliedAt: string | null;
   commitSha: string | null;
   severity: 'critical' | 'high' | 'medium' | 'low' | null;
+  modifiedByHuman: boolean | null;
+  modifiedBy: string | null;
   onReload: () => Promise<void> | void;
 }) {
   const [open, setOpen] = useState(false);
@@ -606,6 +615,14 @@ function PatchProposalBlock({
   const [rejecting, setRejecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successSha, setSuccessSha] = useState<string | null>(null);
+  // Modify flow (migration 025): user pulls the diff into a textarea,
+  // edits, and saves. `draftDiff` holds the working copy; `editing`
+  // swaps the read-only <pre> for the textarea and swaps Accept/Reject
+  // for Save/Cancel.
+  const [editing, setEditing] = useState(false);
+  const [draftDiff, setDraftDiff] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [savedBanner, setSavedBanner] = useState(false);
 
   const copyCommand = async () => {
     const cmd = `cd "/Users/gonzalezmansodiego/Desktop/VAT Platform/vat-platform" && git apply <<'PATCH'\n${diff}\nPATCH`;
@@ -658,6 +675,48 @@ function PatchProposalBlock({
     }
   };
 
+  const startEdit = () => {
+    setDraftDiff(diff);
+    setEditing(true);
+    setError(null);
+  };
+  const cancelEdit = () => {
+    setEditing(false);
+    setDraftDiff('');
+  };
+  const saveEdit = async () => {
+    if (!draftDiff.trim()) {
+      setError('Diff cannot be empty — use Reject to discard instead.');
+      return;
+    }
+    if (draftDiff.trim() === diff.trim()) {
+      // No real change — just leave edit mode quietly.
+      cancelEdit();
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/legal-watch/queue/${id}/update-patch`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ diff: draftDiff }),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(body?.error?.message ?? `Save failed (${res.status})`);
+        return;
+      }
+      setEditing(false);
+      setDraftDiff('');
+      setSavedBanner(true);
+      setTimeout(() => setSavedBanner(false), 4000);
+      await onReload();
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const pct = confidence != null ? Math.round(confidence * 100) : null;
   const isCritical = severity === 'critical';
   const acceptDisabled = accepting || rejecting || (isCritical && !readChecked);
@@ -678,6 +737,14 @@ function PatchProposalBlock({
         </span>
         {pct != null && (
           <span className="text-[10.5px] text-emerald-700 font-normal">· confidence {pct}%</span>
+        )}
+        {modifiedByHuman && !appliedAt && !successSha && (
+          <span
+            className="text-[10px] text-amber-800 bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5 font-medium"
+            title={`Reviewer${modifiedBy ? ` (${modifiedBy})` : ''} edited the drafter's diff. The original is preserved in the audit log.`}
+          >
+            Edited by reviewer
+          </span>
         )}
         {(appliedAt || successSha) && (
           <span className="text-[10.5px] text-emerald-700 font-normal">
@@ -700,20 +767,35 @@ function PatchProposalBlock({
               ))}
             </div>
           )}
-          <pre className="text-[10.5px] font-mono bg-white border border-emerald-200 rounded p-2 overflow-x-auto max-h-[320px] overflow-y-auto">
-            {diff.split('\n').map((line, i) => {
-              const colour = line.startsWith('+++') || line.startsWith('---')
-                ? 'text-ink-muted font-semibold'
-                : line.startsWith('+')
-                  ? 'text-emerald-700 bg-emerald-50'
-                  : line.startsWith('-')
-                    ? 'text-red-700 bg-red-50'
-                    : line.startsWith('@@')
-                      ? 'text-violet-700'
-                      : 'text-ink';
-              return <div key={i} className={colour}>{line || '\u00A0'}</div>;
-            })}
-          </pre>
+          {editing ? (
+            <textarea
+              value={draftDiff}
+              onChange={e => setDraftDiff(e.target.value)}
+              spellCheck={false}
+              className="w-full text-[10.5px] font-mono bg-white border border-amber-300 rounded p-2 min-h-[240px] max-h-[480px] resize-y focus:outline-none focus:ring-2 focus:ring-amber-400"
+              placeholder="Edit the unified diff. Only these files are allowed: src/config/classification-rules.ts, src/config/legal-sources.ts, src/config/exemption-keywords.ts, src/__tests__/fixtures/synthetic-corpus.ts"
+            />
+          ) : (
+            <pre className="text-[10.5px] font-mono bg-white border border-emerald-200 rounded p-2 overflow-x-auto max-h-[320px] overflow-y-auto">
+              {diff.split('\n').map((line, i) => {
+                const colour = line.startsWith('+++') || line.startsWith('---')
+                  ? 'text-ink-muted font-semibold'
+                  : line.startsWith('+')
+                    ? 'text-emerald-700 bg-emerald-50'
+                    : line.startsWith('-')
+                      ? 'text-red-700 bg-red-50'
+                      : line.startsWith('@@')
+                        ? 'text-violet-700'
+                        : 'text-ink';
+                return <div key={i} className={colour}>{line || '\u00A0'}</div>;
+              })}
+            </pre>
+          )}
+          {savedBanner && (
+            <div className="mt-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+              Diff updated — the original AI draft is preserved in the audit log. Tests are now stale; Accept will commit without fresh test evidence.
+            </div>
+          )}
 
           {error && (
             <div className="mt-2 text-[11px] text-red-800 bg-red-50 border border-red-200 rounded px-2 py-1.5">
@@ -742,34 +824,66 @@ function PatchProposalBlock({
                 </label>
               )}
               <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  onClick={accept}
-                  disabled={acceptDisabled}
-                  title={acceptTooltip}
-                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {accepting ? <Loader2Icon size={11} className="animate-spin" /> : <CheckCheckIcon size={11} />}
-                  {accepting ? 'Committing…' : 'Accept & commit'}
-                </button>
-                <button
-                  onClick={reject}
-                  disabled={accepting || rejecting}
-                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
-                >
-                  <XIcon size={11} />
-                  {rejecting ? 'Rejecting…' : 'Reject'}
-                </button>
-                <button
-                  onClick={copyCommand}
-                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors"
-                  title="Fallback: copy the git-apply command to run locally if the Accept button is blocked (e.g. GITHUB_TOKEN not configured in Vercel env)."
-                >
-                  <BookmarkIcon size={11} />
-                  {copied ? 'Copied ✓' : 'Copy git apply command'}
-                </button>
+                {editing ? (
+                  <>
+                    <button
+                      onClick={saveEdit}
+                      disabled={saving}
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-amber-600 text-white text-[11px] font-semibold hover:bg-amber-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {saving ? <Loader2Icon size={11} className="animate-spin" /> : <CheckCheckIcon size={11} />}
+                      {saving ? 'Saving…' : 'Save edits'}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={saving}
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
+                    >
+                      <XIcon size={11} />
+                      Cancel
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={accept}
+                      disabled={acceptDisabled}
+                      title={acceptTooltip}
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {accepting ? <Loader2Icon size={11} className="animate-spin" /> : <CheckCheckIcon size={11} />}
+                      {accepting ? 'Committing…' : 'Accept & commit'}
+                    </button>
+                    <button
+                      onClick={startEdit}
+                      disabled={accepting || rejecting}
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-amber-300 text-[11px] text-amber-800 hover:bg-amber-50 hover:border-amber-400 transition-colors disabled:opacity-40"
+                      title="Open the diff in an editable textarea. The original AI draft is preserved in the audit log."
+                    >
+                      <PencilIcon size={11} />
+                      Modificar
+                    </button>
+                    <button
+                      onClick={reject}
+                      disabled={accepting || rejecting}
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
+                    >
+                      <XIcon size={11} />
+                      {rejecting ? 'Rejecting…' : 'Reject'}
+                    </button>
+                    <button
+                      onClick={copyCommand}
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors"
+                      title="Fallback: copy the git-apply command to run locally if the Accept button is blocked (e.g. GITHUB_TOKEN not configured in Vercel env)."
+                    >
+                      <BookmarkIcon size={11} />
+                      {copied ? 'Copied ✓' : 'Copy git apply command'}
+                    </button>
+                  </>
+                )}
               </div>
               <div className="text-[10px] text-ink-muted italic">
-                Accept uses the GitHub API to commit the diff to main with a signed <code className="bg-white px-1 rounded">ai_drafted=true</code> attribution. Vercel auto-deploys.
+                Accept uses the GitHub API to commit the diff to main with a signed <code className="bg-white px-1 rounded">ai_drafted=true</code> attribution. When edited, the commit also carries <code className="bg-white px-1 rounded">human_edited: true</code>. Vercel auto-deploys.
               </div>
             </div>
           )}

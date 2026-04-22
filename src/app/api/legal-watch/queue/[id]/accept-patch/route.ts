@@ -41,10 +41,13 @@ export async function POST(
       ai_patch_model: string | null;
       patch_applied_at: string | null;
       ai_triage_severity: string | null;
+      ai_patch_modified_by_human: boolean | null;
+      ai_patch_modified_by: string | null;
     }>(
       `SELECT id, title, ai_patch_diff, ai_patch_target_files,
               ai_patch_reasoning, ai_patch_model,
-              patch_applied_at, ai_triage_severity
+              patch_applied_at, ai_triage_severity,
+              ai_patch_modified_by_human, ai_patch_modified_by
          FROM legal_watch_queue
         WHERE id = $1`,
       [id],
@@ -63,17 +66,29 @@ export async function POST(
 
     // Build the commit message. Include ai_drafted=true so
     // `git log --grep="ai_drafted"` surfaces all AI-authored commits
-    // for audit.
+    // for audit. When the reviewer edited the diff before accepting
+    // (Modificar flow, migration 025), add `human_edited: true` so we
+    // can split AI-pure commits from human-edited ones.
     const reasoningLine = (row.ai_patch_reasoning ?? '').split('\n').slice(0, 2).join(' ').trim();
+    const humanEdited = row.ai_patch_modified_by_human === true;
+    const trailerLines = [
+      `legal_watch_queue_id: ${id}`,
+      `ai_drafted: true`,
+      `model: ${row.ai_patch_model ?? 'unknown'}`,
+      `severity: ${row.ai_triage_severity ?? 'unknown'}`,
+    ];
+    if (humanEdited) {
+      trailerLines.push(`human_edited: true`);
+      if (row.ai_patch_modified_by) {
+        trailerLines.push(`modified_by: ${row.ai_patch_modified_by}`);
+      }
+    }
     const commitMessage = [
       `Rule update from legal-watch item ${id.slice(0, 8)}: ${row.title.slice(0, 60)}`,
       '',
       reasoningLine || 'AI-drafted patch accepted by reviewer.',
       '',
-      `legal_watch_queue_id: ${id}`,
-      `ai_drafted: true`,
-      `model: ${row.ai_patch_model ?? 'unknown'}`,
-      `severity: ${row.ai_triage_severity ?? 'unknown'}`,
+      ...trailerLines,
       '',
       'Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>',
     ].join('\n');

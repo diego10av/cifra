@@ -35,6 +35,8 @@ export async function GET(request: NextRequest) {
             ai_triage_confidence, ai_triage_model, ai_triage_at,
             ai_patch_diff, ai_patch_target_files, ai_patch_reasoning,
             ai_patch_confidence, ai_patch_model, ai_patch_generated_at,
+            ai_patch_modified_by_human, ai_patch_modified_by, ai_patch_modified_at,
+            ai_patch_original_diff,
             patch_applied_at, patch_applied_by, patch_commit_sha,
             created_at
        FROM legal_watch_queue

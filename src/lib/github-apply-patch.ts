@@ -61,7 +61,11 @@ export interface ApplyResult {
   files_changed: string[];
 }
 
-const ALLOWED_FILES = new Set([
+/** Whitelist of files an AI-drafted patch may touch. Exported so the
+ *  update-patch endpoint can re-enforce the same whitelist when a human
+ *  edits the diff before acceptance — we don't want a reviewer casually
+ *  rewriting the diff to touch package.json and slipping past apply. */
+export const ALLOWED_FILES = new Set([
   'src/config/classification-rules.ts',
   'src/config/legal-sources.ts',
   'src/config/exemption-keywords.ts',
@@ -224,7 +228,7 @@ export async function applyPatchToRepo(opts: ApplyOpts): Promise<ApplyResult> {
 }
 
 // ─────────────────────────────────────────────────────────────────
-function extractFilePaths(diff: string): string[] {
+export function extractFilePaths(diff: string): string[] {
   const paths = new Set<string>();
   for (const m of diff.matchAll(/^\+\+\+\s+b\/(.+?)$/gm)) {
     const p = m[1].trim();
