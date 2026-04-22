@@ -20,6 +20,7 @@ import { execute, query } from '@/lib/db';
 import { matchKeywords } from '@/config/legal-watch-keywords';
 import { triageQueueItem } from '@/lib/legal-watch-triage';
 import { draftRulePatch } from '@/lib/rule-patch-drafter';
+import { fetchCuriaRss } from '@/lib/legal-watch-curia';
 
 export interface FeedItem {
   source: string;        // 'vatupdate' | 'curia' | 'legilux' | 'aed' | 'sample'
@@ -44,11 +45,14 @@ export interface ScanReport {
  *  down with our own keyword list. */
 const VATUPDATE_FEED = 'https://www.vatupdate.com/feed/';
 
-/** Minimal XML RSS parser tailored to WordPress feeds. We parse one
- *  shape, we don't aim for general RSS compliance — if the feed ever
- *  changes shape the scanner logs the parse failure and skips,
- *  leaving the queue untouched. */
-function parseRss(xml: string): FeedItem[] {
+/** Minimal XML RSS parser tailored to WordPress / standard RSS 2.0
+ *  feeds. We parse one shape, we don't aim for general RSS compliance —
+ *  if a feed ever changes shape the scanner logs the parse failure and
+ *  skips, leaving the queue untouched.
+ *
+ *  Exported so curia-specific fetcher in legal-watch-curia.ts can reuse
+ *  the same parser (Curia publishes RSS 2.0 too). */
+export function parseRss(xml: string, source: FeedItem['source']): FeedItem[] {
   const items: FeedItem[] = [];
   const itemRegex = /<item>([\s\S]*?)<\/item>/g;
   const match = (block: string, tag: string): string | null => {
@@ -73,7 +77,7 @@ function parseRss(xml: string): FeedItem[] {
     // Strip HTML tags from description for a clean summary.
     const summary = desc.replace(/<[^>]*>/g, '').trim().slice(0, 1200);
     items.push({
-      source: 'vatupdate',
+      source,
       external_id: guid,
       title: title.replace(/<[^>]*>/g, '').trim(),
       url: link || null,
@@ -96,7 +100,7 @@ export async function fetchVatUpdate(): Promise<FeedItem[]> {
     });
     if (!res.ok) throw new Error(`VATupdate feed HTTP ${res.status}`);
     const xml = await res.text();
-    return parseRss(xml);
+    return parseRss(xml, 'vatupdate');
   } finally {
     clearTimeout(timeout);
   }
@@ -139,7 +143,7 @@ export function sampleFeedItems(): FeedItem[] {
 }
 
 export interface ScanOptions {
-  sources?: Array<'vatupdate' | 'sample'>;
+  sources?: Array<'vatupdate' | 'curia' | 'sample'>;
   useFallback?: boolean;   // on live fetch failure, fall back to sample
   /** When true (default), genuinely-new items run through the Opus 4.7
    *  auto-triage agent and their severity / affected rules / summary
@@ -149,7 +153,14 @@ export interface ScanOptions {
 }
 
 export async function runLegalWatchScan(opts: ScanOptions = {}): Promise<ScanReport[]> {
-  const sources = opts.sources ?? ['vatupdate'];
+  // Default ordering: Curia first (canonical + fastest-signal) then
+  // VATupdate (broader aggregator, catches commentary + AG opinions).
+  // Dedup is handled at DB insert via (source, external_id) unique
+  // index — a ruling that appears in both feeds lands in the queue
+  // twice (different source tags), which is intentional: the Curia
+  // row has the direct ruling URL, the VATupdate row carries the
+  // commentary URL.
+  const sources = opts.sources ?? ['curia', 'vatupdate'];
   const reports: ScanReport[] = [];
 
   for (const source of sources) {
@@ -160,6 +171,7 @@ export async function runLegalWatchScan(opts: ScanOptions = {}): Promise<ScanRep
     let items: FeedItem[] = [];
     try {
       if (source === 'vatupdate') items = await fetchVatUpdate();
+      else if (source === 'curia') items = await fetchCuriaRss();
       else if (source === 'sample') items = sampleFeedItems();
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
