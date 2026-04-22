@@ -98,12 +98,12 @@ Rules — core correctness:
 
 Rules — OCR artifact tolerance (the AED template is scanner-based):
 - Stray non-printing punctuation may appear next to tokens: ^, *, ~, ' around legitimate values. Ignore them during extraction.
-- Digits may be split by whitespace: "2 4 AOÛT 2024" means "24 août 2024"; "2024 2100 841" is the matricule printed with its canonical triplet spaces. Collapse whitespace in numeric fields before returning.
+- Digits may be split by whitespace: "2 4 AOÛT 2024" means "24 août 2024"; matricules print with canonical triplet spacing like "YYYY NNNN NNN" where Y is the issuance year and N a digit. Collapse whitespace in numeric fields before returning.
 - Accents and diacritics may be corrupt: "ajoutée" may render as "Routée", "d'identification" as "d'ideadficadon". Recognize the French despite these errors.
 - If normalization is genuinely ambiguous, add a warning rather than inventing a value.
 
 Rules — field-specific guidance:
-- Matricule: return normalized WITHOUT the internal spaces. "2024 2100 841" → "2024210841".
+- Matricule: return normalized WITHOUT the internal spaces. A printed value like "2024 0000 001" (11 digits split into three groups) must be returned as "2024000001".
 - VAT number: "LU" + 8 digits, no separators. "LU 12345678" / "LU-12345678" → "LU12345678".
 - Bureau d'imposition appears as "Bureau d'imposition 3" with location "Luxembourg 3" below. Return the location+number string ("Luxembourg 3", "Diekirch 1", "Esch 2").
 - Type assujetti: "Assujetti simplifié" → regime: "simplified". "Assujetti ordinaire" / "Assujetti normal" → regime: "ordinary".
