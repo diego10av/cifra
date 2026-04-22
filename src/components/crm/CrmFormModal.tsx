@@ -35,7 +35,7 @@ export interface FieldSchema {
   /** For number: number format hint. For text: maxLength. */
   maxLength?: number;
   /** Show this field only when another field has a specific value. */
-  visibleWhen?: { field: string; equals: string | null };
+  visibleWhen?: { field: string; equals: string | boolean | null };
 }
 
 export interface CrmFormModalProps {

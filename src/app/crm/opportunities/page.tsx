@@ -1,11 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { SearchIcon } from 'lucide-react';
+import { SearchIcon, PlusIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Button } from '@/components/ui/Button';
+import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
+import { useToast } from '@/components/Toaster';
 import {
   LABELS_STAGE, OPPORTUNITY_STAGES, formatEur, formatDate,
   type OpportunityStage,
@@ -32,8 +36,10 @@ export default function OpportunitiesPage() {
   const [rows, setRows] = useState<Opportunity[] | null>(null);
   const [q, setQ] = useState('');
   const [stage, setStage] = useState<string>('');
+  const [newOpen, setNewOpen] = useState(false);
+  const toast = useToast();
 
-  useEffect(() => {
+  const load = useCallback(() => {
     const qs = new URLSearchParams();
     if (q) qs.set('q', q);
     if (stage) qs.set('stage', stage);
@@ -43,6 +49,22 @@ export default function OpportunitiesPage() {
       .catch(() => setRows([]));
   }, [q, stage]);
 
+  useEffect(() => { load(); }, [load]);
+
+  async function handleCreate(values: Record<string, unknown>) {
+    const res = await fetch('/api/crm/opportunities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message ?? `Create failed (${res.status})`);
+    }
+    toast.success('Opportunity created');
+    await load();
+  }
+
   const openRows = rows?.filter(r => r.stage !== 'won' && r.stage !== 'lost') ?? [];
   const totalPipeline = openRows.reduce((sum, r) => sum + (Number(r.weighted_value_eur) || 0), 0);
 
@@ -50,7 +72,25 @@ export default function OpportunitiesPage() {
 
   return (
     <div>
-      <PageHeader title="Opportunities" subtitle={`Sales pipeline · ${formatEur(totalPipeline)} weighted pipeline across ${openRows.length} open`} />
+      <PageHeader
+        title="Opportunities"
+        subtitle={`Sales pipeline · ${formatEur(totalPipeline)} weighted pipeline across ${openRows.length} open`}
+        actions={
+          <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
+            New opportunity
+          </Button>
+        }
+      />
+      <CrmFormModal
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        mode="create"
+        title="New opportunity"
+        subtitle="Pipeline entry — will move through stages from Lead Identified to Won/Lost."
+        fields={OPPORTUNITY_FIELDS}
+        initial={{ stage: 'lead_identified', probability_pct: 20 }}
+        onSave={handleCreate}
+      />
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />

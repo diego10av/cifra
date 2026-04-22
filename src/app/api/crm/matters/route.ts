@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, execute, generateId, logAudit } from '@/lib/db';
+import { apiError } from '@/lib/api-errors';
+import { nextMatterReference } from '@/lib/crm-matter-number';
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -42,4 +44,56 @@ export async function GET(request: NextRequest) {
     params,
   );
   return NextResponse.json(rows);
+}
+
+// POST /api/crm/matters — create a matter.
+// - `title` required.
+// - `matter_reference` auto-generated (MP-YYYY-NNNN) unless explicitly
+//   provided (useful when importing historic matters with established refs).
+// - `status` defaults to 'active'.
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => ({}));
+  const title = typeof body.title === 'string' ? body.title.trim() : '';
+  if (!title) return apiError('title_required', 'title is required.', { status: 400 });
+
+  const matterRef = typeof body.matter_reference === 'string' && body.matter_reference.trim()
+    ? body.matter_reference.trim()
+    : await nextMatterReference();
+
+  const id = generateId();
+  await execute(
+    `INSERT INTO crm_matters
+       (id, matter_reference, title, client_company_id, primary_contact_id,
+        source_opportunity_id, status, practice_areas, fee_type, hourly_rate_eur,
+        opening_date, closing_date, conflict_check_done, conflict_check_date,
+        lead_counsel, team_members, documents_link, notes, tags, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,NOW())`,
+    [
+      id, matterRef, title,
+      body.client_company_id ?? null,
+      body.primary_contact_id ?? null,
+      body.source_opportunity_id ?? null,
+      body.status ?? 'active',
+      Array.isArray(body.practice_areas) ? body.practice_areas : [],
+      body.fee_type ?? null,
+      body.hourly_rate_eur ?? null,
+      body.opening_date ?? null,
+      body.closing_date ?? null,
+      body.conflict_check_done ?? false,
+      body.conflict_check_date ?? null,
+      body.lead_counsel ?? null,
+      Array.isArray(body.team_members) ? body.team_members : [],
+      body.documents_link ?? null,
+      body.notes ?? null,
+      Array.isArray(body.tags) ? body.tags : [],
+    ],
+  );
+  await logAudit({
+    action: 'create',
+    targetType: 'crm_matter',
+    targetId: id,
+    newValue: matterRef,
+    reason: `New matter: ${title}`,
+  });
+  return NextResponse.json({ id, matter_reference: matterRef, title }, { status: 201 });
 }

@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryOne, query } from '@/lib/db';
+import { queryOne, query, execute, logAudit } from '@/lib/db';
 import { apiError } from '@/lib/api-errors';
+
+const UPDATABLE_FIELDS = [
+  'name', 'company_id', 'primary_contact_id', 'stage', 'practice_areas',
+  'source', 'estimated_value_eur', 'probability_pct',
+  'first_contact_date', 'estimated_close_date', 'actual_close_date',
+  'next_action', 'next_action_due', 'loss_reason', 'won_reason',
+  'bd_lawyer', 'notes', 'tags',
+] as const;
+type UpdatableField = typeof UPDATABLE_FIELDS[number];
 
 export async function GET(
   _request: NextRequest,
@@ -26,4 +35,100 @@ export async function GET(
   );
 
   return NextResponse.json({ opportunity: opp, activities });
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const body = await request.json().catch(() => ({}));
+
+  const existing = await queryOne<Record<string, unknown>>(
+    `SELECT * FROM crm_opportunities WHERE id = $1 AND deleted_at IS NULL`,
+    [id],
+  );
+  if (!existing) return apiError('not_found', 'Opportunity not found.', { status: 404 });
+
+  const setClauses: string[] = [];
+  const values: unknown[] = [];
+  const changed: Array<{ field: UpdatableField; before: unknown; after: unknown }> = [];
+  let idx = 1;
+  let stageChanged = false;
+
+  for (const f of UPDATABLE_FIELDS) {
+    if (!(f in body)) continue;
+    let next = body[f];
+    if (typeof next === 'string') next = next.trim() || null;
+    if ((f === 'practice_areas' || f === 'tags') && !Array.isArray(next)) next = [];
+    if (f === 'name' && !next) {
+      return apiError('name_required', 'name cannot be empty.', { status: 400 });
+    }
+    // Coerce numerics.
+    if ((f === 'estimated_value_eur' || f === 'probability_pct') && next !== null && next !== undefined) {
+      const n = Number(next);
+      if (!Number.isFinite(n)) next = null; else next = n;
+    }
+    const before = existing[f] ?? null;
+    const beforeStr = Array.isArray(before) ? JSON.stringify(before) : String(before ?? '');
+    const afterStr = Array.isArray(next) ? JSON.stringify(next) : String(next ?? '');
+    if (beforeStr === afterStr) continue;
+    setClauses.push(`${f} = $${idx}`);
+    values.push(next);
+    idx += 1;
+    changed.push({ field: f, before, after: next });
+    if (f === 'stage') stageChanged = true;
+  }
+
+  // Stage change → update stage_entered_at to NOW for velocity metrics.
+  if (stageChanged) {
+    setClauses.push(`stage_entered_at = NOW()`);
+  }
+
+  if (changed.length === 0) return NextResponse.json({ id, changed: [] });
+
+  setClauses.push(`updated_at = NOW()`);
+  values.push(id);
+  await execute(
+    `UPDATE crm_opportunities SET ${setClauses.join(', ')} WHERE id = $${idx}`,
+    values,
+  );
+
+  for (const c of changed) {
+    await logAudit({
+      action: 'update',
+      targetType: 'crm_opportunity',
+      targetId: id,
+      field: c.field,
+      oldValue: Array.isArray(c.before) ? JSON.stringify(c.before) : String(c.before ?? ''),
+      newValue: Array.isArray(c.after) ? JSON.stringify(c.after) : String(c.after ?? ''),
+    });
+  }
+
+  return NextResponse.json({ id, changed: changed.map(c => c.field) });
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const { id } = await params;
+  const existing = await queryOne<{ id: string; name: string }>(
+    `SELECT id, name FROM crm_opportunities WHERE id = $1 AND deleted_at IS NULL`,
+    [id],
+  );
+  if (!existing) return apiError('not_found', 'Opportunity not found or already deleted.', { status: 404 });
+
+  await execute(
+    `UPDATE crm_opportunities SET deleted_at = NOW(), updated_at = NOW() WHERE id = $1`,
+    [id],
+  );
+  await logAudit({
+    action: 'soft_delete',
+    targetType: 'crm_opportunity',
+    targetId: id,
+    oldValue: existing.name,
+    reason: 'Moved to trash',
+  });
+  return NextResponse.json({ id, soft_deleted: true });
 }

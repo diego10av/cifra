@@ -1,0 +1,198 @@
+'use client';
+
+import { useEffect, useState, use, useCallback } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { PencilIcon, Trash2Icon } from 'lucide-react';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageSkeleton } from '@/components/ui/Skeleton';
+import { Button } from '@/components/ui/Button';
+import { useToast } from '@/components/Toaster';
+import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
+import {
+  LABELS_STAGE, LABELS_ACTIVITY_TYPE, formatEur, formatDate,
+  type ActivityType,
+} from '@/lib/crm-types';
+
+interface OppDetail {
+  opportunity: Record<string, unknown>;
+  activities: Array<{ id: string; name: string; activity_type: string; activity_date: string; duration_hours: number | null; billable: boolean; outcome: string | null; notes: string | null }>;
+}
+
+export default function OpportunityDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const router = useRouter();
+  const toast = useToast();
+  const [data, setData] = useState<OppDetail | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const load = useCallback(() => {
+    fetch(`/api/crm/opportunities/${id}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then(setData)
+      .catch(() => setData(null));
+  }, [id]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleUpdate(values: Record<string, unknown>) {
+    const res = await fetch(`/api/crm/opportunities/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(values),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message ?? `Update failed (${res.status})`);
+    }
+    const body = await res.json();
+    if (Array.isArray(body.changed) && body.changed.length > 0) {
+      toast.success(`Updated ${body.changed.length} field${body.changed.length === 1 ? '' : 's'}`);
+    } else toast.info('No changes to save');
+    await load();
+  }
+
+  async function handleDelete() {
+    const name = String((data?.opportunity as { name?: string })?.name ?? '?');
+    if (!confirm(`Delete opportunity "${name}"?\n\nGoes to trash for 30 days.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/crm/opportunities/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err?.error?.message ?? `Delete failed (${res.status})`);
+        return;
+      }
+      toast.success('Opportunity moved to trash', 'Restore from /crm/trash within 30 days.');
+      router.push('/crm/opportunities');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  if (!data) return <PageSkeleton />;
+  const o = data.opportunity as Record<string, string | number | string[] | null> & { company_name?: string; primary_contact_name?: string; company_id?: string; primary_contact_id?: string };
+
+  return (
+    <div>
+      <div className="text-[11.5px] text-ink-muted mb-2">
+        <Link href="/crm/opportunities" className="hover:underline">← All opportunities</Link>
+      </div>
+      <PageHeader
+        title={String(o.name ?? '(unnamed)')}
+        subtitle={`${o.stage ? LABELS_STAGE[o.stage as keyof typeof LABELS_STAGE] : ''}${o.company_name ? ` · ${o.company_name}` : ''}`}
+        actions={
+          <>
+            <Button variant="secondary" size="sm" icon={<PencilIcon size={13} />} onClick={() => setEditOpen(true)}>Edit</Button>
+            <Button variant="ghost" size="sm" icon={<Trash2Icon size={13} />} onClick={handleDelete} loading={deleting}>Delete</Button>
+          </>
+        }
+      />
+      <CrmFormModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        mode="edit"
+        title="Edit opportunity"
+        subtitle={String(o.name ?? '')}
+        fields={OPPORTUNITY_FIELDS}
+        initial={{
+          name: o.name,
+          stage: o.stage,
+          practice_areas: o.practice_areas ?? [],
+          source: o.source,
+          estimated_value_eur: o.estimated_value_eur,
+          probability_pct: o.probability_pct,
+          first_contact_date: o.first_contact_date,
+          estimated_close_date: o.estimated_close_date,
+          next_action: (o as Record<string, string | null>).next_action,
+          next_action_due: (o as Record<string, string | null>).next_action_due,
+          loss_reason: (o as Record<string, string | null>).loss_reason,
+          tags: o.tags ?? [],
+          notes: o.notes,
+        }}
+        onSave={handleUpdate}
+      />
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
+        <Card title="Estimated value">{formatEur(o.estimated_value_eur as number)}</Card>
+        <Card title="Probability">{o.probability_pct !== null && o.probability_pct !== undefined ? `${o.probability_pct}%` : '—'}</Card>
+        <Card title="Weighted value">{formatEur((o as Record<string, number | null>).weighted_value_eur)}</Card>
+        <Card title="Close date">{formatDate(o.estimated_close_date as string)}</Card>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+        <Card title="Company">
+          {o.company_id ? <Link href={`/crm/companies/${o.company_id}`} className="text-brand-700 hover:underline">{o.company_name ?? '—'}</Link> : '—'}
+        </Card>
+        <Card title="Primary contact">
+          {o.primary_contact_id ? <Link href={`/crm/contacts/${o.primary_contact_id}`} className="text-brand-700 hover:underline">{o.primary_contact_name ?? '—'}</Link> : '—'}
+        </Card>
+      </div>
+
+      {(o as { next_action?: string | null }).next_action && (
+        <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded">
+          <div className="text-[10px] uppercase tracking-wide font-semibold text-amber-800 mb-1">Next action</div>
+          <div className="text-[13px] text-ink">{String((o as { next_action?: string | null }).next_action)}</div>
+          {(o as { next_action_due?: string | null }).next_action_due && (
+            <div className="text-[11px] text-amber-700 mt-1">Due: {formatDate((o as { next_action_due?: string | null }).next_action_due ?? null)}</div>
+          )}
+        </div>
+      )}
+
+      {o.notes && (
+        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(o.notes)}</div>
+      )}
+
+      <Section title={`Activities (${data.activities.length})`}>
+        <Table
+          headers={['Date', 'Type', 'Name', 'Duration', 'Outcome']}
+          rows={data.activities.map(x => [
+            formatDate(x.activity_date),
+            LABELS_ACTIVITY_TYPE[x.activity_type as ActivityType] ?? x.activity_type,
+            x.name,
+            x.duration_hours !== null ? `${Number(x.duration_hours).toFixed(1)}h` : '—',
+            x.outcome ?? '—',
+          ])}
+        />
+      </Section>
+    </div>
+  );
+}
+
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="border border-border rounded-md bg-white px-3 py-2">
+      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
+      <div className="text-[14px] font-medium tabular-nums">{children}</div>
+    </div>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-5">
+      <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function Table({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
+  if (rows.length === 0) return <div className="text-[12px] text-ink-muted italic px-3 py-2">None</div>;
+  return (
+    <div className="border border-border rounded-md overflow-hidden bg-white">
+      <table className="w-full text-[12px]">
+        <thead className="bg-surface-alt text-ink-muted">
+          <tr>{headers.map((h, i) => <th key={i} className="text-left px-3 py-1.5 font-medium">{h}</th>)}</tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="border-t border-border">{r.map((cell, j) => <td key={j} className="px-3 py-1.5">{cell}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { query, execute, generateId, logAudit } from '@/lib/db';
+import { apiError } from '@/lib/api-errors';
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -45,4 +46,48 @@ export async function GET(request: NextRequest) {
     params,
   );
   return NextResponse.json(rows);
+}
+
+// POST /api/crm/opportunities — create an opportunity. Requires `name` + `stage`.
+// If `stage` not provided, defaults to 'lead_identified'.
+export async function POST(request: NextRequest) {
+  const body = await request.json().catch(() => ({}));
+  const name = typeof body.name === 'string' ? body.name.trim() : '';
+  if (!name) return apiError('name_required', 'name is required.', { status: 400 });
+
+  const id = generateId();
+  const stage = typeof body.stage === 'string' ? body.stage : 'lead_identified';
+  await execute(
+    `INSERT INTO crm_opportunities
+       (id, name, company_id, primary_contact_id, stage, stage_entered_at,
+        practice_areas, source, estimated_value_eur, probability_pct,
+        first_contact_date, estimated_close_date, next_action, next_action_due,
+        bd_lawyer, notes, tags, updated_at)
+     VALUES ($1,$2,$3,$4,$5,NOW(),$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW())`,
+    [
+      id, name,
+      body.company_id ?? null,
+      body.primary_contact_id ?? null,
+      stage,
+      Array.isArray(body.practice_areas) ? body.practice_areas : [],
+      body.source ?? null,
+      body.estimated_value_eur ?? null,
+      body.probability_pct ?? null,
+      body.first_contact_date ?? null,
+      body.estimated_close_date ?? null,
+      body.next_action ?? null,
+      body.next_action_due ?? null,
+      body.bd_lawyer ?? null,
+      body.notes ?? null,
+      Array.isArray(body.tags) ? body.tags : [],
+    ],
+  );
+  await logAudit({
+    action: 'create',
+    targetType: 'crm_opportunity',
+    targetId: id,
+    newValue: name,
+    reason: `New opportunity (stage=${stage})`,
+  });
+  return NextResponse.json({ id, name, stage }, { status: 201 });
 }

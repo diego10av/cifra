@@ -14,6 +14,8 @@ import {
   LABELS_CLASSIFICATION, LABELS_INDUSTRY, LABELS_SIZE,
   CONTACT_LIFECYCLES, LABELS_LIFECYCLE,
   ENGAGEMENT_LEVELS, LABELS_ENGAGEMENT,
+  OPPORTUNITY_STAGES, LABELS_STAGE,
+  MATTER_STATUSES, LABELS_MATTER_STATUS,
 } from '@/lib/crm-types';
 import type { FieldSchema } from './CrmFormModal';
 
@@ -41,6 +43,30 @@ const COUNTRIES = [
   { value: 'BR', label: 'Brazil' },
   { value: 'HK', label: 'Hong Kong' },
   { value: 'SG', label: 'Singapore' },
+];
+
+const PRACTICE_AREAS = [
+  { value: 'real_estate',     label: 'Real Estate' },
+  { value: 'litigation',      label: 'Litigation' },
+  { value: 'employment',      label: 'Employment' },
+  { value: 'fund_regulatory', label: 'Fund/Regulatory' },
+  { value: 'tax',             label: 'Tax' },
+  { value: 'm_a',             label: 'M&A' },
+];
+
+const FEE_TYPES = [
+  { value: 'retainer',    label: 'Retainer' },
+  { value: 'success_fee', label: 'Success fee' },
+  { value: 'fixed_fee',   label: 'Fixed fee' },
+  { value: 'hourly',      label: 'Hourly' },
+];
+
+const LOSS_REASONS = [
+  { value: 'no_response',          label: 'No response' },
+  { value: 'competitor',           label: 'Competitor won' },
+  { value: 'conflict_of_interest', label: 'Conflict of interest' },
+  { value: 'price',                label: 'Price' },
+  { value: 'other',                label: 'Other' },
 ];
 
 const AREAS = [
@@ -241,6 +267,173 @@ export const CONTACT_FIELDS: FieldSchema[] = [
     name: 'next_follow_up',
     label: 'Next follow-up',
     type: 'date',
+  },
+  {
+    name: 'tags',
+    label: 'Tags',
+    type: 'tags',
+  },
+  {
+    name: 'notes',
+    label: 'Notes',
+    type: 'textarea',
+  },
+];
+
+// ────────────────────────── Opportunity schema ────────────────────────
+
+export const OPPORTUNITY_FIELDS: FieldSchema[] = [
+  {
+    name: 'name',
+    label: 'Opportunity name',
+    type: 'text',
+    required: true,
+    placeholder: 'e.g. Fund II formation — Q4 2025',
+  },
+  {
+    name: 'stage',
+    label: 'Stage',
+    type: 'select',
+    required: true,
+    options: asOptions(OPPORTUNITY_STAGES, LABELS_STAGE),
+    help: 'Salesforce-style pipeline — changing stage auto-updates stage_entered_at for velocity metrics.',
+  },
+  {
+    name: 'estimated_value_eur',
+    label: 'Estimated value (€)',
+    type: 'number',
+    placeholder: '50000',
+  },
+  {
+    name: 'probability_pct',
+    label: 'Probability (%)',
+    type: 'number',
+    placeholder: '0-100',
+    help: 'Weighted value auto-computed = estimated × probability / 100',
+  },
+  {
+    name: 'first_contact_date',
+    label: 'First contact',
+    type: 'date',
+  },
+  {
+    name: 'estimated_close_date',
+    label: 'Est. close',
+    type: 'date',
+  },
+  {
+    name: 'practice_areas',
+    label: 'Practice areas',
+    type: 'multiselect',
+    options: PRACTICE_AREAS,
+  },
+  {
+    name: 'source',
+    label: 'Source',
+    type: 'select',
+    options: SOURCES,
+  },
+  {
+    name: 'next_action',
+    label: 'Next action',
+    type: 'text',
+    placeholder: 'e.g. "Send term sheet draft"',
+    maxLength: 200,
+  },
+  {
+    name: 'next_action_due',
+    label: 'Next action due',
+    type: 'date',
+  },
+  {
+    name: 'loss_reason',
+    label: 'Loss reason',
+    type: 'select',
+    options: LOSS_REASONS,
+    visibleWhen: { field: 'stage', equals: 'lost' },
+  },
+  {
+    name: 'tags',
+    label: 'Tags',
+    type: 'tags',
+  },
+  {
+    name: 'notes',
+    label: 'Notes',
+    type: 'textarea',
+  },
+];
+
+// ────────────────────────── Matter schema ─────────────────────────────
+
+export const MATTER_FIELDS: FieldSchema[] = [
+  {
+    name: 'matter_reference',
+    label: 'Matter reference',
+    type: 'text',
+    placeholder: 'Auto-generated (MP-YYYY-NNNN) if left blank',
+    help: 'Usually auto-generated — only set manually for imported historic matters.',
+  },
+  {
+    name: 'title',
+    label: 'Matter title',
+    type: 'text',
+    required: true,
+    placeholder: 'e.g. Acquisition of PortCo X — Tax & Structuring',
+    maxLength: 200,
+  },
+  {
+    name: 'status',
+    label: 'Status',
+    type: 'select',
+    required: true,
+    options: asOptions(MATTER_STATUSES, LABELS_MATTER_STATUS),
+  },
+  {
+    name: 'practice_areas',
+    label: 'Practice areas',
+    type: 'multiselect',
+    options: PRACTICE_AREAS,
+  },
+  {
+    name: 'fee_type',
+    label: 'Fee type',
+    type: 'select',
+    options: FEE_TYPES,
+  },
+  {
+    name: 'hourly_rate_eur',
+    label: 'Hourly rate (€)',
+    type: 'number',
+    visibleWhen: { field: 'fee_type', equals: 'hourly' },
+  },
+  {
+    name: 'opening_date',
+    label: 'Opening date',
+    type: 'date',
+  },
+  {
+    name: 'closing_date',
+    label: 'Closing date',
+    type: 'date',
+  },
+  {
+    name: 'conflict_check_done',
+    label: 'Conflict check done?',
+    type: 'checkbox',
+    placeholder: 'Yes, conflicts cleared before opening this matter.',
+  },
+  {
+    name: 'conflict_check_date',
+    label: 'Conflict check date',
+    type: 'date',
+    visibleWhen: { field: 'conflict_check_done', equals: true },
+  },
+  {
+    name: 'documents_link',
+    label: 'Documents folder link',
+    type: 'url',
+    placeholder: 'SharePoint / iManage / Drive URL',
   },
   {
     name: 'tags',
