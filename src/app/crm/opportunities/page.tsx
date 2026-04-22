@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { BulkActionBar } from '@/components/crm/BulkActionBar';
+import { PipelineKanban } from '@/components/crm/PipelineKanban';
 import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
 import {
@@ -20,6 +21,7 @@ interface Opportunity {
   id: string;
   name: string;
   stage: string;
+  stage_entered_at: string | null;
   practice_areas: string[];
   estimated_value_eur: number | null;
   probability_pct: number | null;
@@ -39,6 +41,7 @@ export default function OpportunitiesPage() {
   const [stage, setStage] = useState<string>('');
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [view, setView] = useState<'list' | 'kanban'>('list');
   const toast = useToast();
 
   const toggleOne = (id: string) => setSelected(prev => {
@@ -60,6 +63,20 @@ export default function OpportunitiesPage() {
   }, [q, stage]);
 
   useEffect(() => { load(); }, [load]);
+
+  async function handleStageChange(id: string, newStage: string) {
+    const res = await fetch(`/api/crm/opportunities/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stage: newStage }),
+    });
+    if (!res.ok) {
+      toast.error('Stage change failed');
+      return;
+    }
+    toast.success(`Moved to ${newStage.replace(/_/g, ' ')}`);
+    await load();
+  }
 
   async function handleCreate(values: Record<string, unknown>) {
     const res = await fetch('/api/crm/opportunities', {
@@ -102,21 +119,39 @@ export default function OpportunitiesPage() {
         onSave={handleCreate}
       />
       <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="inline-flex border border-border rounded-md overflow-hidden">
+          <button
+            onClick={() => setView('list')}
+            className={`px-2.5 py-1.5 text-[11.5px] font-medium ${view === 'list' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+          >
+            📋 List
+          </button>
+          <button
+            onClick={() => setView('kanban')}
+            className={`px-2.5 py-1.5 text-[11.5px] font-medium border-l border-border ${view === 'kanban' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+          >
+            📊 Kanban
+          </button>
+        </div>
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search opportunity name..."
             className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
         </div>
-        <select value={stage} onChange={e => setStage(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
-          <option value="">All stages</option>
-          {OPPORTUNITY_STAGES.map(s => <option key={s} value={s}>{LABELS_STAGE[s]}</option>)}
-        </select>
+        {view === 'list' && (
+          <select value={stage} onChange={e => setStage(e.target.value)}
+            className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+            <option value="">All stages</option>
+            {OPPORTUNITY_STAGES.map(s => <option key={s} value={s}>{LABELS_STAGE[s]}</option>)}
+          </select>
+        )}
         <span className="ml-auto text-[11.5px] text-ink-muted">{rows.length} opportunities</span>
       </div>
 
       {rows.length === 0 ? (
         <EmptyState illustration="reports" title="No opportunities yet" description="Run the Notion import or create one from a company detail page." />
+      ) : view === 'kanban' ? (
+        <PipelineKanban rows={rows} onStageChange={handleStageChange} />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
           <table className="w-full text-[12.5px]">
