@@ -33,6 +33,9 @@ export async function GET(request: NextRequest) {
             ai_triage_severity, ai_triage_affected_rules,
             ai_triage_summary, ai_triage_proposed_action,
             ai_triage_confidence, ai_triage_model, ai_triage_at,
+            ai_patch_diff, ai_patch_target_files, ai_patch_reasoning,
+            ai_patch_confidence, ai_patch_model, ai_patch_generated_at,
+            patch_applied_at, patch_applied_by, patch_commit_sha,
             created_at
        FROM legal_watch_queue
       WHERE status = ANY($1::text[])

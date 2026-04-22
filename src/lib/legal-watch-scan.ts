@@ -19,6 +19,7 @@
 import { execute, query } from '@/lib/db';
 import { matchKeywords } from '@/config/legal-watch-keywords';
 import { triageQueueItem } from '@/lib/legal-watch-triage';
+import { draftRulePatch } from '@/lib/rule-patch-drafter';
 
 export interface FeedItem {
   source: string;        // 'vatupdate' | 'curia' | 'legilux' | 'aed' | 'sample'
@@ -275,6 +276,55 @@ export async function runLegalWatchScan(opts: ScanOptions = {}): Promise<ScanRep
                   item.external_id,
                 ],
               );
+
+              // Rule-patch drafter gate: if this item survived the
+              // relevance filter (status is still 'new'), severity is
+              // high/critical, and the AI identified affected rules,
+              // run Opus 4.7 to propose an actual code diff. Stored
+              // in ai_patch_* columns for reviewer approval.
+              //
+              // Non-fatal — any drafter failure (network, blast-radius
+              // violation, low-confidence) silently leaves the item
+              // without a patch proposal; reviewer triages manually.
+              if (!autoDismiss
+                  && (triaged.severity === 'critical' || triaged.severity === 'high')
+                  && triaged.affected_rules.length > 0) {
+                const patch = await draftRulePatch({
+                  title: item.title,
+                  summary: item.summary,
+                  url: item.url,
+                  matched_keywords: hits,
+                  published_at: item.published_at,
+                  triage: {
+                    severity: triaged.severity,
+                    affected_rules: triaged.affected_rules,
+                    summary: triaged.summary,
+                    proposed_action: triaged.proposed_action,
+                  },
+                });
+                if (patch) {
+                  await execute(
+                    `UPDATE legal_watch_queue
+                        SET ai_patch_diff = $1,
+                            ai_patch_target_files = $2,
+                            ai_patch_reasoning = $3,
+                            ai_patch_confidence = $4,
+                            ai_patch_model = $5,
+                            ai_patch_generated_at = NOW(),
+                            updated_at = NOW()
+                      WHERE source = $6 AND external_id = $7`,
+                    [
+                      patch.diff,
+                      patch.target_files,
+                      patch.reasoning,
+                      patch.confidence,
+                      patch.model,
+                      item.source,
+                      item.external_id,
+                    ],
+                  );
+                }
+              }
             }
           }
         }

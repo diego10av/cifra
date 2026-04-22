@@ -51,6 +51,16 @@ interface QueueItem {
   ai_triage_confidence: number | null;
   ai_triage_model: string | null;
   ai_triage_at: string | null;
+  // Migration 024 — AI-proposed code patch columns
+  ai_patch_diff: string | null;
+  ai_patch_target_files: string[] | null;
+  ai_patch_reasoning: string | null;
+  ai_patch_confidence: number | null;
+  ai_patch_model: string | null;
+  ai_patch_generated_at: string | null;
+  patch_applied_at: string | null;
+  patch_applied_by: string | null;
+  patch_commit_sha: string | null;
 }
 
 interface ScanReport {
@@ -430,6 +440,21 @@ function ItemList({
                 </div>
               )}
 
+              {/* AI-proposed rule patch block — renders when the drafter
+                  produced a diff (severity high/critical + confident
+                  enough to propose a concrete code change). Collapsed
+                  by default; expand to inspect the diff + reasoning. */}
+              {item.ai_patch_diff && (
+                <PatchProposalBlock
+                  diff={item.ai_patch_diff}
+                  reasoning={item.ai_patch_reasoning}
+                  confidence={item.ai_patch_confidence}
+                  targetFiles={item.ai_patch_target_files}
+                  appliedAt={item.patch_applied_at}
+                  commitSha={item.patch_commit_sha}
+                />
+              )}
+
               {item.summary && (
                 <p className="mt-2 text-[11.5px] text-ink-muted leading-relaxed line-clamp-2">
                   <span className="uppercase text-[9.5px] tracking-wider font-semibold text-ink-faint mr-1">source</span>
@@ -541,6 +566,109 @@ function ItemList({
         </li>
       ))}
     </ul>
+  );
+}
+
+// Rendered inside an item when the rule-patch drafter produced a diff.
+// The MVP surfaces the diff + reasoning + a copy-to-clipboard button
+// for the `git apply` command. The reviewer reads the diff, decides
+// whether to accept, and applies locally. A follow-up stint will wire
+// the accept button to apply + commit on the server.
+function PatchProposalBlock({
+  diff, reasoning, confidence, targetFiles, appliedAt, commitSha,
+}: {
+  diff: string;
+  reasoning: string | null;
+  confidence: number | null;
+  targetFiles: string[] | null;
+  appliedAt: string | null;
+  commitSha: string | null;
+}) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyCommand = async () => {
+    // The reviewer pastes this into their terminal at the repo root.
+    // stdin-piped `git apply` handles unified diffs reliably.
+    const cmd = `cd "/Users/gonzalezmansodiego/Desktop/VAT Platform/vat-platform" && git apply <<'PATCH'\n${diff}\nPATCH`;
+    try {
+      await navigator.clipboard.writeText(cmd);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // clipboard API disabled in some browser sandboxes — fall back
+      // to showing the user a selectable <pre> block.
+    }
+  };
+
+  const pct = confidence != null ? Math.round(confidence * 100) : null;
+
+  return (
+    <div className="mt-2 rounded border border-emerald-300 bg-emerald-50/60 px-2.5 py-2">
+      <button
+        onClick={() => setOpen(v => !v)}
+        className="w-full flex items-center gap-1.5 text-left"
+      >
+        {open ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
+        <span className="text-[10.5px] font-semibold text-emerald-800 uppercase tracking-wide flex items-center gap-1">
+          <SparklesIcon size={10} />
+          AI-proposed rule patch
+        </span>
+        {pct != null && (
+          <span className="text-[10.5px] text-emerald-700 font-normal">· confidence {pct}%</span>
+        )}
+        {appliedAt && (
+          <span className="text-[10.5px] text-emerald-700 font-normal">
+            · applied {commitSha ? `(${commitSha.slice(0, 7)})` : ''}
+          </span>
+        )}
+      </button>
+      {open && (
+        <div className="mt-2">
+          {reasoning && (
+            <p className="text-[11.5px] text-ink leading-relaxed mb-2 whitespace-pre-wrap">
+              {reasoning}
+            </p>
+          )}
+          {targetFiles && targetFiles.length > 0 && (
+            <div className="mb-2 text-[10.5px] text-ink-soft">
+              <strong className="font-semibold">Target files:</strong>{' '}
+              {targetFiles.map((f, i) => (
+                <code key={i} className="text-[10px] bg-white px-1 rounded mr-1">{f}</code>
+              ))}
+            </div>
+          )}
+          <pre className="text-[10.5px] font-mono bg-white border border-emerald-200 rounded p-2 overflow-x-auto max-h-[320px] overflow-y-auto">
+            {diff.split('\n').map((line, i) => {
+              const colour = line.startsWith('+++') || line.startsWith('---')
+                ? 'text-ink-muted font-semibold'
+                : line.startsWith('+')
+                  ? 'text-emerald-700 bg-emerald-50'
+                  : line.startsWith('-')
+                    ? 'text-red-700 bg-red-50'
+                    : line.startsWith('@@')
+                      ? 'text-violet-700'
+                      : 'text-ink';
+              return <div key={i} className={colour}>{line || '\u00A0'}</div>;
+            })}
+          </pre>
+          {!appliedAt && (
+            <div className="mt-2 flex items-center gap-2">
+              <button
+                onClick={copyCommand}
+                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors"
+              >
+                <CheckCheckIcon size={11} />
+                {copied ? 'Copied ✓' : 'Copy git apply command'}
+              </button>
+              <span className="text-[10.5px] text-ink-muted italic">
+                Paste into your terminal to apply. A follow-up stint will auto-apply + commit.
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
