@@ -17,6 +17,7 @@ import { anthropicCreate } from '@/lib/anthropic-wrapper';
 import { query, queryOne, execute, generateId, tx, execTx } from '@/lib/db';
 import { readFile } from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
 import { ALL_LEGAL_SOURCES } from '@/config/legal-sources';
 import { TREATMENT_CODES } from '@/config/treatment-codes';
 
@@ -28,6 +29,11 @@ import { TREATMENT_CODES } from '@/config/treatment-codes';
 const VALIDATOR_MODEL = 'claude-opus-4-7';
 const LINES_PER_BATCH = 30;
 const MAX_OUTPUT_TOKENS = 4000;
+/** Cache TTL — how long a validator_runs entry is reusable before we
+ *  re-run even if nothing changed. Short enough that a shipped RULE
+ *  upgrade isn't hidden forever; long enough that reopening the same
+ *  declaration during a review session costs zero. */
+const CACHE_TTL_DAYS = 7;
 
 export type FindingSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info';
 export type FindingCategory =
@@ -50,6 +56,11 @@ export interface ValidatorRunResult {
   by_severity: Record<FindingSeverity, number>;
   skipped_batches: number;
   model_errors: string[];
+  /** True when the result came from the validator_runs cache (no Opus
+   *  call spent). UI can show a "cached" pill so the reviewer knows. */
+  cached?: boolean;
+  /** When cached, the age of the cached run in minutes. */
+  cached_age_minutes?: number;
 }
 
 interface EntityCtx {
@@ -152,6 +163,44 @@ export async function runValidator(declarationId: string): Promise<ValidatorRunR
     };
   }
 
+  // ─── Cache check ───────────────────────────────────────────────
+  // Compute a deterministic hash over the line fields the validator
+  // actually reasons about. Same hash + same model + within TTL =
+  // serve the previous run without paying for another Opus call.
+  const linesHash = computeLinesHash(lines);
+  const cached = await queryOne<{
+    id: string;
+    findings_count: number;
+    by_severity: Record<FindingSeverity, number>;
+    skipped_batches: number;
+    model_errors: string[];
+    created_at: string;
+  }>(
+    `SELECT id, findings_count, by_severity, skipped_batches, model_errors, created_at
+       FROM validator_runs
+      WHERE declaration_id = $1
+        AND lines_hash = $2
+        AND ai_model = $3
+        AND created_at > NOW() - ($4 || ' days')::interval
+      ORDER BY created_at DESC
+      LIMIT 1`,
+    [declarationId, linesHash, VALIDATOR_MODEL, String(CACHE_TTL_DAYS)],
+  );
+  if (cached) {
+    const ageMin = Math.max(0, Math.floor(
+      (Date.now() - new Date(cached.created_at).getTime()) / 60_000,
+    ));
+    return {
+      run_id: cached.id,
+      findings_count: cached.findings_count,
+      by_severity: cached.by_severity,
+      skipped_batches: cached.skipped_batches,
+      model_errors: cached.model_errors,
+      cached: true,
+      cached_age_minutes: ageMin,
+    };
+  }
+
   const prompt = await readValidatorPrompt();
   const runId = generateId();
   const allFindings: ValidatorFinding[] = [];
@@ -200,13 +249,61 @@ export async function runValidator(declarationId: string): Promise<ValidatorRunR
     });
   }
 
+  // Write the validator_runs cache entry. Only persist when at least
+  // one batch succeeded — a fully-failed run shouldn't poison the
+  // cache (reviewer wants a retry, not a cached "zero findings").
+  const bySeverity = countBySeverity(allFindings);
+  const allBatchesFailed = skipped > 0 && allFindings.length === 0 && modelErrors.length > 0
+    && skipped === Math.ceil(lines.length / LINES_PER_BATCH);
+  if (!allBatchesFailed) {
+    await execute(
+      `INSERT INTO validator_runs
+         (id, declaration_id, lines_hash, ai_model, findings_count,
+          by_severity, skipped_batches, model_errors)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8)`,
+      [
+        runId, declarationId, linesHash, VALIDATOR_MODEL,
+        allFindings.length, JSON.stringify(bySeverity),
+        skipped, modelErrors,
+      ],
+    );
+  }
+
   return {
     run_id: runId,
     findings_count: allFindings.length,
-    by_severity: countBySeverity(allFindings),
+    by_severity: bySeverity,
     skipped_batches: skipped,
     model_errors: modelErrors,
   };
+}
+
+/** Compute a deterministic hash over the fields the validator's
+ *  reasoning depends on. Stable ordering by line_id so shuffles don't
+ *  bust the cache. Any change in treatment / amount / description /
+ *  flag / exemption_reference / direction bumps the hash → fresh run. */
+function computeLinesHash(lines: LineRow[]): string {
+  const sorted = [...lines].sort((a, b) => a.line_id.localeCompare(b.line_id));
+  const material = sorted.map(l => ({
+    line_id: l.line_id,
+    treatment: l.current_treatment,
+    classification_rule: l.classification_rule,
+    amount_eur: l.amount_eur,
+    vat_applied: l.vat_applied,
+    vat_rate: l.vat_rate,
+    description: l.description,
+    direction: l.direction,
+    provider_country: l.provider_country,
+    customer_country: l.customer_country,
+    exemption_reference: l.exemption_reference,
+    flag: l.flag,
+    is_credit_note: l.is_credit_note,
+    is_disbursement: l.is_disbursement,
+    reverse_charge_mentioned: l.reverse_charge_mentioned,
+    self_billing_mentioned: l.self_billing_mentioned,
+  }));
+  const json = JSON.stringify(material);
+  return crypto.createHash('sha256').update(json).digest('hex');
 }
 
 // ───────────────────────── Single-batch call ─────────────────────────

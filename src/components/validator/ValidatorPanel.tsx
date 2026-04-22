@@ -65,6 +65,10 @@ export function ValidatorPanel({
   const [running, setRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<'open' | 'all'>('open');
+  /** Info about the most recent POST /api/agents/validate response.
+   *  When `cached` is true, the last "Run" click served a cached
+   *  validator_runs row instead of paying for a fresh Opus call. */
+  const [lastRunMeta, setLastRunMeta] = useState<{ cached: boolean; cachedAgeMin?: number } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -85,7 +89,12 @@ export function ValidatorPanel({
 
   async function handleRun() {
     if (isLocked) return;
-    if (!confirm('Run Opus second-opinion review? Estimated cost: €0.05–0.15 depending on declaration size.')) return;
+    if (!confirm(
+      'Run Opus second-opinion review?\n\n'
+      + 'Estimated cost: €0.05–0.15 depending on declaration size. '
+      + 'If nothing has changed on the lines since the last run (within 7 days, '
+      + 'same model), the cached result is served for free.',
+    )) return;
     setRunning(true);
     setError(null);
     try {
@@ -97,6 +106,11 @@ export function ValidatorPanel({
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || err.error || `Run failed (${res.status})`);
       }
+      const body = await res.json().catch(() => ({}));
+      setLastRunMeta({
+        cached: !!body?.cached,
+        cachedAgeMin: typeof body?.cached_age_minutes === 'number' ? body.cached_age_minutes : undefined,
+      });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -180,7 +194,7 @@ export function ValidatorPanel({
           </div>
         )}
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="primary"
             size="sm"
@@ -191,6 +205,18 @@ export function ValidatorPanel({
           >
             {running ? 'Running…' : hasFindings ? 'Re-run review' : 'Run review'}
           </Button>
+          {lastRunMeta?.cached && (
+            <span
+              className="inline-flex items-center gap-1 h-6 px-2 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 text-[11px] font-medium"
+              title={
+                lastRunMeta.cachedAgeMin != null
+                  ? `Cached result served — last run ${lastRunMeta.cachedAgeMin} min ago. No Opus call was made. Edit any line to invalidate the cache.`
+                  : 'Cached result served — no Opus call was made.'
+              }
+            >
+              ✓ Cached{lastRunMeta.cachedAgeMin != null ? ` · ${lastRunMeta.cachedAgeMin}min` : ''}
+            </span>
+          )}
           {hasFindings && (
             <div className="flex items-center gap-1 ml-auto">
               <FilterChip active={filter === 'open'} onClick={() => setFilter('open')}>
