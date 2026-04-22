@@ -66,6 +66,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Defines the scope: supplies of goods and services effected for consideration by a taxable person acting as such.',
     relevance: 'Baseline test for OUT_SCOPE / VAT_GROUP_OUT classifications.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_4: {
     id: 'LTVA_ART_4',
@@ -76,6 +77,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'A taxable person is anyone carrying out an economic activity independently, whatever the purpose or result. Employment / subordination relationships are excluded.',
     relevance: 'Anchor for the C-288/22 TP analysis on directors (natural persons = not taxable) and for the Polysar C-60/90 passive-holding gate. Cited by RULES 15P, 32a, 32b.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_12: {
     id: 'LTVA_ART_12',
@@ -86,6 +88,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Deemed supplies of goods and services for consideration (application to own use, private use of business assets).',
     relevance: 'Legal basis for treatment AUTOLIV_17.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_17: {
     id: 'LTVA_ART_17',
@@ -96,6 +99,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'General B2B rule: place of supply is where the customer is established. Grounds the reverse charge.',
     relevance: 'Legal basis for RC_EU_TAX and RC_NONEU_TAX.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_18BIS: {
     id: 'LTVA_ART_18BIS',
@@ -106,6 +110,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Simplification for intra-Community triangular transactions (3 parties, 2 countries, 1 movement).',
     relevance: 'Legal basis for OUT_LU_TRIANG.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_21: {
     id: 'LTVA_ART_21',
@@ -116,6 +121,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Defines and taxes the intra-Community acquisition of goods by LU taxable persons.',
     relevance: 'Legal basis for IC_ACQ family of treatments and boxes 051/056/711-717.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_27: {
     id: 'LTVA_ART_27',
@@ -126,6 +132,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Taxation of goods imported from outside the EU; chargeability at customs clearance.',
     relevance: 'Legal basis for IMPORT_VAT. Links to Art. 57-58 (deduction of import VAT).',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_28: {
     id: 'LTVA_ART_28',
@@ -136,6 +143,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Amounts received by the supplier from the customer as repayment of expenses paid in the customer\'s name and for his account are excluded from the taxable amount.',
     relevance: 'Legal basis for DEBOURS treatment.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_40: {
     id: 'LTVA_ART_40',
@@ -147,6 +155,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     relevance: 'Legal basis for LUX_17, OUT_LUX_17, AUTOLIV_17.',
     last_reviewed: '2026-04-16',
     notes: 'Rate was 16% (2023 budget temporary measure) and reverted to 17% from 2024-01-01.',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_40_1: {
     id: 'LTVA_ART_40_1',
@@ -157,6 +166,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Intermediate (14%), reduced (8%) and super-reduced (3%) rates with their annexes.',
     relevance: 'Legal basis for LUX_14, LUX_08, LUX_03 and the rate-variants of IC_ACQ.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_43: {
     id: 'LTVA_ART_43',
@@ -167,6 +177,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Zero-rating (exempt with credit) of intra-Community supplies of goods to VAT-registered EU customers.',
     relevance: 'Legal basis for OUT_IC_GOODS.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_44: {
     id: 'LTVA_ART_44',
@@ -178,6 +189,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     relevance: 'Legal basis for LUX_00, EXEMPT_44, EXEMPT_44A_FIN, EXEMPT_44B_RE, RC_EU_EX, RC_NONEU_EX, OUT_LUX_00.',
     last_reviewed: '2026-04-16',
     notes: 'The fund-management exemption (44§1 d) transposes Art. 135(1)(g) of EU Directive 2006/112/EC. Scope is actively developed by the CJEU — see CASES_EU.',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_44_1_Y: {
     id: 'LTVA_ART_44_1_Y',
@@ -189,6 +201,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     relevance: 'Basis for RULE 35 (cost-sharing). Narrowed dramatically by CJEU Kaplan C-77/19 (cross-border: excluded), DNB Banka C-326/15 + Aviva C-605/15 (financial/insurance sectors: excluded).',
     last_reviewed: '2026-04-19',
     notes: 'Transposes Directive Art. 132(1)(f). LU\'s earlier transposition was incompatible per CJEU Commission v Luxembourg C-274/15 (2017) — now aligned.',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_49: {
     id: 'LTVA_ART_49',
@@ -200,6 +213,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     relevance: 'Keystone of the pro-rata analysis for mixed-use fund managers. Determines whether loans to non-EU subs or fund management to non-EU funds lands in the numerator of the deduction ratio (with-deduction) vs denominator (without). Cited by RULE 15P, pro-rata UI.',
     last_reviewed: '2026-04-19',
     notes: 'Transposes Directive Art. 169(c). Known colloquially as "the non-EU exception".',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_50: {
     id: 'LTVA_ART_50',
@@ -210,6 +224,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: '§1: General pro-rata = turnover-with-deduction / total eligible turnover, rounded up to the whole percentage. §2: Direct-attribution alternative when records support it. §3: Sector-specific ratios with AED authorisation.',
     relevance: 'Cited by every pro-rata computation in the UI + audit-trail PDF. Transposes Directive Art. 173-175.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_56TER: {
     id: 'LTVA_ART_56TER',
@@ -220,6 +235,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Regularisation of input VAT on capital goods when the deduction ratio changes materially. 5-year period for movable goods, 20 years for real estate.',
     relevance: 'Informs the audit flag when a sudden pro-rata swing would trigger a regularisation obligation. Not yet automated — reviewer advisory.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_45: {
     id: 'LTVA_ART_45',
@@ -230,6 +246,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Option for the lessor to tax real-estate letting (between VAT-registered taxable persons, mostly B2B).',
     relevance: 'Legal basis for OUT_LUX_17_OPT.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_54: {
     id: 'LTVA_ART_54',
@@ -240,6 +257,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Restrictions on input VAT deduction for passenger cars, entertainment, gifts, etc.',
     relevance: 'Legal basis for LUX_17_NONDED.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_60TER: {
     id: 'LTVA_ART_60TER',
@@ -250,6 +268,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Optional LU VAT group regime (introduced 2018) — supplies within the group are outside the scope of VAT.',
     relevance: 'Legal basis for VAT_GROUP_OUT.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_61: {
     id: 'LTVA_ART_61',
@@ -260,6 +279,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Mandatory content of a valid LU invoice (issuer/customer, VAT numbers, date, description, taxable amount, rate, VAT amount).',
     relevance: 'Guides the extractor prompt — what fields to extract for deduction support.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_62: {
     id: 'LTVA_ART_62',
@@ -270,6 +290,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Self-billing agreement requirements; regularisation of VAT on uncollectible receivables.',
     relevance: 'Legal basis for BAD_DEBT_RELIEF and for the "facturation par le preneur" extractor guidance.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   LTVA_ART_65: {
     id: 'LTVA_ART_65',
@@ -280,6 +301,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     subject: 'Content and timing requirements for credit notes (reference to original invoice, explicit correction).',
     relevance: 'Guides the is_credit_note extractor logic.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://legilux.public.lu',
   },
   SV_LAW_2004: {
     id: 'SV_LAW_2004',
@@ -291,6 +313,7 @@ export const LU_LAW: Record<string, LegalSource> = {
     relevance: 'Anchors entity_type = securitization_vehicle. Management services received by an SV are exempt under Art. 44§1 d LTVA via Fiscale Eenheid X C-595/13 comparability test. An SV IS a taxable person for VAT (unlike a pure passive holding) — VAT registration typically required to handle reverse-charge on cross-border incoming services. Cited by RULE 37.',
     last_reviewed: '2026-04-20',
     notes: 'The 2022 amendment materially widened the permissible SV scope — active portfolio management is now permitted for SVs meeting certain conditions, closing the historical passive-SV-only position.',
+    sources_url: 'https://legilux.public.lu/eli/etat/leg/loi/2004/03/22/n1',
   },
 };
 
@@ -315,6 +338,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'EU-level definition of taxable person: anyone independently carrying out an economic activity.',
     relevance: 'Source for LTVA Art. 4§1. Anchors the C-288/22 TP natural-person-director analysis.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   DIR_2006_112_ART_10: {
     id: 'DIR_2006_112_ART_10',
@@ -325,6 +349,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Persons bound to an employer by a contract of employment or any other legal ties creating a relationship of subordination are excluded from the taxable-person definition.',
     relevance: 'Cited in C-288/22 TP\'s reasoning on directors (collegial body = quasi-subordination, no own economic risk).',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   DIR_2006_112_ART_132_1_F: {
     id: 'DIR_2006_112_ART_132_1_F',
@@ -335,6 +360,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Services supplied by independent groups of persons to their members are exempt if members carry out non-taxable or exempt activities, services are directly necessary, reimbursement is at cost, and no competition distortion.',
     relevance: 'Source of LTVA Art. 44§1 y. Narrowed by Kaplan C-77/19, DNB Banka C-326/15, Aviva C-605/15.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   DIR_2006_112_ART_135_1_G: {
     id: 'DIR_2006_112_ART_135_1_G',
@@ -345,6 +371,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Exemption for the management of special investment funds as defined by Member States.',
     relevance: 'The source of LTVA Art. 44§1 d. Scope actively developed by CJEU — see CASES_EU.BLACKROCK, CASES_EU.FISCALE_EENHEID_X.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   DIR_2006_112_ART_169_C: {
     id: 'DIR_2006_112_ART_169_C',
@@ -355,6 +382,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Input VAT on supplies exempt under Arts. 135(1)(a)-(f) is deductible when the recipient is established outside the EU, or the supplies relate to goods exported outside the EU.',
     relevance: 'Source of LTVA Art. 49§2. The "non-EU exception" that governs pro-rata for mixed-use fund managers with non-EU exposure.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   DIR_2006_112_ART_173: {
     id: 'DIR_2006_112_ART_173',
@@ -365,6 +393,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'General formula for pro-rata deduction when a taxable person makes both deductible and non-deductible supplies.',
     relevance: 'Source of LTVA Art. 50§1.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   DIR_2006_112_ART_174: {
     id: 'DIR_2006_112_ART_174',
@@ -375,6 +404,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Member-State options for calculating the pro-rata: direct attribution, sector-specific ratios, pre-approved formulas.',
     relevance: 'Source of LTVA Art. 50§2 + §3.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   DIR_2006_112_ART_175: {
     id: 'DIR_2006_112_ART_175',
@@ -385,6 +415,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Supplies of capital goods used by the business, occasional real-estate transactions, and occasional financial transactions are excluded from the pro-rata fraction.',
     relevance: 'Anchors the UI hint on the pro-rata inputs form ("don\'t include sale of your building here").',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2006/112/oj',
   },
   REG_282_2011: {
     id: 'REG_282_2011',
@@ -394,6 +425,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Implementation rules on place of supply, taxable persons, evidentiary presumptions.',
     relevance: 'Reference for direction / place-of-supply logic in the classifier.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://eur-lex.europa.eu/eli/reg/282/2011/oj',
   },
   REG_904_2010: {
     id: 'REG_904_2010',
@@ -403,6 +435,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Administrative cooperation between Member States; VIES infrastructure; real-time VAT-number validation.',
     relevance: 'Grounds the obligation to validate a customer VAT number via VIES before treating an outgoing line as OUT_EU_RC. Art. 31 = real-time validation; Chapter X = Eurofisc fraud network.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://eur-lex.europa.eu/eli/reg/904/2010/oj',
   },
   DIR_2020_285: {
     id: 'DIR_2020_285',
@@ -412,6 +445,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Reform of the SME VAT exemption; cross-border €100k EU threshold + national thresholds (€50k in LU).',
     relevance: 'Triggers RULE 23 (LU Art. 57 franchise). Fund entities are rarely eligible because of reverse-charge inputs — the classifier does not route to franchise by default.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2020/285/oj',
   },
   DIR_2022_542: {
     id: 'DIR_2022_542',
@@ -421,6 +455,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Revised Annex III (reduced-rate categories) and new super-reduced categories.',
     relevance: 'LU implementation affects which supplies fall into 14% / 8% / 3% (LUX_14 / LUX_08 / LUX_03 treatments).',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2022/542/oj',
   },
   VIDA_PACKAGE: {
     id: 'VIDA_PACKAGE',
@@ -431,6 +466,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     relevance: 'Drives the eCDF XML evolution and replaces the état récapitulatif with near-real-time transaction reporting from 2030. The platform must track the XSD rebaseline timeline.',
     last_reviewed: '2026-04-16',
     notes: 'Timeline agreed by the Council 5 November 2024, formally adopted 11 March 2025. Exact OJ publication reference to be confirmed.',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2025/516/oj',
   },
   CESOP: {
     id: 'CESOP',
@@ -440,6 +476,7 @@ export const EU_LAW: Record<string, LegalSource> = {
     subject: 'Central Electronic System of Payment Information: PSPs must report cross-border payments to tax authorities.',
     relevance: 'Not a VAT-return obligation for the platform, but context — the AED may cross-reference CESOP data when auditing RC lines.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://eur-lex.europa.eu/eli/dir/2020/284/oj',
   },
 };
 
@@ -463,6 +500,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     relevance: 'Baseline for the classifier\'s RULES 7 / 10 / 12 and INFERENCE C / D. Every fund-management exemption rule cites Circ. 723.',
     last_reviewed: '2026-04-16',
     notes: 'Exact current number and last-update date to be confirmed on the AED site. A Circ. 723bis or "Circ. 723 (updated 2017)" extended scope post ATP PensionService and Fiscale Eenheid X. Post-DBKAG/K consolidation expected but not yet issued as of 2026-Q1.',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=723',
   },
   CIRC_764: {
     id: 'CIRC_764',
@@ -473,6 +511,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     relevance: 'Drives EXEMPT_44A_FIN classification and — critically — the RULE 5D override that classifies domiciliation as TAXABLE 17% (not a real-estate letting).',
     last_reviewed: '2026-04-16',
     notes: 'Confirm number against AED.',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=764',
   },
   CIRC_810: {
     id: 'CIRC_810',
@@ -483,6 +522,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     relevance: 'Drives RULE 5 (letting → LUX_00), RULE 5C (carve-out → taxable), RULE 15A (Art. 45 opt-in on 17% outgoing).',
     last_reviewed: '2026-04-16',
     notes: 'A Circ. 810-bis or supplemental note is believed to codify the post-Titanium FE position — confirm exact reference.',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=810',
   },
   CIRC_798_VAT_GROUP: {
     id: 'CIRC_798_VAT_GROUP',
@@ -493,6 +533,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     relevance: 'Grounds treatment VAT_GROUP_OUT. Supplies between members of a LU VAT group are outside the scope of VAT, confirmed by CJEU Finanzamt T II (C-184/23).',
     last_reviewed: '2026-04-16',
     notes: 'Exact circular number to confirm.',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=798',
   },
   CIRC_706_INVOICING: {
     id: 'CIRC_706_INVOICING',
@@ -502,6 +543,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     subject: 'Mandatory content of a valid LU invoice; electronic invoicing format; retention and archival requirements.',
     relevance: 'Referenced by the extractor prompt\'s invoice_validity_missing_fields check and by the drafter\'s disclaimer.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=706',
   },
   CIRC_759_IMPORT: {
     id: 'CIRC_759_IMPORT',
@@ -512,6 +554,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     relevance: 'Grounds the flag-only RULE 19 IMPORT_VAT treatment — the deductible import VAT must come from the customs declaration (DAU), not the supplier\'s commercial invoice.',
     last_reviewed: '2026-04-16',
     notes: 'Confirm exact number.',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=759',
   },
   CSSF_18_698_DEPOSITARY: {
     id: 'CSSF_18_698_DEPOSITARY',
@@ -521,6 +564,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     subject: 'Depositary duties under the AIFMD framework (safekeeping, oversight, cash-flow monitoring).',
     relevance: 'Informs the depositary-fee split heuristic in the extractor prompt and the default 17% treatment in PRACTICE.DEPOSITARY_SPLIT.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=698',
   },
   CIRC_781_1: {
     id: 'CIRC_781_1',
@@ -533,6 +577,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     subject: 'Pre-C-288/22 AED position: all independent directors (natural or legal persons) were treated as taxable persons; their fees were subject to VAT 17%.',
     relevance: 'Historical reference. Cited in the audit trail for fees invoiced before the 2023-12-22 CJEU decision. Natural-person portion withdrawn; legal-person portion continues in CIRC_781_2.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=781',
   },
   CIRC_781_2: {
     id: 'CIRC_781_2',
@@ -545,6 +590,7 @@ export const CIRCULARS: Record<string, LegalSource> = {
     relevance: 'Anchors RULES 32a (natural director → OUT_SCOPE) and 32b (legal director → LUX_17 with flag). The legal-person flag is key — the decision carries audit risk if a future CJEU extension reverses AED\'s view.',
     last_reviewed: '2026-04-19',
     notes: 'Exact number and date to confirm against the AED site (docs/legal-watch-triage.md has this flagged).',
+    sources_url: 'https://pfi.public.lu/fr/accueil/tva/circulaires.html?search=781-2',
   },
 };
 
@@ -559,6 +605,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     relevance: 'Grounds RULE 36 — credit intermediation classification path (LUX_00 / RC_EU_EX / RC_NONEU_EX). Materially widens the post-CSC Financial C-235/00 / DTZ Zadelhoff C-259/11 safe harbour. Supersedes the earlier mis-citation in RULE 22 (platform deemed supplier) — Versãofast is NOT a platform-economy case.',
     last_reviewed: '2026-04-20',
     notes: 'Formally a General Court decision on a Portuguese reference. LU practitioners have treated it as directly applicable to the Art. 44§1 (a) perimeter. Monitor for CJEU confirmation if appealed.',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=T-657/24',
   },
   BLACKROCK: {
     id: 'BLACKROCK',
@@ -568,6 +615,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A single indivisible supply of IT services to a fund manager is not exempt under Art. 135(1)(g) Directive — the exemption is narrow.',
     relevance: 'The cornerstone for INFERENCE C/D exclusion keywords and for RULES 10/12 entity-type guard. A supply must be "specific and essential to fund management" — IT licences, SaaS, training, legal/tax/audit services are NOT.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-231/19',
   },
   FISCALE_EENHEID_X: {
     id: 'FISCALE_EENHEID_X',
@@ -577,6 +625,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Defines the comparability test for what counts as a "special investment fund" under Art. 135(1)(g). An entity must be subject to specific state supervision and comparable to a UCITS.',
     relevance: 'Grounds the "qualifying fund" restriction in RULES 10/12 — only funds meeting this test get Art. 44§1 d treatment on incoming services.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-595/13',
   },
   ATP_PENSION: {
     id: 'ATP_PENSION',
@@ -586,6 +635,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Certain occupational-pension funds qualify as "special investment funds" for Art. 135(1)(g).',
     relevance: 'Expands the qualifying-fund perimeter beyond UCITS to include comparable pension vehicles.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-464/12',
   },
   DBKAG: {
     id: 'DBKAG',
@@ -595,6 +645,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Outsourced fund-admin services (including software-based NAV calculation) can fall within Art. 135(1)(g) if "specific and essential". Tax-advice services do not.',
     relevance: 'Grounds the expanded FUND_MGMT_KEYWORDS list (NAV calculation, fund administration, RTA, depositary services). Also validates the exclusion list (tax advisory = taxable).',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-58/20',
   },
   DEUTSCHE_BANK: {
     id: 'DEUTSCHE_BANK',
@@ -604,6 +655,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Discretionary portfolio management combining investment advice and execution is taxable — neither a composite exempt financial service nor within the fund-management exemption.',
     relevance: 'Cited by INFERENCE E taxable backstop to prevent financial-adjacent keywords from over-exempting.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-44/11',
   },
   MORGAN_STANLEY: {
     id: 'MORGAN_STANLEY',
@@ -613,6 +665,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Deduction right of a branch providing services to its head office; the deduction fraction depends on the mix of taxable and exempt supplies at both levels.',
     relevance: 'Relevant to LU entities with non-LU branches / head offices when computing pro-rata for box 095.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-165/17',
   },
   SKANDIA: {
     id: 'SKANDIA',
@@ -622,6 +675,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A supply from a non-EU head office to an EU VAT-group branch is taxable (the branch is not part of the head-office taxable person when it is in a VAT group).',
     relevance: 'Relevant to VAT_GROUP_OUT classification when the LU group has non-EU head-office relationships.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-7/13',
   },
   DANSKE_BANK: {
     id: 'DANSKE_BANK',
@@ -631,6 +685,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Similar to Skandia: a supply from a branch outside the VAT group (in another MS) to a branch in the group is taxable.',
     relevance: 'Same as Skandia for intra-EU arrangements.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-812/19',
   },
   FINANZAMT_T: {
     id: 'FINANZAMT_T',
@@ -640,6 +695,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Confirms that VAT groups exist in EU law and that supplies between members are disregarded.',
     relevance: 'Binds AED practice under Art. 60ter — supplies between LU VAT-group members are out of scope (not exempt).',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-269/20',
   },
   FINANZAMT_T_II: {
     id: 'FINANZAMT_T_II',
@@ -649,6 +705,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Transactions between members of the VAT group are definitively NOT within the scope of VAT.',
     relevance: 'Definitive authority for VAT_GROUP_OUT classification. Closed the lingering legal uncertainty around internal supplies.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-184/23',
   },
   NORDDEUTSCHE: {
     id: 'NORDDEUTSCHE',
@@ -658,6 +715,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Compatibility of national VAT-group mechanisms with Art. 11 PVD; group representative as taxable person.',
     relevance: 'Procedural authority for the LU VAT group representative filing mechanism.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-141/20',
   },
   TITANIUM: {
     id: 'TITANIUM',
@@ -667,6 +725,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A passive property-letting activity with no LOCAL human resources does not constitute a fixed establishment for reverse-charge purposes.',
     relevance: 'Narrows the fixed-establishment perimeter for LU propcos owned by non-EU funds. Informs RULE 10X / 12X flag text.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-931/19',
   },
   CABOT_PLASTICS: {
     id: 'CABOT_PLASTICS',
@@ -676,6 +735,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A subsidiary providing services exclusively to its parent does not, on that basis alone, constitute a fixed establishment.',
     relevance: 'Reinforces Titanium. LU service-provider subsidiaries do not automatically create an FE of their foreign parent.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-232/22',
   },
   FENIX: {
     id: 'FENIX',
@@ -685,6 +745,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Art. 9a of Reg. 282/2011 is valid — the platform is presumed the supplier for electronic services facilitated to consumers.',
     relevance: 'Foundational for ViDA\'s deemed-supplier rules. Fund-distribution platforms and syndicate platforms must consider Art. 9a.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-695/20',
   },
   MARLE_PARTICIPATIONS: {
     id: 'MARLE_PARTICIPATIONS',
@@ -694,6 +755,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A holding company letting immovable property to its subsidiary is engaged in an economic activity and entitled to deduct input VAT.',
     relevance: 'Informs the SOPARFI "active holding" entity classification and its input-VAT recovery profile.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-320/17',
   },
   LARENTIA_MINERVA: {
     id: 'LARENTIA_MINERVA',
@@ -703,6 +765,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A mixed holding company that provides services to subsidiaries can deduct input VAT on acquisition costs of those subsidiaries.',
     relevance: 'Grounds the SOPARFI deduction methodology when the holding also provides management / admin services.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-108/14',
   },
   GFBK: {
     id: 'GFBK',
@@ -712,6 +775,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Continuous non-discretionary investment advisory which in practice drives portfolio decisions can qualify as "management".',
     relevance: 'Narrow but important — the classifier\'s RULE 10/12 must allow an advisory-agreement override when the adviser effectively makes portfolio decisions.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-275/11',
   },
   CSC_FINANCIAL: {
     id: 'CSC_FINANCIAL',
@@ -721,6 +785,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Negotiation of securities requires bringing specific parties to a specific contract, not generic information provision.',
     relevance: 'Grounds the market-practice treatment of referral fees and placement-agent commissions (taxable unless documented negotiation).',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-235/00',
   },
   DTZ_ZADELHOFF: {
     id: 'DTZ_ZADELHOFF',
@@ -730,6 +795,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Reinforces CSC Financial on the negotiation test under Art. 135(1)(f) Directive.',
     relevance: 'Same as CSC — cited by placement-agent / referral-fee practice.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-259/11',
   },
   HERST: {
     id: 'HERST',
@@ -739,6 +805,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Attribution of the intra-EU transport to a single supply in a chain is fact-sensitive, based on transport-risk allocation.',
     relevance: 'Relevant to fund-owned commodity / trading vehicles. Flag on multi-party chain transactions.',
     last_reviewed: '2026-04-16',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-401/18',
   },
   IO: {
     id: 'IO',
@@ -748,6 +815,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A member of a Dutch foundation\'s supervisory board is NOT a taxable person: no personal economic risk, decisions taken collegially. Baseline for the natural-person director analysis.',
     relevance: 'Precursor to C-288/22 TP. Grounds the "no independent economic risk" test.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-420/18',
   },
   TP: {
     id: 'TP',
@@ -758,6 +826,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     relevance: 'Directly reshaped LU VAT practice on director fees. Grounds RULE 32a (natural-person director → OUT_SCOPE). Anchor for the contested treatment of legal-person directors in RULE 32b.',
     last_reviewed: '2026-04-19',
     notes: 'LU-originated referral from Tribunal d\'Arrondissement de Luxembourg. AED responded with Circ. 781-2.',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-288/22',
   },
   POLYSAR: {
     id: 'POLYSAR',
@@ -767,6 +836,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A pure holding company whose only activity is owning shares and receiving dividends is NOT engaged in economic activity — not a taxable person, no deduction right.',
     relevance: 'Foundational for entity_type=\'passive_holding\' classification. Grounds RULES 11P, 13P, 15P.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-60/90',
   },
   CIBO: {
     id: 'CIBO',
@@ -776,6 +846,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A holding company that also provides administrative, financial, commercial, or technical services to its subsidiaries is engaged in economic activity for those services, and may deduct input VAT on related costs.',
     relevance: 'Anchor for entity_type=\'active_holding\'. Reviewer flags a passive-holding classification when Cibo-type activities are described.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-16/00',
   },
   BASTOVA: {
     id: 'BASTOVA',
@@ -785,6 +856,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Prize money whose payment is uncertain (depends on race outcome) is not consideration for a supply — no direct link between supply and payment.',
     relevance: 'Cited in the carry-interest / waterfall analysis (RULES 33/34). Uncertainty of payout breaks the direct-link test and pushes the flow out of VAT\'s scope.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-432/15',
   },
   TOLSMA: {
     id: 'TOLSMA',
@@ -794,6 +866,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Street-musician case: voluntary donations without any obligation do not constitute consideration for services. Consideration requires a legal relationship with reciprocal performance.',
     relevance: 'Fundamental test for "is this a supply?" — cited in carry-interest, waterfall, and certain penalty / compensation analyses.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-16/93',
   },
   CESKY_ROZHLAS: {
     id: 'CESKY_ROZHLAS',
@@ -803,6 +876,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Compulsory licence fee funded by law is not consideration for a specific supply; no direct link.',
     relevance: 'Cited alongside Tolsma / Baštová in the out-of-scope analysis for capital events + profit distributions.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-11/15',
   },
   KRETZTECHNIK: {
     id: 'KRETZTECHNIK',
@@ -812,6 +886,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Issuing shares / raising capital is not a supply within VAT\'s scope. Input VAT on related advisory costs is deductible to the extent the raised capital is used for taxable activity.',
     relevance: 'Grounds OUT_SCOPE classification for capital-contribution and shareholder-contribution lines. Cited by RULE 34 (waterfall distributions).',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-465/03',
   },
   BLC_BAUMARKT: {
     id: 'BLC_BAUMARKT',
@@ -821,6 +896,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Member States may require a taxable person to use a sector-based deduction method when it leads to a more accurate result than the general turnover-based ratio.',
     relevance: 'Anchors the sector-ratio option (LTVA Art. 50§3). Reviewer hint in the pro-rata UI: "Consider sector ratios when the general method under- or over-allocates.".',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-511/10',
   },
   DNB_BANKA: {
     id: 'DNB_BANKA',
@@ -830,6 +906,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'The Art. 132(1)(f) IGP exemption does NOT cover services to members active in the financial sector.',
     relevance: 'Narrows RULE 35. LU-to-LU cost-sharing to a fund / AIFM / bank member is NOT exempt — taxable 17%.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-326/15',
   },
   AVIVA: {
     id: 'AVIVA',
@@ -839,6 +916,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Same rule as DNB Banka extended to insurance.',
     relevance: 'Sister case to DNB Banka. Together they close IGP for financial + insurance in the EU.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-605/15',
   },
   COMMISSION_V_LUXEMBOURG_IGP: {
     id: 'COMMISSION_V_LUXEMBOURG_IGP',
@@ -848,6 +926,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'LU\'s prior transposition of the IGP exemption was inconsistent with the Directive — notably by allowing members with a limited taxable activity to still benefit from the exemption. LU aligned post-2017.',
     relevance: 'Historical context for the narrow post-2017 LU IGP practice.',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-274/15',
   },
   KAPLAN: {
     id: 'KAPLAN',
@@ -857,6 +936,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'The IGP exemption (Art. 132(1)(f) Directive) applies only when the group and its members are in the same Member State. Cross-border arrangements do NOT qualify.',
     relevance: 'Kills cross-border LU→EU cost-sharing as an exempt vehicle. Grounds RULE 35 (cross-border cost-sharing → RC_EU_TAX at 17%).',
     last_reviewed: '2026-04-19',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-77/19',
   },
   LUDWIG: {
     id: 'LUDWIG',
@@ -866,6 +946,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Credit-intermediation services provided by a sub-agent to a loan-broker principal fall within the Art. 135(1)(b) Directive exemption. The exemption is not limited to the direct contract party.',
     relevance: 'Grounds the chain-intermediation part of RULE 36 (credit intermediation). Cited alongside Versãofast to defend exemption when a sub-broker invoices a master-broker rather than a bank directly.',
     last_reviewed: '2026-04-20',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-453/05',
   },
   ASPIRO: {
     id: 'ASPIRO',
@@ -875,6 +956,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Outsourced insurance-claims handling does not qualify for the insurance-related exemptions: outsourced services must retain the "essential and specific" character of the exempt service — mere back-office handling does not.',
     relevance: 'Benchmark for the "specific and essential" test beyond BlackRock. Cited by RULE 37 (securitisation) when a servicer invoice carries debt-collection / enforcement components — those lose the exemption character even if the overall vehicle is an SV.',
     last_reviewed: '2026-04-20',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-40/15',
   },
   FRANCK: {
     id: 'FRANCK',
@@ -884,6 +966,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A financing arrangement that economically provides credit against receivables can fall within the Art. 135(1)(b) granting-of-credit exemption even when structured via factoring-style documentation. Economic substance governs.',
     relevance: 'Supports the reviewer override path when an SV invoice labelled "servicing" or "cash-flow administration" is in substance credit provision.',
     last_reviewed: '2026-04-20',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-801/19',
   },
   BBL: {
     id: 'BBL',
@@ -893,6 +976,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'Frames the boundary between (i) a fund that merely holds investments (not a supply of management) and (ii) the provision of management services to such a fund (within Art. 135(1)(g)). Builds the "specific and essential" line later sharpened by BlackRock and DBKAG.',
     relevance: 'Foundational authority for the single-supply rule later crystalised in BlackRock C-231/19. Cited in the fund-vehicle taxonomy.',
     last_reviewed: '2026-04-20',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-8/03',
   },
   WHEELS: {
     id: 'WHEELS',
@@ -902,6 +986,7 @@ export const CASES_EU: Record<string, LegalSource> = {
     subject: 'A defined-benefit occupational pension scheme is NOT comparable to a UCITS (investor-risk profile differs) and therefore does NOT qualify as a special investment fund under Art. 135(1)(g).',
     relevance: 'Sister authority to ATP PensionService C-464/12 — narrows the qualifying-fund perimeter. Classifier reviewer flag on pension-fund entities: confirm DC-style (qualifying) vs DB-style (not qualifying).',
     last_reviewed: '2026-04-20',
+    sources_url: 'https://curia.europa.eu/juris/liste.jsf?num=C-424/11',
   },
 };
 
@@ -921,6 +1006,7 @@ export const CASES_LU: Record<string, LegalSource> = {
     relevance: 'Grounds the SOPARFI deduction-methodology choices in Option B rules.',
     last_reviewed: '2026-04-16',
     notes: 'Exact rôle number and date to confirm in Pasicrisie administrative.',
+    sources_url: 'https://juscaf.justice.public.lu/jurisprudence.php',
   },
   CA_ART_45_OPTION_FORMALITIES: {
     id: 'CA_ART_45_OPTION_FORMALITIES',
@@ -931,6 +1017,7 @@ export const CASES_LU: Record<string, LegalSource> = {
     relevance: 'Informs the OUT_LUX_17_OPT treatment gating in the classifier and the reviewer UI flag.',
     last_reviewed: '2026-04-16',
     notes: 'Exact rôle number to confirm.',
+    sources_url: 'https://juscaf.justice.public.lu/jurisprudence.php',
   },
 };
 
