@@ -574,6 +574,36 @@ function applyDirectEvidenceRules(
       };
     }
 
+    // ═══════════════ RULE 11X — foreign VAT on a service (anomaly) ═══════════════
+    // Service mirror of RULE 17X. When an EU or non-EU supplier's invoice for a
+    // B2B service shows non-zero VAT, flag as anomaly. The correct pattern under
+    // Art. 44 Directive (place of supply = recipient) + Art. 196 (recipient
+    // reverse-charges) is: supplier issues no VAT, LU acquirer self-assesses at
+    // the LU rate. Foreign VAT on the invoice is NOT deductible in Luxembourg
+    // (C-333/20 Wilo Salmson, Art. 49 LTVA). We deliberately do NOT auto-classify
+    // as RC_EU_TAX / RC_NONEU_TAX — the amount line would be wrong (includes
+    // foreign VAT) and reviewing the supplier relationship is the right action.
+    //
+    // Must fire AFTER the RULE 17 goods block above so goods wins by position,
+    // and BEFORE RULE 10 (which needs zero VAT and so cannot intersect).
+    if ((isEu || (!isLu && !isEu && country !== ''))
+        && !containsAny(desc, GOODS_KEYWORDS)
+        && !isZeroOrNull(line.vat_applied)) {
+      const originBlock = isEu ? 'EU' : 'non-EU';
+      return {
+        treatment: null, rule: 'RULE 11X',
+        reason: `${originBlock} supplier charged foreign VAT on a service — anomaly.`,
+        source: 'rule', flag: true,
+        flag_reason:
+          'B2B services to a Luxembourg taxable person should be reverse-charged at the '
+          + 'LU rate (Art. 44 / 196 Directive; Art. 17§1 LTVA). The supplier must issue no VAT; '
+          + 'foreign VAT appearing on the invoice is NOT deductible in Luxembourg (C-333/20 '
+          + 'Wilo Salmson, Art. 49 LTVA). Action: request a corrected invoice (removing the '
+          + 'foreign VAT) and reclaim the VAT already paid from the origin Member State. If '
+          + 'recovery is impossible, absorb as non-deductible cost — classify as LUX_00 manually.',
+      };
+    }
+
     // ═══════════════ RULE 10 — RC EU exempt (fund management) ═══════════════
     // Gated on entity_type === 'fund'. Per CJEU BlackRock (C-231/19) and
     // Fiscale Eenheid X (C-595/13), the Art. 44§1 d exemption applies only

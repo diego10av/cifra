@@ -730,8 +730,12 @@ describe('Multi-language exemption keywords (FIX 9)', () => {
 describe('No match', () => {
   it('returns NO_MATCH and flags for review when nothing fits', () => {
     const r = classifyInvoiceLine(inv({
-      country: 'XX', // not a known country
-      vat_rate: null, vat_applied: 1234, // VAT applied without LU rate match
+      // Empty country = falls through every country-gated rule (LU, EU, non-EU).
+      // Zero VAT + no exemption/RC keyword = falls through every zero-VAT service rule.
+      // RULE 11X (added for "foreign supplier charged VAT on a service") would fire on
+      // 'XX' + vat_applied > 0 — so for a true NO_MATCH we need empty country OR zero VAT.
+      country: '',
+      vat_rate: null, vat_applied: 0,
       description: 'Mystery line',
     }));
     expect(r.treatment).toBeNull();
