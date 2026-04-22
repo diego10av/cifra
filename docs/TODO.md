@@ -94,6 +94,51 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-23** — Stint 22: declarations flow unblocked + Legal Watch clarity + partner review + rule-patch drafter
+
+Seven commits pushed to main. Diego's 3-part feedback on 2026-04-22 resolved end-to-end.
+
+**Declarations flow — the #1 blocker**
+- `e1138d6` · **auto-tab-switch + toast** on status change. Root cause: server auto-transitioned `extracting → classifying → review` but client stayed on Documents tab. Now a `useEffect` on `data.status` forward-transitions the active tab + fires action-oriented toast. Reverse transitions (reopen) respect current tab.
+- `a634cad` · **PhaseCTA sticky CTA** — one prominent "next step" button per phase in the declaration header. Created / upload / extract / review / summary / approved / filed / paid. Companion SummaryApproveCTA on the Summary tab swaps in "Submit for partner review" when the entity has that flag on. Outputs tab relabeled "Summary" in the UI (internal id='outputs' kept for backcompat).
+
+**Legal Watch clarity**
+- `336ddcd` · **Triage redesign**. Buttons renamed + re-sectioned:
+  - *Recordar* (ex-Flag) → item stays visible in "Reminders" section with yellow chip.
+  - *Actualizar reglas* (ex-Escalate) → item moves to "Pending rule update" with emerald chip + enables the patch drafter.
+  - *Descartar* (ex-Dismiss) → hides; toggle "Show dismissed" to recover.
+  The triage() handler now `load()`s from server instead of optimistic-remove so the reviewer SEES the move across sections.
+- `3d58cb3` · **URL backfill**: one-off script auto-generated sources_url on 87 of 105 legal-sources entries (CJEU via curia.europa.eu pattern, AED via pfi.public.lu search, LU law via legilux ELI, EU directives via eur-lex ELI). 16 PRACTICE entries intentionally left without URL (market consensus, no authoritative source).
+- `b7604a2` · **Relevance gate**: scanner post-triage now auto-dismisses items the AI marked `relevant: false` OR `severity: low` with confidence ≥ 0.7. Auto-dismissed items get `triaged_by='ai_auto'` so they're distinguished from Diego's manual dismissals in the "Show dismissed" view.
+
+**Partner review toggle (migration 023)**
+- `48e4c2d` · **`requires_partner_review` per entity**. Lifecycle gains `pending_review` state between `review` and `approved`. Two-person rule enforced server-side: the approver's session role must differ from `submitted_by`. Stepper shows an extra "Partner review" node when the flag is on; PhaseCTA/SummaryApproveCTA branch on the flag ("Submit for partner review" vs "Approve").
+
+**Rule-patch drafter (migration 024)**
+- `252baac` · **Opus 4.7 drafts the code diff** when triage marks an item severity high/critical + affected_rules non-empty + confidence ≥ 0.6. Reads the full baseline (classification-rules.ts + legal-sources.ts + exemption-keywords.ts — all ephemeral-cached), returns unified diff + reasoning + target files. Hard blast-radius: only 4 whitelisted files allowed; any other path in the diff → server rejects before UI renders. UI renders the diff syntax-coloured (+green/-red/@@ violet) with a "Copy git apply command" button. Reviewer pastes into terminal to apply. Auto-apply + test-sandbox deferred.
+
+**Plus** the `cifra-model-tier-watch` scheduled task shipped in stint 21 — Mondays at 06:30 local, detects new Anthropic model tiers + proposes swaps + emits morning-brief line.
+
+**Tests**: 577/577 green · typecheck clean · prod build clean at every commit. All 7 commits shippable independently; rolled out in priority order (flow fix first, drafter last).
+
+**Diego actions when back:**
+- 🎯 Open any declaration in `review` status. Observe the new sticky "Continue to summary" PhaseCTA in the header. Click → goes to Summary tab (was "Outputs"). Click "Approve" → auto-goes to Filing.
+- 🎯 Upload fresh PDFs to a `created` declaration. Click "Extract all" → the agents run, server transitions to review, UI auto-switches + toast fires.
+- 🎯 On `/entities/[id]` check the new "Requires partner review before approval" checkbox. Reopen a declaration → the Summary CTA now reads "Submit for partner review".
+- 🎯 `/legal-watch` → click Seed samples (or wait for next vatupdate scan). Observe:
+  - Severity pill, AI triage summary, affected-rule pills on each item.
+  - Three distinct sections: Reminders / Pending rule update / Dismissed (hidden).
+  - If an item has severity high/critical, expand the green "AI-proposed rule patch" block below → see the diff + copy command.
+- 🎯 Click any CJEU case / circular in the legal sources accordion — it now has a clickable ↗ link to curia or the AED portal.
+
+**Still deferred for a next stint:**
+- Auto-apply accept button (today the diff is copy-to-clipboard; next stint wires `git apply + commit + push` server-side).
+- Test-sandbox (server runs vitest against the diff before enabling Accept).
+- PhaseCTA "Back" link for reopen paths.
+- AED portal URL pattern exact — scraping the circulaires page for permalinks.
+
+---
+
 **2026-04-22 (continued)** — Stint 21: three Opus 4.7 agents + auto-model-tier-watch
 
 Commits `bc3b0eb` + `da1f767` (+ already-queued `cifra-model-tier-watch` scheduled task).
