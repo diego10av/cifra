@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-23 (23rd stint shipped: RULE 11X classifier gap + PhaseCTA Reopen + LifecycleStepper click-through + Modify-patch UI + Curia RSS fetcher)
+> Last updated: 2026-04-23 evening (23rd stint shipped in 8 commits: RULE 11X + PhaseCTA Reopen + Stepper click-through + Modify-patch UI + Curia RSS + RULE 30 prepayment decorator + validator cache + corpus gap fixtures. Test-sandbox design note ready for next stint)
 
 ---
 
@@ -98,9 +98,9 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
-**2026-04-23 (evening)** — Stint 23: classifier gap (RULE 11X) + PhaseCTA Reopen + LifecycleStepper click-through + Modify-patch + Curia RSS
+**2026-04-23 (evening)** — Stint 23: classifier gap (RULE 11X) + PhaseCTA Reopen + LifecycleStepper click-through + Modify-patch + Curia RSS + RULE 30 activation + validator cache + corpus gap audit
 
-Five commits pushed to main, each green on typecheck + tests + build.
+**Eight commits** pushed to main, all green on typecheck + tests + build. Split into two batches — the first five before Diego went to lunch (A-E below), the last three during lunch (F-H autonomous).
 
 **Classifier (Slice A — `bcb4746`)**
 - **RULE 11X** closes the service-side anomaly gap. Before: F105/F106 (EU supplier erroneously charged foreign VAT on a reverse-charge service) returned `NO_MATCH` with a bare flag. Now: dedicated rule cites Art. 44 + 196 Directive / Art. 17§1 LTVA / C-333/20 Wilo Salmson / Art. 49 LTVA and directs the reviewer to request a corrected invoice + reclaim from the origin MS, or absorb as LUX_00. Service mirror of the existing RULE 17X (goods). F105 + F106 flipped from NO_MATCH to RULE 11X; F111 (new, non-EU supplier CHF VAT on advisory) covers the non-EU branch; F112 (new, regression guard) confirms that a "server deployment / hardware delivery" description still routes to RULE 17X not 11X — the goods-vs-services ordering is correct. The "No match" unit test was tightened (country='' + vat_applied=0) because country='XX' + foreign VAT is now exactly what RULE 11X handles.
@@ -123,19 +123,42 @@ Five commits pushed to main, each green on typecheck + tests + build.
 - Default source list changed from `['vatupdate']` to `['curia', 'vatupdate']`. Curia first (canonical), VATupdate still picks up commentary + AG opinions. Dedup is (source, external_id) so same ruling in both feeds lands as two rows with different URLs — intentional (Curia row = ruling link, VATupdate row = commentary link).
 - Daily scheduled task `cifra-legal-watch-scan` (07:15 CET) now checks two feeds instead of one. Cost: negligible.
 
-**Tests**: 579 passed (was 577 before Slice A added F111 + F112). Typecheck clean, prod build clean at every commit. CI (`.github/workflows/ci.yml`) re-runs each on GitHub.
+**RULE 30 pre-payment decorator (Slice F — `103d8f9`)**
+- Previously a no-op with a TODO comment. Now a post-processor runs after the classifier returns: if the line text mentions pre-payment / acompte / avance de paiement / anzahlung, forces flag=true, suffixes the rule with "+ RULE 30", and appends an Art. 61§1 LTVA tax-point warning to flag_reason. Treatment untouched (the normal classification is still correct; only timing is special).
+- PREPAYMENT_KEYWORDS narrowed: bare "deposit" and "prepaid" were substring-matching "depositary" / "prepaid cards". Replaced with multi-word phrases ("deposit received", "advance deposit", "prepaid invoice"). Added Italian ("pagamento anticipato") and Spanish ("pago anticipado", "anticipo de pago").
+- New fixtures F113 (LU advocate "Acompte sur honoraires" — asserts "RULE 1 + RULE 30" + flag includes "tax point") and F114 (depositary custody fee — regression guard asserting NO RULE 30 decoration).
+
+**Validator cache (Slice G — `251aaf9`, migration 026)**
+- Every "Run review" click on the Opus validator cost €0.05-0.15 regardless of whether anything changed. In a typical review session (reopen decl → check → reopen different decl → come back), this burned €0.50+ in duplicate calls. On €75/mo budget, meaningful waste.
+- `validator_runs` table (migration 026) caches runs keyed on (declaration_id, lines_hash, ai_model). `lines_hash` is a SHA-256 over the fields Opus actually reasons about — treatment, classification_rule, amount, description, country, direction, flag, credit-note flag, etc. Any edit bumps the hash → cache miss → fresh Opus call.
+- TTL: 7 days. Short enough to pick up shipped RULE upgrades; long enough that within a single review session everything is free after the first paid run.
+- UI: ValidatorPanel captures `cached` + `cached_age_minutes` from the POST response and renders a green "✓ Cached · Nmin" pill next to the Run button. Tooltip explains invalidation.
+- Expected saving: ~40-70% of validator cost at current usage.
+
+**Corpus gap audit (Slice H — `ef5799b`)**
+- Enumerated every RULE identifier in classification-rules.ts vs every rule asserted in synthetic-corpus.ts. Six active rules had zero fixture coverage: RULE 11B (EU 14% RC), RULE 13B (non-EU 14% RC), RULE 13C (non-EU 8% RC), RULE 15C (outgoing LU 8%), RULE 15D (outgoing LU 3%), INFERENCE B (non-EU advisory analogical inference).
+- Added F115-F120 covering each gap. F115 + F117 deliberately use HOLDING_CTX (active_holding) because with a fund entity RULE 10 preempts the reduced-rate path — an important design point in the rule ordering that's now locked by fixtures.
+- Total fixture count: 115 → 121. Total test count: 581 → 587.
+
+**Test-sandbox design note (no commit — `docs/test-sandbox-design.md`)**
+- Not implemented. Vercel serverless can't run vitest — that's the blocker. Recommended architecture: GitHub Actions workflow on `workflow_dispatch` + cron fallback, reads pending `ai_patch_diff` rows from Supabase, applies diff, runs vitest, writes `ai_patch_tests_pass` + `ai_patch_tests_output` back via service-role key.
+- **Unblocker for Diego**: add 2 GA repo secrets (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`). Then next stint ships the workflow + trigger hook + UI badge in ~2-3h.
+
+**Tests**: 587 passed (was 579 at the start of stint 23). Typecheck clean, prod build clean at every commit. CI (`.github/workflows/ci.yml`) re-runs each on GitHub.
 
 **Diego actions when back:**
 - 🎯 Open an old declaration that has an EU supplier with foreign VAT on a service. Classify. Observe the new RULE 11X citation in the flag: Art. 44 + 196 + C-333/20 — this is what defends the flag to an auditor.
 - 🎯 Open any declaration in `paid`. Observe the "← Un-file & reopen" tertiary button next to "Cycle complete". Click a "done" circle in the stepper → confirmation → reopen.
 - 🎯 Seed a high-severity legal-watch item. Expand the green "AI-proposed rule patch" block. Click **Modificar** → textarea appears. Edit a reasoning line. Click **Save**. Chip "Edited by reviewer" appears in the header. Click **Accept & commit** → commit lands on `main` with `human_edited: true` trailer.
 - 🎯 Trigger a scan → observe BOTH `curia` and `vatupdate` feed names in the scan report. Curia-sourced items show a direct curia.europa.eu URL.
+- 🎯 Upload an invoice with "Acompte sur honoraires" in the description (LU supplier, 17% VAT). Classify. Observe: rule = "RULE 1 + RULE 30" and the flag now carries the Art. 61§1 tax-point warning.
+- 🎯 On ANY declaration, click "Second opinion" twice in a row without editing anything. The second click shows the green "✓ Cached · 0min" pill — no Opus call spent. Edit any line's treatment, click Run again: pill disappears, fresh call happens.
 
 **Still deferred for a next stint:**
 - GITHUB_TOKEN env var in Vercel — without it, Accept falls back to the copy-command path. Diego has to set a fine-grained PAT (Contents:write + Metadata:read on diego10av/cifra). **This is the top priority for tonight.**
 - DNS: `cifracompliance.com` to Vercel (A record or CNAME).
 - `AUTH_PASSWORD_JUNIOR` in Vercel env (stint 11 shipped the middleware; env variable still pending).
-- Test-sandbox (server runs vitest against the diff before enabling Accept — stint 22 shipped the whitelist but not a live test run).
+- Test-sandbox for AI-drafted patches — **design doc ready** at `docs/test-sandbox-design.md`. Blocker: Diego adds 2 GA repo secrets (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`), then next stint ships in ~2-3h.
 - AED portal URL pattern exact — scraping the circulaires page for permalinks.
 - Multi-file diff preview in the Modify textarea (syntax highlight per file section).
 - Narrowing the legal-watch keyword list based on observed production volume (7 days of data needed first).
