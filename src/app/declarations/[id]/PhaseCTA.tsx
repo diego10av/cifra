@@ -15,7 +15,7 @@
 // pill instead — NOT a disabled button.
 // ════════════════════════════════════════════════════════════════════════
 
-import { ArrowRightIcon, UploadCloudIcon, CheckCircle2Icon, Loader2Icon,
+import { ArrowRightIcon, ArrowLeftIcon, UploadCloudIcon, CheckCircle2Icon, Loader2Icon,
   FileTextIcon, SendIcon } from 'lucide-react';
 
 export type PhaseCTAStatus =
@@ -53,6 +53,12 @@ export interface PhaseCTAProps {
   onSubmitForReview: () => void;
   onPartnerApprove: () => void;
   onGoToFiling: () => void;
+  /** When set, render a muted "← Reopen" tertiary button alongside the
+   *  primary CTA for forward states (approved / filed / paid /
+   *  pending_review). The parent handles the confirmation modal + PATCH
+   *  back to 'review'. Omit for states where there's nothing to reopen
+   *  from (created / uploading / review). */
+  onReopen?: () => void;
 }
 
 export function PhaseCTA(p: PhaseCTAProps) {
@@ -127,53 +133,93 @@ export function PhaseCTA(p: PhaseCTAProps) {
   if (p.status === 'pending_review') {
     if (p.viewerIsSubmitter) {
       return (
-        <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-[13px] font-medium">
-          <SendIcon size={14} />
-          Submitted — awaiting partner review
-        </div>
+        <CTAGroup onReopen={p.onReopen} reopenLabel="Recall submission">
+          <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-[13px] font-medium">
+            <SendIcon size={14} />
+            Submitted — awaiting partner review
+          </div>
+        </CTAGroup>
       );
     }
     return (
-      <PrimaryButton
-        onClick={p.onPartnerApprove}
-        icon={<CheckCircle2Icon size={14} />}
-        disabled={blockingCount > 0}
-        tooltip={blockerTooltip}
-      >
-        Approve as partner
-      </PrimaryButton>
+      <CTAGroup onReopen={p.onReopen}>
+        <PrimaryButton
+          onClick={p.onPartnerApprove}
+          icon={<CheckCircle2Icon size={14} />}
+          disabled={blockingCount > 0}
+          tooltip={blockerTooltip}
+        >
+          Approve as partner
+        </PrimaryButton>
+      </CTAGroup>
     );
   }
 
   // approved → file.
   if (p.status === 'approved') {
     return (
-      <PrimaryButton onClick={p.onGoToFiling} icon={<FileTextIcon size={14} />}>
-        Record filing reference
-      </PrimaryButton>
+      <CTAGroup onReopen={p.onReopen}>
+        <PrimaryButton onClick={p.onGoToFiling} icon={<FileTextIcon size={14} />}>
+          Record filing reference
+        </PrimaryButton>
+      </CTAGroup>
     );
   }
 
   // filed → mark as paid.
   if (p.status === 'filed') {
     return (
-      <PrimaryButton onClick={p.onGoToFiling} icon={<CheckCircle2Icon size={14} />}>
-        Mark as paid
-      </PrimaryButton>
+      <CTAGroup onReopen={p.onReopen} reopenLabel="Un-file &amp; reopen">
+        <PrimaryButton onClick={p.onGoToFiling} icon={<CheckCircle2Icon size={14} />}>
+          Mark as paid
+        </PrimaryButton>
+      </CTAGroup>
     );
   }
 
   // paid → cycle complete; no CTA.
   if (p.status === 'paid') {
     return (
-      <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-900 text-[13px] font-medium">
-        <CheckCircle2Icon size={14} />
-        Cycle complete
-      </div>
+      <CTAGroup onReopen={p.onReopen} reopenLabel="Un-file &amp; reopen">
+        <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-900 text-[13px] font-medium">
+          <CheckCircle2Icon size={14} />
+          Cycle complete
+        </div>
+      </CTAGroup>
     );
   }
 
   return null;
+}
+
+// ────────────────────────────────────────────────────────────────────
+// CTAGroup — wraps the phase's primary CTA with an optional muted
+// "← Reopen" tertiary button. When onReopen is omitted, the wrapper
+// collapses to just children (backward compatible with pre-Slice-B
+// rendering). Keeps visual weight on the primary action while still
+// giving Diego a one-click escape from a forward state.
+// ────────────────────────────────────────────────────────────────────
+function CTAGroup({
+  children, onReopen, reopenLabel,
+}: {
+  children: React.ReactNode;
+  onReopen?: () => void;
+  reopenLabel?: string;
+}) {
+  if (!onReopen) return <>{children}</>;
+  return (
+    <div className="inline-flex items-center gap-2">
+      {children}
+      <button
+        onClick={onReopen}
+        className="inline-flex items-center gap-1 h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 text-[13px] font-medium transition-colors"
+        title="Reopen this declaration — status returns to Review and lines become editable."
+      >
+        <ArrowLeftIcon size={14} />
+        {reopenLabel ?? 'Reopen'}
+      </button>
+    </div>
+  );
 }
 
 // ────────────────────────────────────────────────────────────────────

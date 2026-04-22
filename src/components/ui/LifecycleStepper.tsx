@@ -62,12 +62,19 @@ function findStepIndex(status: string, steps: VisibleStep[]): number {
 export function LifecycleStepper({
   status,
   requiresPartnerReview,
+  onStepClick,
 }: {
   status: string;
   /** When the entity opts into two-step approval (migration 023), the
    *  stepper shows an extra "Partner review" node between Review and
    *  Approved. Defaults to the base 7-step bar. */
   requiresPartnerReview?: boolean;
+  /** When set, "done" steps (strictly before the current step) become
+   *  clickable — clicking triggers this callback with the DB status of
+   *  the clicked step. Parent decides whether to reopen the declaration
+   *  or just switch tab. "Current" and "pending" steps remain
+   *  presentational. */
+  onStepClick?: (dbStatus: string) => void;
 }) {
   const steps = buildVisibleSteps(!!requiresPartnerReview);
   const activeIdx = findStepIndex(status, steps);
@@ -112,17 +119,17 @@ export function LifecycleStepper({
             ? (isDone || isCurrent ? 'bg-success-500' : 'bg-border')
             : '';
 
-          return (
-            <li
-              key={step.id}
-              className="relative flex-1 flex flex-col items-center"
-              aria-current={isCurrent ? 'step' : undefined}
-              title={
-                step.id === 'processing'
-                  ? 'Processing combines two internal steps: extraction (AI reads the invoices and pulls the fields) and classification (deterministic rules assign a treatment code to every line).'
-                  : undefined
-              }
-            >
+          const clickable = isDone && !!onStepClick;
+          const clickableTitle = clickable
+            ? `Click to navigate back to "${step.label}". Reopens the declaration if it's further along.`
+            : (step.id === 'processing'
+                ? 'Processing combines two internal steps: extraction (AI reads the invoices and pulls the fields) and classification (deterministic rules assign a treatment code to every line).'
+                : undefined);
+
+          // Shared inner markup — rendered inside either a <li> (presentational)
+          // or a <button> (when the step is clickable).
+          const inner = (
+            <>
               {/* Connector line to previous step */}
               {i > 0 && (
                 <span
@@ -133,15 +140,37 @@ export function LifecycleStepper({
 
               {/* Step circle */}
               <div
-                className={`relative w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold tabular-nums z-10 transition-all duration-200 ${circleClasses}`}
+                className={`relative w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold tabular-nums z-10 transition-all duration-200 ${circleClasses} ${clickable ? 'group-hover:ring-2 group-hover:ring-success-300' : ''}`}
               >
                 {isDone ? <CheckIcon size={11} strokeWidth={3} /> : i + 1}
               </div>
 
               {/* Step label */}
-              <span className={`mt-1.5 text-[10.5px] tracking-tight text-center ${labelClasses}`}>
+              <span className={`mt-1.5 text-[10.5px] tracking-tight text-center ${labelClasses} ${clickable ? 'group-hover:text-success-700' : ''}`}>
                 {step.short}
               </span>
+            </>
+          );
+
+          return clickable ? (
+            <li key={step.id} className="relative flex-1 flex">
+              <button
+                type="button"
+                onClick={() => onStepClick!(step.dbStatuses[0])}
+                title={clickableTitle}
+                className="group relative flex-1 flex flex-col items-center cursor-pointer bg-transparent p-0 border-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-success-400 focus-visible:outline-offset-2 rounded"
+              >
+                {inner}
+              </button>
+            </li>
+          ) : (
+            <li
+              key={step.id}
+              className="relative flex-1 flex flex-col items-center"
+              aria-current={isCurrent ? 'step' : undefined}
+              title={clickableTitle}
+            >
+              {inner}
             </li>
           );
         })}

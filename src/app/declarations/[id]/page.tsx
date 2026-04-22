@@ -432,6 +432,32 @@ export default function DeclarationDetailPage() {
     });
   }
 
+  // Unified reopen handler — used by both the PhaseCTA "← Reopen" button
+  // and the stepper click-through. Picks the right confirmation text based
+  // on current status (filed / paid get the sterner AED-rectification warning).
+  // Always moves the declaration back to 'review'.
+  function handleReopen() {
+    if (!data) return;
+    const from = data.status;
+    const prompt =
+      from === 'filed' || from === 'paid'
+        ? `⚠ Reopen a ${from.toUpperCase()} declaration?\n\n`
+          + `This declaration has already been filed with the AED`
+          + (from === 'paid' ? ' AND paid' : '')
+          + `. Reopening is a serious operation:\n\n`
+          + `• The filing reference + date are retained in the audit log but cleared from the active record.\n`
+          + `• You will need to re-file to resubmit a corrected return.\n`
+          + `• If the AED has already confirmed receipt, this may require a rectification letter.\n\n`
+          + `Only do this if you are certain the submitted return contains an error that cannot be corrected otherwise. Continue?`
+        : `Reopen this ${from} declaration?\n\n`
+          + `• All locked invoice lines become editable again.\n`
+          + `• Any ongoing client approval process on this declaration resets.\n`
+          + `• The action appears in the audit trail as a reopen event.\n\n`
+          + `Continue?`;
+    if (typeof window !== 'undefined' && !confirm(prompt)) return;
+    handleStatusChange('review');
+  }
+
   async function handleStatusChange(newStatus: string, extra?: Record<string, unknown>) {
     const res = await fetch(`/api/declarations/${id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
@@ -660,6 +686,11 @@ export default function DeclarationDetailPage() {
                   onSubmitForReview={() => handleStatusChange('pending_review')}
                   onPartnerApprove={() => handleStatusChange('approved')}
                   onGoToFiling={() => setActiveTab('filing')}
+                  onReopen={
+                    ['approved', 'filed', 'paid', 'pending_review'].includes(data.status)
+                      ? handleReopen
+                      : undefined
+                  }
                 />
               )}
               {hasFx && activeLines.length > 0 && !locked && (
@@ -795,7 +826,34 @@ export default function DeclarationDetailPage() {
 
           {/* ─── Lifecycle stepper ─── */}
           <div className="mb-6 px-2 py-4 bg-surface border border-border rounded-xl shadow-xs">
-            <LifecycleStepper status={data.status} requiresPartnerReview={!!data.requires_partner_review} />
+            <LifecycleStepper
+              status={data.status}
+              requiresPartnerReview={!!data.requires_partner_review}
+              onStepClick={(dbStatus) => {
+                // Clicking a "done" step = go back. For tab-mapped statuses
+                // (review) just switch tab — no PATCH needed when we're
+                // already reviewing. For further-advanced states (approved /
+                // filed / paid / pending_review), reopen via confirmation.
+                const tabMap: Record<string, typeof activeTab> = {
+                  uploading: 'documents',
+                  review: 'review',
+                  approved: 'outputs',
+                  filed: 'filing',
+                  paid: 'filing',
+                };
+                if (data.status === 'review' && dbStatus === 'review') {
+                  setActiveTab('review');
+                  return;
+                }
+                // Any click on a step earlier than current → reopen.
+                handleReopen();
+                // After reopen lands us back at 'review', the auto-tab-switch
+                // useEffect will pick up the transition; but for a snappier
+                // UI also nudge the tab now.
+                const nextTab = tabMap[dbStatus];
+                if (nextTab) setActiveTab(nextTab);
+              }}
+            />
           </div>
 
           {/* ─── Always-visible meta ─── */}
