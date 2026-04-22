@@ -13,20 +13,24 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-19 (eleventh stint in progress: directors/pro-rata/SPV classification + multi-user + multi-contact + landing page)
+> Last updated: 2026-04-23 (23rd stint shipped: RULE 11X classifier gap + PhaseCTA Reopen + LifecycleStepper click-through + Modify-patch UI + Curia RSS fetcher)
 
 ---
 
 ## 🔥 This week
 
-### Next 48h
+### Next 48h (stint-23 unblockers — TONIGHT)
 
-- [ ] 🎯 **Self-test the eleventh-stint deliverables** — new classifier rules (directors, SPV, carry), pro-rata UI, multi-contact inheritance, junior-role user, landing page at `cifracompliance.com` root. Walk through /clients/[id] Contacts card, /entities/[id] approvers picker, /declarations/[id] pro-rata section, and give the junior a `/login` credential to see the restricted view.
+- [ ] 🟢 **5min · GITHUB_TOKEN env var in Vercel** — fine-grained PAT on `diego10av/cifra` with Contents:write + Metadata:read. Without this, the auto-apply path on AI-drafted patches falls back to copy-command. **Single highest-value env var — flips the whole accept-patch flow from copy→paste to one-click commit.** Create at github.com/settings/personal-access-tokens/new, scope only the `cifra` repo, copy the `github_pat_…` string, paste into Vercel project env as `GITHUB_TOKEN`, redeploy.
+- [ ] 🟢 **5min · AUTH_PASSWORD_JUNIOR env var in Vercel** — stint 11 shipped the middleware. Pick any password ≥ 12 chars, paste into Vercel env, redeploy. Gives you a separate credential to test the restricted junior view.
+- [ ] 🟡 **30min · DNS `cifracompliance.com` → Vercel** — either A record `76.76.21.21` or CNAME `cname.vercel-dns.com`. Then add the custom domain in Vercel's project panel. Cert auto-issues. Verify `https://app.cifracompliance.com` resolves.
+- [ ] 🎯 **Self-test stint-23 deliverables** — (1) upload invoice with BE supplier + 21% BE VAT on consulting → observe new RULE 11X flag cites C-333/20 + Art. 49 LTVA. (2) Open a paid declaration, click "← Un-file & reopen" in PhaseCTA OR click a done step in the stepper. (3) Seed a high-severity legal-watch item, expand the drafter block, click **Modificar**, edit a reasoning line, save, accept → commit lands with `human_edited: true` trailer. (4) Run a scan, verify both `curia` and `vatupdate` appear in the report.
 - [ ] 📞 **Call 2 notaries for SARL-S quote** — Alex Schmitt, Bonn
       Steichen, Notaire Hellinckx or cheaper alternative. Need at
       least 2 quotes to compare. Expected €1,500-2,500 one-off.
 - [ ] 🟡 **30min · Set up `contact@cifracompliance.com`** — Google
       Workspace (€5.75/mo) or Fastmail linked to the domain.
+- [ ] 📞 **Send real VAT registration letter** — through your own entity. Dogfood the extractor on production paper; this was deferred from stints 21-22 and is still the single biggest quality win for the extractor.
 
 ### This week (7 days)
 
@@ -93,6 +97,50 @@ Things worth remembering but not actionable yet:
 ## ✅ Done this week
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
+
+**2026-04-23 (evening)** — Stint 23: classifier gap (RULE 11X) + PhaseCTA Reopen + LifecycleStepper click-through + Modify-patch + Curia RSS
+
+Five commits pushed to main, each green on typecheck + tests + build.
+
+**Classifier (Slice A — `bcb4746`)**
+- **RULE 11X** closes the service-side anomaly gap. Before: F105/F106 (EU supplier erroneously charged foreign VAT on a reverse-charge service) returned `NO_MATCH` with a bare flag. Now: dedicated rule cites Art. 44 + 196 Directive / Art. 17§1 LTVA / C-333/20 Wilo Salmson / Art. 49 LTVA and directs the reviewer to request a corrected invoice + reclaim from the origin MS, or absorb as LUX_00. Service mirror of the existing RULE 17X (goods). F105 + F106 flipped from NO_MATCH to RULE 11X; F111 (new, non-EU supplier CHF VAT on advisory) covers the non-EU branch; F112 (new, regression guard) confirms that a "server deployment / hardware delivery" description still routes to RULE 17X not 11X — the goods-vs-services ordering is correct. The "No match" unit test was tightened (country='' + vat_applied=0) because country='XX' + foreign VAT is now exactly what RULE 11X handles.
+
+**UX polish (Slice B — `fe682c0`)**
+- **PhaseCTA Reopen button**. Diego wanted a "← Reopen" tertiary button alongside the primary CTA for forward states (approved / filed / paid / pending_review) — a one-click escape without hunting for the toolbar Reopen button. Added optional `onReopen` prop + `CTAGroup` wrapper. Filed/paid render "Un-file & reopen" to echo the sterner warning. Backward compatible: the prop is optional; omitting it preserves pre-Slice-B rendering.
+- **LifecycleStepper click-through**. Stepper was purely presentational. Now "done" steps render as `<button>` (when `onStepClick` is set) with hover + focus ring. Parent wires clicks: click a prior step → reopen confirmation → returns to review + tab auto-switches. Current and pending steps stay non-interactive.
+- Unified `handleReopen()` in `page.tsx` picks the right confirmation copy based on current status: filed/paid get the AED-rectification warning, earlier states get the lighter prompt. Shared by both PhaseCTA and Stepper.
+
+**Modify-patch flow (Slice C — `2a6cdda`, migration 025)**
+- Reviewer can now **edit an AI-drafted patch's diff in a textarea** before hitting Accept. Previously only Accept / Reject / Copy-command were available. The drafter's reasoning prose sometimes doesn't match house style — Diego can tweak and still get a commit that's tagged `ai_drafted: true`.
+- Migration 025 adds 4 columns: `ai_patch_modified_by_human` (boolean, default false), `ai_patch_modified_at`, `ai_patch_modified_by`, `ai_patch_original_diff`. First edit snapshots the original drafter output; subsequent edits overwrite `ai_patch_diff` only. Applied to prod.
+- New endpoint `PATCH /api/legal-watch/queue/[id]/update-patch` (admin-only). Validates diff non-empty + whitelist (`ALLOWED_FILES` re-exported from `github-apply-patch.ts` for defence-in-depth), stashes original via COALESCE, clears `ai_patch_tests_pass/_output` (stale evidence), emits `legal_watch_patch_modified` audit entry.
+- `accept-patch/route.ts` emits `human_edited: true` + `modified_by: <name>` trailer lines when `ai_patch_modified_by_human = true`. `git log --grep="human_edited"` now isolates reviewer-edited commits from AI-pure ones.
+- UI (PatchProposalBlock in `LegalWatchQueueCard.tsx`): new "Modificar" amber button between Accept and Reject; opens textarea with the diff; Save/Cancel replace Accept/Reject during edit; "Edited by reviewer" chip in the collapsed header after save; amber banner explains tests are invalidated by the edit.
+
+**Curia RSS fetcher (Slice D — `ca092d4`)**
+- Legal-watch scanner now fetches curia.europa.eu's official "Latest rulings" RSS directly, in addition to VATupdate. Higher signal: direct feed publishes same-day vs VATupdate's delayed summaries. Pre-filter at the fetcher level on multilingual VAT markers (VAT / TVA / Directive 2006/112 / etc.) so we don't waste triage spend on rulings about competition or state aid.
+- New module `src/lib/legal-watch-curia.ts`. `parseRss` in `legal-watch-scan.ts` is now exported with a `source` parameter — both feeds share the same RSS 2.0 parser.
+- Default source list changed from `['vatupdate']` to `['curia', 'vatupdate']`. Curia first (canonical), VATupdate still picks up commentary + AG opinions. Dedup is (source, external_id) so same ruling in both feeds lands as two rows with different URLs — intentional (Curia row = ruling link, VATupdate row = commentary link).
+- Daily scheduled task `cifra-legal-watch-scan` (07:15 CET) now checks two feeds instead of one. Cost: negligible.
+
+**Tests**: 579 passed (was 577 before Slice A added F111 + F112). Typecheck clean, prod build clean at every commit. CI (`.github/workflows/ci.yml`) re-runs each on GitHub.
+
+**Diego actions when back:**
+- 🎯 Open an old declaration that has an EU supplier with foreign VAT on a service. Classify. Observe the new RULE 11X citation in the flag: Art. 44 + 196 + C-333/20 — this is what defends the flag to an auditor.
+- 🎯 Open any declaration in `paid`. Observe the "← Un-file & reopen" tertiary button next to "Cycle complete". Click a "done" circle in the stepper → confirmation → reopen.
+- 🎯 Seed a high-severity legal-watch item. Expand the green "AI-proposed rule patch" block. Click **Modificar** → textarea appears. Edit a reasoning line. Click **Save**. Chip "Edited by reviewer" appears in the header. Click **Accept & commit** → commit lands on `main` with `human_edited: true` trailer.
+- 🎯 Trigger a scan → observe BOTH `curia` and `vatupdate` feed names in the scan report. Curia-sourced items show a direct curia.europa.eu URL.
+
+**Still deferred for a next stint:**
+- GITHUB_TOKEN env var in Vercel — without it, Accept falls back to the copy-command path. Diego has to set a fine-grained PAT (Contents:write + Metadata:read on diego10av/cifra). **This is the top priority for tonight.**
+- DNS: `cifracompliance.com` to Vercel (A record or CNAME).
+- `AUTH_PASSWORD_JUNIOR` in Vercel env (stint 11 shipped the middleware; env variable still pending).
+- Test-sandbox (server runs vitest against the diff before enabling Accept — stint 22 shipped the whitelist but not a live test run).
+- AED portal URL pattern exact — scraping the circulaires page for permalinks.
+- Multi-file diff preview in the Modify textarea (syntax highlight per file section).
+- Narrowing the legal-watch keyword list based on observed production volume (7 days of data needed first).
+
+---
 
 **2026-04-23** — Stint 22: declarations flow unblocked + Legal Watch clarity + partner review + rule-patch drafter
 
