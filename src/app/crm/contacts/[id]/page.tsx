@@ -9,6 +9,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { RecordHistory } from '@/components/crm/RecordHistory';
 import { CONTACT_FIELDS } from '@/components/crm/schemas';
 import {
   LABELS_LIFECYCLE, LABELS_ENGAGEMENT, LABELS_ACTIVITY_TYPE,
@@ -162,6 +163,8 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           ])}
         />
       </Section>
+
+      <RecordHistory targetType="crm_contact" targetId={id} />
     </div>
   );
 }

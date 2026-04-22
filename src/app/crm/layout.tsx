@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   BuildingIcon, UsersIcon, TargetIcon, BriefcaseIcon,
-  CalendarIcon, CheckSquareIcon, EuroIcon,
+  CalendarIcon, CheckSquareIcon, EuroIcon, Trash2Icon,
 } from 'lucide-react';
 
 const TABS = [
@@ -24,6 +24,7 @@ const TABS = [
   { href: '/crm/activities',    label: 'Activities',    icon: CalendarIcon },
   { href: '/crm/tasks',         label: 'Tasks',         icon: CheckSquareIcon },
   { href: '/crm/billing',       label: 'Billing',       icon: EuroIcon },
+  { href: '/crm/trash',         label: 'Trash',         icon: Trash2Icon },
 ];
 
 export default function CrmLayout({ children }: { children: React.ReactNode }) {

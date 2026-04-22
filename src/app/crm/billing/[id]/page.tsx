@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { RecordHistory } from '@/components/crm/RecordHistory';
 import { INVOICE_FIELDS } from '@/components/crm/schemas';
 import { LABELS_INVOICE_STATUS, formatEur, formatDate } from '@/lib/crm-types';
 
@@ -223,6 +224,8 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
           </div>
         )}
       </div>
+
+      <RecordHistory targetType="crm_invoice" targetId={id} />
     </div>
   );
 }

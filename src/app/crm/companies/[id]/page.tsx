@@ -9,6 +9,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { RecordHistory } from '@/components/crm/RecordHistory';
 import { COMPANY_FIELDS } from '@/components/crm/schemas';
 import {
   LABELS_CLASSIFICATION, LABELS_INDUSTRY, LABELS_SIZE,
@@ -183,6 +184,8 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
           ])}
         />
       </Section>
+
+      <RecordHistory targetType="crm_company" targetId={id} />
     </div>
   );
 }

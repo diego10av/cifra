@@ -9,6 +9,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { RecordHistory } from '@/components/crm/RecordHistory';
 import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
 import {
   LABELS_STAGE, LABELS_ACTIVITY_TYPE, formatEur, formatDate,
@@ -157,6 +158,8 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
           ])}
         />
       </Section>
+
+      <RecordHistory targetType="crm_opportunity" targetId={id} />
     </div>
   );
 }

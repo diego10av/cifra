@@ -9,6 +9,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
+import { RecordHistory } from '@/components/crm/RecordHistory';
 import { MATTER_FIELDS } from '@/components/crm/schemas';
 import {
   LABELS_MATTER_STATUS, LABELS_ACTIVITY_TYPE, LABELS_INVOICE_STATUS,
@@ -177,6 +178,8 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
           ])}
         />
       </Section>
+
+      <RecordHistory targetType="crm_matter" targetId={id} />
     </div>
   );
 }
