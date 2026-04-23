@@ -174,6 +174,32 @@ export const COMPANY_FIELDS: FieldSchema[] = [
     help: 'Free-form segments: "PE-fund", "Portfolio-company", "Inherited-from-X".',
   },
   {
+    name: 'billing_address',
+    label: 'Billing address',
+    type: 'textarea',
+    placeholder: '12 rue du Fossé\nL-1536 Luxembourg\nGrand Duchy of Luxembourg',
+    help: 'Multi-line. Rendered in the "Bill to" block of every invoice PDF.',
+  },
+  {
+    name: 'registered_address',
+    label: 'Registered office',
+    type: 'textarea',
+    placeholder: 'If different from billing',
+  },
+  {
+    name: 'vat_number',
+    label: 'VAT number',
+    type: 'text',
+    placeholder: 'LU12345678',
+    help: 'Rendered on invoices; enables intra-EU VIES checks later.',
+  },
+  {
+    name: 'matricule',
+    label: 'Matricule (LU)',
+    type: 'text',
+    placeholder: '20232456346',
+  },
+  {
     name: 'notes',
     label: 'Notes',
     type: 'textarea',

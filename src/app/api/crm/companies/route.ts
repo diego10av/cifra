@@ -54,7 +54,8 @@ export async function GET(request: NextRequest) {
 // POST /api/crm/companies — create a new company row.
 //
 // Body: { company_name, country?, industry?, size?, classification?,
-//         website?, linkedin_url?, tags?[], notes?, lead_counsel?, entity_id? }
+//         website?, linkedin_url?, tags?[], notes?, lead_counsel?, entity_id?,
+//         billing_address?, registered_address?, vat_number?, matricule? }
 // Returns: { id, ... }
 //
 // Required: company_name (min 1 char after trim).
@@ -68,8 +69,9 @@ export async function POST(request: NextRequest) {
   await execute(
     `INSERT INTO crm_companies
        (id, company_name, country, industry, size, classification,
-        website, linkedin_url, tags, notes, lead_counsel, entity_id, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,NOW())`,
+        website, linkedin_url, tags, notes, lead_counsel, entity_id,
+        billing_address, registered_address, vat_number, matricule, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,NOW())`,
     [
       id, name,
       body.country ?? null,
@@ -82,6 +84,10 @@ export async function POST(request: NextRequest) {
       body.notes ?? null,
       body.lead_counsel ?? null,
       body.entity_id ?? null,
+      body.billing_address ?? null,
+      body.registered_address ?? null,
+      body.vat_number ?? null,
+      body.matricule ?? null,
     ],
   );
   await logAudit({

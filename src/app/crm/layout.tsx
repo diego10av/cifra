@@ -14,7 +14,7 @@ import { usePathname } from 'next/navigation';
 import {
   BuildingIcon, UsersIcon, TargetIcon, BriefcaseIcon,
   CalendarIcon, CheckSquareIcon, EuroIcon, Trash2Icon,
-  SearchIcon,
+  SearchIcon, SettingsIcon,
 } from 'lucide-react';
 import { GlobalSearch } from '@/components/crm/GlobalSearch';
 
@@ -27,6 +27,7 @@ const TABS = [
   { href: '/crm/tasks',         label: 'Tasks',         icon: CheckSquareIcon },
   { href: '/crm/billing',       label: 'Billing',       icon: EuroIcon },
   { href: '/crm/trash',         label: 'Trash',         icon: Trash2Icon },
+  { href: '/crm/settings',      label: 'Settings',      icon: SettingsIcon },
 ];
 
 export default function CrmLayout({ children }: { children: React.ReactNode }) {

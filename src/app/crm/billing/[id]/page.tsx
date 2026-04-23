@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PencilIcon, Trash2Icon, PlusIcon } from 'lucide-react';
+import { PencilIcon, Trash2Icon, PlusIcon, DownloadIcon, MailIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
@@ -136,6 +136,31 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         subtitle={`${i.status ? LABELS_INVOICE_STATUS[i.status as keyof typeof LABELS_INVOICE_STATUS] : ''} · Issued ${formatDate(i.issue_date as string)} · Due ${formatDate(i.due_date as string)}`}
         actions={
           <>
+            <a
+              href={`/api/crm/billing/${id}/pdf?download=1`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt"
+              title="Download a branded PDF of this invoice"
+            >
+              <DownloadIcon size={13} />
+              PDF
+            </a>
+            <button
+              onClick={() => {
+                const subject = `Invoice ${String(i.invoice_number)}`;
+                const body = `Dear ${String((i as Record<string, string | null>).primary_contact_name ?? i.client_name ?? 'colleague')},\n\nPlease find attached our invoice ${String(i.invoice_number)}, due ${formatDate(i.due_date as string)}.\n\nPayment instructions appear on the PDF.\n\nKind regards,`;
+                // The user downloads the PDF separately and attaches
+                // it to the email. We don't inline attachments via
+                // mailto: because most mail clients ignore the spec.
+                window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
+              }}
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt"
+              title="Open a draft email in your mail client (remember to attach the PDF)"
+            >
+              <MailIcon size={13} />
+              Email
+            </button>
             <Button variant="secondary" size="sm" icon={<PlusIcon size={13} />} onClick={() => setPayOpen(true)}>
               Record payment
             </Button>
