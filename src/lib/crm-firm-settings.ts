@@ -25,6 +25,7 @@ export interface FirmSettings {
   payment_terms_days: number;
   footer_text: string | null;
   logo_data_url: string | null;
+  require_approval_above_eur: number | null;
   updated_at: string;
 }
 
@@ -39,7 +40,8 @@ export async function getFirmSettings(): Promise<FirmSettings> {
     `SELECT id, firm_name, firm_address_lines, firm_vat_number, firm_matricule,
             firm_rcs_number, firm_email, firm_phone, firm_website,
             bank_name, bank_iban, bank_bic, payment_terms_days, footer_text,
-            logo_data_url, updated_at::text AS updated_at
+            logo_data_url, require_approval_above_eur,
+            updated_at::text AS updated_at
        FROM crm_firm_settings WHERE id = 'default'`,
   );
   if (row) return row;
@@ -60,6 +62,7 @@ export async function getFirmSettings(): Promise<FirmSettings> {
     payment_terms_days: 30,
     footer_text: null,
     logo_data_url: null,
+    require_approval_above_eur: null,
     updated_at: new Date().toISOString(),
   };
 }

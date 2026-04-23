@@ -12,7 +12,7 @@ const UPDATABLE = [
   'firm_name', 'firm_address_lines', 'firm_vat_number', 'firm_matricule',
   'firm_rcs_number', 'firm_email', 'firm_phone', 'firm_website',
   'bank_name', 'bank_iban', 'bank_bic', 'payment_terms_days',
-  'footer_text', 'logo_data_url',
+  'footer_text', 'logo_data_url', 'require_approval_above_eur',
 ] as const;
 
 // PUT — update any subset of settings. Fires an audit row per changed
@@ -35,6 +35,12 @@ export async function PUT(request: NextRequest) {
     } else if (f === 'payment_terms_days') {
       const n = Number(next);
       next = Number.isFinite(n) && n > 0 ? Math.floor(n) : 30;
+    } else if (f === 'require_approval_above_eur') {
+      if (next === '' || next === null || next === undefined) next = null;
+      else {
+        const n = Number(next);
+        next = Number.isFinite(n) && n > 0 ? n : null;
+      }
     } else if (typeof next === 'string') {
       next = next.trim() || null;
     }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, query, execute, logAudit } from '@/lib/db';
 import { apiError } from '@/lib/api-errors';
+import { getFirmSettings } from '@/lib/crm-firm-settings';
 
 const UPDATABLE_FIELDS = [
   'invoice_number', 'company_id', 'matter_id', 'primary_contact_id',
@@ -82,6 +83,28 @@ export async function PUT(
     }
     idx += 1;
     changed.push({ field: f, before, after: next });
+  }
+
+  // Approval gate: if firm requires approval above threshold and this
+  // PUT transitions the invoice to an "issued" status (sent/paid/etc.),
+  // block unless approved_by is already set on the row.
+  const statusChange = changed.find(c => c.field === 'status');
+  if (statusChange && ['sent', 'partial_paid', 'paid', 'overdue'].includes(String(statusChange.after ?? ''))
+      && !['sent', 'partial_paid', 'paid', 'overdue'].includes(String(existing.status ?? ''))) {
+    const firm = await getFirmSettings();
+    const threshold = firm.require_approval_above_eur !== null && firm.require_approval_above_eur !== undefined
+      ? Number(firm.require_approval_above_eur) : null;
+    if (threshold !== null && threshold > 0) {
+      const amt = Number(existing.amount_incl_vat ?? 0);
+      const approvedBy = (existing.approved_by as string | null) ?? null;
+      if (Math.abs(amt) > threshold && !approvedBy) {
+        return apiError(
+          'approval_required',
+          `This invoice (${amt.toFixed(2)} EUR) exceeds the approval threshold (${threshold.toFixed(2)} EUR). Approve it first before changing status to ${statusChange.after}.`,
+          { status: 400 },
+        );
+      }
+    }
   }
 
   if (changed.length === 0) return NextResponse.json({ id, changed: [] });

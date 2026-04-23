@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query, execute, generateId, logAudit } from '@/lib/db';
 import { apiError } from '@/lib/api-errors';
 import { nextInvoiceNumber } from '@/lib/crm-invoice-number';
+import { fetchECBRate } from '@/lib/ecb';
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -95,20 +96,31 @@ export async function POST(request: NextRequest) {
     ? body.invoice_number.trim()
     : await nextInvoiceNumber();
 
+  // Multi-currency: snapshot the ECB reference rate on the issue
+  // date so downstream EUR conversions are stable. Skip for EUR
+  // (rate = 1 implicitly). Fails open — a missing FX rate doesn't
+  // block invoice creation; we set NULL and the UI shows a warning.
+  const currency = body.currency ?? 'EUR';
+  let fxRate: number | null = null;
+  if (currency !== 'EUR' && body.issue_date) {
+    fxRate = await fetchECBRate(currency, body.issue_date);
+  }
+
   const id = generateId();
   await execute(
     `INSERT INTO crm_billing_invoices
        (id, invoice_number, company_id, matter_id, primary_contact_id,
         issue_date, due_date, currency, amount_excl_vat, vat_rate, vat_amount,
-        amount_incl_vat, status, payment_method, line_items, notes, updated_at)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::jsonb,$16,NOW())`,
+        amount_incl_vat, status, payment_method, line_items, notes,
+        fx_rate_at_issue, fx_currency_at_issue, updated_at)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15::jsonb,$16,$17,$18,NOW())`,
     [
       id, invoiceNumber, companyId,
       body.matter_id ?? null,
       body.primary_contact_id ?? null,
       body.issue_date ?? null,
       body.due_date ?? null,
-      body.currency ?? 'EUR',
+      currency,
       amountExcl,
       vatRate,
       vatAmount,
@@ -117,6 +129,8 @@ export async function POST(request: NextRequest) {
       body.payment_method ?? null,
       JSON.stringify(Array.isArray(body.line_items) ? body.line_items : []),
       body.notes ?? null,
+      fxRate,
+      currency !== 'EUR' ? currency : null,
     ],
   );
 

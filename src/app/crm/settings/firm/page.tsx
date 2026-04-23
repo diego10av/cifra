@@ -150,7 +150,22 @@ export default function FirmSettingsPage() {
               className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums"
             />
           </Field>
-          <div />
+          <Field label="Approval threshold (€) — blank = no approval required">
+            <input
+              type="number"
+              value={settings.require_approval_above_eur ?? ''}
+              onChange={e => set('require_approval_above_eur', e.target.value === '' ? null : Number(e.target.value))}
+              min={0}
+              placeholder="e.g. 10000"
+              className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums"
+            />
+          </Field>
+          <div className="md:col-span-2">
+            <p className="text-[10.5px] text-ink-muted italic">
+              When set, invoices above this amount require an explicit Approve click before they can transition from draft to sent/paid.
+              Useful for two-person control on large invoices. Leave blank to disable the gate entirely.
+            </p>
+          </div>
           <div className="md:col-span-2">
             <Field label="Footer text (legal boilerplate)">
               <textarea

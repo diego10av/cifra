@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PencilIcon, Trash2Icon, PlusIcon, DownloadIcon, MailIcon, UndoIcon } from 'lucide-react';
+import { PencilIcon, Trash2Icon, PlusIcon, DownloadIcon, MailIcon, UndoIcon, CheckCircle2Icon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
@@ -107,6 +107,29 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     await load();
   }
 
+  async function handleApprove() {
+    const res = await fetch(`/api/crm/billing/${id}/approve`, { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast.error(err?.error?.message ?? 'Approval failed');
+      return;
+    }
+    toast.success('Invoice approved');
+    await load();
+  }
+
+  async function handleRescindApproval() {
+    if (!confirm('Rescind approval? Invoice will need re-approval before being sent.')) return;
+    const res = await fetch(`/api/crm/billing/${id}/approve`, { method: 'DELETE' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast.error(err?.error?.message ?? 'Rescind failed');
+      return;
+    }
+    toast.success('Approval rescinded');
+    await load();
+  }
+
   async function handleCreateCreditNote(amount: string, reason: string) {
     const n = amount ? Number(amount) : null;
     if (amount && (!Number.isFinite(n) || (n as number) <= 0)) {
@@ -184,6 +207,16 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               <MailIcon size={13} />
               Email
             </button>
+            {String(i.status ?? '') === 'draft' && !(i as Record<string, string | null>).approved_by && (
+              <Button variant="primary" size="sm" icon={<CheckCircle2Icon size={13} />} onClick={handleApprove}>
+                Approve
+              </Button>
+            )}
+            {String(i.status ?? '') === 'draft' && !!(i as Record<string, string | null>).approved_by && (
+              <Button variant="ghost" size="sm" icon={<UndoIcon size={13} />} onClick={handleRescindApproval}>
+                Rescind approval
+              </Button>
+            )}
             <Button variant="secondary" size="sm" icon={<PlusIcon size={13} />} onClick={() => setPayOpen(true)}>
               Record payment
             </Button>
@@ -235,6 +268,34 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             {String((i as Record<string, string>).original_invoice_number ?? (i as Record<string, string>).original_invoice_id)}
           </Link>
           . Amounts are negative and offset the original on dashboards.
+        </div>
+      )}
+
+      {!!(i as Record<string, string | null>).approved_by && (
+        <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-300 rounded text-[12px] text-emerald-900 flex items-center gap-2">
+          <CheckCircle2Icon size={14} className="text-emerald-700" />
+          Approved by <strong>{String((i as Record<string, string>).approved_by)}</strong>{' '}
+          on {formatDate(String((i as Record<string, string>).approved_at ?? ''))}. Safe to issue.
+        </div>
+      )}
+
+      {i.currency && i.currency !== 'EUR' && (
+        <div className="mb-4 p-2.5 bg-brand-50 border border-brand-200 rounded text-[12px] text-brand-900">
+          💱 Foreign-currency invoice in <strong>{String(i.currency)}</strong>.
+          {(i as Record<string, number | null>).fx_rate_at_issue
+            ? <> ECB rate on issue date: <span className="font-mono">1 EUR = {Number((i as Record<string, number>).fx_rate_at_issue).toFixed(4)} {String(i.currency)}</span>. Dashboards convert to EUR using this snapshot.</>
+            : <> FX rate not snapshot — dashboards will show at-rate-lookup-time values until this is populated.</>
+          }
+        </div>
+      )}
+
+      {!!(i as Record<string, string | null>).last_reminder_kind && (
+        <div className="mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded text-[11.5px] text-amber-900">
+          ⏰ Last reminder: <strong>{String((i as Record<string, string>).last_reminder_kind)}</strong>
+          {(i as Record<string, string | null>).last_reminder_sent_at && (
+            <> on {formatDate(String((i as Record<string, string>).last_reminder_sent_at))}</>
+          )}
+          . An open task exists in the Tasks tab.
         </div>
       )}
 
