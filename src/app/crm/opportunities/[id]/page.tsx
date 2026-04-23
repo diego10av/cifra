@@ -66,7 +66,18 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
         toast.error(err?.error?.message ?? `Delete failed (${res.status})`);
         return;
       }
-      toast.success('Opportunity moved to trash', 'Restore from /crm/trash within 30 days.');
+      toast.withAction('success', 'Opportunity moved to trash', 'Will auto-purge after 30 days.', {
+        label: 'Undo',
+        onClick: async () => {
+          const restore = await fetch(`/api/crm/trash/opportunity/${id}`, { method: 'POST' });
+          if (restore.ok) {
+            toast.success('Opportunity restored');
+            router.push(`/crm/opportunities/${id}`);
+          } else {
+            toast.error('Undo failed — restore manually from /crm/trash');
+          }
+        },
+      });
       router.push('/crm/opportunities');
     } finally {
       setDeleting(false);

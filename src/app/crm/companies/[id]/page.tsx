@@ -73,7 +73,18 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
         toast.error(err?.error?.message ?? `Delete failed (${res.status})`);
         return;
       }
-      toast.success('Company moved to trash', 'Restore from /crm/trash within 30 days.');
+      toast.withAction('success', 'Company moved to trash', 'Will auto-purge after 30 days.', {
+        label: 'Undo',
+        onClick: async () => {
+          const restore = await fetch(`/api/crm/trash/company/${id}`, { method: 'POST' });
+          if (restore.ok) {
+            toast.success('Company restored');
+            router.push(`/crm/companies/${id}`);
+          } else {
+            toast.error('Undo failed — restore manually from /crm/trash');
+          }
+        },
+      });
       router.push('/crm/companies');
     } finally {
       setDeleting(false);

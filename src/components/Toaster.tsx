@@ -15,11 +15,19 @@
 import { useEffect, useState, createContext, useContext, useCallback, useRef } from 'react';
 
 export type ToastKind = 'success' | 'error' | 'info';
+/** Inline action button rendered inside a toast (e.g. "Undo" after delete).
+ *  When an action is present, the toast's lifetime is extended so the user
+ *  has a realistic window to click it. */
+export interface ToastAction {
+  label: string;
+  onClick: () => void | Promise<void>;
+}
 export interface Toast {
   id: number;
   kind: ToastKind;
   message: string;
   hint?: string;
+  action?: ToastAction;
   /** How many times this same message was pushed within the dedup window. */
   count: number;
   /** Timestamp of the last push — used to extend lifetime on re-occurrence. */
@@ -31,6 +39,7 @@ interface ToastContextValue {
   success: (message: string, hint?: string) => void;
   error: (message: string, hint?: string) => void;
   info: (message: string, hint?: string) => void;
+  withAction: (kind: ToastKind, message: string, hint: string | undefined, action: ToastAction) => void;
   clearAll: () => void;
 }
 
@@ -53,6 +62,7 @@ export function useToast(): ToastContextValue {
       success: () => {},
       error: () => {},
       info: () => {},
+      withAction: () => {},
       clearAll: () => {},
     };
   }
@@ -71,10 +81,13 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     setToasts(ts => ts.filter(t => t.id !== id));
   }, []);
 
-  const scheduleExpiry = useCallback((id: number, kind: ToastKind) => {
+  const scheduleExpiry = useCallback((id: number, kind: ToastKind, hasAction: boolean) => {
     const existing = timersRef.current.get(id);
     if (existing) clearTimeout(existing);
-    const lifetime = LIFETIME_BY_KIND[kind];
+    // Toasts with an inline action (e.g. Undo) get a 5-second window
+    // regardless of kind — generous enough to read + click, but not so
+    // long that a stack of undo-toasts clutters the screen.
+    const lifetime = hasAction ? 5000 : LIFETIME_BY_KIND[kind];
     const t = setTimeout(() => remove(id), lifetime);
     timersRef.current.set(id, t);
   }, [remove]);
@@ -91,7 +104,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         const updated = [...prev];
         const existing = updated[dupIdx];
         updated[dupIdx] = { ...existing, count: existing.count + 1, lastAt: now };
-        scheduleExpiry(existing.id, existing.kind);
+        scheduleExpiry(existing.id, existing.kind, !!existing.action);
         return updated;
       }
 
@@ -103,7 +116,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         const timer = timersRef.current.get(drop.id);
         if (timer) { clearTimeout(timer); timersRef.current.delete(drop.id); }
       }
-      scheduleExpiry(id, t.kind);
+      scheduleExpiry(id, t.kind, !!t.action);
       return next;
     });
   }, [scheduleExpiry]);
@@ -131,6 +144,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     success: (m, h) => push({ kind: 'success', message: m, hint: h }),
     error: (m, h) => push({ kind: 'error', message: m, hint: h }),
     info: (m, h) => push({ kind: 'info', message: m, hint: h }),
+    withAction: (kind, m, h, action) => push({ kind, message: m, hint: h, action }),
     clearAll,
   };
 
@@ -208,6 +222,20 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         </div>
         {toast.hint && <div className="text-[11px] text-gray-500 mt-0.5">{toast.hint}</div>}
       </div>
+      {toast.action && (
+        <button
+          onClick={async () => {
+            // Dismiss first so a slow handler doesn't leave the toast
+            // dangling — the action is considered "committed" once the
+            // user has clicked.
+            onDismiss();
+            try { await toast.action!.onClick(); } catch { /* swallow */ }
+          }}
+          className="shrink-0 h-7 px-2.5 text-[11.5px] font-semibold text-brand-700 hover:text-brand-900 border border-brand-300 rounded-md hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+        >
+          {toast.action.label}
+        </button>
+      )}
       <button
         onClick={onDismiss}
         className="shrink-0 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer -mr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink rounded"

@@ -70,7 +70,18 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         toast.error(err?.error?.message ?? `Delete failed (${res.status})`);
         return;
       }
-      toast.success('Contact moved to trash', 'Restore from /crm/trash within 30 days.');
+      toast.withAction('success', 'Contact moved to trash', 'Will auto-purge after 30 days.', {
+        label: 'Undo',
+        onClick: async () => {
+          const restore = await fetch(`/api/crm/trash/contact/${id}`, { method: 'POST' });
+          if (restore.ok) {
+            toast.success('Contact restored');
+            router.push(`/crm/contacts/${id}`);
+          } else {
+            toast.error('Undo failed — restore manually from /crm/trash');
+          }
+        },
+      });
       router.push('/crm/contacts');
     } finally {
       setDeleting(false);

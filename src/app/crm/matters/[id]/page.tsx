@@ -72,7 +72,18 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
         toast.error(err?.error?.message ?? `Delete failed (${res.status})`);
         return;
       }
-      toast.success('Matter moved to trash', 'Restore from /crm/trash within 30 days.');
+      toast.withAction('success', 'Matter moved to trash', 'Will auto-purge after 30 days.', {
+        label: 'Undo',
+        onClick: async () => {
+          const restore = await fetch(`/api/crm/trash/matter/${id}`, { method: 'POST' });
+          if (restore.ok) {
+            toast.success('Matter restored');
+            router.push(`/crm/matters/${id}`);
+          } else {
+            toast.error('Undo failed — restore manually from /crm/trash');
+          }
+        },
+      });
       router.push('/crm/matters');
     } finally {
       setDeleting(false);
