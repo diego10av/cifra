@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, query, execute, logAudit } from '@/lib/db';
 import { apiError } from '@/lib/api-errors';
 import { getFirmSettings } from '@/lib/crm-firm-settings';
+import { runAutomations } from '@/lib/crm-automation';
 
 const UPDATABLE_FIELDS = [
   'invoice_number', 'company_id', 'matter_id', 'primary_contact_id',
@@ -124,6 +125,17 @@ export async function PUT(
       field: c.field,
       oldValue: c.field === 'line_items' ? JSON.stringify(c.before) : String(c.before ?? ''),
       newValue: c.field === 'line_items' ? JSON.stringify(c.after) : String(c.after ?? ''),
+    });
+  }
+
+  // Fire automation rules on status change.
+  if (statusChange) {
+    await runAutomations('invoice_status_changed', {
+      target_type: 'crm_invoice',
+      target_id: id,
+      from_status: String(statusChange.before ?? ''),
+      to_status: String(statusChange.after ?? ''),
+      invoice_number: String((existing.invoice_number as string | null) ?? id),
     });
   }
 

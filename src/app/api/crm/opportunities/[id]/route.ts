@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { queryOne, query, execute, logAudit } from '@/lib/db';
 import { apiError } from '@/lib/api-errors';
+import { runAutomations } from '@/lib/crm-automation';
 
 const UPDATABLE_FIELDS = [
   'name', 'company_id', 'primary_contact_id', 'stage', 'practice_areas',
@@ -103,6 +104,21 @@ export async function PUT(
       oldValue: Array.isArray(c.before) ? JSON.stringify(c.before) : String(c.before ?? ''),
       newValue: Array.isArray(c.after) ? JSON.stringify(c.after) : String(c.after ?? ''),
     });
+  }
+
+  // Fire automation rules on stage change. Fails open — never blocks
+  // the PUT response.
+  if (stageChanged) {
+    const stageChange = changed.find(c => c.field === 'stage');
+    if (stageChange) {
+      await runAutomations('opportunity_stage_changed', {
+        target_type: 'crm_opportunity',
+        target_id: id,
+        from_stage: String(stageChange.before ?? ''),
+        to_stage: String(stageChange.after ?? ''),
+        opp_name: String((existing.name as string | null) ?? id),
+      });
+    }
   }
 
   return NextResponse.json({ id, changed: changed.map(c => c.field) });
