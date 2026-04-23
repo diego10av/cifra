@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { ExportButton } from '@/components/crm/ExportButton';
+import { BillingDashboard } from '@/components/crm/BillingDashboard';
 import { INVOICE_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
 import {
@@ -53,6 +54,7 @@ export default function BillingPage() {
   const [status, setStatus] = useState<string>('');
   const [year, setYear] = useState<string>(String(thisYear));
   const [newOpen, setNewOpen] = useState(false);
+  const [view, setView] = useState<'list' | 'dashboard'>('list');
   const toast = useToast();
 
   const load = useCallback(() => {
@@ -134,6 +136,20 @@ export default function BillingPage() {
       )}
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
+        <div className="inline-flex border border-border rounded-md overflow-hidden">
+          <button
+            onClick={() => setView('list')}
+            className={`px-2.5 py-1.5 text-[11.5px] font-medium ${view === 'list' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+          >
+            📋 List
+          </button>
+          <button
+            onClick={() => setView('dashboard')}
+            className={`px-2.5 py-1.5 text-[11.5px] font-medium border-l border-border ${view === 'dashboard' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+          >
+            📊 Dashboard
+          </button>
+        </div>
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search invoice number..."
@@ -154,7 +170,9 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {data.invoices.length === 0 ? (
+      {view === 'dashboard' ? (
+        <BillingDashboard year={Number(year || new Date().getFullYear())} />
+      ) : data.invoices.length === 0 ? (
         <EmptyState illustration="stack" title="No invoices for this filter" description="Adjust filters or run the Notion import to populate." />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
