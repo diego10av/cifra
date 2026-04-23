@@ -138,6 +138,28 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(c.notes)}</div>
       )}
 
+      {(c.lifecycle_stage === 'lead' || c.lifecycle_stage === 'prospect') && c.lead_score !== null && c.lead_score !== undefined && (
+        <div className="mb-5 p-3 border border-border rounded bg-white flex items-start gap-3">
+          <div className="shrink-0">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-[14px] tabular-nums ${
+              Number(c.lead_score) >= 70 ? 'bg-emerald-100 text-emerald-800'
+              : Number(c.lead_score) >= 40 ? 'bg-amber-100 text-amber-800'
+              : 'bg-danger-50 text-danger-700'
+            }`}>
+              {Number(c.lead_score)}
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
+              Lead score {c.lead_score_updated_at ? `· updated ${new Date(String(c.lead_score_updated_at)).toLocaleDateString('en-GB')}` : ''}
+            </div>
+            <div className="text-[12px] text-ink-soft whitespace-pre-wrap">
+              {c.lead_score_reasoning ? String(c.lead_score_reasoning) : <span className="italic text-ink-muted">Will be scored on next monthly run.</span>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <Section title={`Companies (${data.companies.length})`}>
         <Table
           headers={['Company', 'Classification', 'Role', 'Primary?']}
