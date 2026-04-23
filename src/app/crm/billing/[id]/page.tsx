@@ -3,7 +3,7 @@
 import { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { PencilIcon, Trash2Icon, PlusIcon, DownloadIcon, MailIcon } from 'lucide-react';
+import { PencilIcon, Trash2Icon, PlusIcon, DownloadIcon, MailIcon, UndoIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
@@ -31,6 +31,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   const [editOpen, setEditOpen] = useState(false);
   const [payOpen, setPayOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [creditingOpen, setCreditingOpen] = useState(false);
 
   const load = useCallback(() => {
     fetch(`/api/crm/billing/${id}`, { cache: 'no-store' })
@@ -106,6 +107,28 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
     await load();
   }
 
+  async function handleCreateCreditNote(amount: string, reason: string) {
+    const n = amount ? Number(amount) : null;
+    if (amount && (!Number.isFinite(n) || (n as number) <= 0)) {
+      toast.error('Amount must be a positive number (or blank for full credit)');
+      return;
+    }
+    const res = await fetch(`/api/crm/billing/${id}/credit-note`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: n, reason }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      toast.error(err?.error?.message ?? 'Credit-note creation failed');
+      return;
+    }
+    const body = await res.json();
+    toast.success(`Credit note ${body.invoice_number} created`);
+    setCreditingOpen(false);
+    router.push(`/crm/billing/${body.id}`);
+  }
+
   async function handleDeletePayment(paymentId: string) {
     if (!confirm('Remove this payment? Invoice status will be recalculated.')) return;
     const res = await fetch(`/api/crm/billing/${id}/payments?payment_id=${paymentId}`, { method: 'DELETE' });
@@ -164,6 +187,11 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
             <Button variant="secondary" size="sm" icon={<PlusIcon size={13} />} onClick={() => setPayOpen(true)}>
               Record payment
             </Button>
+            {['sent', 'partial_paid', 'paid', 'overdue'].includes(String(i.status ?? '')) && (
+              <Button variant="secondary" size="sm" icon={<UndoIcon size={13} />} onClick={() => setCreditingOpen(true)}>
+                Credit note
+              </Button>
+            )}
             <Button variant="secondary" size="sm" icon={<PencilIcon size={13} />} onClick={() => setEditOpen(true)}>Edit</Button>
             <Button variant="ghost" size="sm" icon={<Trash2Icon size={13} />} onClick={handleDelete} loading={deleting}>Delete</Button>
           </>
@@ -192,6 +220,23 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
         onSave={handleUpdate}
       />
       <PaymentModal open={payOpen} onClose={() => setPayOpen(false)} onSave={handleRecordPayment} />
+      <CreditNoteModal
+        open={creditingOpen}
+        onClose={() => setCreditingOpen(false)}
+        onSave={handleCreateCreditNote}
+        maxAmount={Number(i.amount_incl_vat ?? 0)}
+        invoiceNumber={String(i.invoice_number ?? '')}
+      />
+
+      {i.status === 'credit_note' && (i as Record<string, string | null>).original_invoice_id && (
+        <div className="mb-4 p-2.5 bg-amber-50 border border-amber-300 rounded text-[12px] text-amber-900">
+          ↩️ This is a <strong>credit note</strong> against invoice{' '}
+          <Link href={`/crm/billing/${(i as Record<string, string>).original_invoice_id}`} className="font-mono text-brand-700 hover:underline">
+            {String((i as Record<string, string>).original_invoice_number ?? (i as Record<string, string>).original_invoice_id)}
+          </Link>
+          . Amounts are negative and offset the original on dashboards.
+        </div>
+      )}
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         <Kpi label="Amount (incl. VAT)" value={formatEur(i.amount_incl_vat)} />
@@ -319,6 +364,71 @@ function PaymentModal({
         <div>
           <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Reference</label>
           <input value={ref} onChange={e => setRef(e.target.value)} placeholder="Bank statement ref" className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function CreditNoteModal({
+  open, onClose, onSave, maxAmount, invoiceNumber,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSave: (amount: string, reason: string) => void | Promise<void>;
+  maxAmount: number;
+  invoiceNumber: string;
+}) {
+  const [amount, setAmount] = useState('');
+  const [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  async function submit() {
+    setSaving(true);
+    try { await onSave(amount, reason); } finally { setSaving(false); }
+  }
+
+  return (
+    <Modal
+      open={open}
+      onClose={saving ? () => {} : onClose}
+      title={`Credit note against ${invoiceNumber}`}
+      size="md"
+      footer={
+        <div className="flex items-center gap-2 justify-end">
+          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
+          <Button variant="primary" size="sm" onClick={submit} loading={saving}>Create credit note</Button>
+        </div>
+      }
+    >
+      <div className="space-y-3">
+        <p className="text-[12px] text-ink-muted">
+          Generates a new invoice row with <strong>negative</strong> amounts, linked to {invoiceNumber}. The original stays
+          as-is (its status doesn&apos;t change) — the credit note appears on dashboards and cancels the figure on aggregate.
+        </p>
+        <div>
+          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+            Amount to credit (€) — blank = full ({formatEur(maxAmount)})
+          </label>
+          <input
+            type="number"
+            step="0.01"
+            value={amount}
+            onChange={e => setAmount(e.target.value)}
+            placeholder={formatEur(maxAmount)}
+            max={maxAmount}
+            className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums"
+          />
+        </div>
+        <div>
+          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Reason</label>
+          <textarea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            rows={3}
+            placeholder="E.g. Billing error on line 3 · client goodwill gesture · scope descoping"
+            className="w-full px-2.5 py-2 text-[13px] border border-border rounded-md resize-y"
+          />
         </div>
       </div>
     </Modal>

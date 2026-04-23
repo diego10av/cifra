@@ -26,7 +26,7 @@ export const MATTER_STATUSES = ['active', 'on_hold', 'closed', 'archived'] as co
 export type MatterStatus = typeof MATTER_STATUSES[number];
 
 export const INVOICE_STATUSES = [
-  'draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled',
+  'draft', 'sent', 'paid', 'partially_paid', 'overdue', 'cancelled', 'credit_note',
 ] as const;
 export type InvoiceStatus = typeof INVOICE_STATUSES[number];
 
@@ -98,6 +98,7 @@ export const LABELS_INVOICE_STATUS: Record<InvoiceStatus, string> = {
   partially_paid: '🟡 Partially paid',
   overdue:        '🔴 Overdue',
   cancelled:      '⚪ Cancelled',
+  credit_note:    '↩️ Credit note',
 };
 
 export const LABELS_ACTIVITY_TYPE: Record<ActivityType, string> = {

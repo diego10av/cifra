@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { RecordHistory } from '@/components/crm/RecordHistory';
+import { RetainerLedger } from '@/components/crm/RetainerLedger';
 import { COMPANY_FIELDS } from '@/components/crm/schemas';
 import {
   LABELS_CLASSIFICATION, LABELS_INDUSTRY, LABELS_SIZE,
@@ -184,6 +185,8 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
           ])}
         />
       </Section>
+
+      <RetainerLedger companyId={id} companyName={String((data.company as { company_name?: string }).company_name ?? 'this client')} />
 
       <RecordHistory targetType="crm_company" targetId={id} />
     </div>

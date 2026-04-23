@@ -12,6 +12,7 @@ import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { RecordHistory } from '@/components/crm/RecordHistory';
 import { ConflictCheckPanel } from '@/components/crm/ConflictCheckPanel';
 import { MatterTimeTracker } from '@/components/crm/MatterTimeTracker';
+import { MatterDisbursements } from '@/components/crm/MatterDisbursements';
 import { MatterDocsClosing } from '@/components/crm/MatterDocsClosing';
 import { MATTER_FIELDS } from '@/components/crm/schemas';
 import {
@@ -145,6 +146,8 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
         capEur={(m as { cap_eur?: number | null }).cap_eur !== null && (m as { cap_eur?: number | null }).cap_eur !== undefined ? Number((m as { cap_eur?: number | null }).cap_eur) : null}
         billedSoFar={totalBilled}
       />
+
+      <MatterDisbursements matterId={id} />
 
       <MatterDocsClosing matterId={id} />
 

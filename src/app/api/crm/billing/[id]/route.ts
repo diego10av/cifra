@@ -18,11 +18,13 @@ export async function GET(
   const invoice = await queryOne(
     `SELECT b.*, c.company_name AS client_name, c.id AS client_id,
             m.matter_reference AS matter_reference, m.id AS matter_id_fk,
-            ct.full_name AS primary_contact_name
+            ct.full_name AS primary_contact_name,
+            orig.invoice_number AS original_invoice_number
        FROM crm_billing_invoices b
        LEFT JOIN crm_companies c ON c.id = b.company_id
        LEFT JOIN crm_matters   m ON m.id = b.matter_id
        LEFT JOIN crm_contacts  ct ON ct.id = b.primary_contact_id
+       LEFT JOIN crm_billing_invoices orig ON orig.id = b.original_invoice_id
       WHERE b.id = $1`,
     [id],
   );
