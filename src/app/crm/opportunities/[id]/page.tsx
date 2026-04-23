@@ -153,6 +153,23 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
         </div>
       )}
 
+      {o.stage === 'won' && (
+        <div className="mb-5 p-3 bg-emerald-50 border border-emerald-300 rounded flex items-start gap-3">
+          <div className="flex-1">
+            <div className="text-[13px] font-semibold text-emerald-900">🎉 Deal won — ready to open the matter?</div>
+            <div className="text-[11.5px] text-emerald-800 mt-0.5">
+              Kicks off the matter intake wizard with parties + scope pre-filled from this opportunity.
+            </div>
+          </div>
+          <Link
+            href={`/crm/matters/new?source_opp=${id}`}
+            className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-emerald-600 text-white text-[12.5px] font-semibold hover:bg-emerald-700"
+          >
+            Open matter →
+          </Link>
+        </div>
+      )}
+
       {o.notes && (
         <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(o.notes)}</div>
       )}

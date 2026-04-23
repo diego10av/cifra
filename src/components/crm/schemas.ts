@@ -561,6 +561,13 @@ export const ACTIVITY_FIELDS: FieldSchema[] = [
     placeholder: 'This activity counts against a matter\'s billable hours.',
   },
   {
+    name: 'also_log_time',
+    label: 'Also log as billable time entry',
+    type: 'checkbox',
+    placeholder: 'Creates a time entry on the linked matter (meetings + calls only, needs duration + matter).',
+    visibleWhen: { field: 'billable', equals: true },
+  },
+  {
     name: 'outcome',
     label: 'Outcome',
     type: 'textarea',

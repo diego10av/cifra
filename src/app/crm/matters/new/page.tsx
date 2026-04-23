@@ -22,9 +22,9 @@
 // historic matters where the conflict-check gate doesn't apply.
 // ════════════════════════════════════════════════════════════════════════
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon, AlertTriangleIcon, ShieldCheckIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Button } from '@/components/ui/Button';
@@ -73,9 +73,24 @@ const FEE_TYPES = [
   { value: 'hourly',      label: 'Hourly' },
 ];
 
+// The inner component reads useSearchParams, which forces a Suspense
+// boundary during static prerender. The outer export wraps in Suspense
+// so Next can emit the shell at build time.
 export default function MatterIntakePage() {
+  return (
+    <Suspense fallback={<div className="text-[12px] text-ink-muted italic px-3 py-6">Loading wizard…</div>}>
+      <MatterIntakeInner />
+    </Suspense>
+  );
+}
+
+function MatterIntakeInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
+
+  const sourceOppId = searchParams?.get('source_opp') ?? null;
+  const [sourceOppInfo, setSourceOppInfo] = useState<string | null>(null);
 
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
 
@@ -122,6 +137,38 @@ export default function MatterIntakePage() {
       .then((body: { contacts?: Contact[] }) => setContacts(body.contacts ?? []))
       .catch(() => setContacts([]));
   }, [clientCompanyId]);
+
+  // Pre-fill from source opportunity when landing via /crm/matters/new?source_opp=X.
+  // Loads the opp record, fills company + contact + practice areas + title
+  // (as "Matter from: <opp name>"). User can edit any of these before saving.
+  useEffect(() => {
+    if (!sourceOppId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/crm/opportunities/${sourceOppId}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const body = await res.json();
+        if (cancelled) return;
+        const o = body?.opportunity as {
+          id: string; name: string; company_id: string | null;
+          primary_contact_id: string | null; practice_areas: string[] | null;
+          estimated_value_eur: number | null;
+        } | null;
+        if (!o) return;
+        setSourceOppInfo(o.name);
+        if (o.company_id) setClientCompanyId(o.company_id);
+        if (o.primary_contact_id) setPrimaryContactId(o.primary_contact_id);
+        if (Array.isArray(o.practice_areas)) setPracticeAreas(o.practice_areas);
+        if (!title) setTitle(`Matter from: ${o.name}`);
+        if (o.estimated_value_eur && !estimatedBudgetEur) {
+          setEstimatedBudgetEur(String(o.estimated_value_eur));
+        }
+      } catch { /* silent — user can still fill manually */ }
+    })();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sourceOppId]);
 
   const relatedParties = relatedPartiesRaw.split(/\n/).map(s => s.trim()).filter(Boolean);
   const teamMembers = teamMembersRaw.split(/[\n,]/).map(s => s.trim()).filter(Boolean);
@@ -186,6 +233,7 @@ export default function MatterIntakePage() {
           conflict_check_done: true,
           conflict_check_date: new Date().toISOString().slice(0, 10),
           conflict_check_result: conflictResult,
+          source_opportunity_id: sourceOppId,
           status: 'active',
         }),
       });
@@ -209,6 +257,12 @@ export default function MatterIntakePage() {
         title="Open a matter"
         subtitle="4 steps · parties, scope, team, conflict check"
       />
+
+      {sourceOppId && sourceOppInfo && (
+        <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded text-[12px] text-emerald-900">
+          ✨ Pre-filled from opportunity <strong>{sourceOppInfo}</strong> — review each step + edit anything before saving.
+        </div>
+      )}
 
       <StepIndicator step={step} onJump={setStep} disabled={{ 2: !step1Valid, 3: !step1Valid || !step2Valid, 4: !step1Valid || !step2Valid }} />
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query, execute, generateId, logAudit } from '@/lib/db';
+import { query, queryOne, execute, generateId, logAudit } from '@/lib/db';
 import { apiError } from '@/lib/api-errors';
 
 export async function GET(request: NextRequest) {
@@ -101,5 +101,52 @@ export async function POST(request: NextRequest) {
     newValue: name,
     reason: `New ${activityType}`,
   });
-  return NextResponse.json({ id, name, activity_type: activityType }, { status: 201 });
+
+  // Auto-create a time entry when the activity represents billable
+  // work on a matter. Opt-in via body.also_log_time (the form shows a
+  // checkbox). Requires: matter_id + duration_hours > 0 +
+  // billable = true. Reuses matter.hourly_rate_eur as the rate. The
+  // created time_entry id is returned so the UI can link to it.
+  let timeEntryId: string | null = null;
+  const hours = Number(body.duration_hours ?? 0);
+  if (
+    body.also_log_time === true &&
+    body.matter_id &&
+    !!body.billable &&
+    Number.isFinite(hours) && hours > 0 &&
+    (activityType === 'meeting' || activityType === 'call')
+  ) {
+    const matter = await queryOne<{ hourly_rate_eur: string | null }>(
+      `SELECT hourly_rate_eur::text FROM crm_matters WHERE id = $1`,
+      [body.matter_id],
+    );
+    const rate = matter?.hourly_rate_eur ? Number(matter.hourly_rate_eur) : null;
+    timeEntryId = generateId();
+    await execute(
+      `INSERT INTO crm_time_entries
+         (id, matter_id, activity_id, user_id, entry_date, hours, rate_eur,
+          billable, description)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE,$8)`,
+      [
+        timeEntryId, body.matter_id, id,
+        body.lawyer ?? 'founder',
+        activityDate,
+        hours, rate,
+        `Auto-from ${activityType}: ${name}`,
+      ],
+    );
+    await logAudit({
+      action: 'time_logged_from_activity',
+      targetType: 'crm_matter',
+      targetId: body.matter_id,
+      field: 'time_entry',
+      newValue: `${hours}h`,
+      reason: `Auto time-entry from activity ${id}: ${hours}h`,
+    });
+  }
+
+  return NextResponse.json({
+    id, name, activity_type: activityType,
+    time_entry_id: timeEntryId,
+  }, { status: 201 });
 }
