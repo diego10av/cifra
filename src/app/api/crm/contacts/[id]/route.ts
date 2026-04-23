@@ -7,7 +7,7 @@ const UPDATABLE_FIELDS = [
   'preferred_language', 'lifecycle_stage', 'role_tags', 'areas_of_interest',
   'engagement_override', 'source', 'consent_status', 'consent_date',
   'consent_source', 'referred_by_contact_id', 'next_follow_up', 'notes',
-  'lead_counsel', 'tags',
+  'lead_counsel', 'tags', 'birthday', 'client_anniversary',
 ] as const;
 type UpdatableField = typeof UPDATABLE_FIELDS[number];
 

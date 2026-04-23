@@ -14,6 +14,7 @@ import { ConflictCheckPanel } from '@/components/crm/ConflictCheckPanel';
 import { MatterTimeTracker } from '@/components/crm/MatterTimeTracker';
 import { MatterDisbursements } from '@/components/crm/MatterDisbursements';
 import { MatterDocsClosing } from '@/components/crm/MatterDocsClosing';
+import { ApplyTemplateButton } from '@/components/crm/ApplyTemplateButton';
 import { MATTER_FIELDS } from '@/components/crm/schemas';
 import {
   LABELS_MATTER_STATUS, LABELS_ACTIVITY_TYPE, LABELS_INVOICE_STATUS,
@@ -94,6 +95,7 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
         subtitle={`${m.status ? LABELS_MATTER_STATUS[m.status as keyof typeof LABELS_MATTER_STATUS] : ''}${m.client_name ? ` · ${m.client_name}` : ''}${m.fee_type ? ` · ${m.fee_type}` : ''}`}
         actions={
           <>
+            <ApplyTemplateButton scope="matter" targetType="crm_matter" targetId={id} />
             <Button variant="secondary" size="sm" icon={<PencilIcon size={13} />} onClick={() => setEditOpen(true)}>Edit</Button>
             <Button variant="ghost" size="sm" icon={<Trash2Icon size={13} />} onClick={handleDelete} loading={deleting}>Delete</Button>
           </>

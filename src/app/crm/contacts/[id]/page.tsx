@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { RecordHistory } from '@/components/crm/RecordHistory';
+import { MeetingBriefButton } from '@/components/crm/MeetingBriefButton';
 import { CONTACT_FIELDS } from '@/components/crm/schemas';
 import {
   LABELS_LIFECYCLE, LABELS_ENGAGEMENT, LABELS_ACTIVITY_TYPE,
@@ -90,6 +91,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
         subtitle={`${c.job_title ?? ''}${c.country ? ` · ${c.country}` : ''}${c.lifecycle_stage ? ` · ${LABELS_LIFECYCLE[c.lifecycle_stage as keyof typeof LABELS_LIFECYCLE]}` : ''}`}
         actions={
           <>
+            <MeetingBriefButton contactId={id} contactName={String(c.full_name ?? 'contact')} />
             <Button variant="secondary" size="sm" icon={<PencilIcon size={13} />} onClick={() => setEditOpen(true)}>
               Edit
             </Button>
@@ -121,6 +123,8 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
           source: c.source,
           consent_status: c.consent_status,
           next_follow_up: c.next_follow_up,
+          birthday: c.birthday,
+          client_anniversary: c.client_anniversary,
           notes: c.notes,
           tags: c.tags ?? [],
         }}

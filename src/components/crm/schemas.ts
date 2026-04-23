@@ -299,6 +299,18 @@ export const CONTACT_FIELDS: FieldSchema[] = [
     type: 'date',
   },
   {
+    name: 'birthday',
+    label: 'Birthday',
+    type: 'date',
+    help: 'Weekly cron surfaces a reminder 7 days before. Year is a placeholder — only month/day match.',
+  },
+  {
+    name: 'client_anniversary',
+    label: 'Client anniversary',
+    type: 'date',
+    help: 'The date the relationship began (first engagement letter, first matter).',
+  },
+  {
     name: 'tags',
     label: 'Tags',
     type: 'tags',
