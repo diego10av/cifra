@@ -95,6 +95,26 @@ export async function PUT(
     changed.push({ field: f, before, after: next });
   }
 
+  // Guard: transitioning to status='closed' requires all closing
+  // steps checked. Prevents premature close without final conflict
+  // check / closing letter / etc.
+  const statusChange = changed.find(c => c.field === 'status');
+  if (statusChange && statusChange.after === 'closed' && existing.status !== 'closed') {
+    const stepsRow = await queryOne<{ pending: string }>(
+      `SELECT COUNT(*) FILTER (WHERE NOT completed)::text AS pending
+         FROM crm_matter_closing_steps WHERE matter_id = $1`,
+      [id],
+    );
+    const pending = Number(stepsRow?.pending ?? 0);
+    if (pending > 0) {
+      return apiError(
+        'closing_steps_pending',
+        `Cannot close this matter — ${pending} closing checklist step${pending === 1 ? '' : 's'} still pending. Complete them first in the Closing tab.`,
+        { status: 400 },
+      );
+    }
+  }
+
   if (changed.length === 0) return NextResponse.json({ id, changed: [] });
 
   setClauses.push(`updated_at = NOW()`);
