@@ -3,6 +3,7 @@ import { NextBestActionWidget } from '@/components/crm/NextBestActionWidget';
 import { ForecastWidget } from '@/components/crm/ForecastWidget';
 import { WipWidget } from '@/components/crm/WipWidget';
 import { UpcomingThisWeekWidget } from '@/components/crm/UpcomingThisWeekWidget';
+import { FirstTimeBanner } from '@/components/crm/FirstTimeBanner';
 import {
   BuildingIcon, UsersIcon, TargetIcon, BriefcaseIcon,
   CalendarIcon, CheckSquareIcon, EuroIcon,
@@ -25,6 +26,7 @@ export default function CrmHomePage() {
 
   return (
     <div className="space-y-5">
+      <FirstTimeBanner />
       <div>
         <h1 className="text-[18px] font-semibold text-ink">CRM home</h1>
         <p className="text-[12.5px] text-ink-muted mt-0.5">

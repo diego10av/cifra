@@ -14,7 +14,7 @@ import { usePathname } from 'next/navigation';
 import {
   BuildingIcon, UsersIcon, TargetIcon, BriefcaseIcon,
   CalendarIcon, CalendarDaysIcon, CheckSquareIcon, EuroIcon, Trash2Icon,
-  SearchIcon, SettingsIcon,
+  SearchIcon, SettingsIcon, HelpCircleIcon,
 } from 'lucide-react';
 import { GlobalSearch } from '@/components/crm/GlobalSearch';
 
@@ -67,6 +67,13 @@ export default function CrmLayout({ children }: { children: React.ReactNode }) {
           Search
           <kbd className="text-[9.5px] px-1 py-0.5 rounded bg-surface-alt border border-border text-ink-faint">⌘K</kbd>
         </button>
+        <Link
+          href="/crm/help"
+          className="inline-flex items-center justify-center h-[28px] w-[28px] text-ink-muted hover:text-ink border border-border rounded-md hover:bg-surface-alt"
+          title="Getting Started guide"
+        >
+          <HelpCircleIcon size={13} />
+        </Link>
       </nav>
       <div>{children}</div>
     </div>
