@@ -3,10 +3,12 @@
 // ════════════════════════════════════════════════════════════════════════
 // /crm — layout shared by all sub-routes of the CRM module.
 //
-// Renders a top tab nav with the 7 entity types. Each tab is a link to
-// the corresponding sub-route. Active tab is highlighted based on
-// pathname. Kept simple for stint 25.B scaffold — polish (kanban,
-// dashboards, Excel export button) comes in phase 2.
+// Nav split (stint 33.B):
+//   - Primary tabs (always visible): 8 high-frequency destinations.
+//   - Overflow menu (3-dot button): Trash, Settings, Help — low-
+//     frequency items that used to bloat the primary bar.
+// This eliminates horizontal scroll on typical viewports and keeps
+// the daily-use tabs unobstructed.
 // ════════════════════════════════════════════════════════════════════════
 
 import Link from 'next/link';
@@ -17,8 +19,9 @@ import {
   SearchIcon, SettingsIcon, HelpCircleIcon,
 } from 'lucide-react';
 import { GlobalSearch } from '@/components/crm/GlobalSearch';
+import { OverflowMenu } from '@/components/ui/OverflowMenu';
 
-const TABS = [
+const PRIMARY_TABS = [
   { href: '/crm/companies',     label: 'Companies',     icon: BuildingIcon },
   { href: '/crm/contacts',      label: 'Contacts',      icon: UsersIcon },
   { href: '/crm/opportunities', label: 'Opportunities', icon: TargetIcon },
@@ -27,8 +30,12 @@ const TABS = [
   { href: '/crm/tasks',         label: 'Tasks',         icon: CheckSquareIcon },
   { href: '/crm/billing',       label: 'Billing',       icon: EuroIcon },
   { href: '/crm/calendar',      label: 'Calendar',      icon: CalendarDaysIcon },
-  { href: '/crm/trash',         label: 'Trash',         icon: Trash2Icon },
-  { href: '/crm/settings',      label: 'Settings',      icon: SettingsIcon },
+];
+
+const OVERFLOW_ITEMS = [
+  { href: '/crm/trash',    label: 'Trash',    icon: Trash2Icon },
+  { href: '/crm/settings', label: 'Settings', icon: SettingsIcon },
+  { href: '/crm/help',     label: 'Help',     icon: HelpCircleIcon },
 ];
 
 export default function CrmLayout({ children }: { children: React.ReactNode }) {
@@ -36,8 +43,8 @@ export default function CrmLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="max-w-[1400px] mx-auto px-4 pt-4">
       <GlobalSearch />
-      <nav className="flex items-center gap-1 border-b border-border mb-4 overflow-x-auto">
-        {TABS.map(tab => {
+      <nav className="flex items-center gap-1 border-b border-border mb-4">
+        {PRIMARY_TABS.map(tab => {
           const isActive = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
           const Icon = tab.icon;
           return (
@@ -55,25 +62,21 @@ export default function CrmLayout({ children }: { children: React.ReactNode }) {
             </Link>
           );
         })}
-        <button
-          onClick={() => {
-            // Simulate ⌘K — dispatch a synthetic event.
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
-          }}
-          className="ml-auto inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11.5px] text-ink-muted hover:text-ink border border-border rounded-md hover:bg-surface-alt whitespace-nowrap"
-          title="Search across all CRM entities (⌘K)"
-        >
-          <SearchIcon size={12} />
-          Search
-          <kbd className="text-[9.5px] px-1 py-0.5 rounded bg-surface-alt border border-border text-ink-faint">⌘K</kbd>
-        </button>
-        <Link
-          href="/crm/help"
-          className="inline-flex items-center justify-center h-[28px] w-[28px] text-ink-muted hover:text-ink border border-border rounded-md hover:bg-surface-alt"
-          title="Getting Started guide"
-        >
-          <HelpCircleIcon size={13} />
-        </Link>
+        <div className="ml-auto flex items-center gap-1 pb-1.5">
+          <button
+            onClick={() => {
+              // Simulate ⌘K — dispatch a synthetic event.
+              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
+            }}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11.5px] text-ink-muted hover:text-ink border border-border rounded-md hover:bg-surface-alt whitespace-nowrap"
+            title="Search across all CRM entities (⌘K)"
+          >
+            <SearchIcon size={12} />
+            Search
+            <kbd className="text-[9.5px] px-1 py-0.5 rounded bg-surface-alt border border-border text-ink-faint">⌘K</kbd>
+          </button>
+          <OverflowMenu items={OVERFLOW_ITEMS} ariaLabel="More CRM sections" />
+        </div>
       </nav>
       <div>{children}</div>
     </div>

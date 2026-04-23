@@ -19,7 +19,8 @@ import { query } from '@/lib/db';
 export interface NextAction {
   id: string;
   type: 'task' | 'invoice_overdue' | 'opp_stuck' | 'opp_next_action' | 'dormant_key_account'
-      | 'contact_follow_up' | 'matter_closing_soon';
+      | 'contact_follow_up' | 'matter_closing_soon'
+      | 'opp_close_overdue';
   priority: number;
   title: string;
   detail: string;
@@ -124,6 +125,39 @@ export async function GET(_request: NextRequest) {
       link: `/crm/opportunities/${o.id}`,
       target_type: 'crm_opportunity', target_id: o.id,
       meta: { days_in_stage: o.days_in_stage, stage: o.stage },
+    });
+  }
+
+  // ─── 4b. Opportunities whose expected close date already passed ─────
+  // Explicit distinct action type from `opp_stuck` — a deal with an
+  // overdue close date is a commitment miss, not just slow movement.
+  const closeOverdueOpps = await query<{
+    id: string; name: string; stage: string;
+    client_name: string | null; days_overdue: number;
+    estimated_value_eur: string | null;
+  }>(
+    `SELECT o.id, o.name, o.stage,
+            c.company_name AS client_name,
+            (CURRENT_DATE - o.estimated_close_date)::int AS days_overdue,
+            o.estimated_value_eur::text
+       FROM crm_opportunities o
+       LEFT JOIN crm_companies c ON c.id = o.company_id
+      WHERE o.deleted_at IS NULL
+        AND o.stage NOT IN ('won', 'lost')
+        AND o.estimated_close_date IS NOT NULL
+        AND o.estimated_close_date < CURRENT_DATE
+      ORDER BY o.estimated_close_date ASC
+      LIMIT 10`,
+  );
+  for (const o of closeOverdueOpps) {
+    actions.push({
+      id: `opp_close_overdue:${o.id}`, type: 'opp_close_overdue',
+      priority: o.days_overdue > 14 ? 80 : 65,
+      title: `Close-date missed: ${o.name}`,
+      detail: `${o.client_name ?? '—'} · ${o.stage} · ${o.days_overdue}d past close${o.estimated_value_eur ? ` · €${Number(o.estimated_value_eur).toFixed(0)}` : ''}`,
+      link: `/crm/opportunities/${o.id}`,
+      target_type: 'crm_opportunity', target_id: o.id,
+      meta: { days_overdue: o.days_overdue, stage: o.stage },
     });
   }
 
