@@ -21,10 +21,13 @@ import {
 import { AddAdhocFilingModal } from '@/components/tax-ops/AddAdhocFilingModal';
 import { useToast } from '@/components/Toaster';
 
+// Stint 40.E — wht_director_adhoc added so director-fee WHT filings
+// without a fixed cadence show up here alongside VAT reg/dereg and FCR.
 const ADHOC_TYPES = [
   'vat_registration',
   'vat_deregistration',
   'functional_currency_request',
+  'wht_director_adhoc',
 ] as const;
 
 interface FilingRow {
