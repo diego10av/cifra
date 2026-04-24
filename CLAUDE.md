@@ -176,17 +176,21 @@ clients → entities → declarations → invoices → invoice_lines
 **As of 2026-04-24, stint 40 just closed.** Status:
 
 ### Shipped — recent stints (newest first)
-- ✅ **Stint 40** (2026-04-24 night): Tax-Ops iteration #3 post
-  second field-usage round (13 sub-commits A→N). Entity dedup batch
-  tool in Settings; family hygiene (CTR/FCR fake groups removed);
-  BCL merged to one sidebar entry + FATCA placeholder; invoice
-  price column (migration 052); contacts column on every matrix
-  row; CIT assessment tri-state; NWT opt-out; deadline tolerance
-  realigned (migration 053); archive-respects-current-year; back
-  nav via router.back(); red stripe → gray rail; "Gab Andrew"
-  scrubbed; tasks filters clarified + assignee default. 675 tests
-  green. Deferred to stint 41: WHT consolidation, Family overview,
-  Edit-all drawer.
+- ✅ **Stint 40** (2026-04-24 night, 16 sub-commits A→P): Tax-Ops
+  iteration #3 post second field-usage round. Entity dedup batch
+  tool + LU-aware normalisation; family hygiene (CTR/FCR fake groups
+  removed); BCL merged to one sidebar entry + FATCA placeholder;
+  invoice price column (migration 052); contacts column on every
+  matrix row + Edit-all drawer (pencil ✎ opens a right-side panel
+  with every field); /tax-ops/families/[id] overview with bulk-copy
+  contacts (migration-free; new bulk endpoint); CIT assessment
+  tri-state; NWT opt-out; deadline tolerance realigned (migration
+  053); WHT ad-hoc cadence (migration 054); archive-respects-
+  current-year; back nav via router.back(); red stripe → gray rail;
+  "Gab Andrew" scrubbed; tasks filter labels clarified + assignee
+  default. 675 tests green. Deferred to stint 41: full per-entity
+  WHT cadence switcher (move entity between monthly/semester/annual/
+  adhoc in one click).
 - ✅ **Stint 39** (2026-04-24 late): Tax-Ops iteration #2 post field-usage
   (7 sub-commits A→G). Sidebar reorder + € icons; family-first sticky
   colored palette; dynamic year range + entity archive; status-filter

@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-24 (stint 40 closed — 13 sub-commits A→N. Iteration #3 on Tax-Ops after another field-usage round. Major adds: entity dedup tool in Settings with Levenshtein + Luxembourg-aware name normalisation (similarity.ts, 16 unit tests); family hygiene cleanup (CTR/CSR fake groups removed, 84 entities unassigned); BCL merged to single sidebar entry + FATCA placeholder + custom 404; invoice price column (migration 052); contacts column on every matrix row; CIT assessment tri-state chips; NWT opt-out; deadline tolerance realigned with AED practice (CIT 31 Dec → 30 Oct, migration 053); back navigation via router.back(); archive-respects-current-year (entities liquidated in-year still appear for that year, hidden next year); red stripe softened to gray 2px rail; "Gab Andrew" suggestion scrubbed; tasks filter labels clarified + assignee defaults to Diego; Home overview loses NWT card, gains "Tasks due this week" widget. 675 tests green. WHT consolidation (40.E), family overview page (40.P), full filing-edit drawer (40.G.2) deferred to stint 41.)
+> Last updated: 2026-04-24 (stint 40 fully landed — 16 sub-commits A→P. Iteration #3 on Tax-Ops after another field-usage round. Highlights: entity dedup tool + Levenshtein/LU-aware normalisation; family hygiene cleanup; BCL merged + FATCA placeholder; invoice price column (mig 052); contacts column + Edit-all drawer; family overview page with bulk-copy contacts; CIT assessment tri-state + NWT opt-out; deadline tolerance realigned (mig 053); WHT ad-hoc cadence (mig 054); archive-respects-current-year; back nav; red stripe softened; "Gab Andrew" scrubbed; tasks polish; Home gains "Tasks due this week" widget. 675 tests green. Deferred to stint 41: full per-entity WHT cadence switcher.)
 
 ---
 
@@ -187,10 +187,33 @@ Gate verde por commit: tsc clean, 35 test files, 675 tests, build
 OK. Migrations 052 + 053 applied to Supabase. Anonymization grep
 limpio en cada commit (CTR/FCR cleanup was audit-logged with reason).
 
-Deferred to stint 41:
-- 40.E · WHT consolidation (1 page + per-entity cadence)
-- 40.P · Family overview page + bulk-copy contacts
-- 40.G.2 · Full filing-edit side drawer (row pencil icon)
+Post-close top-up (2026-04-24 night, "haz todo lo que queda"):
+
+- **40.G.2 · Filing Edit-all drawer** (`0948bca`). FilingEditDrawer
+  (480px right-side panel) exposing every editable field of a
+  filing at once. Pencil ✎ trigger composed into each matrix row
+  via TaxTypeMatrix.onEditFiling + periodLabelsForEdit props
+  (enabled when the row has at least one filed cell). GET filing
+  detail hydrates, Save fires one PATCH of dirty fields only,
+  toast with Undo that reverts the diff. Wired on 10 matrix pages.
+- **40.P · Family overview page + bulk-copy contacts** (`10aa0c6`).
+  New /tax-ops/families/[id] with family header + stats (entities,
+  obligations, filings, filed %) + entities table (checkbox select,
+  tax-types chips, contacts chips, filings progress). Bulk-copy
+  flow: pick source entity → check targets → Apply replaces
+  csp_contacts in one transaction (audit log captures before
+  state). New endpoints: GET /api/tax-ops/families/[id], POST
+  /api/tax-ops/entities/bulk-set-contacts. Group header in matrix,
+  Settings › Groups table, entity detail family chip all link here.
+- **40.E · WHT ad-hoc cadence** (`c83bfc1`). Migration 054 adds
+  wht_director_adhoc deadline rule (rule_kind adhoc_no_deadline).
+  Fourth "Ad-hoc" tab in WhtTabs pointing at /tax-ops/other,
+  which now recognises wht_director_adhoc as an ad-hoc type. Full
+  per-entity cadence-switcher deferred to stint 41 — for now Diego
+  archives one WHT obligation and creates another when cadence
+  changes.
+
+Stint 40 fully landed — 16 sub-commits total. 675 tests green.
 
 ---
 
