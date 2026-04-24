@@ -8,6 +8,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -17,6 +18,8 @@ import { crmLoadShape } from '@/lib/useCrmFetch';
 import {
   FilingStatusBadge, filingStatusLabel, FILING_STATUSES,
 } from '@/components/tax-ops/FilingStatusBadge';
+import { AddAdhocFilingModal } from '@/components/tax-ops/AddAdhocFilingModal';
+import { useToast } from '@/components/Toaster';
 
 const ADHOC_TYPES = [
   'vat_registration',
@@ -47,6 +50,8 @@ export default function OtherPage() {
   const [error, setError] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [addOpen, setAddOpen] = useState(false);
+  const toast = useToast();
 
   const load = useCallback(() => {
     // Pull all ad-hoc filings via the existing /api/tax-ops/filings endpoint.
@@ -79,6 +84,17 @@ export default function OtherPage() {
 
   useEffect(() => { load(); }, [load]);
 
+  async function removeFiling(filingId: string) {
+    if (!confirm('Delete this ad-hoc filing? (Reversible via audit log.)')) return;
+    const res = await fetch(`/api/tax-ops/filings/${filingId}`, { method: 'DELETE' });
+    if (!res.ok) {
+      toast.error('Delete failed');
+      return;
+    }
+    toast.success('Filing deleted');
+    load();
+  }
+
   const filtered = (rows ?? []).filter(r =>
     (typeFilter === '' || r.tax_type === typeFilter) &&
     (statusFilter === '' || r.status === statusFilter)
@@ -91,6 +107,20 @@ export default function OtherPage() {
       <PageHeader
         title="Other (ad-hoc)"
         subtitle="One-off filings: VAT registrations, VAT deregistrations, Functional Currency Requests. No recurring period pattern."
+        actions={
+          <button
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white"
+          >
+            <PlusIcon size={12} /> New ad-hoc filing
+          </button>
+        }
+      />
+
+      <AddAdhocFilingModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onCreated={load}
       />
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -134,6 +164,7 @@ export default function OtherPage() {
                 <th className="px-3 py-2 font-medium">Status</th>
                 <th className="px-3 py-2 font-medium">Assignee</th>
                 <th className="px-3 py-2 font-medium">Comments</th>
+                <th className="px-3 py-2 w-[32px]"></th>
               </tr>
             </thead>
             <tbody>
@@ -156,6 +187,15 @@ export default function OtherPage() {
                     <span className="line-clamp-2 text-[11.5px]" title={r.comments_preview ?? ''}>
                       {r.comments_preview ?? '—'}
                     </span>
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    <button
+                      onClick={() => removeFiling(r.id)}
+                      aria-label="Delete filing"
+                      className="p-1 text-ink-muted hover:text-danger-600"
+                    >
+                      <Trash2Icon size={12} />
+                    </button>
                   </td>
                 </tr>
               ))}

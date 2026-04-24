@@ -16,6 +16,8 @@ import {
   preparedWithColumn, commentsColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
+import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
+import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
 
@@ -67,6 +69,22 @@ export default function VatMonthlyPage() {
           onStatusChange={({ entity, column, cell, nextStatus }) =>
             applyStatusChange({ entity, column, cell, nextStatus, refetch })
           }
+          rowAction={(entity) => (
+            <RemoveRowButton
+              obligationId={entity.obligation_id}
+              entityName={entity.legal_name}
+              onRemoved={refetch}
+            />
+          )}
+          groupFooter={(group) => (
+            <AddEntityRow
+              groupId={group.groupId}
+              groupName={group.name}
+              taxType="vat_monthly"
+              periodPattern="monthly"
+              onCreated={refetch}
+            />
+          )}
           emptyMessage="No entities have an active VAT monthly obligation for this year."
         />
       )}

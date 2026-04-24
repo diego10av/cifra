@@ -17,6 +17,8 @@ import {
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AssessmentInlineEditor } from '@/components/tax-ops/AssessmentInlineEditor';
 import { NwtReviewInlineCell } from '@/components/tax-ops/NwtReviewInlineCell';
+import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
+import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
 
@@ -208,6 +210,22 @@ export default function CitPage() {
           onStatusChange={({ entity, column, cell, nextStatus }) =>
             applyStatusChange({ entity, column, cell, nextStatus, refetch: current.refetch })
           }
+          rowAction={(entity) => (
+            <RemoveRowButton
+              obligationId={entity.obligation_id}
+              entityName={entity.legal_name}
+              onRemoved={refetchAll}
+            />
+          )}
+          groupFooter={(group) => (
+            <AddEntityRow
+              groupId={group.groupId}
+              groupName={group.name}
+              taxType="cit_annual"
+              periodPattern="annual"
+              onCreated={refetchAll}
+            />
+          )}
           emptyMessage="No entities have an active CIT obligation."
         />
       )}

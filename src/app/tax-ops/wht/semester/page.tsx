@@ -13,6 +13,8 @@ import {
   preparedWithColumn, commentsColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
+import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
+import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
 const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
 
@@ -61,6 +63,22 @@ export default function WhtSemesterPage() {
           onStatusChange={({ entity, column, cell, nextStatus }) =>
             applyStatusChange({ entity, column, cell, nextStatus, refetch })
           }
+          rowAction={(entity) => (
+            <RemoveRowButton
+              obligationId={entity.obligation_id}
+              entityName={entity.legal_name}
+              onRemoved={refetch}
+            />
+          )}
+          groupFooter={(group) => (
+            <AddEntityRow
+              groupId={group.groupId}
+              groupName={group.name}
+              taxType="wht_director_semester"
+              periodPattern="semester"
+              onCreated={refetch}
+            />
+          )}
           emptyMessage="No entities have an active WHT semester obligation for this year."
         />
       )}

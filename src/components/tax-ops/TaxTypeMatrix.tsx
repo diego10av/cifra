@@ -77,6 +77,11 @@ interface Props {
   onCellClick?: (entity: MatrixEntity, column: MatrixColumn, cell: MatrixCell) => void;
   /** Empty-state copy. */
   emptyMessage?: string;
+  /** Optional content rendered under each group (row-level). Used by
+   *  37.F to show "+ Add entity to this family" at the end of each
+   *  group section. Receives the first entity in the group (or null
+   *  if we need a "no-family" injection point). */
+  groupFooter?: (group: { name: string; groupId: string | null }) => React.ReactNode;
   /**
    * When set, enables inline status editing on period columns. Called
    * with the updated status for an existing filing (filing_id present)
@@ -106,6 +111,7 @@ export function TaxTypeMatrix({
   onCellClick,
   onStatusChange,
   emptyMessage = 'No entities with this obligation. Toggle "Show all entities" to activate one.',
+  groupFooter,
 }: Props) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -185,6 +191,8 @@ export function TaxTypeMatrix({
                 rowAction={rowAction}
                 handleCellClick={handleCellClick}
                 onStatusChange={onStatusChange}
+                groupFooter={groupFooter}
+                totalCols={1 + columns.length + (rowAction ? 1 : 0)}
               />
             );
           })}
@@ -197,6 +205,7 @@ export function TaxTypeMatrix({
 function GroupBlock({
   group, grouped, isCollapsed, toggleGroup,
   columns, rowAction, handleCellClick, onStatusChange,
+  groupFooter, totalCols,
 }: {
   group: { name: string; items: MatrixEntity[] };
   grouped: boolean;
@@ -206,8 +215,12 @@ function GroupBlock({
   rowAction?: (entity: MatrixEntity) => React.ReactNode;
   handleCellClick: (e: MatrixEntity, col: MatrixColumn, cell: MatrixCell) => void;
   onStatusChange?: Props['onStatusChange'];
+  groupFooter?: Props['groupFooter'];
+  totalCols: number;
 }) {
-  const totalCols = 1 + columns.length + (rowAction ? 1 : 0);
+  // First entity's group_id is the canonical id for this group — use it
+  // when calling groupFooter so "+Add" knows where to attach new entities.
+  const groupId = group.items[0]?.group_id ?? null;
 
   return (
     <>
@@ -236,6 +249,16 @@ function GroupBlock({
           onStatusChange={onStatusChange}
         />
       ))}
+      {!isCollapsed && groupFooter && (
+        <tr className="border-b border-border/70 bg-surface-alt/20">
+          <td
+            colSpan={totalCols}
+            className="sticky left-0 bg-surface-alt/20 border-r border-border"
+          >
+            {groupFooter({ name: group.name, groupId })}
+          </td>
+        </tr>
+      )}
     </>
   );
 }

@@ -1,0 +1,138 @@
+'use client';
+
+// ════════════════════════════════════════════════════════════════════════
+// AddEntityRow — stint 37.F.
+//
+// "+ Add entity" button at the end of each client-group section in a
+// matrix page. Click → inline input row expands, Diego types the legal
+// name, Enter → creates:
+//   1. entity (with client_group_id set to the family being added to)
+//   2. obligation of the current matrix tax_type + period_pattern
+//   3. refetch the matrix — new row appears
+//
+// Creates are sequential (entity POST → obligation POST) so the
+// obligation knows the new entity_id. One refetch at the end.
+// ════════════════════════════════════════════════════════════════════════
+
+import { useState, useRef, useEffect } from 'react';
+import { PlusIcon } from 'lucide-react';
+
+interface Props {
+  groupId: string | null;
+  groupName: string;
+  taxType: string;
+  periodPattern: string;
+  serviceKind?: 'filing' | 'review';
+  onCreated: () => void;
+}
+
+export function AddEntityRow({
+  groupId, groupName, taxType, periodPattern, serviceKind = 'filing', onCreated,
+}: Props) {
+  const [mode, setMode] = useState<'button' | 'input'>('button');
+  const [legalName, setLegalName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (mode === 'input') inputRef.current?.focus();
+  }, [mode]);
+
+  async function create() {
+    const name = legalName.trim();
+    if (!name || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      // 1. Create entity
+      const entRes = await fetch('/api/tax-ops/entities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          legal_name: name,
+          client_group_id: groupId,
+        }),
+      });
+      if (!entRes.ok) {
+        const b = await entRes.json().catch(() => ({}));
+        throw new Error(b?.error ?? `Entity create failed (${entRes.status})`);
+      }
+      const { id: entityId } = await entRes.json() as { id: string };
+
+      // 2. Create obligation for the current matrix scope
+      const oblRes = await fetch('/api/tax-ops/obligations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entity_id: entityId,
+          tax_type: taxType,
+          period_pattern: periodPattern,
+          service_kind: serviceKind,
+        }),
+      });
+      if (!oblRes.ok) {
+        const b = await oblRes.json().catch(() => ({}));
+        throw new Error(b?.error ?? `Obligation create failed (${oblRes.status})`);
+      }
+
+      setLegalName('');
+      setMode('button');
+      onCreated();
+    } catch (e) {
+      setError(String(e instanceof Error ? e.message : e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (mode === 'button') {
+    return (
+      <button
+        type="button"
+        onClick={() => setMode('input')}
+        className="inline-flex items-center gap-1 text-[11.5px] text-ink-muted hover:text-brand-700 px-2 py-1"
+      >
+        <PlusIcon size={11} /> Add entity to {groupName || '(no family)'}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-1">
+      <PlusIcon size={11} className="text-ink-muted" />
+      <input
+        ref={inputRef}
+        value={legalName}
+        onChange={(e) => setLegalName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { e.preventDefault(); void create(); }
+          else if (e.key === 'Escape') {
+            e.preventDefault();
+            setLegalName('');
+            setMode('button');
+          }
+        }}
+        placeholder={`Legal name (adding to ${groupName || '(no family)'})`}
+        disabled={busy}
+        className="flex-1 min-w-[220px] max-w-[360px] px-2 py-0.5 text-[12px] border border-border rounded bg-surface"
+      />
+      <button
+        type="button"
+        onClick={() => void create()}
+        disabled={busy || !legalName.trim()}
+        className="px-2 py-0.5 text-[11.5px] rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+      >
+        {busy ? 'Creating…' : 'Add'}
+      </button>
+      <button
+        type="button"
+        onClick={() => { setLegalName(''); setMode('button'); }}
+        className="px-2 py-0.5 text-[11.5px] rounded border border-border hover:bg-surface-alt"
+      >
+        Cancel
+      </button>
+      {error && <span className="text-[10.5px] text-danger-700" title={error}>⚠</span>}
+    </div>
+  );
+}

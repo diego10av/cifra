@@ -13,6 +13,7 @@ import {
 } from '@/components/tax-ops/matrix-row-columns';
 import { InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
+import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
 // Tolerance usage below reads data.admin_tolerance_days.
 
@@ -144,6 +145,13 @@ export default function NwtReviewsPage() {
           onStatusChange={({ entity, column, cell, nextStatus }) =>
             applyStatusChange({ entity, column, cell, nextStatus, refetch })
           }
+          rowAction={(entity) => (
+            <RemoveRowButton
+              obligationId={entity.obligation_id}
+              entityName={entity.legal_name}
+              onRemoved={refetch}
+            />
+          )}
           emptyMessage={
             showInactive
               ? 'No entities in the system. Add one via /tax-ops/entities.'
