@@ -69,7 +69,7 @@ export function preparedWithColumn(periodLabels: string[], refetch: () => void):
         <InlineTagsCell
           value={value}
           disabled={allFilingIds.length === 0}
-          placeholder="Gab, Andrew"
+          placeholder=""
           onSave={async (next) => {
             await patchAllFilings(allFilingIds, { prepared_with: next });
             refetch();

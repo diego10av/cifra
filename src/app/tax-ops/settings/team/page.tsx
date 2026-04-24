@@ -144,7 +144,7 @@ export default function TaxOpsTeamPage() {
                     autoFocus
                     value={newRow.short_name}
                     onChange={e => setNewRow({ ...newRow, short_name: e.target.value })}
-                    placeholder="e.g. Gab"
+                    placeholder=""
                     className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
                   />
                 </td>

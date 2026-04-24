@@ -130,7 +130,7 @@ export function InlineTagsCell({
           onChange={(raw) => setValue(raw.split(',').map(s => s.trim()).filter(Boolean))}
           onCommit={commit}
           onCancel={cancel}
-          placeholder={placeholder ?? 'Gab, Andrew'}
+          placeholder={placeholder ?? ''}
         />
       )}
     />

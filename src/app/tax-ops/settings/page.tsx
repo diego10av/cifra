@@ -24,7 +24,7 @@ export default function TaxOpsSettingsPage() {
           href="/tax-ops/settings/team"
           icon={UsersIcon}
           title="Team members"
-          description="The people you can assign filings to. Add short-name aliases that match your Excel 'Prepared with' conventions (Gab, Andrew, …)."
+          description="The people you can assign filings to. Add short-name aliases that match your Excel 'Prepared with' conventions."
         />
         <SettingsCard
           href="/tax-ops/settings/deadlines"

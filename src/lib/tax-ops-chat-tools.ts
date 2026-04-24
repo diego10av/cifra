@@ -58,7 +58,7 @@ export const TAX_OPS_TOOLS: Anthropic.Tool[] = [
             'Only return filings with deadline on or before today + N days. ' +
             'Pass 0 for today, 14 for the next two weeks. Already-filed/paid/waived excluded.',
         },
-        assigned_to: { type: 'string', description: 'Assignee short name (e.g. "Gab", "Diego").' },
+        assigned_to: { type: 'string', description: 'Assignee short name as configured in Settings › Team.' },
         overdue: {
           type: 'boolean',
           description: 'If true, only filings past their deadline and not filed/paid/waived.',

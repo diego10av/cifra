@@ -222,7 +222,7 @@ export function QuickCaptureModal() {
             <input
               value={assignee}
               onChange={e => setAssignee(e.target.value)}
-              placeholder="Gab, Andrew…"
+              placeholder=""
               className="mt-1 w-full px-2 py-1.5 border border-border rounded-md bg-surface"
             />
           </label>
