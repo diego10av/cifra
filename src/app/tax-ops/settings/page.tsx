@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
   UsersIcon, ClockIcon, RefreshCwIcon, LayersIcon, MergeIcon,
-  CalendarIcon, ChevronRightIcon,
+  CalendarIcon, BookUserIcon, ChevronRightIcon,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -46,6 +46,12 @@ export default function TaxOpsSettingsPage() {
           icon={MergeIcon}
           title="Entity deduplication"
           description="Find and merge entities whose names are near-duplicates (different punctuation, whitespace, legal-suffix variants). Pick the canonical row, the others fold into it."
+        />
+        <SettingsCard
+          href="/tax-ops/contacts"
+          icon={BookUserIcon}
+          title="Contacts book"
+          description="Reverse index of every CSP contact across entities and filings. Rename a contact once, propagate to every row in one transaction."
         />
         <SettingsCard
           href="/tax-ops/settings/calendar"
