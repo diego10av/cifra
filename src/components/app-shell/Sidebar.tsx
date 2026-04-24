@@ -49,67 +49,85 @@ type NavItem = {
 type NavGroup = { label?: string; items: NavItem[]; roles?: readonly Role[] };
 
 function buildGroups(badges: SidebarBadges): NavGroup[] {
+  // 2026-04-24 stint 37.B: sidebar reorg based on Diego's Veeva/Factorial
+  // mental model — top-level items are the MODULES (VAT, CRM, Tax-Ops),
+  // everything else nests inside. Home stays alone at the top; Operations
+  // anchors the admin nav at the bottom.
+  //
+  // Tax-Ops is now fully collapsible (click chevron to hide all 9
+  // sub-items) so the sidebar doesn't saturate the viewport.
   return [
     {
+      // Home — solo, sin label de grupo.
       items: [
-        { href: '/',             label: 'Home',         icon: HomeIcon },
-        { href: '/clients',      label: 'Clients',      icon: Building2Icon },
-        { href: '/declarations', label: 'Declarations', icon: FileTextIcon,
-          badge: badges.declarationsInReview },
-        { href: '/deadlines',    label: 'Deadlines',    icon: CalendarIcon,
-          badge: badges.deadlinesUrgent },
+        { href: '/', label: 'Home', icon: HomeIcon },
       ],
     },
     {
-      label: 'CRM',
+      // VAT module — Diego's original product. Clients, declarations,
+      // deadlines, and legal-watch all belong here (legal-watch is
+      // VAT-specific: LTVA + Directive 2006/112 + AED circulars +
+      // CJEU VAT rulings).
       roles: ['admin', 'reviewer'],
       items: [
-        { href: '/crm',          label: 'CRM',           icon: BriefcaseIcon },
-      ],
-    },
-    {
-      // 2026-04-24 stint 35: Tax-Ops restructured from a single item into
-      // a tax-type-category tree. Matches Diego's Excel mental model
-      // (4 CIT sheets + 7 VAT sheets). NWT split into its own item
-      // because it's a year-end advisory review, not a filing.
-      label: 'Tax-Ops',
-      roles: ['admin', 'reviewer'],
-      items: [
-        { href: '/tax-ops',                  label: 'Overview',             icon: FileStackIcon },
-        { href: '/tax-ops/cit',              label: 'Corporate tax returns', icon: LandmarkIcon },
-        { href: '/tax-ops/nwt',              label: 'NWT reviews',          icon: SearchCheckIcon },
         {
-          href: '/tax-ops/vat',
+          href: '/declarations',  // parent goes to the default VAT page
           label: 'VAT',
           icon: ReceiptIcon,
           children: [
-            { href: '/tax-ops/vat/annual',    label: 'Annual',    icon: ReceiptIcon },
-            { href: '/tax-ops/vat/quarterly', label: 'Quarterly', icon: ReceiptIcon },
-            { href: '/tax-ops/vat/monthly',   label: 'Monthly',   icon: ReceiptIcon },
+            { href: '/clients',      label: 'Clients',      icon: Building2Icon },
+            { href: '/declarations', label: 'Declarations', icon: FileTextIcon,
+              badge: badges.declarationsInReview },
+            { href: '/deadlines',    label: 'Deadlines',    icon: CalendarIcon,
+              badge: badges.deadlinesUrgent },
+            { href: '/legal-watch',  label: 'Legal watch',  icon: BookOpenIcon },
           ],
         },
-        { href: '/tax-ops/subscription-tax', label: 'Subscription tax',     icon: CoinsIcon },
-        { href: '/tax-ops/wht',              label: 'Withholding tax',      icon: WalletIcon },
-        { href: '/tax-ops/bcl',              label: 'BCL reporting',        icon: LibraryBigIcon },
-        { href: '/tax-ops/other',            label: 'Other (ad-hoc)',       icon: FolderIcon },
-        { href: '/tax-ops/entities',         label: 'Entities',             icon: Building2Icon },
-        { href: '/tax-ops/tasks',            label: 'Tasks',                icon: CheckSquareIcon },
-        { href: '/tax-ops/settings',         label: 'Settings',             icon: SettingsIcon },
       ],
     },
     {
-      label: 'Library',
       roles: ['admin', 'reviewer'],
       items: [
-        { href: '/legal-watch',      label: 'Legal watch',     icon: BookOpenIcon },
+        { href: '/crm', label: 'CRM', icon: BriefcaseIcon },
+      ],
+    },
+    {
+      roles: ['admin', 'reviewer'],
+      items: [
+        {
+          href: '/tax-ops',
+          label: 'Tax-Ops',
+          icon: FileStackIcon,
+          children: [
+            { href: '/tax-ops',                  label: 'Overview',              icon: FileStackIcon },
+            { href: '/tax-ops/tasks',            label: 'Tasks',                 icon: CheckSquareIcon },
+            { href: '/tax-ops/cit',              label: 'Corporate tax returns', icon: LandmarkIcon },
+            {
+              href: '/tax-ops/vat',
+              label: 'VAT filings',
+              icon: ReceiptIcon,
+              children: [
+                { href: '/tax-ops/vat/annual',    label: 'Annual',    icon: ReceiptIcon },
+                { href: '/tax-ops/vat/quarterly', label: 'Quarterly', icon: ReceiptIcon },
+                { href: '/tax-ops/vat/monthly',   label: 'Monthly',   icon: ReceiptIcon },
+              ],
+            },
+            { href: '/tax-ops/subscription-tax', label: 'Subscription tax',     icon: CoinsIcon },
+            { href: '/tax-ops/wht',              label: 'Withholding tax',      icon: WalletIcon },
+            { href: '/tax-ops/bcl',              label: 'BCL reporting',        icon: LibraryBigIcon },
+            { href: '/tax-ops/other',            label: 'Other (ad-hoc)',       icon: FolderIcon },
+            { href: '/tax-ops/entities',         label: 'Entities',             icon: Building2Icon },
+            { href: '/tax-ops/settings',         label: 'Settings',             icon: SettingsIcon },
+          ],
+        },
       ],
     },
     {
       label: 'Operations',
       roles: ['admin', 'reviewer'],
       items: [
-        { href: '/metrics',  label: 'Metrics', icon: BarChart3Icon },
-        { href: '/audit',    label: 'Audit',   icon: ShieldCheckIcon },
+        { href: '/metrics',  label: 'Metrics',  icon: BarChart3Icon },
+        { href: '/audit',    label: 'Audit',    icon: ShieldCheckIcon },
         { href: '/settings', label: 'Settings', icon: SettingsIcon },
       ],
     },
@@ -188,11 +206,20 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
     });
   };
 
-  const renderItem = (item: NavItem, isChild = false): React.ReactNode => {
+  // Indent scale per nesting depth (stint 37.B: supports grandchildren
+  // for VAT filings → Annual/Quarterly/Monthly inside Tax-Ops).
+  const indentClass = (depth: number): string => {
+    if (depth === 0) return 'pl-3';
+    if (depth === 1) return 'pl-8';
+    return 'pl-12';  // depth >= 2
+  };
+
+  const renderItem = (item: NavItem, depth = 0): React.ReactNode => {
     const active = isActive(item.href);
     const Icon = item.icon;
     const hasChildren = !!(item.children && item.children.length > 0);
     const open = isExpanded(item);
+    const iconSize = depth === 0 ? 16 : 13;
     return (
       <li key={item.href} className="relative">
         {active && (
@@ -207,14 +234,14 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
             className={[
               'flex items-center gap-2.5 pr-1 h-8 rounded-md text-[13px]',
               'transition-colors duration-150 flex-1 min-w-0',
-              isChild ? 'pl-8' : 'pl-3',
+              indentClass(depth),
               active
                 ? 'bg-brand-50 text-brand-700 font-medium'
                 : 'text-ink-soft hover:bg-surface-alt hover:text-ink',
             ].join(' ')}
           >
             <Icon
-              size={isChild ? 13 : 16}
+              size={iconSize}
               strokeWidth={active ? 2.2 : 1.8}
               className={active ? 'text-brand-500' : 'text-ink-muted'}
             />
@@ -251,7 +278,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
         </div>
         {hasChildren && open && (
           <ul className="space-y-0.5 mt-0.5">
-            {item.children!.map(child => renderItem(child, true))}
+            {item.children!.map(child => renderItem(child, depth + 1))}
           </ul>
         )}
       </li>
