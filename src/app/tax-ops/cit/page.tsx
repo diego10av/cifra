@@ -11,6 +11,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { TaxTypeMatrix, type MatrixColumn, type MatrixEntity } from '@/components/tax-ops/TaxTypeMatrix';
 import { useMatrixData, applyStatusChange, useClientGroups } from '@/components/tax-ops/useMatrixData';
+import { yearOptions } from '@/components/tax-ops/yearOptions';
 import {
   preparedWithColumn, commentsColumn, deadlineColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
@@ -20,7 +21,7 @@ import { NwtReviewInlineCell } from '@/components/tax-ops/NwtReviewInlineCell';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
 import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
-const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
+const YEAR_OPTIONS = yearOptions();
 
 export default function CitPage() {
   const [year, setYear] = useState(2025);

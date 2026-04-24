@@ -138,12 +138,40 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
           }}
           className="w-full text-[15px] font-semibold text-ink bg-transparent border-0 p-0 focus:ring-0 focus:outline-none focus:bg-surface-alt/60 px-1 rounded"
         />
-        <div className="text-[12px] text-ink-muted mt-0.5">
-          {data.entity.group_name && <span className="mr-2">{data.entity.group_name}</span>}
+        <div className="text-[12px] text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
+          {data.entity.group_name && <span>{data.entity.group_name}</span>}
           {data.entity.is_active ? (
             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-green-100 text-green-800">Active</span>
           ) : (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-surface-alt text-ink-muted">Inactive</span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-surface-alt text-ink-muted">
+              Inactive{data.entity.liquidation_date ? ` · liquidated ${data.entity.liquidation_date}` : ''}
+            </span>
+          )}
+          {/* Lifecycle actions (stint 39.C) — archive or reactivate.
+              Archived entities are skipped by year-rollover + hidden by
+              default from matrix pages. */}
+          {data.entity.is_active ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  const date = window.prompt('Liquidation / de-registration date (YYYY-MM-DD, leave empty to just mark inactive):', new Date().toISOString().slice(0, 10));
+                  if (date === null) return;
+                  save({ is_active: false, liquidation_date: date || null }, 'Entity archived');
+                }}
+                className="ml-2 text-[10.5px] text-ink-muted hover:text-danger-600 underline"
+              >
+                Archive (liquidated / VAT deregistered)
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => save({ is_active: true, liquidation_date: null }, 'Entity reactivated')}
+              className="ml-2 text-[10.5px] text-ink-muted hover:text-brand-700 underline"
+            >
+              Reactivate
+            </button>
           )}
         </div>
         <div className="grid grid-cols-3 gap-3 mt-3 text-[12px]">

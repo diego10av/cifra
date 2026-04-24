@@ -10,6 +10,7 @@ import { TaxTypeMatrix, type MatrixColumn } from '@/components/tax-ops/TaxTypeMa
 import {
   useMatrixData, shortPeriodLabel, applyStatusChange, useClientGroups,
 } from '@/components/tax-ops/useMatrixData';
+import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { BclTabs } from '@/components/tax-ops/BclTabs';
 import {
   preparedWithColumn, commentsColumn, familyColumn,
@@ -18,7 +19,7 @@ import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
 import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
-const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
+const YEAR_OPTIONS = yearOptions();
 
 export default function Bcl216Page() {
   const [year, setYear] = useState(2026);

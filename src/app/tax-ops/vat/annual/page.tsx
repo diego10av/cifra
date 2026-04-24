@@ -10,6 +10,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { TaxTypeMatrix, type MatrixColumn, type MatrixEntity } from '@/components/tax-ops/TaxTypeMatrix';
 import { useMatrixData, applyStatusChange, useClientGroups } from '@/components/tax-ops/useMatrixData';
+import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { VatTabs } from '@/components/tax-ops/VatTabs';
 import {
   preparedWithColumn, commentsColumn, deadlineColumn, familyColumn,
@@ -18,7 +19,7 @@ import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
 import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
-const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
+const YEAR_OPTIONS = yearOptions();
 
 type CombinedEntity = MatrixEntity & { subtype: 'standard' | 'simplified' };
 

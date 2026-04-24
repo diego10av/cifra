@@ -8,6 +8,7 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { TaxTypeMatrix, type MatrixColumn } from '@/components/tax-ops/TaxTypeMatrix';
 import { useMatrixData, applyStatusChange, useClientGroups } from '@/components/tax-ops/useMatrixData';
+import { yearOptions } from '@/components/tax-ops/yearOptions';
 import {
   preparedWithColumn, commentsColumn, deadlineColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
@@ -17,7 +18,7 @@ import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
 
 // Tolerance usage below reads data.admin_tolerance_days.
 
-const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
+const YEAR_OPTIONS = yearOptions();
 
 export default function NwtReviewsPage() {
   const [year, setYear] = useState(2025);
