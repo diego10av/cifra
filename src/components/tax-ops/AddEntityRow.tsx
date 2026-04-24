@@ -23,11 +23,26 @@ interface Props {
   taxType: string;
   periodPattern: string;
   serviceKind?: 'filing' | 'review';
+  /**
+   * Stint 40.D — optional extra obligations to create in parallel with
+   * the main one. Used on BCL pages so "+ Add entity" under SBS also
+   * sets up the BCL 2.16 monthly obligation (every BCL-subject entity
+   * does both reports; forcing Diego to add them twice was friction).
+   * Each extra obligation creates after the main obligation; if any
+   * fails the entity is still created (no rollback) and the error is
+   * surfaced — Diego can add the missing one via the other page.
+   */
+  additionalObligations?: Array<{
+    tax_type: string;
+    period_pattern: string;
+    service_kind?: 'filing' | 'review';
+  }>;
   onCreated: () => void;
 }
 
 export function AddEntityRow({
-  groupId, groupName, taxType, periodPattern, serviceKind = 'filing', onCreated,
+  groupId, groupName, taxType, periodPattern, serviceKind = 'filing',
+  additionalObligations, onCreated,
 }: Props) {
   const [mode, setMode] = useState<'button' | 'input'>('button');
   const [legalName, setLegalName] = useState('');
@@ -74,6 +89,32 @@ export function AddEntityRow({
       if (!oblRes.ok) {
         const b = await oblRes.json().catch(() => ({}));
         throw new Error(b?.error ?? `Obligation create failed (${oblRes.status})`);
+      }
+
+      // 3. Create any additional obligations (e.g. BCL companion report).
+      //    Non-fatal: if one fails we surface a soft error but the entity
+      //    and the main obligation are already created.
+      if (additionalObligations?.length) {
+        const extraErrors: string[] = [];
+        for (const extra of additionalObligations) {
+          const r = await fetch('/api/tax-ops/obligations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              entity_id: entityId,
+              tax_type: extra.tax_type,
+              period_pattern: extra.period_pattern,
+              service_kind: extra.service_kind ?? 'filing',
+            }),
+          });
+          if (!r.ok) {
+            const b = await r.json().catch(() => ({}));
+            extraErrors.push(`${extra.tax_type}: ${b?.error ?? r.status}`);
+          }
+        }
+        if (extraErrors.length) {
+          setError(`Partial: ${extraErrors.join('; ')}`);
+        }
       }
 
       setLegalName('');

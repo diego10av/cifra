@@ -91,6 +91,11 @@ export default function BclSbsPage() {
               groupName={group.name}
               taxType="bcl_sbs_quarterly"
               periodPattern="quarterly"
+              // Stint 40.D — entities subject to BCL do BOTH reports.
+              // Create the 2.16 monthly companion automatically.
+              additionalObligations={[
+                { tax_type: 'bcl_216_monthly', period_pattern: 'monthly' },
+              ]}
               onCreated={refetch}
             />
           )}

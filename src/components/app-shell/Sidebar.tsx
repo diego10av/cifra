@@ -50,9 +50,11 @@ const TAX_TYPE_TO_URL: Record<string, string> = {
   wht_director_monthly:       '/tax-ops/wht/monthly',
   wht_director_semester:      '/tax-ops/wht/semester',
   wht_director_annual:        '/tax-ops/wht/annual',
-  fatca_crs_annual:           '/tax-ops/category/fatca_crs_annual',
-  bcl_sbs_quarterly:          '/tax-ops/bcl/sbs',
-  bcl_216_monthly:            '/tax-ops/bcl/bcl216',
+  fatca_crs_annual:           '/tax-ops/fatca-crs',
+  // Stint 40.D — BCL merged into a single sidebar item; both sub-pages
+  // still exist but are reached via /tax-ops/bcl tabs.
+  bcl_sbs_quarterly:          '/tax-ops/bcl',
+  bcl_216_monthly:            '/tax-ops/bcl',
 };
 function urlForTaxType(taxType: string): string {
   return TAX_TYPE_TO_URL[taxType] ?? `/tax-ops/category/${taxType}`;
