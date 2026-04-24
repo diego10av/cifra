@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { UsersIcon, ClockIcon, RefreshCwIcon, LayersIcon, ChevronRightIcon } from 'lucide-react';
+import { UsersIcon, ClockIcon, RefreshCwIcon, LayersIcon, MergeIcon, ChevronRightIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 
 // /tax-ops/settings — small index of admin surfaces.
@@ -37,6 +37,12 @@ export default function TaxOpsSettingsPage() {
           icon={LayersIcon}
           title="Client groups (families)"
           description="Create, rename, archive the fund families that group your entities (Peninsula, Trilantic, ...). Inline-assignable from any tax-type page."
+        />
+        <SettingsCard
+          href="/tax-ops/settings/dedupe"
+          icon={MergeIcon}
+          title="Entity deduplication"
+          description="Find and merge entities whose names are near-duplicates (different punctuation, whitespace, legal-suffix variants). Pick the canonical row, the others fold into it."
         />
         <SettingsCard
           href="#"
