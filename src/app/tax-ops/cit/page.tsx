@@ -184,6 +184,19 @@ export default function CitPage() {
               await patchFiling(info.cell.filing_id, { status: nextStatus });
               nwt.refetch();
             }}
+            onOptOut={async () => {
+              // Stint 40.F — archive the nwt_annual review obligation.
+              const info = nwtCellByEntity.get(e.id);
+              if (!info?.obligation_id) return;
+              const res = await fetch(`/api/tax-ops/obligations/${info.obligation_id}`, {
+                method: 'DELETE',
+              });
+              if (!res.ok) {
+                const b = await res.json().catch(() => ({}));
+                throw new Error(b?.error ?? `Opt-out failed (${res.status})`);
+              }
+              nwt.refetch();
+            }}
           />
         );
       },

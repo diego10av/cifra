@@ -18,7 +18,7 @@
 // ════════════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
-import { FilingStatusBadge, filingStatusLabel, FILING_STATUSES } from './FilingStatusBadge';
+import { filingStatusLabel, FILING_STATUSES } from './FilingStatusBadge';
 
 interface Props {
   filingId: string | null;
@@ -94,13 +94,37 @@ export function AssessmentInlineEditor({
     return <span className="text-ink-faint italic text-[11px]">No prior filing</span>;
   }
 
-  const displayNode = assessmentDate ? (
-    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-green-100 text-green-800">
-      Received {assessmentDate}
-    </span>
-  ) : (
-    <FilingStatusBadge status={currentStatus ?? 'info_to_request'} />
-  );
+  // Stint 40.F — Diego wanted a pragmatic tri-state: "Not yet / Yes /
+  // No" instead of the 9-value status dropdown for the Assessment
+  // column specifically. We map:
+  //   - status = assessment_received  → "✅ Received {date}" green
+  //   - status = waived               → "🚫 No assessment expected" grey
+  //   - anything else + no date       → "📭 Not yet" amber
+  // The dropdown in the popover still exposes the full enum so edge
+  // cases are reachable.
+  const triStateChip = (() => {
+    if (assessmentDate || currentStatus === 'assessment_received') {
+      return (
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-green-100 text-green-800">
+          ✓ Received{assessmentDate ? ` ${assessmentDate}` : ''}
+        </span>
+      );
+    }
+    if (currentStatus === 'waived') {
+      return (
+        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-surface-alt text-ink-muted">
+          ✕ No assessment expected
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-amber-100 text-amber-800">
+        Not yet
+      </span>
+    );
+  })();
+
+  const displayNode = triStateChip;
 
   if (!open) {
     return (

@@ -41,10 +41,14 @@ interface Props {
   onOptIn: () => Promise<void>;      // POST new obligation
   onCreateFiling: (nextStatus: string) => Promise<void>;
   onUpdateStatus: (nextStatus: string) => Promise<void>;
+  /** Stint 40.F — "Opt out" archives the nwt_annual obligation
+   *  (is_active=false). Diego mis-clicked Opt-in and had no way to
+   *  undo. Passes the obligation_id when available; no-op otherwise. */
+  onOptOut?: () => Promise<void>;
 }
 
 export function NwtReviewInlineCell({
-  year, cell, onOptIn, onCreateFiling, onUpdateStatus,
+  year, cell, onOptIn, onCreateFiling, onUpdateStatus, onOptOut,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -130,6 +134,25 @@ export function NwtReviewInlineCell({
         >
           edit
         </Link>
+      )}
+      {/* Stint 40.F — Opt-out button for when Diego mis-clicked opt-in
+          or the client no longer wants the NWT review service. */}
+      {onOptOut && (
+        <button
+          type="button"
+          onClick={async () => {
+            if (!window.confirm('Opt this entity out of NWT reviews? The obligation will be archived (filings kept in the audit log).')) return;
+            setBusy(true); setError(null);
+            try { await onOptOut(); }
+            catch (e) { setError(String(e instanceof Error ? e.message : e)); }
+            finally { setBusy(false); }
+          }}
+          disabled={busy}
+          className="text-[9px] text-ink-muted hover:text-danger-600 underline disabled:opacity-50"
+          title="Archive the NWT review obligation"
+        >
+          opt out
+        </button>
       )}
       {error && <span className="text-[10px] text-danger-700" title={error}>⚠</span>}
     </div>
