@@ -8,10 +8,9 @@ import Link from 'next/link';
 import { ArrowLeftIcon } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
-import { DateBadge } from '@/components/crm/DateBadge';
 import { useToast } from '@/components/Toaster';
-import { FilingStatusBadge } from '@/components/tax-ops/FilingStatusBadge';
 import { CspContactsEditor, type CspContact } from '@/components/tax-ops/CspContactsEditor';
+import { EntityFilingsMatrix } from '@/components/tax-ops/EntityFilingsMatrix';
 
 interface EntityDetail {
   id: string;
@@ -104,13 +103,21 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
   if (error) return <CrmErrorBox message={error} onRetry={load} />;
   if (!data) return <PageSkeleton />;
 
-  // Group filings by year for the history grid
-  const byYear = new Map<number, Filing[]>();
-  for (const f of data.filings) {
-    if (!byYear.has(f.period_year)) byYear.set(f.period_year, []);
-    byYear.get(f.period_year)!.push(f);
-  }
-  const years = Array.from(byYear.keys()).sort((a, b) => b - a);
+  // Compute the year range for the matrix header: span from the oldest
+  // filing year (min) to the current work year (max of present + CURRENT).
+  // If the entity has no filings, fall back to the trailing 4 years.
+  const years = (() => {
+    if (data.filings.length === 0) {
+      const y = new Date().getFullYear();
+      return [y - 3, y - 2, y - 1, y];
+    }
+    const present = data.filings.map(f => f.period_year);
+    const min = Math.min(...present);
+    const max = Math.max(...present, new Date().getFullYear());
+    const out: number[] = [];
+    for (let y = min; y <= max; y += 1) out.push(y);
+    return out;
+  })();
 
   return (
     <div className="space-y-4 max-w-5xl">
@@ -224,46 +231,15 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      {/* Filings history */}
+      {/* Filings history — compact matrix (tax_type × years × periods) */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
-        <h3 className="text-[13px] font-semibold text-ink mb-2">
-          Filings history <span className="text-[11.5px] font-normal text-ink-muted">({data.filings.length})</span>
-        </h3>
-        {years.length === 0 ? (
-          <div className="text-[12px] text-ink-muted italic">No filings for this entity yet.</div>
-        ) : (
-          <div className="space-y-3">
-            {years.map(y => (
-              <div key={y}>
-                <div className="text-[12px] font-semibold text-ink mb-1">{y}</div>
-                <table className="w-full text-[12px]">
-                  <thead className="text-ink-muted">
-                    <tr className="text-left">
-                      <th className="py-0.5 font-medium">Tax type</th>
-                      <th className="py-0.5 font-medium">Period</th>
-                      <th className="py-0.5 font-medium">Deadline</th>
-                      <th className="py-0.5 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {byYear.get(y)!.map(f => (
-                      <tr key={f.id} className="border-t border-border/50 hover:bg-surface-alt/40">
-                        <td className="py-1">
-                          <Link href={`/tax-ops/filings/${f.id}`} className="text-ink hover:text-brand-700">
-                            {humanTaxType(f.tax_type)}
-                          </Link>
-                        </td>
-                        <td className="py-1 tabular-nums text-ink-soft">{f.period_label}</td>
-                        <td className="py-1"><DateBadge value={f.deadline_date} mode="urgency" /></td>
-                        <td className="py-1"><FilingStatusBadge status={f.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-[13px] font-semibold text-ink">
+            Filings history <span className="text-[11.5px] font-normal text-ink-muted">({data.filings.length})</span>
+          </h3>
+          <span className="text-[11px] text-ink-muted">Click a status badge to open that filing.</span>
+        </div>
+        <EntityFilingsMatrix filings={data.filings} years={years} />
       </div>
     </div>
   );
