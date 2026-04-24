@@ -21,12 +21,14 @@ import {
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
 import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
+import { FilingEditDrawer } from '@/components/tax-ops/FilingEditDrawer';
 
 const YEAR_OPTIONS = yearOptions();
 
 export default function VatMonthlyPage() {
   const [year, setYear] = useState(2026);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [editingFilingId, setEditingFilingId] = useState<string | null>(null);
   const toast = useToast();
   const { groups, refetch: refetchGroups } = useClientGroups();
   const { data, error, isLoading, refetch } = useMatrixData({
@@ -79,6 +81,8 @@ export default function VatMonthlyPage() {
           entities={filtered}
           columns={columns}
           firstColLabel="Entity"
+          onEditFiling={setEditingFilingId}
+          periodLabelsForEdit={data.period_labels}
           onStatusChange={({ entity, column, cell, nextStatus }) =>
             applyStatusChange({ entity, column, cell, nextStatus, refetch, toast })
           }
@@ -101,6 +105,11 @@ export default function VatMonthlyPage() {
           emptyMessage="No entities have an active VAT monthly obligation for this year."
         />
       )}
+      <FilingEditDrawer
+        filingId={editingFilingId}
+        onClose={() => setEditingFilingId(null)}
+        onSaved={refetch}
+      />
     </div>
   );
 }

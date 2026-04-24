@@ -23,12 +23,14 @@ import { AssessmentInlineEditor } from '@/components/tax-ops/AssessmentInlineEdi
 import { NwtReviewInlineCell } from '@/components/tax-ops/NwtReviewInlineCell';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
 import { RemoveRowButton } from '@/components/tax-ops/RemoveRowButton';
+import { FilingEditDrawer } from '@/components/tax-ops/FilingEditDrawer';
 
 const YEAR_OPTIONS = yearOptions();
 
 export default function CitPage() {
   const [year, setYear] = useState(2025);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [editingFilingId, setEditingFilingId] = useState<string | null>(null);
   const toast = useToast();
   const { groups, refetch: refetchGroups } = useClientGroups();
 
@@ -234,6 +236,8 @@ export default function CitPage() {
           entities={filtered}
           columns={columns}
           firstColLabel="Entity"
+          onEditFiling={setEditingFilingId}
+          periodLabelsForEdit={[periodLabel]}
           onStatusChange={({ entity, column, cell, nextStatus }) =>
             applyStatusChange({ entity, column, cell, nextStatus, refetch: current.refetch, toast })
           }
@@ -256,6 +260,11 @@ export default function CitPage() {
           emptyMessage="No entities have an active CIT obligation."
         />
       )}
+      <FilingEditDrawer
+        filingId={editingFilingId}
+        onClose={() => setEditingFilingId(null)}
+        onSaved={refetchAll}
+      />
     </div>
   );
 }

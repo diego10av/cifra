@@ -18,7 +18,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDownIcon, ChevronRightIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, PencilIcon } from 'lucide-react';
 import { FilingStatusBadge, filingStatusLabel } from './FilingStatusBadge';
 import { InlineStatusCell } from './inline-editors';
 import { familyChipClasses } from './familyColors';
@@ -80,6 +80,17 @@ interface Props {
   grouped?: boolean;
   /** Optional additional row action (icon button at row end). */
   rowAction?: (entity: MatrixEntity) => React.ReactNode;
+  /**
+   * Stint 40.G.2 — when provided, a pencil ✎ icon appears in each row
+   * and invokes this callback with the filing_id of the first filed
+   * cell in the row. The caller mounts <FilingEditDrawer /> to render
+   * the full edit surface. Disabled if the row has no filings yet.
+   */
+  onEditFiling?: (filingId: string) => void;
+  /** Period labels used to pick the "first filed cell" for the edit
+   *  pencil. When onEditFiling is set, this must be populated so we
+   *  know which cells are period cells. */
+  periodLabelsForEdit?: string[];
   /** Called when a cell is clicked and that cell has a filing. Default:
    *  navigates to /tax-ops/filings/[id]. */
   onCellClick?: (entity: MatrixEntity, column: MatrixColumn, cell: MatrixCell) => void;
@@ -120,6 +131,8 @@ export function TaxTypeMatrix({
   onStatusChange,
   emptyMessage = 'No entities with this obligation. Toggle "Show all entities" to activate one.',
   groupFooter,
+  onEditFiling,
+  periodLabelsForEdit,
 }: Props) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -169,6 +182,36 @@ export function TaxTypeMatrix({
   const familyColWidth = 170;   // px — matches w-[170px]
   const entityStickyLeft = familyCol ? familyColWidth : 0;
 
+  // Stint 40.G.2 — compose a row action that prepends a pencil ✎
+  // when onEditFiling is set. Pencil is disabled (but visible) when
+  // the row has no filed cells yet.
+  const labelsForEdit = periodLabelsForEdit ?? [];
+  const effectiveRowAction = onEditFiling
+    ? (entity: MatrixEntity) => {
+        const firstFiling = labelsForEdit
+          .map(l => entity.cells[l])
+          .find((c): c is MatrixCell => !!c) ?? null;
+        return (
+          <span className="inline-flex items-center gap-1 justify-end">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (firstFiling) onEditFiling(firstFiling.filing_id);
+              }}
+              disabled={!firstFiling}
+              aria-label="Edit all fields"
+              title={firstFiling ? 'Edit all fields of this row\'s filing' : 'No filing yet — set a status first'}
+              className="p-1 text-ink-muted hover:text-brand-700 disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <PencilIcon size={12} />
+            </button>
+            {rowAction?.(entity)}
+          </span>
+        );
+      }
+    : rowAction;
+
   return (
     <div className="rounded-md border border-border bg-surface overflow-auto relative">
       <table className="w-full text-[12px] border-collapse">
@@ -199,8 +242,8 @@ export function TaxTypeMatrix({
                 {col.label}
               </th>
             ))}
-            {rowAction && (
-              <th className="border-b border-border px-2 py-2 font-medium w-[40px]"></th>
+            {effectiveRowAction && (
+              <th className="border-b border-border px-2 py-2 font-medium w-[60px]"></th>
             )}
           </tr>
         </thead>
@@ -217,11 +260,11 @@ export function TaxTypeMatrix({
                 columns={otherCols}
                 familyCol={familyCol}
                 entityStickyLeft={entityStickyLeft}
-                rowAction={rowAction}
+                rowAction={effectiveRowAction}
                 handleCellClick={handleCellClick}
                 onStatusChange={onStatusChange}
                 groupFooter={groupFooter}
-                totalCols={(familyCol ? 1 : 0) + 1 + otherCols.length + (rowAction ? 1 : 0)}
+                totalCols={(familyCol ? 1 : 0) + 1 + otherCols.length + (effectiveRowAction ? 1 : 0)}
               />
             );
           })}

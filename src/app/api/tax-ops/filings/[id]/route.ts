@@ -32,6 +32,10 @@ interface FilingDetail {
   entity_csp_contacts: Array<{ name: string; email?: string; role?: string }>;
   comments: string | null;
   internal_matter_code: string | null;
+  // Stint 39.F + 40.O — fields added after initial schema.
+  last_info_request_sent_at: string | null;
+  invoice_price_eur: string | null;
+  invoice_price_note: string | null;
   import_source: string;
   created_at: string;
   updated_at: string;
@@ -61,7 +65,11 @@ export async function GET(
             f.tax_assessment_url,
             f.amount_due::text, f.amount_paid::text, f.paid_at::text,
             f.csp_contacts, e.csp_contacts AS entity_csp_contacts,
-            f.comments, f.internal_matter_code, f.import_source,
+            f.comments, f.internal_matter_code,
+            f.last_info_request_sent_at::text AS last_info_request_sent_at,
+            f.invoice_price_eur::text AS invoice_price_eur,
+            f.invoice_price_note,
+            f.import_source,
             f.created_at::text, f.updated_at::text,
             r.statutory_description AS rule_statutory_description,
             r.admin_tolerance_days AS rule_admin_tolerance_days,
