@@ -15,6 +15,7 @@ import {
   CalendarDaysIcon, SettingsIcon, HelpCircleIcon,
 } from 'lucide-react';
 import { OverflowMenu } from '@/components/ui/OverflowMenu';
+import { QuickCaptureModal } from '@/components/tax-ops/QuickCaptureModal';
 
 const PRIMARY_TABS = [
   { href: '/tax-ops',          label: 'Home',     icon: LayoutDashboardIcon },
@@ -61,6 +62,7 @@ export default function TaxOpsLayout({ children }: { children: React.ReactNode }
         </div>
       </nav>
       <div>{children}</div>
+      <QuickCaptureModal />
     </div>
   );
 }
