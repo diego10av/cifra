@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-24 (stint 36 shipped — matrix cells now edit inline like Excel: click cell → pick status / edit prepared-with / edit comments, plus Excel export per category).
+> Last updated: 2026-04-24 (stint 37 shipping — 10 sub-commits: status enum rework, sidebar global reorg under VAT/CRM/Tax-Ops modules, tolerance-aware deadlines, CIT page rediseño with NWT inline column, family CRUD, row-level CRUD everywhere, tasks extended schema for PM semantics, deadline rules full CRUD, entity tax-status pills, graceful-degradation test).
 
 ---
 

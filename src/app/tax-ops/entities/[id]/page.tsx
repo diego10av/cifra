@@ -11,6 +11,7 @@ import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { useToast } from '@/components/Toaster';
 import { CspContactsEditor, type CspContact } from '@/components/tax-ops/CspContactsEditor';
 import { EntityFilingsMatrix } from '@/components/tax-ops/EntityFilingsMatrix';
+import { EntityTaxStatusPills } from '@/components/tax-ops/EntityTaxStatusPills';
 
 interface EntityDetail {
   id: string;
@@ -159,6 +160,15 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
             <div className="font-mono">{data.entity.rcs_number ?? '—'}</div>
           </div>
         </div>
+      </div>
+
+      {/* Tax status summary (stint 37.I) */}
+      <div className="rounded-md border border-border bg-surface px-4 py-3">
+        <h3 className="text-[13px] font-semibold text-ink mb-2">Tax status summary</h3>
+        <p className="text-[11.5px] text-ink-muted mb-2">
+          Latest filing status per tax type. Click any chip to open that filing.
+        </p>
+        <EntityTaxStatusPills filings={data.filings} />
       </div>
 
       {/* CSP defaults */}
