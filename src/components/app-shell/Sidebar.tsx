@@ -20,6 +20,7 @@ import {
   LandmarkIcon, SearchCheckIcon, ReceiptIcon, WalletIcon,
   CoinsIcon, LibraryBigIcon, FolderIcon, CheckSquareIcon,
   BarChart3Icon, ShieldCheckIcon, SettingsIcon, ChevronRightIcon,
+  TargetIcon,
   type LucideIcon,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -88,7 +89,15 @@ function buildGroups(badges: SidebarBadges): NavGroup[] {
     {
       roles: ['admin', 'reviewer'],
       items: [
-        { href: '/crm', label: 'CRM', icon: BriefcaseIcon },
+        {
+          href: '/crm',
+          label: 'CRM',
+          icon: BriefcaseIcon,
+          children: [
+            { href: '/crm',          label: 'Overview', icon: BriefcaseIcon },
+            { href: '/crm/outreach', label: 'Outreach', icon: TargetIcon },
+          ],
+        },
       ],
     },
     {
