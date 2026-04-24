@@ -301,6 +301,40 @@ describe('yearOptions + defaultYear', () => {
   });
 });
 
+// Stint 40 — new field defaults + filter integration.
+describe('stint 40 field additions', () => {
+  it('MatrixCell fixture carries invoice_price + csp_contacts defaults', () => {
+    const cell = makeCell();
+    expect(cell.invoice_price_eur).toBeNull();
+    expect(cell.invoice_price_note).toBeNull();
+    expect(cell.csp_contacts).toEqual([]);
+    expect(cell.last_info_request_sent_at).toBeNull();
+  });
+
+  it('overrides let tests set a specific invoice price + contacts', () => {
+    const cell = makeCell({
+      invoice_price_eur: '3000.00',
+      invoice_price_note: '+5% office expenses',
+      csp_contacts: [{ name: 'Jane Doe', email: 'jane@csp.example', role: 'Accountant' }],
+    });
+    expect(cell.invoice_price_eur).toBe('3000.00');
+    expect(cell.invoice_price_note).toBe('+5% office expenses');
+    expect(cell.csp_contacts).toHaveLength(1);
+    expect(cell.csp_contacts[0]!.email).toBe('jane@csp.example');
+  });
+
+  it('filterEntitiesByStatus tolerates cells with all 40.O/40.G fields populated', () => {
+    const rich = makeCell({
+      status: 'filed',
+      invoice_price_eur: '3000',
+      csp_contacts: [{ name: 'A' }],
+    });
+    const ent: MatrixEntity = { ...makeEntity(), cells: { '2026': rich } };
+    const [kept] = filterEntitiesByStatus([ent], 'filed', ['2026']);
+    expect(kept).toBe(ent);
+  });
+});
+
 // Stint 39.B — deterministic family colors.
 describe('familyColors', () => {
   it('returns the same palette entry for the same name every call', () => {

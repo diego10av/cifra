@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-24 (stint 39 closed — 7 sub-commits A→G. Iteration #2 on Tax-Ops after Diego used the post-stints-37+38 build in the field: sidebar reorder + € icons, family-first sticky + colored palettes, dynamic year range, entity archive/liquidate lifecycle, status filter dropdown on every matrix, family delete-cascade, Undo on status changes, last-chase date column + migration 051. 656 tests green.)
+> Last updated: 2026-04-24 (stint 40 closed — 13 sub-commits A→N. Iteration #3 on Tax-Ops after another field-usage round. Major adds: entity dedup tool in Settings with Levenshtein + Luxembourg-aware name normalisation (similarity.ts, 16 unit tests); family hygiene cleanup (CTR/CSR fake groups removed, 84 entities unassigned); BCL merged to single sidebar entry + FATCA placeholder + custom 404; invoice price column (migration 052); contacts column on every matrix row; CIT assessment tri-state chips; NWT opt-out; deadline tolerance realigned with AED practice (CIT 31 Dec → 30 Oct, migration 053); back navigation via router.back(); archive-respects-current-year (entities liquidated in-year still appear for that year, hidden next year); red stripe softened to gray 2px rail; "Gab Andrew" suggestion scrubbed; tasks filter labels clarified + assignee defaults to Diego; Home overview loses NWT card, gains "Tasks due this week" widget. 675 tests green. WHT consolidation (40.E), family overview page (40.P), full filing-edit drawer (40.G.2) deferred to stint 41.)
 
 ---
 
@@ -97,6 +97,102 @@ Things worth remembering but not actionable yet:
 ## ✅ Done this week
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
+
+**2026-04-24 (night)** — Stint 40: Tax-Ops iteration #3, post-field-usage (13 commits, A→N)
+
+Diego ran a second dogfood round post-stint-39 and came back with a
+fresh firehose of feedback. 13 sub-commits landed it.
+
+- **40.C · Placeholder scrub** (`f5df6a0`). Removed "Gab, Andrew"
+  example text from InlineTagsCell, matrix-row-columns, QuickCapture,
+  settings pages, and chat-context prompt examples. Diego's "no me
+  des sugerencias" literally.
+- **40.K · Red stripe → gray 2px rail** (`5896395`). Sidebar active
+  indicator desaturated from brand-500 to gray-400; universal
+  `*:focus-visible` halo scoped to interactive elements only. Brand
+  pink reserved for primary CTAs.
+- **40.D · Sidebar reorder + BCL merge + FATCA placeholder** (`ea5750e`).
+  BCL bumped to sidebar_order=11 (right under CIT), bcl_216_monthly
+  hidden (sidebar_visible=false), bcl_sbs_quarterly relabelled "BCL
+  reporting" pointing to /tax-ops/bcl. AddEntityRow gains
+  `additionalObligations` prop so +Add on any BCL page creates both
+  SBS + 2.16. New /tax-ops/fatca-crs placeholder + custom tax-ops
+  not-found.tsx.
+- **40.B · Family hygiene** (`d51e938`). CTR (81 entities) and FCR
+  (3 entities) were tax-type abbreviations mistakenly imported as
+  client families; entities underneath are duplicates of entities
+  already in real families. Unassigned all 84 entities (client_group_id
+  NULL), deleted the two fake groups. Audit log entry + one-shot
+  script (scripts/tax-ops-family-cleanup.ts) with known-offender list
+  for future reruns.
+- **40.A · Entity dedup batch tool** (`ee56a95`). New
+  src/lib/similarity.ts: Levenshtein + Luxembourg-aware name
+  normalisation (strips accents, dots, letter-by-letter legal forms
+  "S.à r.l." → "sarl"). GET /api/tax-ops/entities/dedupe-candidates
+  returns clusters ≥ threshold. POST /api/tax-ops/entities/[id]/merge
+  reassigns all obligations to the target (filings follow via FK),
+  deactivates collision duplicates, marks source inactive with
+  audit-log trail. UI at /tax-ops/settings/dedupe: threshold slider
+  + per-cluster radio-canonical picker + one-click merge +
+  localStorage-persisted skip list. 16 new unit tests.
+- **40.H · Archive next year + back nav + undo entity** (`c70dcd2`).
+  Matrix entity filter now includes entities liquidated in-year
+  (e.liquidation_date >= year-start) so 2025 matrices still show
+  entities archived 2025-06. Rollover filter matches (target-year
+  Jan 1 cutoff). Entity detail back button now uses router.back()
+  (fallback to /tax-ops/entities) so Diego returns to the matrix
+  he came from. Archive + Reactivate emit toast with Undo that
+  captures prior is_active + liquidation_date.
+- **40.J · Overview cleanup + Tasks Due widget** (`61b30a2`). Removed
+  NWT card from the 6-card category grid (NWT collapsed into CIT
+  since stint 37.D). Icons refreshed (€ for VAT, % for Subscription).
+  New TasksDueWidget mounted above existing widgets: fetches open
+  tasks with due_in_days=7, renders top 8 with priority-toned
+  titles + DateBadge + entity/filing sub-line.
+- **40.O · Invoice price column** (`582e6ea`). Migration 052 adds
+  invoice_price_eur NUMERIC + invoice_price_note TEXT to tax_filings.
+  New InlinePriceCell inline editor (€ input + note textarea in
+  popover). priceColumn factory wired into 10 matrix pages (CIT,
+  VAT × 3, Subscription, WHT × 3, BCL × 2). Excel export surfaces
+  Price + Price note columns.
+- **40.L · Deadline tolerance realigned with AED practice** (`f639e26`).
+  Migration 053: cit_annual extension moves 31 Dec → 30 Oct (matches
+  the letter AED issues in practice). admin_tolerance_days set to 0
+  (extension IS the effective deadline; letter-specific dates edit
+  the filing directly). 139 open CIT filings' deadline_date recomputed.
+- **40.F · CIT polish: assessment tri-state + NWT opt-out** (`1354008`).
+  AssessmentInlineEditor display collapses 9-status enum into 3
+  chips: "✓ Received <date>" / "✕ No assessment expected" / "Not
+  yet". Edit popover keeps full enum for edge cases. NwtReviewInlineCell
+  gains optional onOptOut prop that DELETEs the nwt_annual
+  obligation (soft-delete). Wired from CIT page.
+- **40.G · Contacts column on every matrix** (`5ba0042`). Matrix
+  API surfaces tax_filings.csp_contacts. New contactsColumn factory
+  and ContactsInlineEditor: compact display shows up to 2 name
+  chips + "+N" overflow, click opens popover with CspContactsEditor
+  (reused from entity detail) for add/edit/remove rows. Wired into
+  10 matrix pages between Last chased and Comments. The "Edit all
+  drawer" (40.G.2 in the plan) deferred to stint 41 — contacts
+  column covers 80% of the multi-field-edit use case.
+- **40.I · Tasks polish** (`9e5286e`). Filter pills relabelled:
+  "Mine" → "My tasks", "Waiting" → "Blocked on others", "Overdue"
+  → "Overdue", "This week" → "Due this week". Each carries a
+  tooltip spelling out its filter. QuickCaptureModal defaults
+  assignee to "Diego" (reset on close preserves the default).
+- **40.N · Tests + docs + close** (this commit). 3 new tests
+  locking the 40.O/40.G field defaults + filter integration.
+  Total: 675 tests across 35 files.
+
+Gate verde por commit: tsc clean, 35 test files, 675 tests, build
+OK. Migrations 052 + 053 applied to Supabase. Anonymization grep
+limpio en cada commit (CTR/FCR cleanup was audit-logged with reason).
+
+Deferred to stint 41:
+- 40.E · WHT consolidation (1 page + per-entity cadence)
+- 40.P · Family overview page + bulk-copy contacts
+- 40.G.2 · Full filing-edit side drawer (row pencil icon)
+
+---
 
 **2026-04-24 (late evening)** — Stint 39: Tax-Ops iteration #2, post-field-usage (7 commits, A→G)
 

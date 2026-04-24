@@ -173,15 +173,26 @@ clients → entities → declarations → invoices → invoice_lines
 
 ## 4 · Current state (keep this section fresh on each stint)
 
-**As of 2026-04-24, stint 39 just closed.** Status:
+**As of 2026-04-24, stint 40 just closed.** Status:
 
 ### Shipped — recent stints (newest first)
+- ✅ **Stint 40** (2026-04-24 night): Tax-Ops iteration #3 post
+  second field-usage round (13 sub-commits A→N). Entity dedup batch
+  tool in Settings; family hygiene (CTR/FCR fake groups removed);
+  BCL merged to one sidebar entry + FATCA placeholder; invoice
+  price column (migration 052); contacts column on every matrix
+  row; CIT assessment tri-state; NWT opt-out; deadline tolerance
+  realigned (migration 053); archive-respects-current-year; back
+  nav via router.back(); red stripe → gray rail; "Gab Andrew"
+  scrubbed; tasks filters clarified + assignee default. 675 tests
+  green. Deferred to stint 41: WHT consolidation, Family overview,
+  Edit-all drawer.
 - ✅ **Stint 39** (2026-04-24 late): Tax-Ops iteration #2 post field-usage
   (7 sub-commits A→G). Sidebar reorder + € icons; family-first sticky
   colored palette; dynamic year range + entity archive; status-filter
   dropdown on every matrix; family delete cascade-unassign; Undo toast
   on status changes; "Last chased" date column + migration 051.
-  656 tests green. See `docs/TODO.md` "Done this week" for per-commit.
+  656 tests green.
 - ✅ **Stints 37 + 38** (2026-04-24 eve, 13 commits): status enum rework
   + global sidebar reorg + CIT redesign + client-groups CRUD + row CRUD
   + tasks extended + deadline rules full CRUD + entity pills +
