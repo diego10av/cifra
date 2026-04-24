@@ -173,6 +173,114 @@ export function InlineDateCell({
   );
 }
 
+// ─── Price (€ number + free-text note, stint 40.O) ─────────────────
+
+/**
+ * InlinePriceCell — edits an invoice_price_eur (NUMERIC) and
+ * invoice_price_note (TEXT) pair in a single popover. Display shows
+ * "€3,000 +5%" (truncated note) with the full note on hover.
+ */
+export function InlinePriceCell({
+  priceEur, note, onSave, disabled, defaultNote = '+5% office expenses +VAT if applicable',
+}: {
+  priceEur: string | null;
+  note: string | null;
+  onSave: (next: { priceEur: string | null; note: string | null }) => Promise<void>;
+  disabled?: boolean;
+  defaultNote?: string;
+}) {
+  // Serialize the pair as "eur|note" for the InlineCellEditor value.
+  const serial = `${priceEur ?? ''}|${note ?? ''}`;
+  return (
+    <InlineCellEditor<string>
+      value={serial}
+      onSave={async (next) => {
+        const [eurStr = '', n = ''] = next.split('|');
+        const eur = eurStr.trim() === '' ? null : eurStr.trim();
+        const finalNote = n.trim() === '' ? null : n;
+        await onSave({ priceEur: eur, note: finalNote });
+      }}
+      disabled={disabled}
+      ariaLabel="Edit invoice price"
+      renderDisplay={() => {
+        if (!priceEur) {
+          return <span className="text-ink-faint italic text-[11px]">—</span>;
+        }
+        const fmtEur = (() => {
+          const n = Number(priceEur);
+          if (!Number.isFinite(n)) return priceEur;
+          return `€${n.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+        })();
+        const compactNote = note
+          ? (note.length > 14 ? `${note.slice(0, 14)}…` : note)
+          : '';
+        return (
+          <span
+            className="inline-block text-[11.5px] text-ink font-mono whitespace-nowrap"
+            title={note ?? ''}
+          >
+            {fmtEur}{compactNote ? <span className="text-ink-muted"> {compactNote}</span> : null}
+          </span>
+        );
+      }}
+      renderEditor={({ value, setValue, commit, cancel }) => {
+        const [curEur = '', curNote = ''] = value.split('|');
+        const effNote = curNote || (priceEur ? '' : defaultNote);
+        return (
+          <div className="flex flex-col gap-1 p-1 w-[260px] bg-surface border border-border rounded shadow-sm">
+            <label className="text-[11px] text-ink-muted">Price (€)</label>
+            <input
+              type="number"
+              step="1"
+              min="0"
+              autoFocus
+              value={curEur}
+              onChange={(e) => setValue(`${e.target.value}|${effNote}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') { e.preventDefault(); commit(); }
+                else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
+              }}
+              className="px-1.5 py-1 text-[12px] border border-border rounded bg-surface tabular-nums"
+              placeholder="e.g. 3000"
+            />
+            <label className="text-[11px] text-ink-muted mt-1">Note (shown next to €)</label>
+            <textarea
+              value={effNote}
+              onChange={(e) => setValue(`${curEur}|${e.target.value}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                  e.preventDefault(); commit();
+                } else if (e.key === 'Escape') {
+                  e.preventDefault(); cancel();
+                }
+              }}
+              rows={2}
+              className="px-1.5 py-1 text-[11.5px] border border-border rounded bg-surface"
+              placeholder="+5% office expenses +VAT if applicable"
+            />
+            <div className="flex justify-end gap-1 mt-1">
+              <button
+                type="button"
+                onClick={cancel}
+                className="px-2 py-0.5 text-[11px] rounded border border-border hover:bg-surface-alt"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={commit}
+                className="px-2 py-0.5 text-[11px] rounded bg-brand-500 text-white hover:bg-brand-600"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        );
+      }}
+    />
+  );
+}
+
 // ═════════════════════════════════════════════════════════════════════
 // Private building blocks — tiny input primitives that auto-focus +
 // handle Enter/ESC commit/cancel.

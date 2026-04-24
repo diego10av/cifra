@@ -14,7 +14,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { WhtTabs } from '@/components/tax-ops/WhtTabs';
 import {
-  preparedWithColumn, lastChasedColumn, commentsColumn, deadlineColumn, familyColumn,
+  preparedWithColumn, lastChasedColumn, commentsColumn, priceColumn, deadlineColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
@@ -45,6 +45,7 @@ export default function WhtAnnualPage() {
     preparedWithColumn([periodLabel], refetch),
     lastChasedColumn([periodLabel], refetch),
     commentsColumn([periodLabel], refetch),
+    priceColumn([periodLabel], refetch),
   ];
 
   return (

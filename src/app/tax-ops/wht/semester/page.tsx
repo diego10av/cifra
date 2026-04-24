@@ -14,7 +14,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { WhtTabs } from '@/components/tax-ops/WhtTabs';
 import {
-  preparedWithColumn, lastChasedColumn, commentsColumn, familyColumn,
+  preparedWithColumn, lastChasedColumn, commentsColumn, priceColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
@@ -44,6 +44,7 @@ export default function WhtSemesterPage() {
     preparedWithColumn(periodLabels, refetch),
     lastChasedColumn(periodLabels, refetch),
     commentsColumn(periodLabels, refetch),
+    priceColumn(periodLabels, refetch),
   ];
 
   return (

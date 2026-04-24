@@ -37,6 +37,9 @@ export interface MatrixCell {
   prepared_with: string[];
   /** Stint 39.F — last chase date to client/CSP for this filing. */
   last_info_request_sent_at: string | null;
+  /** Stint 40.O — invoice price + free-text note. */
+  invoice_price_eur: string | null;
+  invoice_price_note: string | null;
 }
 
 export interface MatrixEntity {

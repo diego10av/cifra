@@ -71,6 +71,9 @@ interface FilingRow {
   prepared_with: string[];
   /** Stint 39.F — last chase date; surfaced in export too. */
   last_info_request_sent_at: string | null;
+  /** Stint 40.O — invoice price + note. */
+  invoice_price_eur: string | null;
+  invoice_price_note: string | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -134,7 +137,9 @@ export async function GET(request: NextRequest) {
     filings = await query<FilingRow>(
       `SELECT obligation_id, period_label, status,
               deadline_date::text AS deadline_date, comments, prepared_with,
-              last_info_request_sent_at::text AS last_info_request_sent_at
+              last_info_request_sent_at::text AS last_info_request_sent_at,
+              invoice_price_eur::text AS invoice_price_eur,
+              invoice_price_note
          FROM tax_filings
         WHERE obligation_id = ANY($1::text[])
           AND period_label = ANY($2::text[])`,
@@ -158,32 +163,43 @@ export async function GET(request: NextRequest) {
   header.push('Prepared with');
   header.push('Last chased');
   header.push('Comments');
+  header.push('Price (€)');
+  header.push('Price note');
   ws.addRow(header);
   ws.getRow(1).font = { bold: true };
   ws.getRow(1).alignment = { vertical: 'middle' };
 
   // Body
   for (const e of entities) {
-    const row: Array<string | null> = [e.group_name ?? '', e.legal_name];
+    const row: Array<string | number | null> = [e.group_name ?? '', e.legal_name];
     const cells: FilingRow[] = [];
     for (const label of periodLabels) {
       const cell = e.obligation_id ? idx.get(`${e.obligation_id}|${label}`) ?? null : null;
       row.push(cell ? humanStatus(cell.status) : '');
       if (cell) cells.push(cell);
     }
-    // Aggregate prepared_with + comments + latest-chase across the row.
+    // Aggregate prepared_with + comments + latest-chase + price across the row.
     const preparedSet = new Set<string>();
     let comment: string | null = null;
     const chaseDates: string[] = [];
+    let invoicePrice: number | null = null;
+    let invoicePriceNote: string | null = null;
     for (const c of cells) {
       if (c.prepared_with) c.prepared_with.forEach(v => preparedSet.add(v));
       if (!comment && c.comments) comment = c.comments;
       if (c.last_info_request_sent_at) chaseDates.push(c.last_info_request_sent_at);
+      if (invoicePrice === null && c.invoice_price_eur) {
+        const n = Number(c.invoice_price_eur);
+        if (Number.isFinite(n)) invoicePrice = n;
+      }
+      if (!invoicePriceNote && c.invoice_price_note) invoicePriceNote = c.invoice_price_note;
     }
     const latestChase = chaseDates.length === 0 ? '' : chaseDates.sort().slice(-1)[0]!;
     row.push(Array.from(preparedSet).join(', '));
     row.push(latestChase);
     row.push(comment ?? '');
+    row.push(invoicePrice ?? '');
+    row.push(invoicePriceNote ?? '');
     ws.addRow(row);
   }
 
@@ -193,9 +209,11 @@ export async function GET(request: NextRequest) {
   for (let i = 0; i < periodLabels.length; i += 1) {
     ws.getColumn(3 + i).width = 12;
   }
-  ws.getColumn(3 + periodLabels.length).width = 20;
-  ws.getColumn(4 + periodLabels.length).width = 14;  // Last chased
-  ws.getColumn(5 + periodLabels.length).width = 50;
+  ws.getColumn(3 + periodLabels.length).width = 20;   // Prepared with
+  ws.getColumn(4 + periodLabels.length).width = 14;   // Last chased
+  ws.getColumn(5 + periodLabels.length).width = 50;   // Comments
+  ws.getColumn(6 + periodLabels.length).width = 12;   // Price (€)
+  ws.getColumn(7 + periodLabels.length).width = 40;   // Price note
 
   // Freeze header row + first two cols (Group + Entity) — matches the
   // on-screen sticky-header feel.

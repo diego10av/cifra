@@ -16,7 +16,7 @@ import {
 } from '@/components/tax-ops/useMatrixData';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import {
-  preparedWithColumn, lastChasedColumn, commentsColumn, deadlineColumn, familyColumn,
+  preparedWithColumn, lastChasedColumn, commentsColumn, priceColumn, deadlineColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AssessmentInlineEditor } from '@/components/tax-ops/AssessmentInlineEditor';
@@ -189,6 +189,7 @@ export default function CitPage() {
       },
     },
     commentsColumn([periodLabel], current.refetch),
+    priceColumn([periodLabel], current.refetch),
   ];
 
   return (

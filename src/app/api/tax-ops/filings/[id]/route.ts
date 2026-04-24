@@ -87,6 +87,8 @@ const ALLOWED_FIELDS = [
   'csp_contacts', 'comments', 'internal_matter_code',
   // Stint 39.F — last chase date for info requests to client/CSP.
   'last_info_request_sent_at',
+  // Stint 40.O — invoice price per filing + free-text clarification.
+  'invoice_price_eur', 'invoice_price_note',
 ] as const;
 
 export async function PATCH(

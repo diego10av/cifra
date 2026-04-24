@@ -6,7 +6,7 @@
 // UX later.
 
 import type { MatrixColumn, MatrixEntity, MatrixCell } from './TaxTypeMatrix';
-import { InlineTagsCell, InlineTextCell, InlineDateCell } from './inline-editors';
+import { InlineTagsCell, InlineTextCell, InlineDateCell, InlinePriceCell } from './inline-editors';
 import { DeadlineWithTolerance } from './DeadlineWithTolerance';
 import { familyChipClasses } from './familyColors';
 
@@ -115,6 +115,48 @@ export function lastChasedColumn(periodLabels: string[], refetch: () => void): M
           mode="neutral"
           onSave={async (next) => {
             await patchAllFilings(allFilingIds, { last_info_request_sent_at: next });
+            refetch();
+          }}
+        />
+      );
+    },
+  };
+}
+
+/**
+ * Stint 40.O — Invoice price row-level column.
+ *
+ * Diego's workflow: when he hands an entity's work to the office CFO
+ * for billing, he quotes a fixed fee (often €3,000) plus a small
+ * note (+5% office expenses +VAT if applicable). Keeping that price
+ * inline on the matrix saves a context switch. Stored per-filing so
+ * the same obligation can price Q1 ≠ Q2 if needed; save propagates
+ * across all row filings by default (same pattern as preparedWith).
+ */
+export function priceColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
+  return {
+    key: 'invoice_price',
+    label: 'Price',
+    widthClass: 'w-[140px]',
+    alignRight: true,
+    render: (e) => {
+      const allFilingIds = periodLabels
+        .map(l => e.cells[l]?.filing_id)
+        .filter((x): x is string => !!x);
+      // Display picks the first filed cell's values (or null when none).
+      const first = periodLabels
+        .map(l => e.cells[l])
+        .find((c): c is MatrixCell => !!c) ?? null;
+      return (
+        <InlinePriceCell
+          priceEur={first?.invoice_price_eur ?? null}
+          note={first?.invoice_price_note ?? null}
+          disabled={allFilingIds.length === 0}
+          onSave={async ({ priceEur, note }) => {
+            await patchAllFilings(allFilingIds, {
+              invoice_price_eur: priceEur,
+              invoice_price_note: note,
+            });
             refetch();
           }}
         />

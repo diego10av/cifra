@@ -111,6 +111,8 @@ const makeCell = (overrides: Partial<MatrixCell> = {}): MatrixCell => ({
   amount_paid: null,
   prepared_with: [],
   last_info_request_sent_at: null,
+  invoice_price_eur: null,
+  invoice_price_note: null,
   ...overrides,
 });
 
