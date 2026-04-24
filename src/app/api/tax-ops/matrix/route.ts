@@ -75,6 +75,8 @@ interface MatrixCell {
   invoice_price_eur: string | null;
   /** Stint 40.O — free-text clarification shown next to the price. */
   invoice_price_note: string | null;
+  /** Stint 40.G — CSP / client contacts for this filing. */
+  csp_contacts: Array<{ name: string; email?: string; role?: string }>;
 }
 
 interface EntityRow {
@@ -177,6 +179,7 @@ export async function GET(request: NextRequest) {
     last_info_request_sent_at: string | null;
     invoice_price_eur: string | null;
     invoice_price_note: string | null;
+    csp_contacts: Array<{ name: string; email?: string; role?: string }> | null;
   }> = [];
 
   if (obligationIds.length > 0 && periodLabels.length > 0) {
@@ -190,7 +193,8 @@ export async function GET(request: NextRequest) {
               f.prepared_with,
               f.last_info_request_sent_at::text AS last_info_request_sent_at,
               f.invoice_price_eur::text AS invoice_price_eur,
-              f.invoice_price_note
+              f.invoice_price_note,
+              f.csp_contacts
          FROM tax_filings f
         WHERE f.obligation_id = ANY($1::text[])
           AND f.period_label = ANY($2::text[])`,
@@ -216,6 +220,7 @@ export async function GET(request: NextRequest) {
       last_info_request_sent_at: f.last_info_request_sent_at,
       invoice_price_eur: f.invoice_price_eur,
       invoice_price_note: f.invoice_price_note,
+      csp_contacts: f.csp_contacts ?? [],
     });
   }
 

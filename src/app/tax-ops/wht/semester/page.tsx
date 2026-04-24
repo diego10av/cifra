@@ -14,7 +14,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { WhtTabs } from '@/components/tax-ops/WhtTabs';
 import {
-  preparedWithColumn, lastChasedColumn, commentsColumn, priceColumn, familyColumn,
+  preparedWithColumn, lastChasedColumn, contactsColumn, commentsColumn, priceColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
@@ -43,6 +43,7 @@ export default function WhtSemesterPage() {
     { key: `${year}-S2`, label: 'S2 (Jul-Dec)', widthClass: 'w-[120px]' },
     preparedWithColumn(periodLabels, refetch),
     lastChasedColumn(periodLabels, refetch),
+    contactsColumn(periodLabels, refetch),
     commentsColumn(periodLabels, refetch),
     priceColumn(periodLabels, refetch),
   ];

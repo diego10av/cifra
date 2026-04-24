@@ -5,10 +5,12 @@
 // everywhere. Keeps per-page code tight + avoids drift when we tweak
 // UX later.
 
+import { useState } from 'react';
 import type { MatrixColumn, MatrixEntity, MatrixCell } from './TaxTypeMatrix';
 import { InlineTagsCell, InlineTextCell, InlineDateCell, InlinePriceCell } from './inline-editors';
 import { DeadlineWithTolerance } from './DeadlineWithTolerance';
 import { familyChipClasses } from './familyColors';
+import { CspContactsEditor, type CspContact } from './CspContactsEditor';
 
 // Patch helper — works off the cell's filing_id. When the cell is empty,
 // the edit is blocked (we don't create an empty filing just to attach a
@@ -121,6 +123,141 @@ export function lastChasedColumn(periodLabels: string[], refetch: () => void): M
       );
     },
   };
+}
+
+/**
+ * Stint 40.G — Contacts row-level column.
+ *
+ * Diego's feedback: "estaría bien añadir en corporate tax return y
+ * también en el apartado de IVA poder añadir uno o varios contactos
+ * porque normalmente hay que pedir la declaración a una determinada
+ * persona de un proveedor de servicios o al cliente. Entonces estaría
+ * bien poder tener a mano los contactos."
+ *
+ * Stored per-filing in `tax_filings.csp_contacts` (JSONB). Same
+ * row-level pattern: display shows chip(s) from the first filed
+ * cell; save propagates to every filing in the row via patchAllFilings.
+ */
+export function contactsColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
+  return {
+    key: 'csp_contacts',
+    label: 'Contacts',
+    widthClass: 'w-[220px]',
+    render: (e) => {
+      const allFilingIds = periodLabels
+        .map(l => e.cells[l]?.filing_id)
+        .filter((x): x is string => !!x);
+      const first = periodLabels
+        .map(l => e.cells[l])
+        .find((c): c is MatrixCell => !!c) ?? null;
+      return (
+        <ContactsInlineEditor
+          value={first?.csp_contacts ?? []}
+          disabled={allFilingIds.length === 0}
+          onSave={async (next) => {
+            await patchAllFilings(allFilingIds, { csp_contacts: next });
+            refetch();
+          }}
+        />
+      );
+    },
+  };
+}
+
+function ContactsInlineEditor({
+  value, onSave, disabled,
+}: {
+  value: CspContact[];
+  onSave: (next: CspContact[]) => Promise<void>;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<CspContact[]>(value);
+  const [busy, setBusy] = useState(false);
+
+  // Display
+  if (!open) {
+    if (value.length === 0) {
+      return (
+        <button
+          type="button"
+          onClick={() => { setDraft(value); setOpen(true); }}
+          disabled={disabled}
+          className="text-[11px] text-ink-muted hover:text-ink disabled:opacity-50 disabled:cursor-not-allowed italic"
+          title={disabled ? 'Set a status first (creates the filing)' : 'Click to add contacts'}
+        >
+          + Add contact
+        </button>
+      );
+    }
+    return (
+      <button
+        type="button"
+        onClick={() => { setDraft(value); setOpen(true); }}
+        className="inline-flex items-center gap-1 flex-wrap max-w-full hover:bg-brand-50/50 rounded px-0.5"
+        title={value.map(c => `${c.name}${c.email ? ` (${c.email})` : ''}${c.role ? ` · ${c.role}` : ''}`).join('\n')}
+      >
+        {value.slice(0, 2).map((c, i) => (
+          <span
+            key={i}
+            className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-brand-50 text-brand-700 truncate max-w-[100px]"
+          >
+            {c.name || '—'}
+          </span>
+        ))}
+        {value.length > 2 && (
+          <span className="text-[10.5px] text-ink-muted">+{value.length - 2}</span>
+        )}
+      </button>
+    );
+  }
+
+  // Edit popover — reuses CspContactsEditor
+  async function save() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await onSave(draft);
+      setOpen(false);
+    } catch {
+      /* error surfaces via the underlying PATCH's failure toast */
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="absolute z-50 bg-surface border border-border rounded-md shadow-lg p-2 w-[320px] mt-1"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
+      }}
+    >
+      <div className="text-[11px] text-ink-muted mb-1.5">Contacts for this row</div>
+      <CspContactsEditor
+        value={draft}
+        onChange={setDraft}
+        fallbackLabel="No contacts yet — add one"
+      />
+      <div className="flex justify-end gap-1 mt-2">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="px-2 py-0.5 text-[11px] rounded border border-border hover:bg-surface-alt"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={save}
+          disabled={busy}
+          className="px-2 py-0.5 text-[11px] rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+        >
+          {busy ? 'Saving…' : 'Save'}
+        </button>
+      </div>
+    </div>
+  );
 }
 
 /**

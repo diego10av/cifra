@@ -40,6 +40,8 @@ export interface MatrixCell {
   /** Stint 40.O — invoice price + free-text note. */
   invoice_price_eur: string | null;
   invoice_price_note: string | null;
+  /** Stint 40.G — CSP / client contacts for this filing. */
+  csp_contacts: Array<{ name: string; email?: string; role?: string }>;
 }
 
 export interface MatrixEntity {
