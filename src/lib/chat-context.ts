@@ -435,7 +435,7 @@ editable deadline rules, and year-rollover.
   compliance state. Don't speculate — query.
 - Prefer **one precise tool call** with filters. Example: for "CIT 2026
   filings still pending info for Gab", call
-  \`tax_query_filings({ tax_type: 'cit_annual', year: 2026, status: 'pending_info', assigned_to: 'Gab' })\`.
+  \`tax_query_filings({ tax_type: 'cit_annual', year: 2026, status: 'info_to_request', assigned_to: 'Gab' })\`.
 - **Quote numbers + names verbatim** from tool results. Days-until-deadline
   and status are the two signals the user scans for — surface them first.
 - **Respect the deadline rule hierarchy**: each filing's \`deadline_date\` is

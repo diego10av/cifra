@@ -96,7 +96,7 @@ const makeEntity = (overrides: Partial<MatrixEntity> = {}): MatrixEntity => ({
 
 const makeCell = (overrides: Partial<MatrixCell> = {}): MatrixCell => ({
   filing_id: 'filing-1',
-  status: 'pending_info',
+  status: 'info_to_request',
   deadline_date: null,
   assigned_to: null,
   comments: null,
@@ -122,7 +122,7 @@ describe('applyStatusChange', () => {
     await applyStatusChange({
       entity: makeEntity(),
       column: makeColumn(),
-      cell: makeCell({ filing_id: 'filing-42', status: 'pending_info' }),
+      cell: makeCell({ filing_id: 'filing-42', status: 'info_to_request' }),
       nextStatus: 'filed',
       refetch,
     });

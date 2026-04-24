@@ -15,9 +15,9 @@
 // ════════════════════════════════════════════════════════════════════════
 
 export type FilingStatus =
-  | 'pending_info' | 'info_received' | 'working'
-  | 'draft_sent' | 'pending_client_approval'
-  | 'filed' | 'assessment_received' | 'paid' | 'waived' | 'blocked';
+  | 'info_to_request' | 'info_received' | 'working'
+  | 'awaiting_client_clarification' | 'draft_sent'
+  | 'filed' | 'assessment_received' | 'waived' | 'blocked';
 
 export interface ParsedStatus {
   status: FilingStatus;
@@ -29,9 +29,9 @@ export interface ParsedStatus {
 // Parse a free-text status/comment cell into a normalized filing state.
 // Robust to DD.MM.YYYY, DD/MM/YYYY, DD-MM-YYYY and whitespace noise.
 export function parseStatusCell(raw: string | null | undefined): ParsedStatus {
-  if (!raw || typeof raw !== 'string') return { status: 'pending_info' };
+  if (!raw || typeof raw !== 'string') return { status: 'info_to_request' };
   const text = raw.trim();
-  if (!text) return { status: 'pending_info' };
+  if (!text) return { status: 'info_to_request' };
 
   const dateRe = /(\d{1,2})[./-](\d{1,2})[./-](\d{4})/;
 
@@ -53,9 +53,9 @@ export function parseStatusCell(raw: string | null | undefined): ParsedStatus {
     return { status: 'draft_sent', residual_comment: draftMatch[1] };
   }
 
-  // Waiting / pending client approval
+  // Waiting for client approval of a draft → merged into draft_sent
   if (/^waiting\s+for\s+.*(approval|confirmation|sign)/i.test(text)) {
-    return { status: 'pending_client_approval', residual_comment: text };
+    return { status: 'draft_sent', residual_comment: text };
   }
   if (/^waiting\s+for/i.test(text)) {
     return { status: 'blocked', residual_comment: text };
@@ -63,10 +63,10 @@ export function parseStatusCell(raw: string | null | undefined): ParsedStatus {
 
   // Requested info / financials requested
   if (/^(financials\s+)?requested\s+on/i.test(text)) {
-    return { status: 'pending_info', residual_comment: text };
+    return { status: 'info_to_request', residual_comment: text };
   }
   if (/requested/i.test(lower) && /info|financials|document/i.test(lower)) {
-    return { status: 'pending_info', residual_comment: text };
+    return { status: 'info_to_request', residual_comment: text };
   }
 
   // Tax assessment received

@@ -81,7 +81,7 @@ export async function GET() {
          JOIN tax_obligations o ON o.id = f.obligation_id
          JOIN tax_entities e    ON e.id = o.entity_id
          LEFT JOIN tax_client_groups g ON g.id = e.client_group_id
-        WHERE f.status IN ('pending_info','working')
+        WHERE f.status IN ('info_to_request','working')
           AND e.is_active = TRUE
         ORDER BY f.deadline_date ASC NULLS LAST
         LIMIT 25`,
@@ -93,7 +93,7 @@ export async function GET() {
          JOIN tax_obligations o ON o.id = f.obligation_id
          JOIN tax_entities e    ON e.id = o.entity_id
          LEFT JOIN tax_client_groups g ON g.id = e.client_group_id
-        WHERE f.status = 'pending_client_approval'
+        WHERE f.status = 'draft_sent'
           AND f.draft_sent_at IS NOT NULL
           AND f.draft_sent_at < CURRENT_DATE - INTERVAL '7 days'
           AND f.client_approved_at IS NULL

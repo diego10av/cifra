@@ -315,7 +315,7 @@ function CellRender({
         title={cell ? buildTooltip(cell) : disabled ? 'No obligation — add one on the entity detail page' : 'Click to set a status (creates the filing)'}
       >
         <InlineStatusCell
-          value={cell?.status ?? 'pending_info'}
+          value={cell?.status ?? 'info_to_request'}
           disabled={disabled}
           onSave={(next) => onStatusChange({ entity, column, cell, nextStatus: next })}
         />

@@ -34,8 +34,10 @@ interface AffectedFiling {
   status: string;
 }
 
-const OPEN_STATUSES = ['pending_info', 'info_received', 'working', 'draft_sent',
-                        'pending_client_approval', 'blocked'];
+const OPEN_STATUSES = [
+  'info_to_request', 'info_received', 'working',
+  'awaiting_client_clarification', 'draft_sent', 'blocked',
+];
 
 async function fetchRule(id: string): Promise<RuleRow | null> {
   const rows = await (await import('@/lib/db')).query<RuleRow>(

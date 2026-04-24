@@ -10,7 +10,7 @@ import { computeDeadline, type DeadlineRule } from '@/lib/tax-ops-deadlines';
 // Filters (all optional, all AND'd):
 //   ?year=2026
 //   ?tax_type=cit_annual
-//   ?status=pending_info          (multi-values: repeat the param)
+//   ?status=info_to_request       (multi-values: repeat the param)
 //   ?group_id=<uuid>              (client_group_id)
 //   ?entity_id=<uuid>
 //   ?assigned_to=<short_name>
@@ -244,7 +244,7 @@ export async function POST(request: NextRequest) {
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'manual')`,
       [
         id, obligation_id, period_year, period_label, deadline,
-        body.status ?? 'pending_info',
+        body.status ?? 'info_to_request',
         body.prepared_with ?? [],
         body.comments ?? null,
         body.assigned_to ?? null,
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
     targetId: id,
     newValue: JSON.stringify({
       obligation_id, period_label, period_year,
-      status: body.status ?? 'pending_info',
+      status: body.status ?? 'info_to_request',
     }),
   });
 

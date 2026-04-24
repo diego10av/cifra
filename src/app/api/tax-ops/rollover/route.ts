@@ -23,7 +23,7 @@ import { computeDeadline, type DeadlineRule } from '@/lib/tax-ops-deadlines';
 //       semester   → 2 rows ("YYYY-S1", "YYYY-S2")
 //       adhoc      → skipped (manual creation only)
 //   - Deadline auto-computed from tax_deadline_rules.
-//   - Status defaults to pending_info.
+//   - Status defaults to info_to_request (we still have to ask the CSP).
 // ════════════════════════════════════════════════════════════════════════
 
 const MODE_PREVIEW = 'preview';
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
         txSql,
         `INSERT INTO tax_filings (id, obligation_id, period_year, period_label,
                                    deadline_date, status, import_source)
-         VALUES ($1, $2, $3, $4, $5, 'pending_info', 'rollover')
+         VALUES ($1, $2, $3, $4, $5, 'info_to_request', 'rollover')
          ON CONFLICT (obligation_id, period_label) DO NOTHING
          RETURNING id`,
         [id, c.obligation_id, year, c.period_label, c.deadline_date],
