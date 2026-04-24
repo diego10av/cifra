@@ -10,7 +10,7 @@
 -- modules. The two can be bridged later if product signal calls for it.
 --
 -- Seven tables:
---   1. tax_client_groups        — fund families (CTR, Peninsula, …)
+--   1. tax_client_groups        — fund-family groupings (one row per family)
 --   2. tax_entities             — legal entities (~180 after dedup)
 --   3. tax_deadline_rules       — globally editable rules per tax_type
 --   4. tax_obligations          — entity × tax_type recurring template
