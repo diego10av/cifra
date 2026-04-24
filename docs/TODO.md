@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-24 (stint 37 shipping — 10 sub-commits: status enum rework, sidebar global reorg under VAT/CRM/Tax-Ops modules, tolerance-aware deadlines, CIT page rediseño with NWT inline column, family CRUD, row-level CRUD everywhere, tasks extended schema for PM semantics, deadline rules full CRUD, entity tax-status pills, graceful-degradation test).
+> Last updated: 2026-04-24 (stints 37 + 38 closed — 13 sub-commits total. Stint 37 UX polish: status enum rework, sidebar global reorg, tolerance-aware deadlines, CIT rediseño, family CRUD, row CRUD, tasks PM extended, deadline rules CRUD, entity pills, resilience test, /crm/outreach MVP. Stint 38: dynamic sidebar from tax_deadline_rules + GTM playbook doc.)
 
 ---
 
@@ -97,6 +97,31 @@ Things worth remembering but not actionable yet:
 ## ✅ Done this week
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
+
+**2026-04-24 (evening)** — Stints 37 + 38: UX polish + dynamic sidebar + GTM playbook (13 commits)
+
+Diego's week-of-usage audit of Tax-Ops surfaced 15+ pain points. Full pipeline shipped in two stints without waiting for re-review.
+
+Stint 37 (10 sub-commits, A→J):
+- **37.A · Status enum rework** (`38eb518`). Migration 047: `pending_info`→`info_to_request`, `pending_client_approval` merged into `draft_sent`, new `awaiting_client_clarification` status between `working` and `draft_sent`, `paid` removed from enum (paid_at/amount_paid stay as optional fields). Purged pre-2025 filings (31 CIT 2024). 228 filings left.
+- **37.B · Sidebar global reorg** (`794f30e`). Top-level modules: Home · VAT (Clients + Declarations + Deadlines + Legal watch) · CRM · Tax-Ops (collapsible) · Operations. 2-level nesting supported (VAT filings → Annual/Quarterly/Monthly).
+- **37.C · DeadlineWithTolerance** (`11dddb4`). Admin tolerance respected — "within tolerance (Nd left)" amber state between statutory and statutory+tolerance. Matrix API exposes `admin_tolerance_days`.
+- **37.D · CIT page redesign** (`b047eee`). Family column first + Assessment {year-1} inline editable + NWT Review {year} collapsed into a column (no separate page) + year-dynamic labels.
+- **37.E · client_groups CRUD** (`0148591`). Full CRUD at `/tax-ops/settings/groups`. Family column dropdown lets Diego reassign inline or create-new.
+- **37.F · Row CRUD inline** (`2fe8620`). "+ Add entity to family" at end of each group. Trash icon per row soft-archives obligation. "+ Add ad-hoc filing" modal on `/tax-ops/other`.
+- **37.G · Tasks rediseño** (`560068d`). Migration 048 adds entity_id + task_kind + waiting_on_kind + waiting_on_note + follow_up_date. Matrix list columns: Family · Entity · Title · Kind · Status · Waiting on · Follow-up · Assignee · Due · Priority. QuickCaptureModal gets all fields with "Show more" expand.
+- **37.H · Deadline rules CRUD full** (`033f116`). POST/DELETE on rules, inline delete per row (blocked when open filings exist). New `adhoc_no_deadline` rule_kind. WHT director reclassified in prod to adhoc.
+- **37.I · Entity pills + resilience test** (`73b5693`). Tax-status summary chips at entity detail top. 13-test resilience suite asserts core paths don't statically import Anthropic.
+- **37.J · /crm/outreach MVP** (`0847f4c`). Migration 049 + endpoint + list view + kanban board + stage pipeline + metrics strip + inline edit everything.
+
+Stint 38 (3 sub-commits, A→C):
+- **38.A · Dynamic sidebar** (`6749705`). Migration 050 adds sidebar metadata to tax_deadline_rules. `/api/tax-ops/categories` endpoint. Sidebar fetches and renders dynamically; archived/invisible rules hide without redeploy.
+- **38.B · GTM playbook** (`5ee455d`). `docs/go-to-market-alt-fund-managers.md` — 9-section deep playbook: ICP, channels ranked by ROI, templates (LinkedIn DMs, cold emails, referral asks, follow-up sequences), weekly cadence realistic for a founder with kids, benchmark metrics, concrete next-30-days Week 1-4 playbook, ownership split, anti-patterns.
+- **38.C · Tests + docs close** (this commit). 4 new tests for sidebar category grouping. TODO + ROADMAP refreshed.
+
+Gate verde en cada commit: tsc clean, 33+ test files, 643 tests, build 146+ pages. Anonymization grep limpio.
+
+---
 
 **2026-04-24 (night)** — Stint 36: inline-edit matrix cells + Excel export (1 commit, big)
 
