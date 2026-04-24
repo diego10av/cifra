@@ -20,9 +20,43 @@ import {
   LandmarkIcon, SearchCheckIcon, ReceiptIcon, WalletIcon,
   CoinsIcon, LibraryBigIcon, FolderIcon, CheckSquareIcon,
   BarChart3Icon, ShieldCheckIcon, SettingsIcon, ChevronRightIcon,
-  TargetIcon,
+  TargetIcon, CircleIcon,
   type LucideIcon,
 } from 'lucide-react';
+
+// Icon name → component (stint 38.A). Sidebar_icon column stores the
+// lucide icon name; this map decodes. Anything not here falls back
+// to CircleIcon.
+const ICON_MAP: Record<string, LucideIcon> = {
+  LandmarkIcon, SearchCheckIcon, ReceiptIcon, WalletIcon,
+  CoinsIcon, LibraryBigIcon, FolderIcon, FileStackIcon,
+  FileTextIcon, Building2Icon, CalendarIcon, BriefcaseIcon,
+  TargetIcon, CircleIcon,
+};
+function iconFor(name: string | null | undefined): LucideIcon {
+  return (name && ICON_MAP[name]) || CircleIcon;
+}
+
+// Map known tax_type → canonical URL. Unknown tax_types fall back to
+// /tax-ops/category/<tax_type> which uses a generic matrix page.
+const TAX_TYPE_TO_URL: Record<string, string> = {
+  cit_annual:                 '/tax-ops/cit',
+  nwt_annual:                 '/tax-ops/nwt',
+  vat_annual:                 '/tax-ops/vat/annual',
+  vat_simplified_annual:      '/tax-ops/vat/annual',
+  vat_quarterly:              '/tax-ops/vat/quarterly',
+  vat_monthly:                '/tax-ops/vat/monthly',
+  subscription_tax_quarterly: '/tax-ops/subscription-tax',
+  wht_director_monthly:       '/tax-ops/wht/monthly',
+  wht_director_semester:      '/tax-ops/wht/semester',
+  wht_director_annual:        '/tax-ops/wht/annual',
+  fatca_crs_annual:           '/tax-ops/category/fatca_crs_annual',
+  bcl_sbs_quarterly:          '/tax-ops/bcl/sbs',
+  bcl_216_monthly:            '/tax-ops/bcl/bcl216',
+};
+function urlForTaxType(taxType: string): string {
+  return TAX_TYPE_TO_URL[taxType] ?? `/tax-ops/category/${taxType}`;
+}
 import { Logo } from '@/components/Logo';
 
 export interface SidebarBadges {
@@ -49,7 +83,78 @@ type NavItem = {
 };
 type NavGroup = { label?: string; items: NavItem[]; roles?: readonly Role[] };
 
-function buildGroups(badges: SidebarBadges): NavGroup[] {
+interface TaxCategory {
+  tax_type: string;
+  period_pattern: string;
+  sidebar_label: string;
+  sidebar_icon: string | null;
+  sidebar_group: string | null;
+  sidebar_order: number;
+}
+
+/** Build the dynamic chunk of Tax-Ops children from the categories API.
+ *  Rules without a sidebar_group sit at the top level of Tax-Ops.
+ *  Rules with sidebar_group nest under a parent with that group name
+ *  (VAT filings → Annual / Quarterly / Monthly). Stint 38.A. */
+function buildTaxCategoryNavItems(categories: TaxCategory[]): NavItem[] {
+  if (categories.length === 0) {
+    // Fallback: the hardcoded list from stint 37.B. Used when /api/tax-ops/
+    // categories is unreachable or hasn't run migration 050 yet.
+    return [
+      { href: '/tax-ops/cit',              label: 'Corporate tax returns', icon: LandmarkIcon },
+      {
+        href: '/tax-ops/vat',
+        label: 'VAT filings',
+        icon: ReceiptIcon,
+        children: [
+          { href: '/tax-ops/vat/annual',    label: 'Annual',    icon: ReceiptIcon },
+          { href: '/tax-ops/vat/quarterly', label: 'Quarterly', icon: ReceiptIcon },
+          { href: '/tax-ops/vat/monthly',   label: 'Monthly',   icon: ReceiptIcon },
+        ],
+      },
+      { href: '/tax-ops/subscription-tax', label: 'Subscription tax',     icon: CoinsIcon },
+      { href: '/tax-ops/wht',              label: 'Withholding tax',      icon: WalletIcon },
+      { href: '/tax-ops/bcl',              label: 'BCL reporting',        icon: LibraryBigIcon },
+    ];
+  }
+
+  // Group by sidebar_group. null group → top-level.
+  const topLevel: NavItem[] = [];
+  const byGroup = new Map<string, NavItem[]>();
+  for (const c of categories) {
+    const url = urlForTaxType(c.tax_type);
+    const item: NavItem = {
+      href: url,
+      label: c.sidebar_label,
+      icon: iconFor(c.sidebar_icon),
+    };
+    if (c.sidebar_group) {
+      if (!byGroup.has(c.sidebar_group)) byGroup.set(c.sidebar_group, []);
+      byGroup.get(c.sidebar_group)!.push(item);
+    } else {
+      topLevel.push(item);
+    }
+  }
+
+  // For each group, create a parent item. Group 'vat' → VAT filings.
+  // Other groups use the group name as label (Diego can create new groups
+  // and they'll render automatically).
+  for (const [groupName, children] of byGroup) {
+    const parentLabel = groupName === 'vat' ? 'VAT filings'
+                      : groupName.charAt(0).toUpperCase() + groupName.slice(1);
+    const parentHref = groupName === 'vat' ? '/tax-ops/vat'
+                     : `/tax-ops/group/${groupName}`;
+    topLevel.push({
+      href: parentHref,
+      label: parentLabel,
+      icon: children[0]?.icon ?? FolderIcon,
+      children,
+    });
+  }
+  return topLevel;
+}
+
+function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGroup[] {
   // 2026-04-24 stint 37.B: sidebar reorg based on Diego's Veeva/Factorial
   // mental model — top-level items are the MODULES (VAT, CRM, Tax-Ops),
   // everything else nests inside. Home stays alone at the top; Operations
@@ -110,20 +215,10 @@ function buildGroups(badges: SidebarBadges): NavGroup[] {
           children: [
             { href: '/tax-ops',                  label: 'Overview',              icon: FileStackIcon },
             { href: '/tax-ops/tasks',            label: 'Tasks',                 icon: CheckSquareIcon },
-            { href: '/tax-ops/cit',              label: 'Corporate tax returns', icon: LandmarkIcon },
-            {
-              href: '/tax-ops/vat',
-              label: 'VAT filings',
-              icon: ReceiptIcon,
-              children: [
-                { href: '/tax-ops/vat/annual',    label: 'Annual',    icon: ReceiptIcon },
-                { href: '/tax-ops/vat/quarterly', label: 'Quarterly', icon: ReceiptIcon },
-                { href: '/tax-ops/vat/monthly',   label: 'Monthly',   icon: ReceiptIcon },
-              ],
-            },
-            { href: '/tax-ops/subscription-tax', label: 'Subscription tax',     icon: CoinsIcon },
-            { href: '/tax-ops/wht',              label: 'Withholding tax',      icon: WalletIcon },
-            { href: '/tax-ops/bcl',              label: 'BCL reporting',        icon: LibraryBigIcon },
+            // Tax-type children are data-driven from /api/tax-ops/categories
+            // (stint 38.A). Archived rules + invisible rules hide here
+            // automatically. Fallback to hardcoded list if the fetch fails.
+            ...buildTaxCategoryNavItems(taxCategories),
             { href: '/tax-ops/other',            label: 'Other (ad-hoc)',       icon: FolderIcon },
             { href: '/tax-ops/entities',         label: 'Entities',             icon: Building2Icon },
             { href: '/tax-ops/settings',         label: 'Settings',             icon: SettingsIcon },
@@ -160,6 +255,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
   const pathname = usePathname() || '/';
   const [role, setRole] = useState<Role>('admin');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [taxCategories, setTaxCategories] = useState<TaxCategory[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,6 +265,19 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
         if (!cancelled && data?.role) setRole(data.role);
       })
       .catch(() => { /* swallow — defaults to admin */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  // Stint 38.A — fetch tax-type sidebar categories. Silent fail → uses
+  // hardcoded fallback from buildTaxCategoryNavItems.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/tax-ops/categories')
+      .then(r => r.ok ? r.json() : { categories: [] })
+      .then((body: { categories: TaxCategory[] }) => {
+        if (!cancelled) setTaxCategories(body.categories ?? []);
+      })
+      .catch(() => { /* sidebar still renders via fallback */ });
     return () => { cancelled = true; };
   }, []);
 
@@ -184,7 +293,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
     setExpanded(next);
   }, []);
 
-  const groups = filterForRole(buildGroups(badges), role);
+  const groups = filterForRole(buildGroups(badges, taxCategories), role);
 
   // Match rule: exact "/" for Home; otherwise startsWith for nested routes
   // (so /declarations/xyz still lights up the Declarations item).
