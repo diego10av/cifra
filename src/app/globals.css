@@ -220,3 +220,55 @@ textarea:focus-visible,
 
 /* ── Utility: tabular numerals everywhere ───── */
 .tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* ── Print (stint 42.D) ─────────────────────────
+   Goal: when Diego hits ⌘P on any tax-ops matrix he gets a clean
+   table-only view — no sidebar, no top nav, no chat drawer, no
+   feedback widget, no row-action icons. Status chips keep their
+   colour so the printed paper reads like Diego's Excel. */
+@media print {
+  /* Hide chrome */
+  aside, header, nav[aria-label="Primary"], nav[aria-label="primary"],
+  [data-chat-drawer], [data-feedback-widget],
+  button[aria-label="Dismiss notification"],
+  [role="region"][aria-label="Notifications"] {
+    display: none !important;
+  }
+
+  /* Main content takes full width (strip the 232px sidebar indent) */
+  body, main, body > div, .md\:pl-\[232px\] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Preserve status chip colours on paper */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Tables: simplify borders + avoid mid-row page breaks */
+  table { page-break-inside: auto; box-shadow: none !important; }
+  tr { page-break-inside: avoid; page-break-after: auto; }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+
+  /* Kill the row-action column (pencil + trash) when printing */
+  table th:last-child:empty, table td:last-child:has(> button[aria-label]) {
+    display: none !important;
+  }
+
+  /* Kill expand / collapse arrows + group chevrons */
+  button[aria-label="Expand group"], button[aria-label="Collapse group"] {
+    display: none !important;
+  }
+
+  /* Page margins + orphan control */
+  @page { margin: 1cm; }
+  p, li { orphans: 3; widows: 3; }
+
+  /* Typography tweaks for paper */
+  body { font-size: 10pt; color: black; }
+  a { color: inherit; text-decoration: none; }
+}
