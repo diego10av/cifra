@@ -13,7 +13,7 @@
 > Claude keeps it here with an age indicator. This is a feature, not
 > a failure. Diego has a day job and two small kids; many things slip.
 >
-> Last updated: 2026-04-25 (stint 42 overnight batch — 6 commits: composite index 056, print-friendly CSS, entity activity timeline with humanized audit log, iCal deadline subscription feed, global contacts book with bulk rename propagation, dedup "auto-merge exact matches" bulk action. 693 tests green. All aditivo, zero workflow disruption.)
+> Last updated: 2026-04-25 (morning batch — bulk ops on /tax-ops/entities (change family / archive / reactivate, sticky toolbar with sane safety rails); JSON backup snapshot endpoint + Settings page; cleanup of orphan /tax-ops/nwt route. Plus the overnight stint 42 batch: composite index, print-friendly CSS, entity timeline, iCal feed, contacts book, dedup auto-merge. 693 tests green.)
 
 > Earlier: 2026-04-24 (stint 41 closed — WHT per-entity cadence switcher. Migration 055 adds wht_director_quarterly rule (now 5 cadences: Monthly/Quarterly/Semester/Annual/Ad-hoc). New /change-cadence endpoint moves an obligation within the wht_director_* family atomically, with audit log. New cadenceColumn/CadenceInlineCell surfaces a 1-click dropdown on every WHT matrix page. Filings stay attached to the obligation; old period_labels remain in the audit log but won't render in the new cadence's matrix — Diego confirmed that's fine per the "cambio de cadencia" flow he described. 678 tests green. No backlog left from stints 40/41.)
 
@@ -99,6 +99,49 @@ Things worth remembering but not actionable yet:
 ## ✅ Done this week
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
+
+**2026-04-25 (morning)** — Cleanup-batch: bulk ops + backup + nwt cleanup (3 commits)
+
+Diego se levantó del overnight, aplicamos la disciplina §11
+(actionable-first) en una pasada de auditoría, identificamos cero
+ítems claros para borrar (el repo está limpio) excepto una sola
+ruta huérfana, y aterrizamos las 2 features que pidió.
+
+- **Cleanup · `/tax-ops/nwt` orphan removed** (`bdaba84`). NWT
+  fue colapsada en columna dentro del CIT matrix en stint 37.D.
+  La página standalone seguía viva pero nadie linkeaba a ella en
+  la UI. Eliminada + SearchBar entry "Open NWT reviews" eliminado +
+  Sidebar TAX_TYPE_TO_URL ahora apunta a /tax-ops/cit (el tax_type
+  + obligations + filings de NWT siguen vivos, sólo desaparece
+  la página redundante). 4 archivos · -187 / +4 LoC.
+- **Bulk ops en /tax-ops/entities** (`9bae5a1`). Diego pidió
+  "lo podemos hacer ahora". Tres acciones reales — las que va a
+  usar:
+    · Change family (dropdown + Unassign)
+    · Archive (con date picker para liquidation_date)
+    · Reactivate (sólo aparece si la selección incluye archivadas)
+  Checkbox por fila + per-group select-all (con indeterminate
+  state) + "Select all visible" / Clear selection link. Toggle
+  "Include archived" para meter a las inactivas en la tabla.
+  Toolbar sticky brand-coloreada que aparece con N seleccionadas.
+  Endpoint nuevo POST /api/tax-ops/entities/bulk-update con
+  whitelist estricto (client_group_id, is_active, liquidation_date),
+  transacción atómica + audit_log row por entidad para que el
+  timeline per-entity (stint 42.A) las recoja.
+- **Backup snapshot a JSON** (`dc7c3e1`). Diego: "para yo tener
+  una copia y no liarla". Endpoint GET /api/tax-ops/backup con
+  ?include_audit=1 opcional. Devuelve un JSON con metadata
+  (snapshot_at + counts) + las 7 tablas de tax-ops. Página
+  /tax-ops/settings/backup con un único botón Download que
+  triggers Content-Disposition attachment. NOT un SQL dump —
+  artefacto human-readable para que Diego lo guarde en
+  Dropbox/iCloud antes de hacer algo arriesgado.
+
+Gate verde: tsc clean, 37 test files, 693 tests, build OK. No
+nuevas dependencias. No migración. Todo aditivo (excepto la
+ruta /tax-ops/nwt eliminada — confirmado conmigo antes).
+
+---
 
 **2026-04-25 (overnight)** — Stint 42: overnight feature batch (6 commits)
 
