@@ -8,11 +8,12 @@
 // a browser download. Falls back silently if the endpoint errors —
 // the toast surfaces the failure.
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { DownloadIcon } from 'lucide-react';
 import { useToast } from '@/components/Toaster';
 import { FILING_STATUSES, filingStatusLabel } from './FilingStatusBadge';
 import { useTaxTeamMembers } from './useMatrixData';
+import { SearchableSelect, type SearchableOption } from '@/components/ui/SearchableSelect';
 
 interface Props {
   year: number;
@@ -59,7 +60,19 @@ export function MatrixToolbar({
   // so pages that don't use them don't pay the fetch cost.
   const ownershipFiltersWired = !!(onPartnerFilterChange || onAssociateFilterChange);
   const { members } = useTaxTeamMembers();
-  const teamOptions = ownershipFiltersWired ? members : [];
+  // Build SearchableSelect options once. "All" + "Unassigned" sit on top
+  // of the team list so Diego can clear the filter without scrolling.
+  const ownershipOptions = useMemo<SearchableOption[]>(() => {
+    if (!ownershipFiltersWired) return [];
+    return [
+      { value: 'all', label: 'All' },
+      { value: '__unassigned', label: 'Unassigned' },
+      ...members.map(m => ({
+        value: m.short_name,
+        label: m.full_name ? `${m.short_name} · ${m.full_name}` : m.short_name,
+      })),
+    ];
+  }, [ownershipFiltersWired, members]);
 
   async function downloadExcel() {
     setBusy(true);
@@ -123,33 +136,23 @@ export function MatrixToolbar({
       {onPartnerFilterChange && (
         <label className="inline-flex items-center gap-1.5 text-[12.5px]">
           <span className="text-ink-muted">Partner:</span>
-          <select
+          <SearchableSelect
+            options={ownershipOptions}
             value={partnerFilter ?? 'all'}
-            onChange={(e) => onPartnerFilterChange(e.target.value)}
-            className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
-          >
-            <option value="all">All</option>
-            <option value="__unassigned">Unassigned</option>
-            {teamOptions.map(m => (
-              <option key={m.id} value={m.short_name}>{m.short_name}</option>
-            ))}
-          </select>
+            onChange={onPartnerFilterChange}
+            ariaLabel="Filter by partner in charge"
+          />
         </label>
       )}
       {onAssociateFilterChange && (
         <label className="inline-flex items-center gap-1.5 text-[12.5px]">
           <span className="text-ink-muted">Associate:</span>
-          <select
+          <SearchableSelect
+            options={ownershipOptions}
             value={associateFilter ?? 'all'}
-            onChange={(e) => onAssociateFilterChange(e.target.value)}
-            className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
-          >
-            <option value="all">All</option>
-            <option value="__unassigned">Unassigned</option>
-            {teamOptions.map(m => (
-              <option key={m.id} value={m.short_name}>{m.short_name}</option>
-            ))}
-          </select>
+            onChange={onAssociateFilterChange}
+            ariaLabel="Filter by associate working"
+          />
         </label>
       )}
       {(statusFilter && statusFilter !== 'all')

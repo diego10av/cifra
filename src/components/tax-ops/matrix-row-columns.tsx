@@ -5,12 +5,13 @@
 // everywhere. Keeps per-page code tight + avoids drift when we tweak
 // UX later.
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import type { MatrixColumn, MatrixEntity, MatrixCell } from './TaxTypeMatrix';
 import { InlineTagsCell, InlineTextCell, InlineDateCell, InlinePriceCell } from './inline-editors';
 import { DeadlineWithTolerance } from './DeadlineWithTolerance';
 import { familyChipClasses } from './familyColors';
 import { CspContactsEditor, type CspContact } from './CspContactsEditor';
+import { SearchableSelect, type SearchableOption } from '@/components/ui/SearchableSelect';
 
 // Patch helper — works off the cell's filing_id. When the cell is empty,
 // the edit is blocked (we don't create an empty filing just to attach a
@@ -660,6 +661,19 @@ function FamilyInlineSelect({
   onChangedFamily: () => void;
   onGroupsChanged: () => void;
 }) {
+  // Stint 43.D8 — replaced native <select>+chip overlay with SearchableSelect.
+  // The chip styling moves onto the SearchableSelect trigger so families stay
+  // colour-coded; the popup gets a search input for free.
+  const options = useMemo<SearchableOption[]>(() => [
+    { value: '', label: '— (no family)' },
+    ...groups.map(g => ({
+      value: g.id,
+      label: g.name,
+      className: familyChipClasses(g.name),
+    })),
+    { value: '__create__', label: '+ Create new family…' },
+  ], [groups]);
+
   async function handleChange(raw: string): Promise<void> {
     if (raw === '__create__') {
       const name = window.prompt('New family name:');
@@ -675,7 +689,6 @@ function FamilyInlineSelect({
         return;
       }
       const { id: newGroupId } = await created.json() as { id: string };
-      // Assign the entity to the new family
       const patched = await fetch(`/api/tax-ops/entities/${entity.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -689,7 +702,6 @@ function FamilyInlineSelect({
       onChangedFamily();
       return;
     }
-    // Existing group id (or empty → unassign)
     const nextGroupId = raw === '' ? null : raw;
     const res = await fetch(`/api/tax-ops/entities/${entity.id}`, {
       method: 'PATCH',
@@ -703,35 +715,22 @@ function FamilyInlineSelect({
     onChangedFamily();
   }
 
-  // Color-coded display + native select stacked transparent above it.
-  // Diego wants the color differentiation; native <select> keeps the
-  // inline-editability without a custom dropdown library.
-  const chip = familyChipClasses(entity.group_name);
-  const label = entity.group_name ?? '— (no family)';
+  // Trigger button styled as the family chip — keeps Diego's at-a-glance
+  // colour differentiation while gaining a searchable popup on click.
+  const chip = entity.group_name
+    ? familyChipClasses(entity.group_name)
+    : 'bg-surface-alt text-ink-muted';
   return (
-    <div className="relative inline-block w-full">
-      <span
-        className={[
-          'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium truncate max-w-[150px] pointer-events-none',
-          entity.group_name ? chip : 'bg-surface-alt text-ink-muted',
-        ].join(' ')}
-        title={label}
-      >
-        {label}
-      </span>
-      <select
-        value={entity.group_id ?? ''}
-        onChange={(e) => void handleChange(e.target.value)}
-        aria-label="Change family"
-        className="absolute inset-0 w-full opacity-0 cursor-pointer"
-      >
-        <option value="">— (no family)</option>
-        {groups.map(g => (
-          <option key={g.id} value={g.id}>{g.name}</option>
-        ))}
-        <option value="__create__">+ Create new family…</option>
-      </select>
-    </div>
+    <SearchableSelect
+      options={options}
+      value={entity.group_id ?? ''}
+      onChange={(v) => void handleChange(v)}
+      ariaLabel="Change family"
+      triggerClassName={[
+        'border-transparent text-[11px] font-medium px-1.5 py-0.5 min-w-[120px] max-w-[170px]',
+        chip,
+      ].join(' ')}
+    />
   );
 }
 
