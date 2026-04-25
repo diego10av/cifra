@@ -9,7 +9,7 @@ import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { useToast } from '@/components/Toaster';
 import { TaxTypeMatrix, type MatrixColumn } from '@/components/tax-ops/TaxTypeMatrix';
 import {
-  useMatrixData, applyStatusChange, useClientGroups, filterEntitiesByStatus,
+  useMatrixData, applyStatusChange, useClientGroups, filterEntities,
 } from '@/components/tax-ops/useMatrixData';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { WhtTabs } from '@/components/tax-ops/WhtTabs';
@@ -27,6 +27,8 @@ const YEAR_OPTIONS = yearOptions();
 export default function WhtAnnualPage() {
   const [year, setYear] = useState(2025);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [partnerFilter, setPartnerFilter] = useState('all');
+  const [associateFilter, setAssociateFilter] = useState('all');
   const [editingFilingId, setEditingFilingId] = useState<string | null>(null);
   const toast = useToast();
   const { groups, refetch: refetchGroups } = useClientGroups();
@@ -37,9 +39,13 @@ export default function WhtAnnualPage() {
   });
 
   const periodLabel = String(year);
-  const filtered = filterEntitiesByStatus(
-    data?.entities ?? [], statusFilter, [periodLabel],
-  );
+  const filtered = filterEntities({
+    entities: data?.entities ?? [],
+    status: statusFilter,
+    partner: partnerFilter,
+    associate: associateFilter,
+    periodLabels: [periodLabel],
+  });
   const tolerance = data?.admin_tolerance_days ?? 0;
   const columns: MatrixColumn[] = [
     familyColumn({ groups, refetch, onGroupsChanged: refetchGroups }),
@@ -72,6 +78,10 @@ export default function WhtAnnualPage() {
         exportPeriodPattern="annual"
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
+        partnerFilter={partnerFilter}
+        onPartnerFilterChange={setPartnerFilter}
+        associateFilter={associateFilter}
+        onAssociateFilterChange={setAssociateFilter}
       />
 
       {error && <CrmErrorBox message={error} onRetry={refetch} />}

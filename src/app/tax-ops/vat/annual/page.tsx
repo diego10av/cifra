@@ -11,7 +11,7 @@ import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { useToast } from '@/components/Toaster';
 import { TaxTypeMatrix, type MatrixColumn, type MatrixEntity } from '@/components/tax-ops/TaxTypeMatrix';
 import {
-  useMatrixData, applyStatusChange, useClientGroups, filterEntitiesByStatus,
+  useMatrixData, applyStatusChange, useClientGroups, filterEntities,
 } from '@/components/tax-ops/useMatrixData';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { VatTabs } from '@/components/tax-ops/VatTabs';
@@ -30,6 +30,8 @@ type CombinedEntity = MatrixEntity & { subtype: 'standard' | 'simplified' };
 export default function VatAnnualPage() {
   const [year, setYear] = useState(2025);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [partnerFilter, setPartnerFilter] = useState('all');
+  const [associateFilter, setAssociateFilter] = useState('all');
   const [editingFilingId, setEditingFilingId] = useState<string | null>(null);
   const toast = useToast();
   const { groups, refetch: refetchGroups } = useClientGroups();
@@ -78,7 +80,13 @@ export default function VatAnnualPage() {
 
   const hasError = standard.error || simplified.error;
   const isLoading = (standard.isLoading || simplified.isLoading) && !standard.data && !simplified.data;
-  const filteredCombined = filterEntitiesByStatus(combined, statusFilter, [periodLabel]);
+  const filteredCombined = filterEntities({
+    entities: combined,
+    status: statusFilter,
+    partner: partnerFilter,
+    associate: associateFilter,
+    periodLabels: [periodLabel],
+  });
 
   return (
     <div className="space-y-3">
@@ -98,6 +106,10 @@ export default function VatAnnualPage() {
         exportPeriodPattern="annual"
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
+        partnerFilter={partnerFilter}
+        onPartnerFilterChange={setPartnerFilter}
+        associateFilter={associateFilter}
+        onAssociateFilterChange={setAssociateFilter}
       />
 
       {hasError && <CrmErrorBox message={String(hasError)} onRetry={refetch} />}

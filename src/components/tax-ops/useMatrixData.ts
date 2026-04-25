@@ -143,6 +143,96 @@ export function filterEntitiesByStatus(
   return entities.filter(e => periodLabels.some(l => e.cells[l]?.status === status));
 }
 
+/**
+ * Stint 43.D7 — combined filter: status + partner in charge + associate.
+ *
+ * AND across the three filters. Each filter accepts:
+ *   - undefined / 'all' → passthrough
+ *   - '__empty' / '__unassigned' → rows with no filing (status) / no
+ *     ownership tag (partner / associate) on any period cell
+ *   - any other string → match the value on at least one period cell
+ *
+ * The three filters compose: a row passes only if it matches ALL three.
+ * Diego's mental model: "show me the entities I'm partner on AND that
+ * Vale is working on AND that are still in info_to_request".
+ */
+export function filterEntities(args: {
+  entities: MatrixEntity[];
+  status?: string;
+  partner?: string;
+  associate?: string;
+  periodLabels: string[];
+}): MatrixEntity[] {
+  const { entities, status, partner, associate, periodLabels } = args;
+  let out = filterEntitiesByStatus(entities, status, periodLabels);
+  if (partner && partner !== 'all') {
+    out = out.filter(e => matchesOwnership(e, periodLabels, 'partner_in_charge', partner));
+  }
+  if (associate && associate !== 'all') {
+    out = out.filter(e => matchesOwnership(e, periodLabels, 'associates_working', associate));
+  }
+  return out;
+}
+
+function matchesOwnership(
+  entity: MatrixEntity,
+  periodLabels: string[],
+  field: 'partner_in_charge' | 'associates_working',
+  value: string,
+): boolean {
+  if (value === '__unassigned') {
+    // Row has at least one filing AND none of its filings have any
+    // ownership tag on this field.
+    const cells = periodLabels.map(l => entity.cells[l]).filter(Boolean);
+    if (cells.length === 0) return false;
+    return cells.every(c => !(c![field]?.length));
+  }
+  return periodLabels.some(l => {
+    const cell = entity.cells[l];
+    return cell?.[field]?.includes(value) ?? false;
+  });
+}
+
+// ─── Tax team members (stint 43.D7) ──────────────────────────────────
+
+export interface TaxTeamMember {
+  id: string;
+  short_name: string;
+  full_name: string | null;
+  is_active: boolean;
+}
+
+/** Stint 43.D7 — list of team members for the partner/associate filter
+ *  dropdowns. Only active members; sorted by short_name. */
+export function useTaxTeamMembers(): {
+  members: TaxTeamMember[];
+  isLoading: boolean;
+  refetch: () => void;
+} {
+  const [members, setMembers] = useState<TaxTeamMember[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [tick, setTick] = useState(0);
+
+  const refetch = useCallback(() => setTick(t => t + 1), []);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoading(true);
+    fetch('/api/tax-ops/team')
+      .then(r => r.ok ? r.json() : { members: [] })
+      .then(body => {
+        if (!cancelled) {
+          setMembers((body.members ?? []).filter((m: TaxTeamMember) => m.is_active));
+        }
+      })
+      .catch(() => { /* ignore */ })
+      .finally(() => { if (!cancelled) setIsLoading(false); });
+    return () => { cancelled = true; };
+  }, [tick]);
+
+  return { members, isLoading, refetch };
+}
+
 /** Humanize "2025-Q1" → "Q1", "2025-03" → "Mar", "2025" → "2025". */
 export function shortPeriodLabel(label: string): string {
   const quarterMatch = label.match(/^\d{4}-(Q[1-4])$/);

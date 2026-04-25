@@ -12,7 +12,7 @@ import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { useToast } from '@/components/Toaster';
 import { TaxTypeMatrix, type MatrixColumn, type MatrixEntity } from '@/components/tax-ops/TaxTypeMatrix';
 import {
-  useMatrixData, applyStatusChange, useClientGroups, filterEntitiesByStatus,
+  useMatrixData, applyStatusChange, useClientGroups, filterEntities,
 } from '@/components/tax-ops/useMatrixData';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import {
@@ -31,6 +31,8 @@ const YEAR_OPTIONS = yearOptions();
 export default function CitPage() {
   const [year, setYear] = useState(2025);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [partnerFilter, setPartnerFilter] = useState('all');
+  const [associateFilter, setAssociateFilter] = useState('all');
   const [editingFilingId, setEditingFilingId] = useState<string | null>(null);
   const toast = useToast();
   const { groups, refetch: refetchGroups } = useClientGroups();
@@ -105,9 +107,13 @@ export default function CitPage() {
 
   const periodLabel = String(year);
   const tolerance = current.data?.admin_tolerance_days ?? 0;
-  const filtered = filterEntitiesByStatus(
-    current.data?.entities ?? [], statusFilter, [periodLabel],
-  );
+  const filtered = filterEntities({
+    entities: current.data?.entities ?? [],
+    status: statusFilter,
+    partner: partnerFilter,
+    associate: associateFilter,
+    periodLabels: [periodLabel],
+  });
   const columns: MatrixColumn[] = [
     familyColumn({
       groups,
@@ -228,6 +234,10 @@ export default function CitPage() {
         exportPeriodPattern="annual"
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
+        partnerFilter={partnerFilter}
+        onPartnerFilterChange={setPartnerFilter}
+        associateFilter={associateFilter}
+        onAssociateFilterChange={setAssociateFilter}
       />
 
       {current.error && <CrmErrorBox message={current.error} onRetry={refetchAll} />}

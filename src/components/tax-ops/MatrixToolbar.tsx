@@ -12,6 +12,7 @@ import { useState } from 'react';
 import { DownloadIcon } from 'lucide-react';
 import { useToast } from '@/components/Toaster';
 import { FILING_STATUSES, filingStatusLabel } from './FilingStatusBadge';
+import { useTaxTeamMembers } from './useMatrixData';
 
 interface Props {
   year: number;
@@ -32,6 +33,15 @@ interface Props {
    */
   statusFilter?: string;
   onStatusFilterChange?: (next: string) => void;
+  /**
+   * Stint 43.D7 — partner in charge filter. 'all' / '__unassigned' /
+   * any tax_team_members.short_name. Combined AND with status + associate.
+   */
+  partnerFilter?: string;
+  onPartnerFilterChange?: (next: string) => void;
+  /** Stint 43.D7 — associate filter, mirrors partnerFilter. */
+  associateFilter?: string;
+  onAssociateFilterChange?: (next: string) => void;
 }
 
 export function MatrixToolbar({
@@ -40,9 +50,16 @@ export function MatrixToolbar({
   extraChildren,
   exportTaxType, exportPeriodPattern, exportServiceKind, exportShowInactive,
   statusFilter, onStatusFilterChange,
+  partnerFilter, onPartnerFilterChange,
+  associateFilter, onAssociateFilterChange,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const toast = useToast();
+  // Lazy-load team members only when at least one ownership filter is wired
+  // so pages that don't use them don't pay the fetch cost.
+  const ownershipFiltersWired = !!(onPartnerFilterChange || onAssociateFilterChange);
+  const { members } = useTaxTeamMembers();
+  const teamOptions = ownershipFiltersWired ? members : [];
 
   async function downloadExcel() {
     setBusy(true);
@@ -89,30 +106,68 @@ export function MatrixToolbar({
       </label>
       {onStatusFilterChange && (
         <label className="inline-flex items-center gap-1.5 text-[12.5px]">
-          <span className="text-ink-muted">Filter by status:</span>
+          <span className="text-ink-muted">Status:</span>
           <select
             value={statusFilter ?? 'all'}
             onChange={(e) => onStatusFilterChange(e.target.value)}
             className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
           >
-            <option value="all">All statuses</option>
+            <option value="all">All</option>
             {FILING_STATUSES.map(s => (
               <option key={s} value={s}>{filingStatusLabel(s)}</option>
             ))}
             <option value="__empty">No status set</option>
           </select>
-          {statusFilter && statusFilter !== 'all' && (
-            <button
-              type="button"
-              onClick={() => onStatusFilterChange('all')}
-              className="text-[11px] text-ink-muted hover:text-ink underline"
-              title="Clear status filter"
-            >
-              clear
-            </button>
-          )}
         </label>
       )}
+      {onPartnerFilterChange && (
+        <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+          <span className="text-ink-muted">Partner:</span>
+          <select
+            value={partnerFilter ?? 'all'}
+            onChange={(e) => onPartnerFilterChange(e.target.value)}
+            className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
+          >
+            <option value="all">All</option>
+            <option value="__unassigned">Unassigned</option>
+            {teamOptions.map(m => (
+              <option key={m.id} value={m.short_name}>{m.short_name}</option>
+            ))}
+          </select>
+        </label>
+      )}
+      {onAssociateFilterChange && (
+        <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+          <span className="text-ink-muted">Associate:</span>
+          <select
+            value={associateFilter ?? 'all'}
+            onChange={(e) => onAssociateFilterChange(e.target.value)}
+            className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
+          >
+            <option value="all">All</option>
+            <option value="__unassigned">Unassigned</option>
+            {teamOptions.map(m => (
+              <option key={m.id} value={m.short_name}>{m.short_name}</option>
+            ))}
+          </select>
+        </label>
+      )}
+      {(statusFilter && statusFilter !== 'all')
+        || (partnerFilter && partnerFilter !== 'all')
+        || (associateFilter && associateFilter !== 'all') ? (
+        <button
+          type="button"
+          onClick={() => {
+            onStatusFilterChange?.('all');
+            onPartnerFilterChange?.('all');
+            onAssociateFilterChange?.('all');
+          }}
+          className="text-[11px] text-ink-muted hover:text-ink underline"
+          title="Clear all filters"
+        >
+          clear filters
+        </button>
+      ) : null}
       {extraChildren}
       <div className="text-[11.5px] text-ink-muted">
         {count} {countLabel}

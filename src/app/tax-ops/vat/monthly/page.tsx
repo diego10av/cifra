@@ -11,7 +11,7 @@ import { useToast } from '@/components/Toaster';
 import { TaxTypeMatrix, type MatrixColumn } from '@/components/tax-ops/TaxTypeMatrix';
 import {
   useMatrixData, shortPeriodLabel, applyStatusChange, useClientGroups,
-  filterEntitiesByStatus,
+  filterEntities,
 } from '@/components/tax-ops/useMatrixData';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { VatTabs } from '@/components/tax-ops/VatTabs';
@@ -28,6 +28,8 @@ const YEAR_OPTIONS = yearOptions();
 export default function VatMonthlyPage() {
   const [year, setYear] = useState(2026);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [partnerFilter, setPartnerFilter] = useState('all');
+  const [associateFilter, setAssociateFilter] = useState('all');
   const [editingFilingId, setEditingFilingId] = useState<string | null>(null);
   const toast = useToast();
   const { groups, refetch: refetchGroups } = useClientGroups();
@@ -36,9 +38,13 @@ export default function VatMonthlyPage() {
     year,
     period_pattern: 'monthly',
   });
-  const filtered = filterEntitiesByStatus(
-    data?.entities ?? [], statusFilter, data?.period_labels ?? [],
-  );
+  const filtered = filterEntities({
+    entities: data?.entities ?? [],
+    status: statusFilter,
+    partner: partnerFilter,
+    associate: associateFilter,
+    periodLabels: data?.period_labels ?? [],
+  });
 
   const columns: MatrixColumn[] = [
     familyColumn({ groups, refetch, onGroupsChanged: refetchGroups }),
@@ -73,6 +79,10 @@ export default function VatMonthlyPage() {
         exportPeriodPattern="monthly"
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
+        partnerFilter={partnerFilter}
+        onPartnerFilterChange={setPartnerFilter}
+        associateFilter={associateFilter}
+        onAssociateFilterChange={setAssociateFilter}
       />
 
       {error && <CrmErrorBox message={error} onRetry={refetch} />}
