@@ -16,7 +16,7 @@ import {
 } from '@/components/tax-ops/useMatrixData';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import {
-  preparedWithColumn, lastActionColumn, contactsColumn, commentsColumn,
+  partnerInChargeColumn, associatesWorkingColumn, lastActionColumn, contactsColumn, commentsColumn,
   priceColumn, deadlineColumn, familyColumn, formColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
@@ -118,7 +118,8 @@ export default function CitPage() {
     { key: periodLabel, label: `Status ${year}`, widthClass: 'w-[140px]' },
     lastActionColumn([periodLabel], current.refetch),
     deadlineColumn(periodLabel, tolerance),
-    preparedWithColumn([periodLabel], current.refetch),
+    partnerInChargeColumn([periodLabel], current.refetch),
+    associatesWorkingColumn([periodLabel], current.refetch),
     contactsColumn([periodLabel], current.refetch),
     {
       key: `assessment_${year - 1}`,

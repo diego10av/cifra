@@ -69,6 +69,11 @@ interface MatrixCell {
   amount_due: string | null;
   amount_paid: string | null;
   prepared_with: string[];
+  /** Stint 43.D11 — partner(s) who own the engagement. Renamed `prepared_with`
+   *  semantically; backfilled from prepared_with on migration 060. */
+  partner_in_charge: string[];
+  /** Stint 43.D11 — associate(s) doing the prep work. */
+  associates_working: string[];
   /** Stint 39.F — last chase date to client/CSP for this filing. */
   last_info_request_sent_at: string | null;
   /** Stint 43.D6 — auto-stamped on every PATCH that changes a
@@ -191,6 +196,8 @@ export async function GET(request: NextRequest) {
     tax_assessment_received_at: string | null;
     amount_due: string | null; amount_paid: string | null;
     prepared_with: string[];
+    partner_in_charge: string[];
+    associates_working: string[];
     last_info_request_sent_at: string | null;
     last_action_at: string | null;
     invoice_price_eur: string | null;
@@ -207,6 +214,8 @@ export async function GET(request: NextRequest) {
               f.tax_assessment_received_at::text,
               f.amount_due::text, f.amount_paid::text,
               f.prepared_with,
+              f.partner_in_charge,
+              f.associates_working,
               f.last_info_request_sent_at::text AS last_info_request_sent_at,
               f.last_action_at::text AS last_action_at,
               f.invoice_price_eur::text AS invoice_price_eur,
@@ -234,6 +243,8 @@ export async function GET(request: NextRequest) {
       amount_due: f.amount_due,
       amount_paid: f.amount_paid,
       prepared_with: f.prepared_with ?? [],
+      partner_in_charge: f.partner_in_charge ?? [],
+      associates_working: f.associates_working ?? [],
       last_info_request_sent_at: f.last_info_request_sent_at,
       last_action_at: f.last_action_at,
       invoice_price_eur: f.invoice_price_eur,

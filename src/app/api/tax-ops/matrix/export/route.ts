@@ -69,8 +69,13 @@ interface FilingRow {
   deadline_date: string | null;
   comments: string | null;
   prepared_with: string[];
+  /** Stint 43.D11 — split ownership. */
+  partner_in_charge: string[];
+  associates_working: string[];
   /** Stint 39.F — last chase date; surfaced in export too. */
   last_info_request_sent_at: string | null;
+  /** Stint 43.D6 — last action date (auto-stamped). */
+  last_action_at: string | null;
   /** Stint 40.O — invoice price + note. */
   invoice_price_eur: string | null;
   invoice_price_note: string | null;
@@ -137,7 +142,9 @@ export async function GET(request: NextRequest) {
     filings = await query<FilingRow>(
       `SELECT obligation_id, period_label, status,
               deadline_date::text AS deadline_date, comments, prepared_with,
+              partner_in_charge, associates_working,
               last_info_request_sent_at::text AS last_info_request_sent_at,
+              last_action_at::text AS last_action_at,
               invoice_price_eur::text AS invoice_price_eur,
               invoice_price_note
          FROM tax_filings
@@ -157,11 +164,15 @@ export async function GET(request: NextRequest) {
   const sheetName = `${humanTaxType(tax_type)} ${year}`.slice(0, 31);  // Excel limit
   const ws = wb.addWorksheet(sheetName);
 
-  // Header
+  // Header — stint 43.D11 splits "Prepared with" into "Partner in charge"
+  // + "Associates working", and stint 43.D6 renames "Last chased" → "Last
+  // action". Preserve column count for downstream consumers? No — the
+  // export is human-facing, no automated pipelines read it.
   const header: string[] = ['Group', 'Entity'];
   for (const label of periodLabels) header.push(shortPeriodLabel(label));
-  header.push('Prepared with');
-  header.push('Last chased');
+  header.push('Partner in charge');
+  header.push('Associates working');
+  header.push('Last action');
   header.push('Comments');
   header.push('Price (€)');
   header.push('Price note');
@@ -178,25 +189,32 @@ export async function GET(request: NextRequest) {
       row.push(cell ? humanStatus(cell.status) : '');
       if (cell) cells.push(cell);
     }
-    // Aggregate prepared_with + comments + latest-chase + price across the row.
-    const preparedSet = new Set<string>();
+    // Aggregate ownership + comments + latest action + price across the row.
+    const partnerSet = new Set<string>();
+    const associateSet = new Set<string>();
     let comment: string | null = null;
-    const chaseDates: string[] = [];
+    const actionDates: string[] = [];
     let invoicePrice: number | null = null;
     let invoicePriceNote: string | null = null;
     for (const c of cells) {
-      if (c.prepared_with) c.prepared_with.forEach(v => preparedSet.add(v));
+      // Prefer the new partner_in_charge field; fall back to legacy
+      // prepared_with so old rows still show something useful.
+      const partners = c.partner_in_charge?.length ? c.partner_in_charge : (c.prepared_with ?? []);
+      partners.forEach(v => partnerSet.add(v));
+      if (c.associates_working) c.associates_working.forEach(v => associateSet.add(v));
       if (!comment && c.comments) comment = c.comments;
-      if (c.last_info_request_sent_at) chaseDates.push(c.last_info_request_sent_at);
+      if (c.last_action_at) actionDates.push(c.last_action_at);
+      else if (c.last_info_request_sent_at) actionDates.push(c.last_info_request_sent_at);
       if (invoicePrice === null && c.invoice_price_eur) {
         const n = Number(c.invoice_price_eur);
         if (Number.isFinite(n)) invoicePrice = n;
       }
       if (!invoicePriceNote && c.invoice_price_note) invoicePriceNote = c.invoice_price_note;
     }
-    const latestChase = chaseDates.length === 0 ? '' : chaseDates.sort().slice(-1)[0]!;
-    row.push(Array.from(preparedSet).join(', '));
-    row.push(latestChase);
+    const latestAction = actionDates.length === 0 ? '' : actionDates.sort().slice(-1)[0]!;
+    row.push(Array.from(partnerSet).join(', '));
+    row.push(Array.from(associateSet).join(', '));
+    row.push(latestAction);
     row.push(comment ?? '');
     row.push(invoicePrice ?? '');
     row.push(invoicePriceNote ?? '');
@@ -209,11 +227,12 @@ export async function GET(request: NextRequest) {
   for (let i = 0; i < periodLabels.length; i += 1) {
     ws.getColumn(3 + i).width = 12;
   }
-  ws.getColumn(3 + periodLabels.length).width = 20;   // Prepared with
-  ws.getColumn(4 + periodLabels.length).width = 14;   // Last chased
-  ws.getColumn(5 + periodLabels.length).width = 50;   // Comments
-  ws.getColumn(6 + periodLabels.length).width = 12;   // Price (€)
-  ws.getColumn(7 + periodLabels.length).width = 40;   // Price note
+  ws.getColumn(3 + periodLabels.length).width = 20;   // Partner in charge
+  ws.getColumn(4 + periodLabels.length).width = 20;   // Associates working
+  ws.getColumn(5 + periodLabels.length).width = 14;   // Last action
+  ws.getColumn(6 + periodLabels.length).width = 50;   // Comments
+  ws.getColumn(7 + periodLabels.length).width = 12;   // Price (€)
+  ws.getColumn(8 + periodLabels.length).width = 40;   // Price note
 
   // Freeze header row + first two cols (Group + Entity) — matches the
   // on-screen sticky-header feel.

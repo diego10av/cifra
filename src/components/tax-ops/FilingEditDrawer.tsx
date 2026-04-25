@@ -30,6 +30,10 @@ interface FilingDetail {
   status: string;
   assigned_to: string | null;
   prepared_with: string[];
+  /** Stint 43.D11 — partner(s) who own the engagement. */
+  partner_in_charge: string[];
+  /** Stint 43.D11 — associate(s) doing the prep work. */
+  associates_working: string[];
   draft_sent_at: string | null;
   client_approved_at: string | null;
   filed_at: string | null;
@@ -71,7 +75,13 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
       .then((body: FilingDetail) => {
         if (cancelled) return;
         setData(body);
-        setDraft({ ...body, prepared_with: body.prepared_with ?? [], csp_contacts: body.csp_contacts ?? [] });
+        setDraft({
+          ...body,
+          prepared_with: body.prepared_with ?? [],
+          partner_in_charge: body.partner_in_charge ?? [],
+          associates_working: body.associates_working ?? [],
+          csp_contacts: body.csp_contacts ?? [],
+        });
       })
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -98,6 +108,7 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
     const patch: Record<string, unknown> = {};
     const keys: Array<keyof FilingDetail> = [
       'status', 'assigned_to', 'deadline_date', 'prepared_with',
+      'partner_in_charge', 'associates_working',
       'draft_sent_at', 'client_approved_at', 'filed_at',
       'tax_assessment_received_at', 'tax_assessment_url',
       'amount_due', 'amount_paid', 'paid_at',
@@ -257,19 +268,33 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
               </Field>
             </div>
 
-            {/* Prepared with — comma-separated for simplicity */}
-            <Field label="Prepared with">
-              <input
-                type="text"
-                value={draft.prepared_with.join(', ')}
-                onChange={(e) => setDraft({
-                  ...draft,
-                  prepared_with: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
-                })}
-                className="w-full px-2 py-1 border border-border rounded bg-surface"
-                placeholder="comma-separated names"
-              />
-            </Field>
+            {/* Stint 43.D11 — split ownership: partner in charge + associates */}
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Partner in charge">
+                <input
+                  type="text"
+                  value={(draft.partner_in_charge?.length ? draft.partner_in_charge : draft.prepared_with).join(', ')}
+                  onChange={(e) => setDraft({
+                    ...draft,
+                    partner_in_charge: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+                  })}
+                  className="w-full px-2 py-1 border border-border rounded bg-surface"
+                  placeholder="comma-separated short names"
+                />
+              </Field>
+              <Field label="Associates working">
+                <input
+                  type="text"
+                  value={(draft.associates_working ?? []).join(', ')}
+                  onChange={(e) => setDraft({
+                    ...draft,
+                    associates_working: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+                  })}
+                  className="w-full px-2 py-1 border border-border rounded bg-surface"
+                  placeholder="comma-separated short names"
+                />
+              </Field>
+            </div>
 
             {/* Timeline dates */}
             <div className="grid grid-cols-2 gap-3">

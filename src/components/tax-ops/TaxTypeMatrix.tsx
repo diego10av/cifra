@@ -35,6 +35,11 @@ export interface MatrixCell {
   amount_due: string | null;
   amount_paid: string | null;
   prepared_with: string[];
+  /** Stint 43.D11 — partner(s) who own the engagement. Renamed semantic
+   *  of prepared_with; backfilled on migration 060. */
+  partner_in_charge: string[];
+  /** Stint 43.D11 — associate(s) doing the prep work. */
+  associates_working: string[];
   /** Stint 39.F — last chase date to client/CSP (legacy field; kept
    *  for backwards compatibility, superseded by last_action_at). */
   last_info_request_sent_at: string | null;
@@ -497,7 +502,9 @@ function buildTooltip(cell: MatrixCell): string {
   if (cell.filed_at) parts.push(`Filed: ${cell.filed_at}`);
   if (cell.draft_sent_at) parts.push(`Draft sent: ${cell.draft_sent_at}`);
   if (cell.assigned_to) parts.push(`Assignee: ${cell.assigned_to}`);
-  if (cell.prepared_with?.length) parts.push(`Prepared with: ${cell.prepared_with.join(', ')}`);
+  if (cell.partner_in_charge?.length) parts.push(`Partner in charge: ${cell.partner_in_charge.join(', ')}`);
+  else if (cell.prepared_with?.length) parts.push(`Prepared with: ${cell.prepared_with.join(', ')}`);
+  if (cell.associates_working?.length) parts.push(`Associates: ${cell.associates_working.join(', ')}`);
   if (cell.comments) {
     const snippet = cell.comments.length > 120 ? cell.comments.slice(0, 120) + '…' : cell.comments;
     parts.push(`Comments: ${snippet}`);

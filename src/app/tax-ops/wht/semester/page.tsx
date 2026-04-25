@@ -14,7 +14,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { WhtTabs } from '@/components/tax-ops/WhtTabs';
 import {
-  preparedWithColumn, lastActionColumn, contactsColumn, commentsColumn,
+  partnerInChargeColumn, associatesWorkingColumn, lastActionColumn, contactsColumn, commentsColumn,
   priceColumn, familyColumn, cadenceColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
@@ -46,7 +46,8 @@ export default function WhtSemesterPage() {
     { key: `${year}-S1`, label: 'S1 (Jan-Jun)', widthClass: 'w-[120px]' },
     { key: `${year}-S2`, label: 'S2 (Jul-Dec)', widthClass: 'w-[120px]' },
     lastActionColumn(periodLabels, refetch),
-    preparedWithColumn(periodLabels, refetch),
+    partnerInChargeColumn(periodLabels, refetch),
+    associatesWorkingColumn(periodLabels, refetch),
     contactsColumn(periodLabels, refetch),
     commentsColumn(periodLabels, refetch),
     priceColumn(periodLabels, refetch),

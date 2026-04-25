@@ -43,6 +43,8 @@ interface FilingDetail {
   status: string;
   assigned_to: string | null;
   prepared_with: string[];
+  partner_in_charge?: string[];
+  associates_working?: string[];
   draft_sent_at: string | null;
   client_approved_at: string | null;
   filed_at: string | null;
@@ -157,8 +159,11 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
           {data.assigned_to && (
             <div><span className="text-ink-muted mr-1">Assignee:</span>{data.assigned_to}</div>
           )}
-          {data.prepared_with.length > 0 && (
-            <div><span className="text-ink-muted mr-1">Prepared with:</span>{data.prepared_with.join(', ')}</div>
+          {(data.partner_in_charge?.length ? data.partner_in_charge : data.prepared_with).length > 0 && (
+            <div><span className="text-ink-muted mr-1">Partner in charge:</span>{(data.partner_in_charge?.length ? data.partner_in_charge : data.prepared_with).join(', ')}</div>
+          )}
+          {data.associates_working && data.associates_working.length > 0 && (
+            <div><span className="text-ink-muted mr-1">Associates:</span>{data.associates_working.join(', ')}</div>
           )}
         </div>
       </div>

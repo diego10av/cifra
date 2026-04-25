@@ -56,24 +56,39 @@ async function patchAllFilings(filingIds: string[], patch: Record<string, unknow
   if (failed > 0) throw new Error(`${failed} of ${filingIds.length} saves failed`);
 }
 
-export function preparedWithColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
+/**
+ * Stint 43.D11 — "Partner in charge" column (renamed from "Prepared with").
+ *
+ * Diego: "el 'prepared with' diría partner in charge". Big4-style ownership:
+ * the partner who owns the engagement. Backed by `tax_filings.partner_in_charge`
+ * (TEXT[]) — backfilled from `prepared_with` on migration 060.
+ *
+ * Edits propagate across every filing in the row (so VAT Q1..Q4 stay in
+ * sync — Diego almost always has the same partner across all quarters).
+ */
+export function partnerInChargeColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
   return {
-    key: 'prepared_with',
-    label: 'Prepared with',
+    key: 'partner_in_charge',
+    label: 'Partner in charge',
     widthClass: 'w-[160px]',
     render: (e) => {
       const anyCell = firstFiledCell(e, periodLabels);
       const allFilingIds = periodLabels
         .map(l => e.cells[l]?.filing_id)
         .filter((x): x is string => !!x);
-      const value = anyCell?.prepared_with ?? [];
+      // Read from the new field; fall back to `prepared_with` for cells
+      // not yet touched after migration 060 (defensive — the migration
+      // backfilled all 200 rows but a stale fetch could still arrive).
+      const value = anyCell?.partner_in_charge?.length
+        ? anyCell.partner_in_charge
+        : (anyCell?.prepared_with ?? []);
       return (
         <InlineTagsCell
           value={value}
           disabled={allFilingIds.length === 0}
           placeholder=""
           onSave={async (next) => {
-            await patchAllFilings(allFilingIds, { prepared_with: next });
+            await patchAllFilings(allFilingIds, { partner_in_charge: next });
             refetch();
           }}
         />
@@ -81,6 +96,44 @@ export function preparedWithColumn(periodLabels: string[], refetch: () => void):
     },
   };
 }
+
+/**
+ * Stint 43.D11 — "Associates working" column. Mirror of partnerInChargeColumn
+ * but for the associate(s) doing the prep work. New field, starts empty
+ * for all rows; Diego fills as engagements progress.
+ */
+export function associatesWorkingColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
+  return {
+    key: 'associates_working',
+    label: 'Associates working',
+    widthClass: 'w-[160px]',
+    render: (e) => {
+      const anyCell = firstFiledCell(e, periodLabels);
+      const allFilingIds = periodLabels
+        .map(l => e.cells[l]?.filing_id)
+        .filter((x): x is string => !!x);
+      const value = anyCell?.associates_working ?? [];
+      return (
+        <InlineTagsCell
+          value={value}
+          disabled={allFilingIds.length === 0}
+          placeholder=""
+          onSave={async (next) => {
+            await patchAllFilings(allFilingIds, { associates_working: next });
+            refetch();
+          }}
+        />
+      );
+    },
+  };
+}
+
+/**
+ * @deprecated Stint 43.D11 — superseded by `partnerInChargeColumn`.
+ * Kept temporarily so any external code referencing the old name keeps
+ * compiling. Internal call sites all migrated; safe to remove next stint.
+ */
+export const preparedWithColumn = partnerInChargeColumn;
 
 /**
  * Stint 43.D6 — "Last action" date column (renamed from "Last chased").

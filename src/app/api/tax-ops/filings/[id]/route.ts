@@ -20,6 +20,10 @@ interface FilingDetail {
   status: string;
   assigned_to: string | null;
   prepared_with: string[];
+  /** Stint 43.D11 — partner(s) who own the engagement. */
+  partner_in_charge: string[];
+  /** Stint 43.D11 — associate(s) doing the prep work. */
+  associates_working: string[];
   draft_sent_at: string | null;
   client_approved_at: string | null;
   filed_at: string | null;
@@ -58,6 +62,7 @@ export async function GET(
             f.period_year, f.period_label,
             f.deadline_date::text AS deadline_date,
             f.status, f.assigned_to, f.prepared_with,
+            f.partner_in_charge, f.associates_working,
             f.draft_sent_at::text AS draft_sent_at,
             f.client_approved_at::text AS client_approved_at,
             f.filed_at::text AS filed_at,
@@ -99,6 +104,8 @@ const ALLOWED_FIELDS = [
   'invoice_price_eur', 'invoice_price_note',
   // Stint 43.D6 — last_action_at (manual override of the auto-stamp).
   'last_action_at',
+  // Stint 43.D11 — partner in charge + associates working (TEXT[]).
+  'partner_in_charge', 'associates_working',
 ] as const;
 
 // Stint 43.D6 — fields whose change should trigger auto-stamp of
@@ -110,6 +117,8 @@ const AUTOSTAMP_TRIGGER_FIELDS = new Set<string>([
   'comments', 'draft_sent_at', 'client_approved_at', 'filed_at',
   'tax_assessment_received_at', 'last_info_request_sent_at',
   'amount_due', 'amount_paid', 'paid_at',
+  // Stint 43.D11 — ownership re-assignment counts as an action too.
+  'partner_in_charge', 'associates_working',
 ]);
 
 export async function PATCH(

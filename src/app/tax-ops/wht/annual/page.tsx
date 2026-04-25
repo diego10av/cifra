@@ -14,7 +14,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { WhtTabs } from '@/components/tax-ops/WhtTabs';
 import {
-  preparedWithColumn, lastActionColumn, contactsColumn, commentsColumn,
+  partnerInChargeColumn, associatesWorkingColumn, lastActionColumn, contactsColumn, commentsColumn,
   priceColumn, deadlineColumn, familyColumn, cadenceColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
@@ -47,7 +47,8 @@ export default function WhtAnnualPage() {
     { key: periodLabel, label: `Status ${year}`, widthClass: 'w-[140px]' },
     lastActionColumn([periodLabel], refetch),
     deadlineColumn(periodLabel, tolerance),
-    preparedWithColumn([periodLabel], refetch),
+    partnerInChargeColumn([periodLabel], refetch),
+    associatesWorkingColumn([periodLabel], refetch),
     contactsColumn([periodLabel], refetch),
     commentsColumn([periodLabel], refetch),
     priceColumn([periodLabel], refetch),
