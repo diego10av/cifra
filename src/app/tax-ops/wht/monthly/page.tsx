@@ -15,7 +15,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { WhtTabs } from '@/components/tax-ops/WhtTabs';
 import {
-  preparedWithColumn, lastChasedColumn, contactsColumn, commentsColumn,
+  preparedWithColumn, lastActionColumn, contactsColumn, commentsColumn,
   priceColumn, familyColumn, cadenceColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
@@ -48,8 +48,8 @@ export default function WhtMonthlyPage() {
     for (const label of data.period_labels) {
       columns.push({ key: label, label: shortPeriodLabel(label), widthClass: 'w-[48px]' });
     }
+    columns.push(lastActionColumn(data.period_labels, refetch));
     columns.push(preparedWithColumn(data.period_labels, refetch));
-    columns.push(lastChasedColumn(data.period_labels, refetch));
     columns.push(contactsColumn(data.period_labels, refetch));
     columns.push(commentsColumn(data.period_labels, refetch));
     columns.push(priceColumn(data.period_labels, refetch));

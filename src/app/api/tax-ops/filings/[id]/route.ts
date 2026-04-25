@@ -97,7 +97,20 @@ const ALLOWED_FIELDS = [
   'last_info_request_sent_at',
   // Stint 40.O — invoice price per filing + free-text clarification.
   'invoice_price_eur', 'invoice_price_note',
+  // Stint 43.D6 — last_action_at (manual override of the auto-stamp).
+  'last_action_at',
 ] as const;
+
+// Stint 43.D6 — fields whose change should trigger auto-stamp of
+// last_action_at. Anything in the user's mental model of "an action"
+// counts — the date column is meant to answer "when was the last
+// time anything happened with this filing?".
+const AUTOSTAMP_TRIGGER_FIELDS = new Set<string>([
+  'status', 'assigned_to', 'prepared_with', 'csp_contacts',
+  'comments', 'draft_sent_at', 'client_approved_at', 'filed_at',
+  'tax_assessment_received_at', 'last_info_request_sent_at',
+  'amount_due', 'amount_paid', 'paid_at',
+]);
 
 export async function PATCH(
   request: NextRequest,
@@ -105,6 +118,15 @@ export async function PATCH(
 ): Promise<NextResponse> {
   const { id } = await params;
   const body = await request.json() as Record<string, unknown>;
+
+  // Auto-stamp last_action_at when any "action" field changed and the
+  // caller didn't supply an explicit value. Diego can override by
+  // sending last_action_at in the body.
+  const triggersAutostamp = Object.keys(body).some(k => AUTOSTAMP_TRIGGER_FIELDS.has(k));
+  if (triggersAutostamp && body.last_action_at === undefined) {
+    body.last_action_at = new Date().toISOString().slice(0, 10);
+  }
+
   const { sql, values, changes } = buildUpdate(
     'tax_filings', ALLOWED_FIELDS, body, 'id', id, ['updated_at = NOW()'],
   );

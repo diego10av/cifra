@@ -15,7 +15,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { BclTabs } from '@/components/tax-ops/BclTabs';
 import {
-  preparedWithColumn, lastChasedColumn, contactsColumn, commentsColumn, priceColumn, familyColumn,
+  preparedWithColumn, lastActionColumn, contactsColumn, commentsColumn, priceColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
@@ -46,8 +46,8 @@ export default function Bcl216Page() {
     for (const label of data.period_labels) {
       columns.push({ key: label, label: shortPeriodLabel(label), widthClass: 'w-[48px]' });
     }
+    columns.push(lastActionColumn(data.period_labels, refetch));
     columns.push(preparedWithColumn(data.period_labels, refetch));
-    columns.push(lastChasedColumn(data.period_labels, refetch));
     columns.push(contactsColumn(data.period_labels, refetch));
     columns.push(commentsColumn(data.period_labels, refetch));
     columns.push(priceColumn(data.period_labels, refetch));

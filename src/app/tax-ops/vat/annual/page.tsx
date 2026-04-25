@@ -16,7 +16,7 @@ import {
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import { VatTabs } from '@/components/tax-ops/VatTabs';
 import {
-  preparedWithColumn, lastChasedColumn, contactsColumn, commentsColumn, priceColumn, deadlineColumn, familyColumn,
+  preparedWithColumn, lastActionColumn, contactsColumn, commentsColumn, priceColumn, deadlineColumn, familyColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
@@ -67,9 +67,9 @@ export default function VatAnnualPage() {
       },
     },
     { key: periodLabel, label: `Status ${year}`, widthClass: 'w-[140px]' },
+    lastActionColumn([periodLabel], refetch),
     deadlineColumn(periodLabel, tolerance),
     preparedWithColumn([periodLabel], refetch),
-    lastChasedColumn([periodLabel], refetch),
     contactsColumn([periodLabel], refetch),
     commentsColumn([periodLabel], refetch),
     priceColumn([periodLabel], refetch),

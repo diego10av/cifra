@@ -35,8 +35,12 @@ export interface MatrixCell {
   amount_due: string | null;
   amount_paid: string | null;
   prepared_with: string[];
-  /** Stint 39.F — last chase date to client/CSP for this filing. */
+  /** Stint 39.F — last chase date to client/CSP (legacy field; kept
+   *  for backwards compatibility, superseded by last_action_at). */
   last_info_request_sent_at: string | null;
+  /** Stint 43.D6 — date of the most recent action on the filing.
+   *  Auto-stamped server-side; Diego can override manually. */
+  last_action_at: string | null;
   /** Stint 40.O — invoice price + free-text note. */
   invoice_price_eur: string | null;
   invoice_price_note: string | null;

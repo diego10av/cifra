@@ -83,31 +83,32 @@ export function preparedWithColumn(periodLabels: string[], refetch: () => void):
 }
 
 /**
- * Stint 39.F — "Last chased" date column.
+ * Stint 43.D6 — "Last action" date column (renamed from "Last chased").
  *
- * Diego's workflow: when an entity is in info_to_request or
- * awaiting_client_clarification state, he chases the client or the CSP
- * by email and needs to know at a glance when he last did so (so he
- * doesn't double-chase on day 1 or forget for 3 weeks).
+ * Diego: "Last Chase no me pega como nombre, porque tiene que ser en
+ * plan de cuándo ha sido la última vez que se ha tomado una acción.
+ * Si es cuándo le pedí información, cuando le pedí información. Si es
+ * file, pues que cuando la he depositado."
  *
- * Stored per-filing; the row-level column writes the same date to every
- * filing in the row (mirroring preparedWithColumn's pattern) since
- * chasing usually covers "anything pending for this entity-year", not
- * a specific period. Display shows the most-recent date across the row.
+ * Backed by `tax_filings.last_action_at`. Auto-stamped server-side
+ * on every PATCH that touches a meaningful field (status, comments,
+ * contacts, prepared_with, dates…). Diego can override manually
+ * via the inline date editor.
+ *
+ * Display: most recent date across the row's filings — "what's the
+ * most recent thing that happened to this entity-year".
  */
-export function lastChasedColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
+export function lastActionColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
   return {
-    key: 'last_chased',
-    label: 'Last chased',
+    key: 'last_action',
+    label: 'Last action',
     widthClass: 'w-[130px]',
     render: (e) => {
       const allFilingIds = periodLabels
         .map(l => e.cells[l]?.filing_id)
         .filter((x): x is string => !!x);
-      // Show the max date across all filings in the row — "most recently
-      // chased" is more informative than "chase date of Q1 specifically".
       const dates = periodLabels
-        .map(l => e.cells[l]?.last_info_request_sent_at)
+        .map(l => e.cells[l]?.last_action_at)
         .filter((x): x is string => !!x);
       const latest = dates.length === 0 ? null : dates.sort().slice(-1)[0]!;
       return (
@@ -116,7 +117,7 @@ export function lastChasedColumn(periodLabels: string[], refetch: () => void): M
           disabled={allFilingIds.length === 0}
           mode="neutral"
           onSave={async (next) => {
-            await patchAllFilings(allFilingIds, { last_info_request_sent_at: next });
+            await patchAllFilings(allFilingIds, { last_action_at: next });
             refetch();
           }}
         />
