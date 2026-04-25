@@ -167,6 +167,7 @@ export default function CitPage() {
               draft_sent_at: nwtInfo.cell?.draft_sent_at ?? null,
               filed_at: nwtInfo.cell?.filed_at ?? null,
               comments: nwtInfo.cell?.comments ?? null,
+              last_action_at: nwtInfo.cell?.last_action_at ?? null,
             }}
             onOptIn={async () => {
               await createObligation({
@@ -194,6 +195,14 @@ export default function CitPage() {
               const info = nwtCellByEntity.get(e.id);
               if (!info?.cell?.filing_id) return;
               await patchFiling(info.cell.filing_id, { status: nextStatus });
+              nwt.refetch();
+            }}
+            onPatchDates={async (patch) => {
+              // Stint 43.D10 — quick action: mark interim/reco today
+              // without leaving the matrix.
+              const info = nwtCellByEntity.get(e.id);
+              if (!info?.cell?.filing_id) return;
+              await patchFiling(info.cell.filing_id, patch);
               nwt.refetch();
             }}
             onOptOut={async () => {

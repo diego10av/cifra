@@ -32,6 +32,9 @@ interface NwtCellData {
   draft_sent_at: string | null;   // interim financials received
   filed_at: string | null;        // recommendation sent
   comments: string | null;
+  /** Stint 43.D10 — surfaced for the "Last NWT action" chip; auto-stamped
+   *  by the filings PATCH endpoint on every meaningful change. */
+  last_action_at?: string | null;
 }
 
 interface Props {
@@ -45,10 +48,15 @@ interface Props {
    *  (is_active=false). Diego mis-clicked Opt-in and had no way to
    *  undo. Passes the obligation_id when available; no-op otherwise. */
   onOptOut?: () => Promise<void>;
+  /** Stint 43.D10 — quick-action: PATCH the filing with the supplied
+   *  date fields. Used by the "Mark interim today" + "Mark reco today"
+   *  buttons so Diego doesn't have to open the drawer for a 1-click
+   *  date update. No-op when the cell has no filing yet. */
+  onPatchDates?: (patch: { draft_sent_at?: string | null; filed_at?: string | null }) => Promise<void>;
 }
 
 export function NwtReviewInlineCell({
-  year, cell, onOptIn, onCreateFiling, onUpdateStatus, onOptOut,
+  year, cell, onOptIn, onCreateFiling, onUpdateStatus, onOptOut, onPatchDates,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,8 +111,24 @@ export function NwtReviewInlineCell({
     cell.comments ? `Comments: ${cell.comments.slice(0, 120)}${cell.comments.length > 120 ? '…' : ''}` : null,
   ].filter(Boolean).join('\n');
 
+  // Stint 43.D10 — quick-action handler: PATCH a date field to today.
+  // Wraps the parent-supplied onPatchDates with the same busy/error
+  // plumbing as the status handler so the UI stays consistent.
+  async function markDateToday(field: 'draft_sent_at' | 'filed_at') {
+    if (!onPatchDates || !cell.filing_id) return;
+    setBusy(true); setError(null);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      await onPatchDates({ [field]: today });
+    } catch (e) {
+      setError(String(e instanceof Error ? e.message : e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="inline-flex items-center gap-1">
+    <div className="inline-flex flex-wrap items-center gap-1">
       <select
         value={statusValue}
         onChange={(e) => void handleStatusPick(e.target.value)}
@@ -116,20 +140,57 @@ export function NwtReviewInlineCell({
           <option key={s} value={s}>{filingStatusLabel(s)}</option>
         ))}
       </select>
-      {cell.draft_sent_at && (
-        <span className="inline-flex items-center px-1 py-0 rounded bg-blue-50 text-blue-700 text-[9px]" title={`Interim financials received ${cell.draft_sent_at}`}>
-          IF ✓
+      {/* Stint 43.D10 — IF / RS chips bumped to 10px + show date inline so
+          Diego doesn't need to hover. Quick "+ today" buttons appear when
+          the field is unset and onPatchDates is wired. */}
+      {cell.draft_sent_at ? (
+        <span
+          className="inline-flex items-center px-1 py-0 rounded bg-blue-50 text-blue-700 text-[10px]"
+          title={`Interim financials received ${cell.draft_sent_at}`}
+        >
+          IF · {cell.draft_sent_at.slice(5)}
         </span>
-      )}
-      {cell.filed_at && (
-        <span className="inline-flex items-center px-1 py-0 rounded bg-green-100 text-green-800 text-[9px]" title={`Recommendation sent ${cell.filed_at}`}>
-          RS ✓
+      ) : onPatchDates && cell.filing_id ? (
+        <button
+          type="button"
+          onClick={() => void markDateToday('draft_sent_at')}
+          disabled={busy}
+          className="inline-flex items-center px-1 py-0 rounded border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 text-[10px] disabled:opacity-50"
+          title="Mark interim financials received today"
+        >
+          + IF
+        </button>
+      ) : null}
+      {cell.filed_at ? (
+        <span
+          className="inline-flex items-center px-1 py-0 rounded bg-green-100 text-green-800 text-[10px]"
+          title={`Recommendation sent ${cell.filed_at}`}
+        >
+          RS · {cell.filed_at.slice(5)}
+        </span>
+      ) : onPatchDates && cell.filing_id ? (
+        <button
+          type="button"
+          onClick={() => void markDateToday('filed_at')}
+          disabled={busy}
+          className="inline-flex items-center px-1 py-0 rounded border border-dashed border-green-300 text-green-700 hover:bg-green-50 text-[10px] disabled:opacity-50"
+          title="Mark recommendation sent today"
+        >
+          + RS
+        </button>
+      ) : null}
+      {cell.last_action_at && (
+        <span
+          className="inline-flex items-center text-[9.5px] text-ink-faint"
+          title={`Last NWT action: ${cell.last_action_at}`}
+        >
+          · {cell.last_action_at.slice(5)}
         </span>
       )}
       {cell.filing_id && (
         <Link
           href={`/tax-ops/filings/${cell.filing_id}`}
-          className="text-[9px] text-ink-muted hover:text-ink underline"
+          className="text-[9.5px] text-ink-muted hover:text-ink underline"
           title={`Open NWT Review ${year} filing`}
         >
           edit
