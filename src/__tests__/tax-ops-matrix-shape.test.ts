@@ -282,13 +282,13 @@ describe('filterEntitiesByStatus', () => {
   });
 });
 
-// Stint 39.C — dynamic year range (relative to "now").
+// Stint 43.D1 — year window narrowed from 4 to 3 (drop currentYear-2).
 describe('yearOptions + defaultYear', () => {
-  it('yearOptions returns 4 consecutive years ending at currentYear+1', () => {
+  it('yearOptions returns 3 consecutive years: prior, current, next', () => {
     const years = yearOptions();
     const currentYear = new Date().getFullYear();
-    expect(years).toHaveLength(4);
-    expect(years).toEqual([currentYear - 2, currentYear - 1, currentYear, currentYear + 1]);
+    expect(years).toHaveLength(3);
+    expect(years).toEqual([currentYear - 1, currentYear, currentYear + 1]);
   });
 
   it('defaultYear points at the current work year for quarterly/monthly', () => {
