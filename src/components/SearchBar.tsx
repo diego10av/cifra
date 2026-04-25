@@ -130,15 +130,6 @@ const COMMANDS: readonly Command[] = [
   },
   {
     kind: 'command',
-    id: 'cmd-goto-taxops-nwt',
-    label: 'Open NWT reviews',
-    hint: 'Year-end net wealth tax advisory review (opted-in clients only)',
-    href: '/tax-ops/nwt',
-    keywords: ['nwt', 'net', 'wealth', 'review', 'advisory', 'restructuring', 'interim', 'year-end'],
-    icon: FileTextIcon,
-  },
-  {
-    kind: 'command',
     id: 'cmd-goto-taxops-vat-annual',
     label: 'Open VAT annual',
     hint: 'Annual VAT returns (standard + simplified)',

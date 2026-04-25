@@ -41,7 +41,9 @@ function iconFor(name: string | null | undefined): LucideIcon {
 // /tax-ops/category/<tax_type> which uses a generic matrix page.
 const TAX_TYPE_TO_URL: Record<string, string> = {
   cit_annual:                 '/tax-ops/cit',
-  nwt_annual:                 '/tax-ops/nwt',
+  // Stint 42 cleanup: NWT lives as a column inside the CIT matrix
+  // (37.D rework). The standalone /tax-ops/nwt page was deleted.
+  nwt_annual:                 '/tax-ops/cit',
   vat_annual:                 '/tax-ops/vat/annual',
   vat_simplified_annual:      '/tax-ops/vat/annual',
   vat_quarterly:              '/tax-ops/vat/quarterly',

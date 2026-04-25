@@ -13,7 +13,7 @@
 //       filing on first status change
 //   - Filing exists
 //     → status badge + hover tooltip showing interim_received +
-//       recommendation_sent dates. Click → /tax-ops/nwt for full row edit.
+//       recommendation_sent dates. Click → filing detail for full edit.
 //
 // Opt-in flow is simplified: we POST a new obligation with
 // service_kind='review' for this entity. The matrix page refetches.
