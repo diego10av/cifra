@@ -105,7 +105,7 @@ export function KeyAccountHealthWidget() {
           </thead>
           <tbody>
             {data.accounts.map(a => (
-              <tr key={a.id} className="border-t border-border hover:bg-surface-alt/30">
+              <tr key={a.id} className="border-t border-border hover:bg-surface-alt/50">
                 <td className="px-3 py-2">
                   <Link href={`/crm/companies/${a.id}`} className="font-medium text-brand-700 hover:underline">
                     {a.company_name}

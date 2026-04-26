@@ -70,7 +70,7 @@ export function DealsAtRiskWidget() {
         <ul className="divide-y divide-border">
           {atRisk.map(a => (
             <li key={a.id}>
-              <Link href={a.link} className="flex items-start gap-3 px-4 py-2.5 hover:bg-surface-alt/60">
+              <Link href={a.link} className="flex items-start gap-3 px-4 py-2.5 hover:bg-surface-alt/50">
                 <ClockIcon size={14} className={`shrink-0 mt-0.5 ${a.type === 'opp_close_overdue' ? 'text-danger-600' : 'text-amber-600'}`} />
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium text-ink truncate">{a.title}</div>

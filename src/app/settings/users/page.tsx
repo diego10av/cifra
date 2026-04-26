@@ -220,7 +220,7 @@ function UserRow({
   const isOver = capPct >= 100;
 
   return (
-    <tr className="border-b border-divider last:border-0 hover:bg-surface-alt/40 transition-colors">
+    <tr className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors">
       <td className="px-4 py-3">
         <div className="font-medium text-ink">{user.display_name}</div>
         <div className="text-xs text-ink-muted mt-0.5">

@@ -109,7 +109,7 @@ function AuditContent() {
             </thead>
             <tbody>
               {visible.map(r => (
-                <tr key={r.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                <tr key={r.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150">
                   <td className="px-4 py-2.5 text-ink-muted whitespace-nowrap text-xs">{formatDateTime(r.created_at)}</td>
                   <td className="px-4 py-2.5"><ActionPill action={r.action} /></td>
                   <td className="px-4 py-2.5 text-ink-soft font-mono text-xs">{r.target_type}</td>

@@ -1578,7 +1578,7 @@ function TableRow({
   const rowClass = [
     'border-b border-divider transition-colors duration-150',
     line.state === 'deleted' ? 'bg-surface-alt text-ink-faint line-through' : '',
-    isSelected ? 'bg-blue-50' : !isLocked ? 'hover:bg-surface-alt/70' : '',
+    isSelected ? 'bg-blue-50' : !isLocked ? 'hover:bg-surface-alt/50' : '',
     isInference ? 'bg-amber-50/50' : '',
     isPrecedent && !isSelected ? 'bg-blue-50/40' : '',
     !line.treatment && !isSelected ? 'bg-red-50/30' : '',

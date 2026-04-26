@@ -237,7 +237,7 @@ export default function ClientDetailPage() {
                   <li key={e.id}>
                     <Link
                       href={`/entities/${e.id}`}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-surface-alt/40 transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-surface-alt/50 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-ink truncate">{e.name}</div>
@@ -555,7 +555,7 @@ function DeclAction({
   return (
     <Link
       href={href}
-      className="block py-2 -mx-1 px-1 rounded hover:bg-surface-alt/40 transition-colors"
+      className="block py-2 -mx-1 px-1 rounded hover:bg-surface-alt/50 transition-colors"
     >
       <div className="flex items-baseline gap-2">
         <span className={`text-lg font-bold tabular-nums ${colours}`}>{count}</span>

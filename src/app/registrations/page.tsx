@@ -162,7 +162,7 @@ export default function RegistrationsPage() {
             </thead>
             <tbody>
               {regs.map(r => (
-                <tr key={r.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                <tr key={r.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150">
                   <td className="px-3 py-2 font-medium text-ink">{r.entity_name}</td>
                   <td className="px-3 py-2 text-ink-soft capitalize">{r.regime_requested || '—'}</td>
                   <td className="px-3 py-2 text-ink-soft capitalize">{r.frequency_requested || '—'}</td>

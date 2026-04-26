@@ -85,7 +85,7 @@ export default function DeadlinesPage() {
             </thead>
             <tbody>
               {visible.map(r => (
-                <tr key={r.entity_id + r.year + r.period} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                <tr key={r.entity_id + r.year + r.period} className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150">
                   <td className="px-4 py-3">
                     <Link href={`/entities/${r.entity_id}`} className="font-medium text-ink hover:text-brand-600 transition-colors">
                       {r.entity_name}

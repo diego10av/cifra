@@ -176,7 +176,7 @@ function SourceGroup({
       </header>
       <ul className="divide-y divide-divider">
         {entries.map(s => (
-          <li key={s.id} className="px-5 py-3 hover:bg-surface-alt/40 transition-colors">
+          <li key={s.id} className="px-5 py-3 hover:bg-surface-alt/50 transition-colors">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">

@@ -94,7 +94,7 @@ export function NwtReviewInlineCell({
         type="button"
         onClick={handleOptIn}
         disabled={busy}
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-2xs bg-surface-alt text-ink-muted hover:bg-surface-alt/80 hover:text-ink transition-colors"
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-2xs bg-surface-alt text-ink-muted hover:bg-surface-alt/50 hover:text-ink transition-colors"
         title="Click to opt this entity into year-end NWT review"
       >
         {busy ? 'Adding…' : '+ Opt in'}

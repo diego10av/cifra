@@ -45,7 +45,7 @@ export function ForecastWidget() {
   return (
     <Link
       href={`/crm/opportunities${qParam}`}
-      className="block border border-border rounded-lg bg-white p-4 hover:border-border-strong hover:bg-surface-alt/40 transition-colors group"
+      className="block border border-border rounded-lg bg-white p-4 hover:border-border-strong hover:bg-surface-alt/50 transition-colors group"
     >
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">

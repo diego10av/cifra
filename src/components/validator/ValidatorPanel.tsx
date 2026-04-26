@@ -284,7 +284,7 @@ function FindingItem({
     ].join(' ')}>
       <button
         onClick={() => setExpanded(e => !e)}
-        className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-surface-alt/60"
+        className="w-full text-left px-4 py-3 flex items-start gap-3 hover:bg-surface-alt/50"
       >
         <div className={`w-7 h-7 rounded-lg inline-flex items-center justify-center shrink-0 ${severityStyles.chip}`}>
           {severityStyles.icon}

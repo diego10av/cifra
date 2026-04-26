@@ -220,7 +220,7 @@ function ApproverRow({
   onDelete: () => void;
 }) {
   return (
-    <div className="px-4 py-3 flex items-start gap-3 hover:bg-surface-alt/40 transition-colors">
+    <div className="px-4 py-3 flex items-start gap-3 hover:bg-surface-alt/50 transition-colors">
       <TypeBadge type={approver.approver_type} />
 
       <div className="flex-1 min-w-0">
@@ -474,7 +474,7 @@ function ApproverEditor({
                         <button
                           type="button"
                           onClick={() => pickContact(c)}
-                          className="w-full text-left px-3 py-2 hover:bg-surface-alt/60"
+                          className="w-full text-left px-3 py-2 hover:bg-surface-alt/50"
                         >
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-ink truncate">{c.name}</span>

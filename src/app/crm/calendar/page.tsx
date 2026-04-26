@@ -161,7 +161,7 @@ export default function CalendarPage() {
                   onClick={() => setSelectedDate(iso)}
                   className={`min-h-[92px] border-b border-r border-border text-left p-1.5 ${
                     inMonth ? 'bg-white' : 'bg-surface-alt/30'
-                  } ${isSelected ? 'ring-2 ring-brand-500 ring-inset' : 'hover:bg-surface-alt/60'}`}
+                  } ${isSelected ? 'ring-2 ring-brand-500 ring-inset' : 'hover:bg-surface-alt/50'}`}
                 >
                   <div className={`text-xs tabular-nums ${isToday ? 'font-bold text-brand-700' : inMonth ? 'text-ink' : 'text-ink-muted'}`}>
                     {d.getDate()}

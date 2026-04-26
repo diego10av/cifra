@@ -207,7 +207,7 @@ export default function FilingsListPage() {
             </thead>
             <tbody>
               {rows.map(f => (
-                <tr key={f.id} className="border-t border-border hover:bg-surface-alt/40">
+                <tr key={f.id} className="border-t border-border hover:bg-surface-alt/50">
                   <td className="px-3 py-2">
                     <Link href={`/tax-ops/filings/${f.id}`} className="font-medium text-ink hover:text-brand-700">
                       {f.entity_name}

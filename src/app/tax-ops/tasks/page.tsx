@@ -280,7 +280,7 @@ export default function TasksListPage() {
             </thead>
             <tbody>
               {rows.map(t => (
-                <tr key={t.id} className="border-t border-border/70 hover:bg-surface-alt/40 align-top">
+                <tr key={t.id} className="border-t border-border/70 hover:bg-surface-alt/50 align-top">
                   <td className="px-2 py-1.5 text-ink-soft text-xs truncate max-w-[120px]">
                     {t.family_name ?? '—'}
                   </td>

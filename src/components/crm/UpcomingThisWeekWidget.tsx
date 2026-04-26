@@ -111,7 +111,7 @@ export function UpcomingThisWeekWidget() {
                 <li key={e.id}>
                   <Link
                     href={e.link}
-                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-alt/60 text-sm"
+                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-alt/50 text-sm"
                   >
                     <span className="shrink-0 text-base leading-none w-5" aria-label={TYPE_LABEL[e.type]}>{TYPE_ICON[e.type]}</span>
                     <span className="flex-1 min-w-0 truncate text-ink">{e.title}</span>

@@ -244,7 +244,7 @@ function EntitiesContent() {
               {page.visible.map(entity => {
                 const client = entity.client_id ? clients.get(entity.client_id) : null;
                 return (
-                  <tr key={entity.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                  <tr key={entity.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150">
                     <td className="px-4 py-3">
                       {client ? (
                         <Link href={`/clients/${client.id}`} className="text-ink-soft hover:text-brand-600 hover:underline transition-colors">

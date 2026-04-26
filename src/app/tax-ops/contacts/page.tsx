@@ -111,7 +111,7 @@ export default function ContactsPage() {
             </thead>
             <tbody>
               {filtered.map(c => (
-                <tr key={c.email_norm} className="border-t border-border/70 hover:bg-surface-alt/40">
+                <tr key={c.email_norm} className="border-t border-border/70 hover:bg-surface-alt/50">
                   <td className="px-3 py-1.5 font-medium">{c.name ?? <span className="text-ink-muted italic">—</span>}</td>
                   <td className="px-3 py-1.5 font-mono text-xs text-ink-soft">{c.email ?? c.email_norm}</td>
                   <td className="px-3 py-1.5 text-ink-soft">{c.role ?? <span className="text-ink-muted italic">—</span>}</td>

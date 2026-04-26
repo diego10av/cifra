@@ -262,7 +262,7 @@ function PipelineStep({ label, done, active, available, onClick }: {
   const cls = done
     ? `${base} bg-emerald-50 border-emerald-200`
     : active
-      ? `${base} bg-brand-500 border-[#1a1a2e] text-white`
+      ? `${base} bg-brand-500 border-brand-700 text-white`
       : `${base} bg-surface border-border ${available ? 'hover:border-border-strong cursor-pointer' : 'opacity-50 cursor-not-allowed'}`;
   return (
     <button

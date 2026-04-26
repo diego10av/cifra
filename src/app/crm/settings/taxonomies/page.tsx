@@ -204,7 +204,7 @@ export default function TaxonomiesPage() {
                       ) : (
                         <button
                           onClick={() => { setEditingId(r.id); setEditLabel(r.label); }}
-                          className="text-left hover:bg-surface-alt/60 px-1 py-0.5 rounded inline-flex items-center gap-1"
+                          className="text-left hover:bg-surface-alt/50 px-1 py-0.5 rounded inline-flex items-center gap-1"
                           title="Click to rename"
                         >
                           {r.label}

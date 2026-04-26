@@ -208,7 +208,7 @@ export default function OutreachPage() {
             </thead>
             <tbody>
               {rows.map(p => (
-                <tr key={p.id} className="border-t border-border/70 hover:bg-surface-alt/40 align-top">
+                <tr key={p.id} className="border-t border-border/70 hover:bg-surface-alt/50 align-top">
                   <td className="px-2 py-1.5">
                     <input
                       defaultValue={p.name}

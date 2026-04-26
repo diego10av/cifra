@@ -178,7 +178,7 @@ function ContactRow({
   }
 
   return (
-    <div className="px-4 py-3 flex items-start gap-3 hover:bg-surface-alt/40 transition-colors">
+    <div className="px-4 py-3 flex items-start gap-3 hover:bg-surface-alt/50 transition-colors">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
           <div className="text-sm font-medium text-ink truncate">{contact.name}</div>

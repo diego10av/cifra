@@ -229,7 +229,7 @@ function NewEntityPageInner() {
                 <li key={c.id}>
                   <button
                     onClick={() => { setClient(c); setPicking(false); }}
-                    className="w-full text-left px-4 py-3 hover:bg-surface-alt/40 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-surface-alt/50 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">

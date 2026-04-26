@@ -172,7 +172,7 @@ export default function OtherPage() {
             </thead>
             <tbody>
               {filtered.map(r => (
-                <tr key={r.id} className="border-t border-border hover:bg-surface-alt/40">
+                <tr key={r.id} className="border-t border-border hover:bg-surface-alt/50">
                   <td className="px-3 py-2">
                     <Link href={`/tax-ops/filings/${r.id}`} className="font-medium text-ink hover:text-brand-700">
                       {r.entity_name}

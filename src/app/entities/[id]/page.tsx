@@ -195,7 +195,7 @@ export default function EntityDetailPage() {
               </thead>
               <tbody>
                 {data.declarations.map(d => (
-                  <tr key={d.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                  <tr key={d.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150">
                     <td className="px-3 py-2 font-medium text-ink">{d.year} {d.period}</td>
                     <td className="px-3 py-2"><StatusPill status={d.status} /></td>
                     <td className="px-3 py-2 text-right text-ink-soft tabular-nums">{d.line_count}</td>

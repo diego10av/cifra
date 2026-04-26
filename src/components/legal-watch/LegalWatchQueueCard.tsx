@@ -377,7 +377,7 @@ function ItemList({
   return (
     <ul className="divide-y divide-divider">
       {items.map(item => (
-        <li key={item.id} className={`px-5 py-4 hover:bg-surface-alt/40 transition-colors ${rowOpacity}`}>
+        <li key={item.id} className={`px-5 py-4 hover:bg-surface-alt/50 transition-colors ${rowOpacity}`}>
           <div className="flex items-start gap-4">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">

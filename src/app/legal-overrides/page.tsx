@@ -179,7 +179,7 @@ export default function LegalOverridesPage() {
             </thead>
             <tbody>
               {overrides.map(o => (
-                <tr key={o.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                <tr key={o.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150">
                   <td className="px-3 py-2 font-medium text-ink">{o.rule_changed}</td>
                   <td className="px-3 py-2">
                     <span className="text-2xs px-2 py-0.5 rounded font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">

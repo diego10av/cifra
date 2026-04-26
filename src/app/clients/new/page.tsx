@@ -632,7 +632,7 @@ function OptionalClientDetails({
     <div className="bg-surface border border-border rounded-lg">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-surface-alt/40 transition-colors"
+        className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-surface-alt/50 transition-colors"
       >
         <span className="text-sm font-medium text-ink">Optional details (address, website, notes)</span>
         <ChevronRightIcon size={14} className={`text-ink-muted transition-transform ${open ? 'rotate-90' : ''}`} />

@@ -180,8 +180,8 @@ function TypeRow({
   const widestSubCols = maxSubColsForYear(allPatterns, 0);
 
   return (
-    <tr className="border-b border-border/70 hover:bg-surface-alt/40">
-      <td className="sticky left-0 bg-surface hover:bg-surface-alt/40 border-r border-border px-2.5 py-1.5 min-w-[180px] font-medium">
+    <tr className="border-b border-border/70 hover:bg-surface-alt/50">
+      <td className="sticky left-0 bg-surface hover:bg-surface-alt/50 border-r border-border px-2.5 py-1.5 min-w-[180px] font-medium">
         {humanTaxType(taxType)}
       </td>
       {years.map(year => {

@@ -246,7 +246,7 @@ function InboxRow({ item, onClick }: { item: InboxItem; onClick: () => void }) {
     <Link
       href={item.href}
       onClick={onClick}
-      className="block px-4 py-3 hover:bg-surface-alt/40 transition-colors group"
+      className="block px-4 py-3 hover:bg-surface-alt/50 transition-colors group"
     >
       <div className="flex items-start gap-3">
         <div className={`w-7 h-7 rounded-md inline-flex items-center justify-center shrink-0 ${tint}`}>
