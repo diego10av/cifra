@@ -62,7 +62,7 @@ export default function TaxOpsDeadlinesPage() {
 
   return (
     <div>
-      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink mb-2">
+      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink mb-2">
         <ArrowLeftIcon size={12} /> Back to settings
       </Link>
       <PageHeader
@@ -71,7 +71,7 @@ export default function TaxOpsDeadlinesPage() {
         actions={
           <button
             onClick={() => setNewRuleOpen(true)}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white"
           >
             <PlusIcon size={12} /> New rule
           </button>
@@ -87,7 +87,7 @@ export default function TaxOpsDeadlinesPage() {
       {error && <CrmErrorBox message={error} onRetry={load} />}
 
       <div className="rounded-md border border-border bg-surface overflow-hidden">
-        <table className="w-full text-[12.5px]">
+        <table className="w-full text-sm">
           <thead className="bg-surface-alt text-ink-muted">
             <tr className="text-left">
               <th className="px-3 py-2 font-medium">Tax type</th>
@@ -106,7 +106,7 @@ export default function TaxOpsDeadlinesPage() {
                 <td className="px-3 py-2">
                   <div>{describeParams(r.rule_kind, r.rule_params)}</div>
                   {r.statutory_description && (
-                    <div className="text-[11px] text-ink-muted mt-0.5 line-clamp-2">
+                    <div className="text-xs text-ink-muted mt-0.5 line-clamp-2">
                       {r.statutory_description}
                     </div>
                   )}
@@ -124,7 +124,7 @@ export default function TaxOpsDeadlinesPage() {
                 <td className="px-3 py-2 text-right">
                   <button
                     onClick={() => setEditingRule(r)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] text-brand-700 hover:text-brand-800"
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs text-brand-700 hover:text-brand-800"
                   >
                     <Edit3Icon size={11} /> Edit
                   </button>
@@ -227,14 +227,14 @@ function NewRuleModal({
     <Modal open={open} onClose={onClose} title="New deadline rule" size="lg"
       footer={
         <>
-          <button onClick={onClose} className="px-3 py-1.5 text-[12.5px] rounded-md border border-border hover:bg-surface-alt">Cancel</button>
-          <button onClick={submit} disabled={busy || !taxType.trim()} className="px-3 py-1.5 text-[12.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50">
+          <button onClick={onClose} className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface-alt">Cancel</button>
+          <button onClick={submit} disabled={busy || !taxType.trim()} className="px-3 py-1.5 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50">
             {busy ? 'Creating…' : 'Create rule'}
           </button>
         </>
       }
     >
-      <div className="space-y-3 text-[12.5px]">
+      <div className="space-y-3 text-sm">
         <div className="grid grid-cols-2 gap-3">
           <label>
             <span className="text-ink-muted">Tax type (internal id)</span>
@@ -244,7 +244,7 @@ function NewRuleModal({
               placeholder="e.g. dac6_annual"
               className="mt-1 w-full px-2 py-1.5 border border-border rounded-md bg-surface font-mono"
             />
-            <span className="text-[10.5px] text-ink-muted block mt-1">Snake_case. Lowercased on save.</span>
+            <span className="text-2xs text-ink-muted block mt-1">Snake_case. Lowercased on save.</span>
           </label>
           <label>
             <span className="text-ink-muted">Period pattern</span>
@@ -304,7 +304,7 @@ function NewRuleModal({
           <span className="text-ink-muted">Market practice note</span>
           <textarea value={note} onChange={e => setNote(e.target.value)} rows={2} className="mt-1 w-full px-2 py-1.5 border border-border rounded-md bg-surface" />
         </label>
-        {error && <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-[12px] text-danger-800">{error}</div>}
+        {error && <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-sm text-danger-800">{error}</div>}
       </div>
     </Modal>
   );

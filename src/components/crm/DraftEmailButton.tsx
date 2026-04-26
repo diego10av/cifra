@@ -106,7 +106,7 @@ export function DraftEmailButton({
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); openAndGenerate(); }}
           title={`Draft ${INTENT_LABEL[intent]} email`}
-          className="h-7 px-2 inline-flex items-center gap-1 rounded-md border border-brand-300 bg-brand-50/50 text-[11px] font-medium text-brand-700 hover:bg-brand-100"
+          className="h-7 px-2 inline-flex items-center gap-1 rounded-md border border-brand-300 bg-brand-50/50 text-xs font-medium text-brand-700 hover:bg-brand-100"
         >
           <SparklesIcon size={11} />
           <span className="hidden md:inline">Draft</span>
@@ -114,7 +114,7 @@ export function DraftEmailButton({
       ) : (
         <button
           onClick={(e) => { e.preventDefault(); openAndGenerate(); }}
-          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-brand-300 bg-brand-50 text-[12.5px] font-medium text-brand-700 hover:bg-brand-100"
+          className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-brand-300 bg-brand-50 text-sm font-medium text-brand-700 hover:bg-brand-100"
         >
           <SparklesIcon size={13} />
           {btnLabel}
@@ -131,14 +131,14 @@ export function DraftEmailButton({
               <div className="flex items-center gap-2 justify-end">
                 <button
                   onClick={copyToClipboard}
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] text-ink-soft hover:bg-surface-alt"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-sm text-ink-soft hover:bg-surface-alt"
                 >
                   <CopyIcon size={12} /> Copy
                 </button>
                 <button
                   onClick={generate}
                   disabled={loading}
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-sm text-ink-soft hover:bg-surface-alt disabled:opacity-40"
                 >
                   <SparklesIcon size={12} /> Regenerate
                 </button>
@@ -146,7 +146,7 @@ export function DraftEmailButton({
                   href={mailtoUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-brand-600 text-white text-[12.5px] font-semibold hover:bg-brand-700"
+                  className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700"
                 >
                   <MailIcon size={12} /> Open in mail client
                 </a>
@@ -155,40 +155,40 @@ export function DraftEmailButton({
           }
         >
           {loading && !draft && (
-            <div className="text-[12px] text-ink-muted italic py-8 text-center">
+            <div className="text-sm text-ink-muted italic py-8 text-center">
               Opus 4.7 is drafting. Typically 8-15 seconds…
             </div>
           )}
           {draft && (
             <div className="space-y-3">
               {draft.recipient_email ? (
-                <div className="text-[11.5px] text-ink-muted">
+                <div className="text-xs text-ink-muted">
                   To: <span className="font-mono text-ink-soft">{draft.recipient_email}</span>
                   {draft.recipient_name && <span className="ml-1">({draft.recipient_name})</span>}
                 </div>
               ) : (
-                <div className="text-[11.5px] text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5 flex items-center gap-1.5">
+                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5 flex items-center gap-1.5">
                   <XIcon size={11} />
                   No email address on record — you&apos;ll need to paste the recipient manually.
                 </div>
               )}
               <div>
-                <label className="block text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Subject</label>
+                <label className="block text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Subject</label>
                 <input
                   value={editedSubject}
                   onChange={e => setEditedSubject(e.target.value)}
-                  className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md"
+                  className="w-full h-9 px-2.5 text-sm border border-border rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Body</label>
+                <label className="block text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Body</label>
                 <textarea
                   value={editedBody}
                   onChange={e => setEditedBody(e.target.value)}
                   rows={12}
-                  className="w-full px-2.5 py-2 text-[13px] font-[ui-sans-serif] border border-border rounded-md resize-y leading-relaxed"
+                  className="w-full px-2.5 py-2 text-sm font-[ui-sans-serif] border border-border rounded-md resize-y leading-relaxed"
                 />
-                <p className="mt-1 text-[10.5px] text-ink-muted italic">
+                <p className="mt-1 text-2xs text-ink-muted italic">
                   Edit as needed — this is AI-generated, not auto-sent. Always read before sending.
                 </p>
               </div>

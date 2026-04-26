@@ -89,7 +89,7 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/opportunities" className="hover:underline">← All opportunities</Link>
       </div>
       <PageHeader
@@ -145,10 +145,10 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
 
       {(o as { next_action?: string | null }).next_action && (
         <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded">
-          <div className="text-[10px] uppercase tracking-wide font-semibold text-amber-800 mb-1">Next action</div>
-          <div className="text-[13px] text-ink">{String((o as { next_action?: string | null }).next_action)}</div>
+          <div className="text-2xs uppercase tracking-wide font-semibold text-amber-800 mb-1">Next action</div>
+          <div className="text-sm text-ink">{String((o as { next_action?: string | null }).next_action)}</div>
           {(o as { next_action_due?: string | null }).next_action_due && (
-            <div className="text-[11px] text-amber-700 mt-1">Due: {formatDate((o as { next_action_due?: string | null }).next_action_due ?? null)}</div>
+            <div className="text-xs text-amber-700 mt-1">Due: {formatDate((o as { next_action_due?: string | null }).next_action_due ?? null)}</div>
           )}
         </div>
       )}
@@ -156,14 +156,14 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
       {o.stage === 'won' && (
         <div className="mb-5 p-3 bg-emerald-50 border border-emerald-300 rounded flex items-start gap-3">
           <div className="flex-1">
-            <div className="text-[13px] font-semibold text-emerald-900">🎉 Deal won — ready to open the matter?</div>
-            <div className="text-[11.5px] text-emerald-800 mt-0.5">
+            <div className="text-sm font-semibold text-emerald-900">🎉 Deal won — ready to open the matter?</div>
+            <div className="text-xs text-emerald-800 mt-0.5">
               Kicks off the matter intake wizard with parties + scope pre-filled from this opportunity.
             </div>
           </div>
           <Link
             href={`/crm/matters/new?source_opp=${id}`}
-            className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-emerald-600 text-white text-[12.5px] font-semibold hover:bg-emerald-700"
+            className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700"
           >
             Open matter →
           </Link>
@@ -171,7 +171,7 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
       )}
 
       {o.notes && (
-        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(o.notes)}</div>
+        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-sm whitespace-pre-wrap">{String(o.notes)}</div>
       )}
 
       <Section title={`Activities (${data.activities.length})`}>
@@ -195,8 +195,8 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
-      <div className="text-[14px] font-medium tabular-nums">{children}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
+      <div className="text-base font-medium tabular-nums">{children}</div>
     </div>
   );
 }
@@ -204,17 +204,17 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
+      <h3 className="text-sm uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
       {children}
     </div>
   );
 }
 
 function Table({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
-  if (rows.length === 0) return <div className="text-[12px] text-ink-muted italic px-3 py-2">None</div>;
+  if (rows.length === 0) return <div className="text-sm text-ink-muted italic px-3 py-2">None</div>;
   return (
     <div className="border border-border rounded-md overflow-hidden bg-white">
-      <table className="w-full text-[12px]">
+      <table className="w-full text-sm">
         <thead className="bg-surface-alt text-ink-muted">
           <tr>{headers.map((h, i) => <th key={i} className="text-left px-3 py-1.5 font-medium">{h}</th>)}</tr>
         </thead>

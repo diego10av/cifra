@@ -93,10 +93,10 @@ export function PipelineKanban({
             className={`flex-1 min-w-[240px] max-w-[320px] flex flex-col border rounded-lg ${isDropTarget ? `${tone.border} ring-2 ring-offset-1 ring-brand-400` : tone.border}`}
           >
             <div className={`px-3 py-2 rounded-t-lg flex items-center justify-between ${tone.header}`}>
-              <span className="text-[11px] font-semibold uppercase tracking-wide">
+              <span className="text-xs font-semibold uppercase tracking-wide">
                 {LABELS_STAGE[stage]}
               </span>
-              <span className="text-[10.5px] font-mono">{items.length}</span>
+              <span className="text-2xs font-mono">{items.length}</span>
             </div>
             <div className="flex-1 p-2 flex flex-col gap-2 bg-surface-alt/30 min-h-[100px]">
               {items.map(opp => (
@@ -109,11 +109,11 @@ export function PipelineKanban({
                 />
               ))}
               {items.length === 0 && (
-                <div className="text-[11px] text-ink-faint italic text-center py-4">Drag cards here</div>
+                <div className="text-xs text-ink-faint italic text-center py-4">Drag cards here</div>
               )}
             </div>
             {total > 0 && (
-              <div className="px-3 py-1.5 text-[10.5px] text-ink-muted border-t border-border bg-white rounded-b-lg font-mono tabular-nums">
+              <div className="px-3 py-1.5 text-2xs text-ink-muted border-t border-border bg-white rounded-b-lg font-mono tabular-nums">
                 Σ weighted {formatEur(total)}
               </div>
             )}
@@ -146,15 +146,15 @@ function KanbanCard({
     >
       <Link
         href={`/crm/opportunities/${opp.id}`}
-        className="block text-[12px] font-medium text-ink hover:underline truncate"
+        className="block text-sm font-medium text-ink hover:underline truncate"
         onClick={e => { if (isDragging) e.preventDefault(); }}
       >
         {opp.name}
       </Link>
       {opp.company_name && (
-        <div className="text-[10.5px] text-ink-muted truncate mt-0.5">{opp.company_name}</div>
+        <div className="text-2xs text-ink-muted truncate mt-0.5">{opp.company_name}</div>
       )}
-      <div className="mt-1.5 flex items-center gap-2 text-[10.5px]">
+      <div className="mt-1.5 flex items-center gap-2 text-2xs">
         <span className="tabular-nums font-medium text-ink">{formatEur(opp.weighted_value_eur)}</span>
         {opp.probability_pct !== null && (
           <span className="text-ink-muted">{opp.probability_pct}%</span>
@@ -167,7 +167,7 @@ function KanbanCard({
         )}
       </div>
       {opp.next_action && (
-        <div className="mt-1 text-[10px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 truncate" title={opp.next_action}>
+        <div className="mt-1 text-2xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 truncate" title={opp.next_action}>
           → {opp.next_action}
           {opp.next_action_due && <span className="ml-1 text-amber-700 font-mono">{formatDate(opp.next_action_due)}</span>}
         </div>

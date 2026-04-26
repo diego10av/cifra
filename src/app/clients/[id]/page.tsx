@@ -101,9 +101,9 @@ export default function ClientDetailPage() {
     return (
       <div className="max-w-2xl">
         <div className="bg-danger-50 border border-danger-200 rounded-lg p-6">
-          <h2 className="text-[14px] font-semibold text-danger-800">Could not load client</h2>
-          <p className="text-[12.5px] text-danger-700 mt-2">{error}</p>
-          <Link href="/clients" className="inline-block mt-4 text-[12px] font-medium text-brand-600 hover:underline">
+          <h2 className="text-base font-semibold text-danger-800">Could not load client</h2>
+          <p className="text-sm text-danger-700 mt-2">{error}</p>
+          <Link href="/clients" className="inline-block mt-4 text-sm font-medium text-brand-600 hover:underline">
             ← Back to clients
           </Link>
         </div>
@@ -121,7 +121,7 @@ export default function ClientDetailPage() {
   return (
     <div className="max-w-5xl">
       {/* Breadcrumb */}
-      <div className="text-[11px] text-ink-faint mb-1">
+      <div className="text-xs text-ink-faint mb-1">
         <Link href="/clients" className="hover:underline">Clients</Link> › {client.name}
       </div>
 
@@ -129,11 +129,11 @@ export default function ClientDetailPage() {
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-baseline gap-3 flex-wrap">
-            <h1 className="text-[22px] font-semibold tracking-tight">{client.name}</h1>
+            <h1 className="text-xl font-semibold tracking-tight">{client.name}</h1>
             {client.engaged_via_name && (
               <a
                 href="#engaged-via"
-                className="inline-flex items-center gap-1 text-[11.5px] text-ink-soft bg-amber-50 border border-amber-200 rounded px-2 py-0.5 hover:bg-amber-100 transition-colors"
+                className="inline-flex items-center gap-1 text-xs text-ink-soft bg-amber-50 border border-amber-200 rounded px-2 py-0.5 hover:bg-amber-100 transition-colors"
                 title="This client is engaged through an intermediary — click to see details"
               >
                 <span className="text-ink-muted">via</span>
@@ -141,7 +141,7 @@ export default function ClientDetailPage() {
               </a>
             )}
           </div>
-          <div className="text-[12px] text-ink-muted mt-1 flex items-center gap-2 flex-wrap">
+          <div className="text-sm text-ink-muted mt-1 flex items-center gap-2 flex-wrap">
             {/* KindBadge now only surfaces for non-default kinds —
                 a vanilla end-client doesn't need a badge since that's
                 the implicit norm. CSP / Other are edge cases worth
@@ -164,21 +164,21 @@ export default function ClientDetailPage() {
         <div className="flex gap-2 shrink-0">
           <button
             onClick={() => setDeleteOpen(true)}
-            className="h-8 px-3 rounded-md border border-border-strong text-[12px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-200 inline-flex items-center gap-1.5"
+            className="h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-200 inline-flex items-center gap-1.5"
             title="Archive or permanently delete this client"
           >
             <Trash2Icon size={13} /> Delete
           </button>
           <Link
             href={`/clients/${client.id}/bulk-import`}
-            className="h-8 px-3 rounded-md border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt hover:text-ink inline-flex items-center gap-1.5"
+            className="h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt hover:text-ink inline-flex items-center gap-1.5"
             title="Paste a CSV/TSV and bulk-create entities under this client"
           >
             Bulk import
           </Link>
           <Link
             href={{ pathname: '/entities/new', query: { client_id: client.id } }}
-            className="h-8 px-3 rounded-md bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
+            className="h-8 px-3 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
           >
             <PlusIcon size={13} /> Add entity
           </Link>
@@ -217,16 +217,16 @@ export default function ClientDetailPage() {
           {/* Entities list */}
           <div className="bg-surface border border-border rounded-lg">
             <div className="px-4 py-3 border-b border-divider flex items-center justify-between">
-              <h3 className="text-[13px] font-semibold text-ink">Entities under this client</h3>
-              <span className="text-[11px] text-ink-muted">{entities.length}</span>
+              <h3 className="text-sm font-semibold text-ink">Entities under this client</h3>
+              <span className="text-xs text-ink-muted">{entities.length}</span>
             </div>
             {entities.length === 0 ? (
               <div className="px-4 py-8 text-center">
                 <Building2Icon size={20} className="text-ink-muted mx-auto mb-2" />
-                <div className="text-[13px] text-ink-muted">No entities yet</div>
+                <div className="text-sm text-ink-muted">No entities yet</div>
                 <Link
                   href={{ pathname: '/entities/new', query: { client_id: client.id } }}
-                  className="inline-block mt-3 text-[12px] font-medium text-brand-600 hover:underline"
+                  className="inline-block mt-3 text-sm font-medium text-brand-600 hover:underline"
                 >
                   Add the first one →
                 </Link>
@@ -240,8 +240,8 @@ export default function ClientDetailPage() {
                       className="flex items-center gap-3 px-4 py-3 hover:bg-surface-alt/40 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-medium text-ink truncate">{e.name}</div>
-                        <div className="text-[11px] text-ink-muted mt-0.5">
+                        <div className="text-sm font-medium text-ink truncate">{e.name}</div>
+                        <div className="text-xs text-ink-muted mt-0.5">
                           {e.vat_number || '(no VAT)'} · {e.regime} / {e.frequency}
                           {e.legal_form && <> · {e.legal_form}</>}
                         </div>
@@ -261,7 +261,7 @@ export default function ClientDetailPage() {
           {/* Declaration rollup — only shown when there's something to act on */}
           {(actionableCounts.review > 0 || actionableCounts.filed > 0) ? (
             <div className="bg-surface border border-border rounded-lg p-4">
-              <h3 className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-3">
+              <h3 className="text-xs uppercase tracking-wide font-semibold text-ink-muted mb-3">
                 Across this client&apos;s declarations
               </h3>
               {actionableCounts.review > 0 && (
@@ -288,8 +288,8 @@ export default function ClientDetailPage() {
               <div className="flex items-start gap-2">
                 <CheckIcon size={14} className="text-emerald-600 mt-0.5 shrink-0" />
                 <div>
-                  <div className="text-[12.5px] font-semibold text-emerald-800">All up to date</div>
-                  <div className="text-[11.5px] text-emerald-700 mt-0.5">
+                  <div className="text-sm font-semibold text-emerald-800">All up to date</div>
+                  <div className="text-xs text-emerald-700 mt-0.5">
                     No declarations pending action for this client.
                   </div>
                 </div>
@@ -300,10 +300,10 @@ export default function ClientDetailPage() {
           {/* Notes (if present) */}
           {client.notes && (
             <div className="bg-amber-50/60 border border-amber-200 rounded-lg p-3">
-              <div className="text-[10.5px] uppercase tracking-wide font-semibold text-amber-800 mb-1">
+              <div className="text-2xs uppercase tracking-wide font-semibold text-amber-800 mb-1">
                 Internal note
               </div>
-              <div className="text-[12px] text-amber-900 whitespace-pre-wrap">{client.notes}</div>
+              <div className="text-sm text-amber-900 whitespace-pre-wrap">{client.notes}</div>
             </div>
           )}
         </div>
@@ -355,10 +355,10 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
     return (
       <div className="bg-surface border border-border rounded-lg p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[13px] font-semibold text-ink">Edit profile</h3>
+          <h3 className="text-sm font-semibold text-ink">Edit profile</h3>
           <button
             onClick={() => { setDraft(client); setEditing(false); }}
-            className="text-[11px] text-ink-muted hover:text-ink"
+            className="text-xs text-ink-muted hover:text-ink"
           >
             Cancel
           </button>
@@ -368,7 +368,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
             <input
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
@@ -376,14 +376,14 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
               <input
                 value={draft.vat_contact_name || ''}
                 onChange={(e) => setDraft({ ...draft, vat_contact_name: e.target.value || null })}
-                className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-3 py-2 text-sm"
               />
             </Field>
             <Field label="Role">
               <input
                 value={draft.vat_contact_role || ''}
                 onChange={(e) => setDraft({ ...draft, vat_contact_role: e.target.value || null })}
-                className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-3 py-2 text-sm"
               />
             </Field>
             <Field label="Email">
@@ -391,14 +391,14 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
                 type="email"
                 value={draft.vat_contact_email || ''}
                 onChange={(e) => setDraft({ ...draft, vat_contact_email: e.target.value || null })}
-                className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-3 py-2 text-sm"
               />
             </Field>
             <Field label="Phone">
               <input
                 value={draft.vat_contact_phone || ''}
                 onChange={(e) => setDraft({ ...draft, vat_contact_phone: e.target.value || null })}
-                className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-3 py-2 text-sm"
               />
             </Field>
             <Field label="Country (ISO-2)">
@@ -406,7 +406,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
                 value={draft.vat_contact_country || ''}
                 onChange={(e) => setDraft({ ...draft, vat_contact_country: e.target.value.toUpperCase().slice(0, 2) || null })}
                 maxLength={2}
-                className="w-full border border-border-strong rounded px-3 py-2 text-[13px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-3 py-2 text-sm font-mono"
               />
             </Field>
           </div>
@@ -414,7 +414,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
             <input
               value={draft.address || ''}
               onChange={(e) => setDraft({ ...draft, address: e.target.value || null })}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
           <Field label="Website">
@@ -422,7 +422,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
               value={draft.website || ''}
               onChange={(e) => setDraft({ ...draft, website: e.target.value || null })}
               placeholder="https://"
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
           <Field label="Internal notes">
@@ -430,15 +430,15 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
               value={draft.notes || ''}
               onChange={(e) => setDraft({ ...draft, notes: e.target.value || null })}
               rows={3}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
-          {err && <div className="text-[11.5px] text-danger-700">{err}</div>}
+          {err && <div className="text-xs text-danger-700">{err}</div>}
           <div className="flex justify-end">
             <button
               onClick={save}
               disabled={saving || !draft.name.trim()}
-              className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+              className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
             >
               <CheckIcon size={13} /> {saving ? 'Saving…' : 'Save'}
             </button>
@@ -451,10 +451,10 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
   return (
     <div className="bg-surface border border-border rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[13px] font-semibold text-ink">Profile</h3>
+        <h3 className="text-sm font-semibold text-ink">Profile</h3>
         <button
           onClick={() => setEditing(true)}
-          className="text-[11px] text-ink-muted hover:text-brand-700 inline-flex items-center gap-1"
+          className="text-xs text-ink-muted hover:text-brand-700 inline-flex items-center gap-1"
         >
           <PencilIcon size={11} /> Edit
         </button>
@@ -464,7 +464,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
       {(client.vat_contact_name || client.vat_contact_email || client.vat_contact_phone) ? (
         <div className="space-y-1.5">
           {client.vat_contact_name && (
-            <div className="text-[13px] text-ink">
+            <div className="text-sm text-ink">
               <span className="font-medium">{client.vat_contact_name}</span>
               {client.vat_contact_role && <span className="text-ink-muted"> · {client.vat_contact_role}</span>}
             </div>
@@ -473,7 +473,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
             {client.vat_contact_email && (
               <a
                 href={`mailto:${client.vat_contact_email}`}
-                className="text-[12px] text-brand-600 hover:underline inline-flex items-center gap-1.5 w-fit"
+                className="text-sm text-brand-600 hover:underline inline-flex items-center gap-1.5 w-fit"
               >
                 <MailIcon size={12} /> {client.vat_contact_email}
               </a>
@@ -481,13 +481,13 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
             {client.vat_contact_phone && (
               <a
                 href={`tel:${client.vat_contact_phone}`}
-                className="text-[12px] text-ink-soft hover:text-ink inline-flex items-center gap-1.5 w-fit"
+                className="text-sm text-ink-soft hover:text-ink inline-flex items-center gap-1.5 w-fit"
               >
                 <PhoneIcon size={12} /> {client.vat_contact_phone}
               </a>
             )}
             {client.address && (
-              <div className="text-[12px] text-ink-soft inline-flex items-start gap-1.5">
+              <div className="text-sm text-ink-soft inline-flex items-start gap-1.5">
                 <MapPinIcon size={12} className="mt-0.5 shrink-0" /> {client.address}
               </div>
             )}
@@ -496,7 +496,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
                 href={client.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[12px] text-brand-600 hover:underline inline-flex items-center gap-1.5 w-fit"
+                className="text-sm text-brand-600 hover:underline inline-flex items-center gap-1.5 w-fit"
               >
                 <GlobeIcon size={12} /> {client.website}
               </a>
@@ -504,7 +504,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
           </div>
         </div>
       ) : (
-        <div className="text-[12px] text-ink-muted italic">
+        <div className="text-sm text-ink-muted italic">
           No primary contact set.{' '}
           <button
             onClick={() => setEditing(true)}
@@ -525,7 +525,7 @@ function KindBadge({ kind }: { kind: Client['kind'] }) {
     other:      { label: 'Other',      colour: 'bg-surface-alt text-ink-soft border-border' },
   }[kind];
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border ${config.colour}`}>
+    <span className={`text-2xs font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border ${config.colour}`}>
       {config.label}
     </span>
   );
@@ -539,7 +539,7 @@ function VatStatusChip({ status }: { status: string }) {
   };
   const c = config[status] ?? { label: status, colour: 'bg-surface-alt text-ink-soft border-border' };
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border shrink-0 ${c.colour}`}>
+    <span className={`text-2xs font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border shrink-0 ${c.colour}`}>
       {c.label}
     </span>
   );
@@ -558,10 +558,10 @@ function DeclAction({
       className="block py-2 -mx-1 px-1 rounded hover:bg-surface-alt/40 transition-colors"
     >
       <div className="flex items-baseline gap-2">
-        <span className={`text-[18px] font-bold tabular-nums ${colours}`}>{count}</span>
-        <span className="text-[12px] text-ink-soft">{verb}</span>
+        <span className={`text-lg font-bold tabular-nums ${colours}`}>{count}</span>
+        <span className="text-sm text-ink-soft">{verb}</span>
       </div>
-      <div className="text-[11px] text-brand-600 font-medium mt-0.5">{cta} →</div>
+      <div className="text-xs text-brand-600 font-medium mt-0.5">{cta} →</div>
     </Link>
   );
 }
@@ -571,7 +571,7 @@ function Field({
 }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+      <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
         {label}
       </span>
       {children}

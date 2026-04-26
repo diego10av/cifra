@@ -5,7 +5,7 @@
 // category page (CIT, NWT, VAT × 3, Subscription, WHT, BCL, Other).
 //
 // Layout rules (chosen to match Diego's Excel density):
-//   - text-[12px] base, py-1.5 px-2 cells, border dividers
+//   - text-sm base, py-1.5 px-2 cells, border dividers
 //   - Sticky header row + sticky first column
 //   - Rows grouped by client_group_name, collapsible per-group
 //   - Cell renderers pluggable via `renderCell` prop
@@ -210,7 +210,7 @@ export function TaxTypeMatrix({
   if (entities.length === 0) {
     return (
       <div className="rounded-md border border-border bg-surface px-4 py-8 text-center">
-        <div className="text-[12.5px] text-ink-muted italic">{emptyMessage}</div>
+        <div className="text-sm text-ink-muted italic">{emptyMessage}</div>
       </div>
     );
   }
@@ -264,7 +264,7 @@ export function TaxTypeMatrix({
       className="rounded-md border border-border bg-surface overflow-auto relative"
       style={{ maxHeight: 'calc(100vh - 220px)' }}
     >
-      <table className="w-full text-[12px] border-collapse">
+      <table className="w-full text-sm border-collapse">
         <thead className="bg-surface-alt sticky top-0 z-10">
           <tr className="text-left text-ink-muted">
             {familyCol && (
@@ -358,7 +358,7 @@ function GroupBlock({
         <tr>
           <td
             colSpan={totalCols}
-            className="sticky left-0 bg-surface-alt/70 border-b border-border px-2.5 py-1 font-semibold text-[11.5px] text-ink"
+            className="sticky left-0 bg-surface-alt/70 border-b border-border px-2.5 py-1 font-semibold text-xs text-ink"
           >
             {/* Stint 40.P — group header has two affordances: chevron
                 toggles collapse, name links to family overview. */}
@@ -453,12 +453,12 @@ function RowRender({
             ? familyCol.render(entity)
             : (entity.group_name
                 ? <span className={[
-                    'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium truncate max-w-[150px]',
+                    'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium truncate max-w-[150px]',
                     familyChipClasses(entity.group_name),
                   ].join(' ')} title={entity.group_name}>
                     {entity.group_name}
                   </span>
-                : <span className="text-ink-faint italic text-[11px]">—</span>)
+                : <span className="text-ink-faint italic text-xs">—</span>)
           }
         </td>
       )}
@@ -581,7 +581,7 @@ function CellRender({
           onSave={(next) => onStatusChange({ entity, column, cell, nextStatus: next })}
         />
         {!cell && !disabled && (
-          <span className="ml-0.5 text-[10px] text-ink-faint" aria-hidden>·new</span>
+          <span className="ml-0.5 text-2xs text-ink-faint" aria-hidden>·new</span>
         )}
       </td>
     );

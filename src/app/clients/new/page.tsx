@@ -232,11 +232,11 @@ export default function NewClientWizardPage() {
     <div className="max-w-[640px]">
       {/* Header */}
       <div className="mb-5">
-        <div className="text-[11px] text-ink-faint mb-1">
+        <div className="text-xs text-ink-faint mb-1">
           <Link href="/clients" className="hover:underline">Clients</Link> ›
         </div>
-        <h1 className="text-[22px] font-semibold tracking-tight">Create client</h1>
-        <p className="text-[12.5px] text-ink-muted mt-1 max-w-[540px] leading-relaxed">
+        <h1 className="text-xl font-semibold tracking-tight">Create client</h1>
+        <p className="text-sm text-ink-muted mt-1 max-w-[540px] leading-relaxed">
           A client is the beneficial owner you prepare filings for. Step&nbsp;1 captures the
           relationship + the primary point of contact. Step&nbsp;2 (optional) creates the
           first Luxembourg entity under this client — you can always add more later.
@@ -251,7 +251,7 @@ export default function NewClientWizardPage() {
       </div>
 
       {error && (
-        <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+        <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
           <AlertTriangleIcon size={13} className="mt-0.5 shrink-0" />
           {error}
         </div>
@@ -263,9 +263,9 @@ export default function NewClientWizardPage() {
           <div className="bg-surface border border-border rounded-lg p-5">
             <div className="flex items-center gap-2 mb-1">
               <Building2Icon size={15} className="text-brand-500" />
-              <h3 className="text-[13.5px] font-semibold text-ink">Identity</h3>
+              <h3 className="text-sm font-semibold text-ink">Identity</h3>
             </div>
-            <p className="text-[11.5px] text-ink-muted mb-4 leading-relaxed">
+            <p className="text-xs text-ink-muted mb-4 leading-relaxed">
               Legal name as it appears on AED correspondence + the relationship
               to your firm.
             </p>
@@ -274,7 +274,7 @@ export default function NewClientWizardPage() {
                 value={client.name}
                 onChange={(e) => setClient({ ...client, name: e.target.value })}
                 placeholder="e.g. Luxor Capital Group, Meridien Partners SARL"
-                className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 autoFocus
               />
             </Field>
@@ -297,7 +297,7 @@ export default function NewClientWizardPage() {
                     onChange={(e) => setEngagedViaOpen(e.target.checked)}
                     className="mt-1 accent-brand-500"
                   />
-                  <span className="text-[12.5px] text-ink-soft leading-relaxed">
+                  <span className="text-sm text-ink-soft leading-relaxed">
                     <strong className="text-ink">Engaged through an intermediary (optional)</strong>
                     <br />
                     <span className="text-ink-muted">
@@ -316,7 +316,7 @@ export default function NewClientWizardPage() {
                         value={client.engaged_via_name}
                         onChange={(e) => setClient({ ...client, engaged_via_name: e.target.value })}
                         placeholder="Name of the intermediary company"
-                        className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                       />
                     </Field>
                     <div className="grid grid-cols-2 gap-3">
@@ -324,14 +324,14 @@ export default function NewClientWizardPage() {
                         <input
                           value={client.engaged_via_contact_name}
                           onChange={(e) => setClient({ ...client, engaged_via_contact_name: e.target.value })}
-                          className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                          className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                         />
                       </Field>
                       <Field label="Role / title" hint="e.g. Accounting Manager">
                         <input
                           value={client.engaged_via_contact_role}
                           onChange={(e) => setClient({ ...client, engaged_via_contact_role: e.target.value })}
-                          className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                          className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                         />
                       </Field>
                     </div>
@@ -340,10 +340,10 @@ export default function NewClientWizardPage() {
                         type="email"
                         value={client.engaged_via_contact_email}
                         onChange={(e) => setClient({ ...client, engaged_via_contact_email: e.target.value })}
-                        className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                       />
                     </Field>
-                    <div className="text-[11px] text-ink-muted italic">
+                    <div className="text-xs text-ink-muted italic">
                       When filled, the Primary VAT contact below defaults to this
                       person on subsequent entities under this client.
                     </div>
@@ -356,9 +356,9 @@ export default function NewClientWizardPage() {
           <div className="bg-surface border border-border rounded-lg p-5">
             <div className="flex items-center gap-2 mb-1">
               <UserIcon size={15} className="text-brand-500" />
-              <h3 className="text-[13.5px] font-semibold text-ink">Main point of contact</h3>
+              <h3 className="text-sm font-semibold text-ink">Main point of contact</h3>
             </div>
-            <p className="text-[11.5px] text-ink-muted mb-4 leading-relaxed">
+            <p className="text-xs text-ink-muted mb-4 leading-relaxed">
               Who you write to for anything VAT-related on this client. Defaults
               to the approver on every new entity you create under this client
               (you can add per-entity overrides later).
@@ -371,14 +371,14 @@ export default function NewClientWizardPage() {
                 <input
                   value={client.vat_contact_name}
                   onChange={(e) => setClient({ ...client, vat_contact_name: e.target.value })}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 />
               </Field>
               <Field label="Role / title" hint="e.g. CFO, Head of Finance">
                 <input
                   value={client.vat_contact_role}
                   onChange={(e) => setClient({ ...client, vat_contact_role: e.target.value })}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 />
               </Field>
               <Field label="Email">
@@ -386,7 +386,7 @@ export default function NewClientWizardPage() {
                   type="email"
                   value={client.vat_contact_email}
                   onChange={(e) => setClient({ ...client, vat_contact_email: e.target.value })}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 />
               </Field>
               <Field label="Phone">
@@ -394,7 +394,7 @@ export default function NewClientWizardPage() {
                   value={client.vat_contact_phone}
                   onChange={(e) => setClient({ ...client, vat_contact_phone: e.target.value })}
                   placeholder="+352 …"
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 />
               </Field>
               <Field label="Country" hint="Where they sit · helps with timezones when scheduling calls (optional)">
@@ -402,7 +402,7 @@ export default function NewClientWizardPage() {
                   value={client.vat_contact_country}
                   onChange={(e) => setClient({ ...client, vat_contact_country: e.target.value.toUpperCase().slice(0, 2) })}
                   maxLength={2}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm font-mono"
                 />
               </Field>
             </div>
@@ -415,7 +415,7 @@ export default function NewClientWizardPage() {
           <div className="flex items-center justify-between pt-2">
             <Link
               href="/clients"
-              className="h-9 px-4 rounded border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center"
+              className="h-9 px-4 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center"
             >
               Cancel
             </Link>
@@ -423,7 +423,7 @@ export default function NewClientWizardPage() {
               <button
                 onClick={finishClientOnly}
                 disabled={!step1Valid || savingClient}
-                className="h-9 px-4 rounded border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="h-9 px-4 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt disabled:opacity-50 inline-flex items-center gap-1.5"
               >
                 {savingClient ? <Loader2Icon size={13} className="animate-spin" /> : <CheckIcon size={13} />}
                 Save, no entities yet
@@ -431,7 +431,7 @@ export default function NewClientWizardPage() {
               <button
                 onClick={goToStep2}
                 disabled={!step1Valid || savingClient}
-                className="h-9 px-4 rounded bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
               >
                 {savingClient ? <Loader2Icon size={13} className="animate-spin" /> : null}
                 Continue to add first entity <ChevronRightIcon size={13} />
@@ -443,14 +443,14 @@ export default function NewClientWizardPage() {
 
       {step === 2 && (
         <div className="space-y-5">
-          <div className="bg-brand-50 border border-brand-200 rounded-lg p-3 text-[12px] text-brand-800">
+          <div className="bg-brand-50 border border-brand-200 rounded-lg p-3 text-sm text-brand-800">
             ✓ Client <strong>{client.name}</strong> created. Now add its first entity.
             You can add more from the client profile later.
           </div>
 
           <div className="bg-surface border border-border rounded-lg p-5">
             <div className="flex items-start justify-between gap-3 mb-4 flex-wrap">
-              <h3 className="text-[13px] font-semibold text-ink flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-ink flex items-center gap-2">
                 <Building2Icon size={15} className="text-brand-500" /> First entity
               </h3>
               <VatLetterUpload
@@ -477,7 +477,7 @@ export default function NewClientWizardPage() {
                 value={entity.name}
                 onChange={(e) => setEntity({ ...entity, name: e.target.value })}
                 placeholder="e.g. Luxor LuxCo 1 SARL"
-                className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 autoFocus
               />
             </Field>
@@ -488,7 +488,7 @@ export default function NewClientWizardPage() {
                   value={entity.vat_number}
                   onChange={(e) => setEntity({ ...entity, vat_number: e.target.value })}
                   placeholder="LU12345678"
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm font-mono"
                 />
               </Field>
               <Field label="Matricule" hint="AED identifier, 11 digits">
@@ -496,21 +496,21 @@ export default function NewClientWizardPage() {
                   value={entity.matricule}
                   onChange={(e) => setEntity({ ...entity, matricule: e.target.value })}
                   placeholder="20232456346"
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm font-mono"
                 />
               </Field>
               <Field label="Legal form" hint="SARL, SCSp, SA …">
                 <input
                   value={entity.legal_form}
                   onChange={(e) => setEntity({ ...entity, legal_form: e.target.value })}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 />
               </Field>
               <Field label="Type" hint="Drives classification rules">
                 <select
                   value={entity.entity_type}
                   onChange={(e) => setEntity({ ...entity, entity_type: e.target.value })}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm bg-white"
                 >
                   <option value="">—</option>
                   <option value="fund">Fund (UCITS / SIF / RAIF / SICAR)</option>
@@ -533,7 +533,7 @@ export default function NewClientWizardPage() {
                       frequency: nextRegime === 'simplified' ? 'annual' : entity.frequency,
                     });
                   }}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 >
                   <option value="simplified">Simplified</option>
                   <option value="ordinary">Ordinary</option>
@@ -547,7 +547,7 @@ export default function NewClientWizardPage() {
                   value={entity.frequency}
                   onChange={(e) => setEntity({ ...entity, frequency: e.target.value as EntityForm['frequency'] })}
                   disabled={entity.regime === 'simplified'}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-surface-alt disabled:cursor-not-allowed"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm disabled:bg-surface-alt disabled:cursor-not-allowed"
                 >
                   <option value="annual">Annual</option>
                   {entity.regime !== 'simplified' && (
@@ -584,7 +584,7 @@ export default function NewClientWizardPage() {
             </Field>
           </div>
 
-          <p className="text-[11.5px] text-ink-muted">
+          <p className="text-xs text-ink-muted">
             You can add approvers, bank details, FX + outgoing flags, and
             more optional fields from the entity detail page.
           </p>
@@ -594,7 +594,7 @@ export default function NewClientWizardPage() {
             <button
               onClick={() => setStep(1)}
               disabled={savingEntity}
-              className="h-9 px-4 rounded border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
+              className="h-9 px-4 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
             >
               <ChevronLeftIcon size={13} /> Back
             </button>
@@ -602,14 +602,14 @@ export default function NewClientWizardPage() {
               <button
                 onClick={() => createdClientId && router.push(`/clients/${createdClientId}`)}
                 disabled={savingEntity}
-                className="h-9 px-4 rounded border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt"
+                className="h-9 px-4 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt"
               >
                 Skip — finish later
               </button>
               <button
                 onClick={saveEntityAndFinish}
                 disabled={savingEntity || !entity.name.trim()}
-                className="h-9 px-4 rounded bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
               >
                 {savingEntity ? <Loader2Icon size={13} className="animate-spin" /> : <CheckIcon size={13} />}
                 Create entity
@@ -634,7 +634,7 @@ function OptionalClientDetails({
         onClick={() => setOpen((o) => !o)}
         className="w-full px-5 py-3 flex items-center justify-between text-left hover:bg-surface-alt/40 transition-colors"
       >
-        <span className="text-[13px] font-medium text-ink">Optional details (address, website, notes)</span>
+        <span className="text-sm font-medium text-ink">Optional details (address, website, notes)</span>
         <ChevronRightIcon size={14} className={`text-ink-muted transition-transform ${open ? 'rotate-90' : ''}`} />
       </button>
       {open && (
@@ -643,7 +643,7 @@ function OptionalClientDetails({
             <input
               value={client.address}
               onChange={(e) => setClient({ ...client, address: e.target.value })}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
           <Field label="Website">
@@ -651,7 +651,7 @@ function OptionalClientDetails({
               value={client.website}
               onChange={(e) => setClient({ ...client, website: e.target.value })}
               placeholder="https://"
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
           <Field label="Notes">
@@ -660,7 +660,7 @@ function OptionalClientDetails({
               onChange={(e) => setClient({ ...client, notes: e.target.value })}
               rows={3}
               placeholder="Internal notes — not shared with the client"
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
         </div>
@@ -676,7 +676,7 @@ function StepDot({
     <div className="flex items-center gap-2 shrink-0">
       <div
         className={[
-          'w-6 h-6 rounded-full text-[11px] font-semibold inline-flex items-center justify-center border',
+          'w-6 h-6 rounded-full text-xs font-semibold inline-flex items-center justify-center border',
           done ? 'bg-emerald-500 text-white border-emerald-500' :
           active ? 'bg-brand-500 text-white border-brand-500' :
                    'bg-surface text-ink-muted border-border',
@@ -684,7 +684,7 @@ function StepDot({
       >
         {done ? '✓' : n}
       </div>
-      <span className={`text-[12px] font-medium ${active ? 'text-ink' : 'text-ink-muted'}`}>
+      <span className={`text-sm font-medium ${active ? 'text-ink' : 'text-ink-muted'}`}>
         {label}
       </span>
     </div>
@@ -708,8 +708,8 @@ function VatStatusOption({
           : 'bg-surface text-ink-soft border-border hover:bg-surface-alt',
       ].join(' ')}
     >
-      <div className="text-[12px] font-semibold">{label}</div>
-      <div className="text-[10px] text-ink-muted mt-0.5">{hint}</div>
+      <div className="text-sm font-semibold">{label}</div>
+      <div className="text-2xs text-ink-muted mt-0.5">{hint}</div>
     </button>
   );
 }
@@ -719,7 +719,7 @@ function Field({
 }: { label: string; hint?: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block mb-3 last:mb-0">
-      <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+      <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
         {label} {required && <span className="text-danger-600">*</span>}
         {hint && <span className="normal-case text-ink-faint font-normal ml-1">— {hint}</span>}
       </span>

@@ -128,23 +128,23 @@ export function MatrixToolbar({
 
   return (
     <div className="flex items-center gap-3 flex-wrap">
-      <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+      <label className="inline-flex items-center gap-1.5 text-sm">
         <span className="text-ink-muted">Period year:</span>
         <select
           value={year}
           onChange={(e) => onYearChange(Number(e.target.value))}
-          className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
         >
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
       </label>
       {onStatusFilterChange && (
-        <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+        <label className="inline-flex items-center gap-1.5 text-sm">
           <span className="text-ink-muted">Status:</span>
           <select
             value={statusFilter ?? 'all'}
             onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
+            className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
           >
             <option value="all">All</option>
             {FILING_STATUSES.map(s => (
@@ -155,7 +155,7 @@ export function MatrixToolbar({
         </label>
       )}
       {onPartnerFilterChange && (
-        <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+        <label className="inline-flex items-center gap-1.5 text-sm">
           <span className="text-ink-muted">Partner:</span>
           <SearchableSelect
             options={partnerOptions}
@@ -166,7 +166,7 @@ export function MatrixToolbar({
         </label>
       )}
       {onAssociateFilterChange && (
-        <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+        <label className="inline-flex items-center gap-1.5 text-sm">
           <span className="text-ink-muted">Associate:</span>
           <SearchableSelect
             options={associateOptions}
@@ -186,21 +186,21 @@ export function MatrixToolbar({
             onPartnerFilterChange?.('all');
             onAssociateFilterChange?.('all');
           }}
-          className="text-[11px] text-ink-muted hover:text-ink underline"
+          className="text-xs text-ink-muted hover:text-ink underline"
           title="Clear all filters"
         >
           clear filters
         </button>
       ) : null}
       {extraChildren}
-      <div className="text-[11.5px] text-ink-muted">
+      <div className="text-xs text-ink-muted">
         {count} {countLabel}
       </div>
       <div className="ml-auto">
         <button
           onClick={downloadExcel}
           disabled={busy || count === 0}
-          className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt disabled:opacity-50"
+          className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border hover:bg-surface-alt disabled:opacity-50"
           title="Download this view as Excel"
         >
           <DownloadIcon size={12} />

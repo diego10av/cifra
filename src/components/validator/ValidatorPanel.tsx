@@ -167,8 +167,8 @@ export function ValidatorPanel({
           <SparklesIcon size={14} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-[13px] font-semibold text-ink tracking-tight">Second-opinion review</h3>
-          <p className="text-[11px] text-ink-muted mt-0.5">
+          <h3 className="text-sm font-semibold text-ink tracking-tight">Second-opinion review</h3>
+          <p className="text-xs text-ink-muted mt-0.5">
             Opus 4.5 audits the classifier output against LU VAT precedent.
           </p>
         </div>
@@ -207,7 +207,7 @@ export function ValidatorPanel({
           </Button>
           {lastRunMeta?.cached && (
             <span
-              className="inline-flex items-center gap-1 h-6 px-2 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 text-[11px] font-medium"
+              className="inline-flex items-center gap-1 h-6 px-2 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 text-xs font-medium"
               title={
                 lastRunMeta.cachedAgeMin != null
                   ? `Cached result served — last run ${lastRunMeta.cachedAgeMin} min ago. No Opus call was made. Edit any line to invalidate the cache.`
@@ -230,12 +230,12 @@ export function ValidatorPanel({
         </div>
 
         {isLocked && (
-          <p className="mt-2 text-[11px] text-warning-700 bg-warning-50 border border-[#F6DC8C] rounded-md px-2 py-1.5">
+          <p className="mt-2 text-xs text-warning-700 bg-warning-50 border border-[#F6DC8C] rounded-md px-2 py-1.5">
             Declaration is locked. Reopen (approved → review) to re-run the validator.
           </p>
         )}
         {error && (
-          <p className="mt-2 text-[11px] text-danger-700 bg-danger-50 border border-[#F4B9B7] rounded-md px-2 py-1.5">
+          <p className="mt-2 text-xs text-danger-700 bg-danger-50 border border-[#F4B9B7] rounded-md px-2 py-1.5">
             {error}
           </p>
         )}
@@ -244,11 +244,11 @@ export function ValidatorPanel({
       {/* Findings list */}
       <div className="flex-1 overflow-y-auto">
         {loading && !run ? (
-          <div className="p-6 text-center text-[12px] text-ink-muted">Loading…</div>
+          <div className="p-6 text-center text-sm text-ink-muted">Loading…</div>
         ) : !hasFindings ? (
           <EmptyFindings />
         ) : visible.length === 0 ? (
-          <div className="p-6 text-center text-[12px] text-ink-muted">
+          <div className="p-6 text-center text-sm text-ink-muted">
             All findings resolved. Switch to &quot;All&quot; to see the history.
           </div>
         ) : (
@@ -296,7 +296,7 @@ function FindingItem({
             {!isOpen && <StatusBadge status={finding.status} />}
           </div>
           {finding.current_treatment && (
-            <div className="mt-1.5 text-[11.5px] text-ink-soft tabular-nums">
+            <div className="mt-1.5 text-xs text-ink-soft tabular-nums">
               <span className="text-ink-muted">Current:</span> {finding.current_treatment}
               {finding.suggested_treatment && (
                 <>
@@ -306,7 +306,7 @@ function FindingItem({
               )}
             </div>
           )}
-          <p className="mt-1.5 text-[12px] text-ink leading-relaxed line-clamp-2">
+          <p className="mt-1.5 text-sm text-ink leading-relaxed line-clamp-2">
             {finding.reasoning}
           </p>
         </div>
@@ -319,12 +319,12 @@ function FindingItem({
       {expanded && (
         <div className="px-4 pb-4 pl-[60px] space-y-3 animate-fadeIn">
           {/* Full reasoning */}
-          <p className="text-[12.5px] text-ink-soft leading-relaxed">{finding.reasoning}</p>
+          <p className="text-sm text-ink-soft leading-relaxed">{finding.reasoning}</p>
 
           {/* Legal refs */}
           {finding.legal_refs.length > 0 && (
             <div>
-              <div className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted mb-1.5">
+              <div className="text-2xs uppercase tracking-[0.06em] font-semibold text-ink-muted mb-1.5">
                 Legal basis
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -335,7 +335,7 @@ function FindingItem({
 
           {/* Line / invoice reference */}
           {(finding.line_id || finding.invoice_id) && (
-            <div className="text-[11px] text-ink-muted">
+            <div className="text-xs text-ink-muted">
               {finding.line_id && <span>Line {finding.line_id.slice(-8)}</span>}
               {finding.line_id && finding.invoice_id && <span> · </span>}
               {finding.invoice_id && <span>Invoice {finding.invoice_id.slice(-8)}</span>}
@@ -371,11 +371,11 @@ function FindingItem({
               </Button>
             </div>
           ) : isOpen && isLocked ? (
-            <div className="text-[11px] text-ink-muted pt-2 border-t border-divider">
+            <div className="text-xs text-ink-muted pt-2 border-t border-divider">
               Resolve actions disabled on locked declarations.
             </div>
           ) : (
-            <div className="text-[11px] text-ink-muted pt-2 border-t border-divider">
+            <div className="text-xs text-ink-muted pt-2 border-t border-divider">
               <span className="font-medium text-ink-soft capitalize">{finding.status}</span>
               {finding.resolved_at && (
                 <> on {new Date(finding.resolved_at).toLocaleDateString('en-GB')}</>
@@ -399,13 +399,13 @@ function EmptyFindings() {
       <div className="w-12 h-12 rounded-full bg-brand-50 border border-brand-100 text-brand-500 inline-flex items-center justify-center mb-3">
         <SparklesIcon size={20} />
       </div>
-      <h4 className="text-[13.5px] font-semibold text-ink">No review yet</h4>
-      <p className="text-[12px] text-ink-muted mt-1.5 max-w-xs leading-relaxed">
+      <h4 className="text-sm font-semibold text-ink">No review yet</h4>
+      <p className="text-sm text-ink-muted mt-1.5 max-w-xs leading-relaxed">
         Run the second-opinion review to audit the classifier&rsquo;s
         decisions. Opus reads every line, checks it against LU VAT
         precedent, and flags issues with full legal citations.
       </p>
-      <p className="text-[11px] text-ink-faint mt-3">
+      <p className="text-xs text-ink-faint mt-3">
         Typical cost: €0.05 – €0.15 per run. Cached until lines change.
       </p>
     </div>
@@ -439,7 +439,7 @@ function FilterChip({
     <button
       onClick={onClick}
       className={[
-        'h-7 px-2.5 rounded-md text-[11.5px] font-medium transition-colors',
+        'h-7 px-2.5 rounded-md text-xs font-medium transition-colors',
         active ? 'bg-brand-500 text-white' : 'bg-surface border border-border text-ink-soft hover:bg-surface-alt',
       ].join(' ')}
     >
@@ -454,8 +454,8 @@ function LegalRefPill({ id }: { id: string }) {
   const title = source ? `${source.citation}${source.subject ? `\n\n${source.subject}` : ''}` : id;
   const url = source?.sources_url;
   const inner = (
-    <span className="inline-flex items-center gap-1 bg-surface-alt hover:bg-brand-50 hover:text-brand-700 text-ink-soft border border-border rounded px-1.5 py-0.5 text-[11px] transition-colors">
-      <span className="font-mono text-[10px] text-ink-muted">{id}</span>
+    <span className="inline-flex items-center gap-1 bg-surface-alt hover:bg-brand-50 hover:text-brand-700 text-ink-soft border border-border rounded px-1.5 py-0.5 text-xs transition-colors">
+      <span className="font-mono text-2xs text-ink-muted">{id}</span>
       <span className="max-w-[200px] truncate">{label}</span>
     </span>
   );

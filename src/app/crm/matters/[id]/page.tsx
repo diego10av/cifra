@@ -98,7 +98,7 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <div>
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/matters" className="hover:underline">← All matters</Link>
       </div>
       <PageHeader
@@ -138,7 +138,7 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
       />
 
       {!m.conflict_check_done && m.status === 'active' && (
-        <div className="mb-4 p-3 bg-danger-50 border border-danger-300 rounded text-[12px] text-danger-800">
+        <div className="mb-4 p-3 bg-danger-50 border border-danger-300 rounded text-sm text-danger-800">
           ⚠ Conflict check NOT marked as done. Run the scan below + tick the box in Edit.
         </div>
       )}
@@ -182,12 +182,12 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
 
       {m.documents_link && (
         <div className="mb-5">
-          <a href={String(m.documents_link)} target="_blank" rel="noopener noreferrer" className="text-[13px] text-brand-700 hover:underline">📁 Documents folder →</a>
+          <a href={String(m.documents_link)} target="_blank" rel="noopener noreferrer" className="text-sm text-brand-700 hover:underline">📁 Documents folder →</a>
         </div>
       )}
 
       {m.notes && (
-        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(m.notes)}</div>
+        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-sm whitespace-pre-wrap">{String(m.notes)}</div>
       )}
 
       <Section title={`Invoices (${data.invoices.length})`}>
@@ -225,8 +225,8 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
-      <div className="text-[14px] font-medium tabular-nums">{children}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
+      <div className="text-base font-medium tabular-nums">{children}</div>
     </div>
   );
 }
@@ -234,17 +234,17 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
+      <h3 className="text-sm uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
       {children}
     </div>
   );
 }
 
 function Table({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
-  if (rows.length === 0) return <div className="text-[12px] text-ink-muted italic px-3 py-2">None</div>;
+  if (rows.length === 0) return <div className="text-sm text-ink-muted italic px-3 py-2">None</div>;
   return (
     <div className="border border-border rounded-md overflow-hidden bg-white">
-      <table className="w-full text-[12px]">
+      <table className="w-full text-sm">
         <thead className="bg-surface-alt text-ink-muted">
           <tr>{headers.map((h, i) => <th key={i} className="text-left px-3 py-1.5 font-medium">{h}</th>)}</tr>
         </thead>

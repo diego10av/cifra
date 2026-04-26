@@ -111,7 +111,7 @@ export function AssessmentInlineEditor({
 
   // Display node
   if (!filingId) {
-    return <span className="text-ink-faint italic text-[11px]">No prior filing</span>;
+    return <span className="text-ink-faint italic text-xs">No prior filing</span>;
   }
 
   // Stint 44.F3 — pragmatic tri-state restored, this time with a real
@@ -125,19 +125,19 @@ export function AssessmentInlineEditor({
   let triStateChip: React.ReactNode;
   if (!assessmentDate) {
     triStateChip = (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-amber-100 text-amber-800">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-amber-100 text-amber-800">
         Not yet
       </span>
     );
   } else if (assessmentOutcome === 'aligned') {
     triStateChip = (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-green-100 text-green-800">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-green-100 text-green-800">
         ✓ Aligned · {assessmentDate}
       </span>
     );
   } else if (assessmentOutcome === 'under_audit') {
     triStateChip = (
-      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-orange-100 text-orange-800">
+      <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-orange-100 text-orange-800">
         ⚠ Under audit · {assessmentDate}
       </span>
     );
@@ -146,7 +146,7 @@ export function AssessmentInlineEditor({
     // Diego to categorise on next click without screaming.
     triStateChip = (
       <span
-        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-emerald-50 text-emerald-700 border border-emerald-200"
+        className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-emerald-50 text-emerald-700 border border-emerald-200"
         title="Received but outcome not categorised — click to mark Aligned or Under audit"
       >
         ✓ Received · {assessmentDate}
@@ -176,29 +176,29 @@ export function AssessmentInlineEditor({
       style={{ zIndex: 20 }}
     >
       <div className="absolute top-0 left-0 mt-0 bg-surface border border-border rounded-md shadow-lg p-2 space-y-1.5 min-w-[220px]">
-        <label className="block text-[10.5px] text-ink-muted">Status</label>
+        <label className="block text-2xs text-ink-muted">Status</label>
         <select
           autoFocus
           value={draftStatus}
           onChange={(e) => setDraftStatus(e.target.value)}
-          className="w-full px-1.5 py-0.5 text-[11.5px] border border-border rounded bg-surface"
+          className="w-full px-1.5 py-0.5 text-xs border border-border rounded bg-surface"
         >
           {FILING_STATUSES.map(s => (
             <option key={s} value={s}>{filingStatusLabel(s)}</option>
           ))}
         </select>
-        <label className="block text-[10.5px] text-ink-muted mt-1">Assessment date</label>
+        <label className="block text-2xs text-ink-muted mt-1">Assessment date</label>
         <input
           type="date"
           value={draftDate}
           onChange={(e) => setDraftDate(e.target.value)}
-          className="w-full px-1.5 py-0.5 text-[11.5px] border border-border rounded bg-surface tabular-nums"
+          className="w-full px-1.5 py-0.5 text-xs border border-border rounded bg-surface tabular-nums"
         />
         {draftDate && (
           <>
-            <label className="block text-[10.5px] text-ink-muted mt-1">Outcome</label>
+            <label className="block text-2xs text-ink-muted mt-1">Outcome</label>
             <div className="flex flex-col gap-0.5">
-              <label className="inline-flex items-center gap-1.5 text-[11.5px] cursor-pointer">
+              <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
                 <input
                   type="radio"
                   name="assessment-outcome"
@@ -207,7 +207,7 @@ export function AssessmentInlineEditor({
                 />
                 <span>✓ Aligned (matches our return)</span>
               </label>
-              <label className="inline-flex items-center gap-1.5 text-[11.5px] cursor-pointer">
+              <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
                 <input
                   type="radio"
                   name="assessment-outcome"
@@ -216,7 +216,7 @@ export function AssessmentInlineEditor({
                 />
                 <span>⚠ Under audit / clarifications</span>
               </label>
-              <label className="inline-flex items-center gap-1.5 text-[11px] cursor-pointer text-ink-muted">
+              <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer text-ink-muted">
                 <input
                   type="radio"
                   name="assessment-outcome"
@@ -233,7 +233,7 @@ export function AssessmentInlineEditor({
             type="button"
             onClick={commit}
             disabled={busy}
-            className="flex-1 px-2 py-0.5 text-[11px] rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+            className="flex-1 px-2 py-0.5 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {busy ? 'Saving…' : 'Save'}
           </button>
@@ -241,12 +241,12 @@ export function AssessmentInlineEditor({
             type="button"
             onClick={() => setOpen(false)}
             disabled={busy}
-            className="px-2 py-0.5 text-[11px] rounded border border-border hover:bg-surface-alt"
+            className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
           >
             Cancel
           </button>
         </div>
-        {error && <div className="text-[10px] text-danger-700">{error}</div>}
+        {error && <div className="text-2xs text-danger-700">{error}</div>}
       </div>
       {/* Display stays visible under the popover */}
       {displayNode}

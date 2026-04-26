@@ -202,7 +202,7 @@ function ClientsContent() {
               value={list.q}
               onChange={(e) => list.setQ(e.target.value)}
               placeholder="Search clients"
-              className="w-full h-8 pl-8 pr-3 text-sm border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full h-8 pl-8 pr-3 text-sm border border-border-strong rounded-md bg-surface"
             />
           </div>
           <KindChip label="All"       active={list.filter === 'all'}        onClick={() => list.setFilter('all')} />

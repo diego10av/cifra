@@ -178,7 +178,7 @@ export function EntityEditCard({
              (Blocking new declarations is the next stint; this is
              the visible signal.) */}
         {isDeregistered && (
-          <div className="mb-2 bg-danger-50 border border-danger-300 text-[12px] text-danger-800 rounded-md px-3 py-2">
+          <div className="mb-2 bg-danger-50 border border-danger-300 text-sm text-danger-800 rounded-md px-3 py-2">
             <strong className="font-semibold">Entity de-registered</strong>
             {' · Date fin d\'activité: '}
             <span className="font-mono">{entity.deregistration_date}</span>
@@ -187,26 +187,26 @@ export function EntityEditCard({
         )}
         <div className="bg-surface border border-border rounded-lg px-4 py-3 flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 flex-wrap text-[11.5px]">
-              <span className="uppercase tracking-wide font-semibold text-ink-muted text-[10px]">
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              <span className="uppercase tracking-wide font-semibold text-ink-muted text-2xs">
                 Entity profile
               </span>
               {entity.tax_office && (
                 <span
-                  className="inline-flex items-center text-[10px] uppercase tracking-wide font-medium bg-slate-100 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5"
+                  className="inline-flex items-center text-2xs uppercase tracking-wide font-medium bg-slate-100 text-slate-700 border border-slate-200 rounded px-1.5 py-0.5"
                   title="AED bureau d'imposition (tax office) captured from the VAT registration letter."
                 >
                   {entity.tax_office}
                 </span>
               )}
               {draftMeta.hasDraft && (
-                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide font-semibold bg-amber-50 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5">
+                <span className="inline-flex items-center gap-1 text-2xs uppercase tracking-wide font-semibold bg-amber-50 text-amber-800 border border-amber-200 rounded px-1.5 py-0.5">
                   <ClockIcon size={9} />
                   Unsaved draft
                 </span>
               )}
             </div>
-            <dl className="mt-2 grid grid-cols-3 md:grid-cols-6 gap-x-4 gap-y-2 text-[11.5px]">
+            <dl className="mt-2 grid grid-cols-3 md:grid-cols-6 gap-x-4 gap-y-2 text-xs">
               <MetaField label="Legal form" value={entity.legal_form} />
               <MetaField label="Entity type" value={formatEntityType(entity.entity_type)} />
               <MetaField label="VAT number" value={entity.vat_number} mono />
@@ -215,15 +215,15 @@ export function EntityEditCard({
               <MetaField label="Regime" value={`${entity.regime} · ${entity.frequency}`} />
             </dl>
             {entity.address && (
-              <div className="mt-2 text-[11px] text-ink-muted truncate">
+              <div className="mt-2 text-xs text-ink-muted truncate">
                 {entity.address}
               </div>
             )}
             {hasActivity && (
-              <div className="mt-1.5 text-[11px] text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1">
+              <div className="mt-1.5 text-xs text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1">
                 {entity.activity_code && (
                   <span>
-                    <span className="uppercase tracking-wide text-[9.5px] font-semibold text-ink-faint mr-1">Activity code</span>
+                    <span className="uppercase tracking-wide text-2xs font-semibold text-ink-faint mr-1">Activity code</span>
                     <span className="font-mono">{entity.activity_code}</span>
                   </span>
                 )}
@@ -233,8 +233,8 @@ export function EntityEditCard({
               </div>
             )}
             {hasBank && (
-              <div className="mt-1.5 text-[11px] text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1">
-                <span className="uppercase tracking-wide text-[9.5px] font-semibold text-ink-faint">Bank</span>
+              <div className="mt-1.5 text-xs text-ink-muted flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span className="uppercase tracking-wide text-2xs font-semibold text-ink-faint">Bank</span>
                 {entity.bank_name && <span>{entity.bank_name}</span>}
                 {entity.bank_iban && (
                   <span className="font-mono" title="IBAN from the VAT registration letter.">
@@ -242,7 +242,7 @@ export function EntityEditCard({
                   </span>
                 )}
                 {entity.bank_bic && (
-                  <span className="font-mono text-[10.5px]">
+                  <span className="font-mono text-2xs">
                     {entity.bank_bic}
                   </span>
                 )}
@@ -256,7 +256,7 @@ export function EntityEditCard({
           </div>
           <button
             onClick={() => setEditing(true)}
-            className="shrink-0 h-8 px-3 rounded-md border border-border-strong text-[12px] font-medium text-ink-soft hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1.5"
+            className="shrink-0 h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1.5"
           >
             <PencilIcon size={12} />
             Edit
@@ -269,7 +269,7 @@ export function EntityEditCard({
   return (
     <div className="bg-amber-50/40 border border-amber-300 rounded-lg mb-4 px-4 py-3">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[13px] font-semibold text-ink">Edit entity profile</h3>
+        <h3 className="text-sm font-semibold text-ink">Edit entity profile</h3>
         <button
           onClick={() => { setEditing(false); setErr(null); }}
           className="p-1 text-ink-muted hover:text-ink"
@@ -280,7 +280,7 @@ export function EntityEditCard({
       </div>
 
       {err && (
-        <div className="mb-3 px-3 py-2 bg-danger-50 border border-danger-200 text-[11.5px] text-danger-800 rounded">
+        <div className="mb-3 px-3 py-2 bg-danger-50 border border-danger-200 text-xs text-danger-800 rounded">
           {err}
         </div>
       )}
@@ -290,7 +290,7 @@ export function EntityEditCard({
           <input
             value={draft.name}
             onChange={e => setDraft({ ...draft, name: e.target.value })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             autoFocus
           />
         </Field>
@@ -298,7 +298,7 @@ export function EntityEditCard({
           <select
             value={draft.legal_form ?? ''}
             onChange={e => setDraft({ ...draft, legal_form: e.target.value || null })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] bg-white"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm bg-white"
           >
             <option value="">—</option>
             {LEGAL_FORMS.map(f => <option key={f} value={f}>{f}</option>)}
@@ -308,13 +308,13 @@ export function EntityEditCard({
           <select
             value={draft.entity_type ?? ''}
             onChange={e => setDraft({ ...draft, entity_type: e.target.value || null })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] bg-white"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm bg-white"
           >
             <option value="">—</option>
             {ENTITY_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
           </select>
           {draft.entity_type && ENTITY_TYPE_NOTES[draft.entity_type] && (
-            <p className="mt-1 text-[10.5px] text-ink-muted leading-snug">
+            <p className="mt-1 text-2xs text-ink-muted leading-snug">
               {ENTITY_TYPE_NOTES[draft.entity_type]}
             </p>
           )}
@@ -325,7 +325,7 @@ export function EntityEditCard({
             value={draft.vat_number ?? ''}
             onChange={e => setDraft({ ...draft, vat_number: e.target.value.toUpperCase() || null })}
             placeholder="LU12345678"
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm font-mono"
           />
         </Field>
         <Field label="Matricule">
@@ -333,7 +333,7 @@ export function EntityEditCard({
             value={draft.matricule ?? ''}
             onChange={e => setDraft({ ...draft, matricule: e.target.value || null })}
             placeholder="1999220..."
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm font-mono"
           />
         </Field>
         <Field label="RCS number">
@@ -341,7 +341,7 @@ export function EntityEditCard({
             value={draft.rcs_number ?? ''}
             onChange={e => setDraft({ ...draft, rcs_number: e.target.value || null })}
             placeholder="B123456"
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm font-mono"
           />
         </Field>
 
@@ -357,7 +357,7 @@ export function EntityEditCard({
               const nextFreq = nextRegime === 'simplified' ? 'annual' : draft.frequency;
               setDraft({ ...draft, regime: nextRegime, frequency: nextFreq });
             }}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] bg-white"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm bg-white"
           >
             {REGIMES.map(r => <option key={r} value={r}>{r}</option>)}
           </select>
@@ -370,7 +370,7 @@ export function EntityEditCard({
             value={draft.frequency}
             onChange={e => setDraft({ ...draft, frequency: e.target.value })}
             disabled={draft.regime === 'simplified'}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] bg-white disabled:bg-surface-alt disabled:cursor-not-allowed"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm bg-white disabled:bg-surface-alt disabled:cursor-not-allowed"
           >
             {frequenciesAllowedFor(draft.regime).map(f => <option key={f} value={f}>{f}</option>)}
           </select>
@@ -382,14 +382,14 @@ export function EntityEditCard({
             <input
               value={draft.address ?? ''}
               onChange={e => setDraft({ ...draft, address: e.target.value || null })}
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px]"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             />
           </Field>
         </div>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-4">
-        <label className="inline-flex items-center gap-2 text-[12px] text-ink-soft cursor-pointer">
+        <label className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
           <input
             type="checkbox"
             checked={draft.has_fx}
@@ -398,7 +398,7 @@ export function EntityEditCard({
           />
           Non-EUR invoices (FX)
         </label>
-        <label className="inline-flex items-center gap-2 text-[12px] text-ink-soft cursor-pointer">
+        <label className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
           <input
             type="checkbox"
             checked={draft.has_outgoing}
@@ -407,7 +407,7 @@ export function EntityEditCard({
           />
           Issues outgoing invoices
         </label>
-        <label className="inline-flex items-center gap-2 text-[12px] text-ink-soft cursor-pointer">
+        <label className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer">
           <input
             type="checkbox"
             checked={draft.has_recharges}
@@ -417,7 +417,7 @@ export function EntityEditCard({
           Internal recharges
         </label>
         <label
-          className="inline-flex items-center gap-2 text-[12px] text-ink-soft cursor-pointer"
+          className="inline-flex items-center gap-2 text-sm text-ink-soft cursor-pointer"
           title="Two signatures required — associate prepares, partner approves. Recommended for large clients or complex regimes. The submitter cannot self-approve (two-person rule)."
         >
           <input
@@ -431,7 +431,7 @@ export function EntityEditCard({
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-2">
-        <div className="text-[10.5px] text-ink-muted inline-flex items-center gap-1.5">
+        <div className="text-2xs text-ink-muted inline-flex items-center gap-1.5">
           {draftMeta.lastSavedAt && (
             <>
               <ClockIcon size={10} />
@@ -443,7 +443,7 @@ export function EntityEditCard({
           {draftMeta.hasDraft && (
             <button
               onClick={() => { draftMeta.clear(); setDraft(entity); }}
-              className="h-8 px-3 rounded border border-border text-[12px] text-ink-muted hover:text-ink"
+              className="h-8 px-3 rounded border border-border text-sm text-ink-muted hover:text-ink"
               title="Discard the auto-saved draft and revert to the current saved values"
             >
               Discard draft
@@ -452,7 +452,7 @@ export function EntityEditCard({
           <button
             onClick={() => { setEditing(false); setErr(null); }}
             disabled={saving}
-            className="h-8 px-3 rounded border border-border-strong text-[12px] text-ink-muted hover:text-ink"
+            className="h-8 px-3 rounded border border-border-strong text-sm text-ink-muted hover:text-ink"
             title="Close the editor — the draft stays in your browser and restores next time"
           >
             Cancel
@@ -460,7 +460,7 @@ export function EntityEditCard({
           <button
             onClick={save}
             disabled={saving}
-            className="h-8 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
+            className="h-8 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
           >
             {saving ? <Loader2Icon size={12} className="animate-spin" /> : <CheckIcon size={12} />}
             {saving ? 'Saving…' : 'Save changes'}
@@ -488,7 +488,7 @@ function formatEntityType(v: string | null): string | null {
 function MetaField({ label, value, mono }: { label: string; value: string | null; mono?: boolean }) {
   return (
     <div>
-      <dt className="text-[9.5px] uppercase tracking-wide font-semibold text-ink-faint">
+      <dt className="text-2xs uppercase tracking-wide font-semibold text-ink-faint">
         {label}
       </dt>
       <dd className={`mt-0.5 ${mono ? 'font-mono' : ''} ${value ? 'text-ink' : 'text-ink-faint italic'}`}>
@@ -500,7 +500,7 @@ function MetaField({ label, value, mono }: { label: string; value: string | null
 
 function FeatureChip({ label }: { label: string }) {
   return (
-    <span className="inline-flex items-center h-[18px] px-1.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100 text-[10px] font-semibold tracking-wide uppercase">
+    <span className="inline-flex items-center h-[18px] px-1.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100 text-2xs font-semibold tracking-wide uppercase">
       {label}
     </span>
   );
@@ -509,9 +509,9 @@ function FeatureChip({ label }: { label: string }) {
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <label className="block">
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5 flex items-baseline gap-2">
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-0.5 flex items-baseline gap-2">
         <span>{label}</span>
-        {hint && <span className="text-[9.5px] text-ink-faint normal-case tracking-normal font-normal">{hint}</span>}
+        {hint && <span className="text-2xs text-ink-faint normal-case tracking-normal font-normal">{hint}</span>}
       </div>
       {children}
     </label>

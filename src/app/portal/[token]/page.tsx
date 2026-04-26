@@ -153,7 +153,7 @@ function Header() {
 
 function Footer() {
   return (
-    <footer className="py-5 px-4 text-center text-[11px] text-ink-faint border-t border-divider bg-surface">
+    <footer className="py-5 px-4 text-center text-xs text-ink-faint border-t border-divider bg-surface">
       This is a secure approval link from cifra. It expires after a short
       period. Do not forward.
     </footer>
@@ -162,7 +162,7 @@ function Footer() {
 
 function LoadingCard() {
   return (
-    <div className="bg-surface border border-border rounded-xl p-8 shadow-sm flex items-center gap-3 text-[13px] text-ink-muted">
+    <div className="bg-surface border border-border rounded-xl p-8 shadow-sm flex items-center gap-3 text-sm text-ink-muted">
       <Loader2Icon size={16} className="animate-spin" />
       Validating your approval link…
     </div>
@@ -177,12 +177,12 @@ function ErrorCard({ code, message }: { code: string | null; message: string }) 
           <AlertCircleIcon size={16} />
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-[15px] font-semibold text-ink tracking-tight">Link unavailable</h1>
-          <p className="text-[13px] text-ink-soft mt-1.5 leading-relaxed">{message}</p>
+          <h1 className="text-base font-semibold text-ink tracking-tight">Link unavailable</h1>
+          <p className="text-sm text-ink-soft mt-1.5 leading-relaxed">{message}</p>
           {code && (
-            <p className="text-[11px] text-ink-muted mt-3 font-mono">error: {code}</p>
+            <p className="text-xs text-ink-muted mt-3 font-mono">error: {code}</p>
           )}
-          <p className="text-[12px] text-ink-muted mt-3">
+          <p className="text-sm text-ink-muted mt-3">
             Please reach out to the sender to request a fresh link.
           </p>
         </div>
@@ -211,14 +211,14 @@ function SuccessCard({
     <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
       {/* Card header */}
       <div className="px-6 py-5 border-b border-divider bg-surface">
-        <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide font-semibold text-ink-muted">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wide font-semibold text-ink-muted">
           <FileTextIcon size={12} />
           VAT declaration approval
         </div>
-        <h1 className="text-[20px] font-semibold text-ink tracking-tight mt-2">
+        <h1 className="text-lg font-semibold text-ink tracking-tight mt-2">
           {declaration.entity_name}
         </h1>
-        <div className="text-[13px] text-ink-muted mt-1">
+        <div className="text-sm text-ink-muted mt-1">
           {fmtPeriod(declaration.year, declaration.period)}
           {declaration.vat_number && <> · <span className="font-mono">{declaration.vat_number}</span></>}
         </div>
@@ -241,19 +241,19 @@ function SuccessCard({
           <ApprovedState previouslyApprovedAt={previouslyApprovedAt} />
         ) : (
           <>
-            <p className="text-[13px] text-ink-soft leading-relaxed">
+            <p className="text-sm text-ink-soft leading-relaxed">
               By approving, you confirm the amounts above and authorise cifra to
               submit this declaration to the Luxembourg tax administration (AED)
               on your behalf.
             </p>
-            <p className="text-[11.5px] text-ink-muted mt-2.5">
+            <p className="text-xs text-ink-muted mt-2.5">
               This approval is recorded with a timestamp and your IP address.
               The link expires on <span className="font-medium">{expiresStr}</span>.
             </p>
             <button
               onClick={onApprove}
               disabled={approving}
-              className="mt-5 w-full h-11 rounded-lg bg-brand-500 text-white text-[14px] font-semibold hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
+              className="mt-5 w-full h-11 rounded-lg bg-brand-500 text-white text-base font-semibold hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
             >
               {approving ? (
                 <>
@@ -266,7 +266,7 @@ function SuccessCard({
               )}
             </button>
             {approveError && (
-              <p className="mt-3 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+              <p className="mt-3 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
                 {approveError}
               </p>
             )}
@@ -290,10 +290,10 @@ function ApprovedState({ previouslyApprovedAt }: { previouslyApprovedAt: string 
         <CheckCircle2Icon size={16} />
       </div>
       <div className="min-w-0">
-        <div className="text-[14px] font-semibold text-emerald-900">
+        <div className="text-base font-semibold text-emerald-900">
           Declaration approved
         </div>
-        <div className="text-[12.5px] text-emerald-800 mt-1 leading-relaxed">
+        <div className="text-sm text-emerald-800 mt-1 leading-relaxed">
           Approved {when}. cifra will now proceed with the filing. You can
           close this page.
         </div>
@@ -307,11 +307,11 @@ function Stat({
 }: { label: string; value: string; emphasise?: boolean }) {
   return (
     <div className="px-4 py-4">
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
       <div
         className={[
           'mt-1 tabular-nums',
-          emphasise ? 'text-[18px] font-bold text-ink' : 'text-[15px] font-semibold text-ink',
+          emphasise ? 'text-lg font-bold text-ink' : 'text-base font-semibold text-ink',
         ].join(' ')}
       >
         {value}

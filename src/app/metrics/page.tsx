@@ -67,7 +67,7 @@ export default function MetricsPage() {
             <strong>Monthly budget reached.</strong>{' '}
             €{data.budget.month_spend_eur.toFixed(2)} of €{data.budget.limit_eur.toFixed(2)}.
             New AI calls are blocked until the 1st of next month, or until
-            <code className="bg-surface-alt px-1 py-0.5 rounded text-[11px] mx-1">BUDGET_MONTHLY_EUR</code>
+            <code className="bg-surface-alt px-1 py-0.5 rounded text-xs mx-1">BUDGET_MONTHLY_EUR</code>
             is raised in Vercel env.
           </Banner>
         ) : data.budget.over_soft_warn ? (
@@ -81,23 +81,23 @@ export default function MetricsPage() {
           <header className="px-5 py-3 border-b border-divider flex items-center justify-between bg-gradient-to-br from-brand-50/60 to-surface">
             <div className="flex items-center gap-2">
               <SparklesIcon size={14} className="text-brand-500" />
-              <h3 className="text-[13px] font-semibold text-ink tracking-tight">Anthropic budget · this month</h3>
+              <h3 className="text-sm font-semibold text-ink tracking-tight">Anthropic budget · this month</h3>
             </div>
-            <div className="text-[11px] text-ink-muted">
-              Configure via <code className="bg-surface-alt px-1 py-0.5 rounded text-[10.5px]">BUDGET_MONTHLY_EUR</code>
+            <div className="text-xs text-ink-muted">
+              Configure via <code className="bg-surface-alt px-1 py-0.5 rounded text-2xs">BUDGET_MONTHLY_EUR</code>
             </div>
           </header>
 
           <div className="p-5">
             <div className="flex items-baseline gap-3 flex-wrap">
-              <div className="text-[32px] font-bold text-ink tabular-nums tracking-tight leading-none" style={{ letterSpacing: '-0.02em' }}>
+              <div className="text-3xl font-bold text-ink tabular-nums tracking-tight leading-none" style={{ letterSpacing: '-0.02em' }}>
                 €{data.budget.month_spend_eur.toFixed(2)}
               </div>
-              <div className="text-[14px] text-ink-muted">
+              <div className="text-base text-ink-muted">
                 of €{data.budget.limit_eur.toFixed(2)} ({(data.budget.pct_used * 100).toFixed(1)}%)
               </div>
               <div className="flex-1" />
-              <div className="text-[13px] text-ink-soft">
+              <div className="text-sm text-ink-soft">
                 €{data.budget.remaining_eur.toFixed(2)} remaining
               </div>
             </div>
@@ -119,7 +119,7 @@ export default function MetricsPage() {
             {/* Daily sparkline */}
             {data.budget.daily_spend.length > 0 && (
               <div className="mt-5">
-                <div className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted mb-2">
+                <div className="text-2xs uppercase tracking-[0.06em] font-semibold text-ink-muted mb-2">
                   Daily spend this month
                 </div>
                 <DailySparkline days={data.budget.daily_spend} />
@@ -129,7 +129,7 @@ export default function MetricsPage() {
             {/* By agent */}
             {data.cost_estimate.by_agent.length > 0 && (
               <div className="mt-6 pt-5 border-t border-divider">
-                <div className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted mb-3">
+                <div className="text-2xs uppercase tracking-[0.06em] font-semibold text-ink-muted mb-3">
                   Cost by agent · all time
                 </div>
                 <div className="space-y-2">
@@ -151,7 +151,7 @@ export default function MetricsPage() {
 
       {/* ═══════════ QUALITY KPIs ═══════════ */}
       <section className="mb-8">
-        <h2 className="text-[16px] font-semibold text-ink tracking-tight mb-3">Classifier quality</h2>
+        <h2 className="text-base font-semibold text-ink tracking-tight mb-3">Classifier quality</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <BigKPI
             label="Extraction accuracy"
@@ -200,7 +200,7 @@ export default function MetricsPage() {
           ) : (
             <div className="space-y-1.5">
               {data.declarations_by_status.map(s => (
-                <div key={s.status} className="flex items-center justify-between text-[12.5px]">
+                <div key={s.status} className="flex items-center justify-between text-sm">
                   <span className="capitalize text-ink-soft">{s.status}</span>
                   <span className="tabular-nums font-semibold text-ink">{s.n}</span>
                 </div>
@@ -216,8 +216,8 @@ export default function MetricsPage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5">
               {data.classification.by_rule.slice(0, 15).map(r => (
-                <div key={r.classification_rule} className="flex items-center justify-between text-[12px] border-b border-divider last:border-0 py-1.5">
-                  <span className="font-mono text-[11px] text-ink-soft">{r.classification_rule}</span>
+                <div key={r.classification_rule} className="flex items-center justify-between text-sm border-b border-divider last:border-0 py-1.5">
+                  <span className="font-mono text-xs text-ink-soft">{r.classification_rule}</span>
                   <span className="tabular-nums text-ink-muted">{r.n}</span>
                 </div>
               ))}
@@ -241,7 +241,7 @@ function Banner({
   return (
     <div className={`mb-4 rounded-xl border px-4 py-3 flex items-start gap-3 ${classes}`}>
       <span className="shrink-0 mt-0.5">{icon}</span>
-      <div className="text-[12.5px] leading-relaxed">{children}</div>
+      <div className="text-sm leading-relaxed">{children}</div>
     </div>
   );
 }
@@ -252,7 +252,7 @@ function AgentBar({
   const pct = maxEur > 0 ? (totalEur / maxEur) * 100 : 0;
   return (
     <div>
-      <div className="flex items-baseline justify-between text-[12px] mb-1">
+      <div className="flex items-baseline justify-between text-sm mb-1">
         <span className="font-medium text-ink">{agent}</span>
         <span className="text-ink-muted tabular-nums">
           €{totalEur.toFixed(2)} · {calls} call{calls === 1 ? '' : 's'}
@@ -281,7 +281,7 @@ function DailySparkline({ days }: { days: Array<{ d: string; eur: number; calls:
             style={{ height: `${h}%` }}
             title={`${day.d}: €${day.eur.toFixed(2)} · ${day.calls} call${day.calls === 1 ? '' : 's'}`}
           >
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-ink text-white text-2xs px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
               {day.d.slice(5)} · €{day.eur.toFixed(2)}
             </div>
           </div>
@@ -305,7 +305,7 @@ function SourceBar({
                          'bg-brand-500';
   return (
     <div>
-      <div className="flex items-baseline justify-between text-[12px] mb-1">
+      <div className="flex items-baseline justify-between text-sm mb-1">
         <span className="text-ink-soft">{label}</span>
         <span className="tabular-nums text-ink-muted">
           {value} <span className="text-ink-faint">({pct.toFixed(0)}%)</span>
@@ -327,16 +327,16 @@ function BigKPI({
   return (
     <div className="bg-surface border border-border rounded-xl p-5 shadow-xs">
       <div className="flex items-center justify-between">
-        <div className="text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted">{label}</div>
+        <div className="text-2xs uppercase tracking-[0.06em] font-semibold text-ink-muted">{label}</div>
         {target && (
           <Badge tone={good ? 'success' : 'warning'}>{good ? 'on target' : 'below target'}</Badge>
         )}
       </div>
-      <div className="text-[32px] font-bold text-ink tabular-nums mt-2 tracking-tight leading-none" style={{ letterSpacing: '-0.02em' }}>
+      <div className="text-3xl font-bold text-ink tabular-nums mt-2 tracking-tight leading-none" style={{ letterSpacing: '-0.02em' }}>
         {value}
       </div>
-      {target && <div className="text-[11px] text-ink-muted mt-1">{target}</div>}
-      <div className="text-[11.5px] text-ink-soft mt-2 leading-relaxed">{subtitle}</div>
+      {target && <div className="text-xs text-ink-muted mt-1">{target}</div>}
+      <div className="text-xs text-ink-soft mt-2 leading-relaxed">{subtitle}</div>
     </div>
   );
 }
@@ -347,7 +347,7 @@ function Card({
   return (
     <div className={`bg-surface border border-border rounded-xl shadow-xs overflow-hidden ${className}`}>
       <header className="px-4 py-3 border-b border-divider">
-        <h3 className="text-[13px] font-semibold text-ink tracking-tight">{title}</h3>
+        <h3 className="text-sm font-semibold text-ink tracking-tight">{title}</h3>
       </header>
       <div className="p-4">{children}</div>
     </div>
@@ -355,5 +355,5 @@ function Card({
 }
 
 function EmptyLine({ children }: { children: React.ReactNode }) {
-  return <div className="text-[12px] text-ink-muted">{children}</div>;
+  return <div className="text-sm text-ink-muted">{children}</div>;
 }

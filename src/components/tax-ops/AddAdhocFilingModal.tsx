@@ -131,21 +131,21 @@ export function AddAdhocFilingModal({
         <>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-[12.5px] rounded-md border border-border hover:bg-surface-alt"
+            className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface-alt"
           >
             Cancel
           </button>
           <button
             onClick={submit}
             disabled={busy || !entityId}
-            className="px-3 py-1.5 text-[12.5px] rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
+            className="px-3 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
           >
             {busy ? 'Creating…' : 'Create filing'}
           </button>
         </>
       }
     >
-      <div className="space-y-3 text-[12.5px]">
+      <div className="space-y-3 text-sm">
         <label className="block">
           <span className="text-ink-muted">Entity</span>
           <input
@@ -158,7 +158,7 @@ export function AddAdhocFilingModal({
             size={Math.min(6, Math.max(3, filtered.length))}
             value={entityId}
             onChange={(e) => setEntityId(e.target.value)}
-            className="mt-1 w-full px-2 py-1 border border-border rounded-md bg-surface font-mono text-[12px]"
+            className="mt-1 w-full px-2 py-1 border border-border rounded-md bg-surface font-mono text-sm"
           >
             {filtered.length === 0 && <option value="" disabled>No matches</option>}
             {filtered.map(e => (
@@ -203,7 +203,7 @@ export function AddAdhocFilingModal({
           />
         </label>
         {error && (
-          <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-[12px] text-danger-800">
+          <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-sm text-danger-800">
             {error}
           </div>
         )}

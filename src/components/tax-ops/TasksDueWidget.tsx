@@ -65,12 +65,12 @@ export function TasksDueWidget() {
       <div className="flex items-center gap-2 px-3 py-2 bg-amber-50/30 border-l-4 border-amber-500">
         <CheckSquareIcon size={14} className="text-amber-600" />
         <div className="flex-1">
-          <div className="text-[12.5px] font-semibold text-ink">Tasks due this week</div>
-          <div className="text-[11px] text-ink-muted">
+          <div className="text-sm font-semibold text-ink">Tasks due this week</div>
+          <div className="text-xs text-ink-muted">
             Open tasks with due_date in the next 7 days.
           </div>
         </div>
-        <div className="inline-flex items-center text-[11px] text-ink-muted">
+        <div className="inline-flex items-center text-xs text-ink-muted">
           <span className="mr-1">{tasks.length} of {data.total}</span>
           <Link
             href="/tax-ops/tasks?due_in_days=7"
@@ -81,7 +81,7 @@ export function TasksDueWidget() {
         </div>
       </div>
       {tasks.length === 0 ? (
-        <div className="px-3 py-3 text-[12px] text-ink-muted italic">
+        <div className="px-3 py-3 text-sm text-ink-muted italic">
           No tasks due this week. You&apos;re ahead.
         </div>
       ) : (
@@ -98,14 +98,14 @@ export function TasksDueWidget() {
               <li key={t.id} className="border-b border-border last:border-b-0">
                 <Link
                   href={href}
-                  className="flex items-center gap-2 px-3 py-2 hover:bg-surface-alt transition-colors text-[12.5px]"
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-surface-alt transition-colors text-sm"
                 >
                   <div className="flex-1 min-w-0">
                     <div className={`font-medium truncate ${priorityTone(t.priority)}`}>
                       {t.title}
                     </div>
                     {subParts.length > 0 && (
-                      <div className="text-[11.5px] text-ink-muted truncate">
+                      <div className="text-xs text-ink-muted truncate">
                         {subParts.join(' · ')}
                       </div>
                     )}

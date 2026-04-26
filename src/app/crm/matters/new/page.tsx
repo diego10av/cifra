@@ -78,7 +78,7 @@ const FEE_TYPES = [
 // so Next can emit the shell at build time.
 export default function MatterIntakePage() {
   return (
-    <Suspense fallback={<div className="text-[12px] text-ink-muted italic px-3 py-6">Loading wizard…</div>}>
+    <Suspense fallback={<div className="text-sm text-ink-muted italic px-3 py-6">Loading wizard…</div>}>
       <MatterIntakeInner />
     </Suspense>
   );
@@ -250,7 +250,7 @@ function MatterIntakeInner() {
 
   return (
     <div className="max-w-[820px]">
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/matters" className="hover:underline">← All matters</Link>
       </div>
       <PageHeader
@@ -259,7 +259,7 @@ function MatterIntakeInner() {
       />
 
       {sourceOppId && sourceOppInfo && (
-        <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded text-[12px] text-emerald-900">
+        <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-900">
           ✨ Pre-filled from opportunity <strong>{sourceOppInfo}</strong> — review each step + edit anything before saving.
         </div>
       )}
@@ -273,7 +273,7 @@ function MatterIntakeInner() {
               <select
                 value={clientCompanyId}
                 onChange={e => setClientCompanyId(e.target.value)}
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md bg-white"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md bg-white"
               >
                 <option value="">Select a company…</option>
                 {companies.map(c => (
@@ -288,7 +288,7 @@ function MatterIntakeInner() {
                 value={primaryContactId}
                 onChange={e => setPrimaryContactId(e.target.value)}
                 disabled={!clientCompanyId}
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md bg-white disabled:opacity-50"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md bg-white disabled:opacity-50"
               >
                 <option value="">—</option>
                 {contacts.map(c => (
@@ -303,7 +303,7 @@ function MatterIntakeInner() {
                 value={counterpartyName}
                 onChange={e => setCounterpartyName(e.target.value)}
                 placeholder="Other side (target, fund, individual)"
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md"
               />
             </Field>
             <div className="md:col-span-2">
@@ -313,10 +313,10 @@ function MatterIntakeInner() {
                   onChange={e => setRelatedPartiesRaw(e.target.value)}
                   rows={3}
                   placeholder={'Silent partner SCS\nTarget fund manager Ltd\nAdvising bank'}
-                  className="w-full px-2.5 py-2 text-[13px] border border-border rounded-md resize-y"
+                  className="w-full px-2.5 py-2 text-sm border border-border rounded-md resize-y"
                 />
               </Field>
-              <p className="text-[10.5px] text-ink-muted italic mt-1">
+              <p className="text-2xs text-ink-muted italic mt-1">
                 All of these names are scanned against open/on-hold matters in Step 4.
               </p>
             </div>
@@ -333,7 +333,7 @@ function MatterIntakeInner() {
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="E.g. Project Atlas — fund launch Luxembourg RAIF"
-                  className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md"
+                  className="w-full h-9 px-2.5 text-sm border border-border rounded-md"
                 />
               </Field>
             </div>
@@ -349,7 +349,7 @@ function MatterIntakeInner() {
                         onClick={() => setPracticeAreas(ps =>
                           ps.includes(p.value) ? ps.filter(x => x !== p.value) : [...ps, p.value],
                         )}
-                        className={`h-7 px-2.5 text-[11.5px] rounded-md border transition-colors ${
+                        className={`h-7 px-2.5 text-xs rounded-md border transition-colors ${
                           isOn
                             ? 'bg-brand-50 border-brand-300 text-brand-800 font-medium'
                             : 'bg-white border-border text-ink-muted hover:border-border-strong'
@@ -366,7 +366,7 @@ function MatterIntakeInner() {
               <select
                 value={feeType}
                 onChange={e => setFeeType(e.target.value)}
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md bg-white"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md bg-white"
               >
                 <option value="">—</option>
                 {FEE_TYPES.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -379,7 +379,7 @@ function MatterIntakeInner() {
                 value={hourlyRateEur}
                 onChange={e => setHourlyRateEur(e.target.value)}
                 placeholder="400"
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums"
               />
             </Field>
             <Field label="Estimated budget (€)">
@@ -389,7 +389,7 @@ function MatterIntakeInner() {
                 value={estimatedBudgetEur}
                 onChange={e => setEstimatedBudgetEur(e.target.value)}
                 placeholder="25000"
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums"
               />
             </Field>
             <Field label="Hard cap (€)">
@@ -399,11 +399,11 @@ function MatterIntakeInner() {
                 value={capEur}
                 onChange={e => setCapEur(e.target.value)}
                 placeholder="35000"
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums"
               />
             </Field>
             <div className="md:col-span-2">
-              <p className="text-[10.5px] text-ink-muted italic">
+              <p className="text-2xs text-ink-muted italic">
                 Setting an estimated budget enables 75/90/100% auto-alerts on time entries. The cap triggers a warning when
                 within 10% of breach.
               </p>
@@ -420,7 +420,7 @@ function MatterIntakeInner() {
                 value={leadCounsel}
                 onChange={e => setLeadCounsel(e.target.value)}
                 placeholder="Diego González Manso"
-                className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md"
+                className="w-full h-9 px-2.5 text-sm border border-border rounded-md"
               />
             </Field>
             <Field label="Team members (comma- or newline-separated)">
@@ -429,10 +429,10 @@ function MatterIntakeInner() {
                 onChange={e => setTeamMembersRaw(e.target.value)}
                 rows={3}
                 placeholder={'Associate A\nParalegal B\nExternal tax counsel C'}
-                className="w-full px-2.5 py-2 text-[13px] border border-border rounded-md resize-y"
+                className="w-full px-2.5 py-2 text-sm border border-border rounded-md resize-y"
               />
             </Field>
-            <p className="text-[10.5px] text-ink-muted italic">
+            <p className="text-2xs text-ink-muted italic">
               Stored as a plain list today. Role + fee-share attribution comes with the team-members junction table (deferred
               per stint 31 plan).
             </p>
@@ -445,8 +445,8 @@ function MatterIntakeInner() {
           {!conflictResult && (
             <div className="text-center py-6">
               <ShieldCheckIcon size={28} className="mx-auto text-ink-muted mb-2" />
-              <p className="text-[13px] text-ink mb-1">Ready to scan.</p>
-              <p className="text-[11.5px] text-ink-muted mb-4">
+              <p className="text-sm text-ink mb-1">Ready to scan.</p>
+              <p className="text-xs text-ink-muted mb-4">
                 Will check <strong>{companies.find(c => c.id === clientCompanyId)?.company_name ?? '—'}</strong>
                 {counterpartyName && <>, <strong>{counterpartyName}</strong></>}
                 {relatedParties.length > 0 && <>, + {relatedParties.length} related part{relatedParties.length === 1 ? 'y' : 'ies'}</>}
@@ -459,31 +459,31 @@ function MatterIntakeInner() {
           )}
           {conflictResult && activeHits.length === 0 && (
             <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-md">
-              <p className="text-[13px] text-emerald-800 font-semibold flex items-center gap-2">
+              <p className="text-sm text-emerald-800 font-semibold flex items-center gap-2">
                 <CheckCircle2Icon size={15} />
                 Clean — no potential conflicts with existing open matters.
               </p>
-              <p className="text-[11.5px] text-emerald-700 mt-1">Safe to open this matter.</p>
+              <p className="text-xs text-emerald-700 mt-1">Safe to open this matter.</p>
             </div>
           )}
           {conflictResult && activeHits.length > 0 && (
             <div>
               <div className="p-3 bg-danger-50 border border-danger-300 rounded-md mb-3">
-                <p className="text-[13px] text-danger-800 font-semibold flex items-center gap-2">
+                <p className="text-sm text-danger-800 font-semibold flex items-center gap-2">
                   <AlertTriangleIcon size={15} />
                   {activeHits.length} potential conflict{activeHits.length === 1 ? '' : 's'} found
                 </p>
-                <p className="text-[11.5px] text-danger-700 mt-1">
+                <p className="text-xs text-danger-700 mt-1">
                   Review each before proceeding. If you believe it&apos;s a false positive, document the waiver outside this
                   tool (engagement letter clause, client consent email) before acknowledging.
                 </p>
               </div>
               <ul className="space-y-1.5 mb-3">
                 {activeHits.map(h => (
-                  <li key={`${h.matter_id}:${h.field}:${h.party}`} className="border border-border rounded-md px-3 py-2 text-[12px]">
-                    <div className="font-mono text-[11px] text-brand-700">{h.matter_reference}</div>
-                    {h.client_name && <span className="text-[11px] text-ink-muted">· {h.client_name}</span>}
-                    <div className="text-[11px] text-ink-muted mt-0.5">
+                  <li key={`${h.matter_id}:${h.field}:${h.party}`} className="border border-border rounded-md px-3 py-2 text-sm">
+                    <div className="font-mono text-xs text-brand-700">{h.matter_reference}</div>
+                    {h.client_name && <span className="text-xs text-ink-muted">· {h.client_name}</span>}
+                    <div className="text-xs text-ink-muted mt-0.5">
                       <strong>{h.field}</strong> matched <em>&ldquo;{h.party}&rdquo;</em> via <em>&ldquo;{h.match_value}&rdquo;</em>
                     </div>
                   </li>
@@ -496,7 +496,7 @@ function MatterIntakeInner() {
                   onChange={e => setAcknowledged(e.target.checked)}
                   className="mt-0.5 h-4 w-4 accent-brand-500"
                 />
-                <span className="text-[12px] text-ink">
+                <span className="text-sm text-ink">
                   I acknowledge these conflicts and have documented a waiver (or these are false positives). Opening the
                   matter anyway.
                 </span>
@@ -505,7 +505,7 @@ function MatterIntakeInner() {
           )}
           {conflictResult && (
             <div className="mt-3 text-right">
-              <button onClick={runConflictCheck} disabled={scanning} className="text-[11.5px] text-brand-700 hover:underline disabled:opacity-50">
+              <button onClick={runConflictCheck} disabled={scanning} className="text-xs text-brand-700 hover:underline disabled:opacity-50">
                 Re-run scan
               </button>
             </div>
@@ -519,7 +519,7 @@ function MatterIntakeInner() {
           {step > 1 && (
             <button
               onClick={() => setStep(s => Math.max(1, s - 1) as 1 | 2 | 3 | 4)}
-              className="inline-flex items-center gap-1 h-9 px-3 rounded-md border border-border bg-white text-[13px] text-ink-soft hover:bg-surface-alt"
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-md border border-border bg-white text-sm text-ink-soft hover:bg-surface-alt"
             >
               <ChevronLeftIcon size={14} />
               Back
@@ -583,7 +583,7 @@ function StepIndicator({
               type="button"
               onClick={() => !isLocked && onJump(l.n)}
               disabled={isLocked}
-              className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-[11.5px] font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-colors ${
                 isActive
                   ? 'bg-brand-600 text-white'
                   : isPast
@@ -607,8 +607,8 @@ function StepIndicator({
 function StepCard({ title, blurb, children }: { title: string; blurb: string; children: React.ReactNode }) {
   return (
     <section className="border border-border rounded-lg bg-white p-5">
-      <h2 className="text-[14px] font-semibold text-ink mb-0.5">{title}</h2>
-      <p className="text-[11.5px] text-ink-muted mb-4">{blurb}</p>
+      <h2 className="text-base font-semibold text-ink mb-0.5">{title}</h2>
+      <p className="text-xs text-ink-muted mb-4">{blurb}</p>
       {children}
     </section>
   );
@@ -617,7 +617,7 @@ function StepCard({ title, blurb, children }: { title: string; blurb: string; ch
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</label>
+      <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</label>
       {children}
     </div>
   );

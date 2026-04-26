@@ -105,16 +105,16 @@ export default function ContactsPage() {
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search name or email..."
-            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md" />
         </div>
         <select value={lifecycle} onChange={e => setLifecycle(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
           <option value="">All lifecycle stages</option>
           {CONTACT_LIFECYCLES.map(s => <option key={s} value={s}>{LABELS_LIFECYCLE[s]}</option>)}
         </select>
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="contacts" />
-          <span className="text-[11.5px] text-ink-muted">{rows.length} contacts</span>
+          <span className="text-xs text-ink-muted">{rows.length} contacts</span>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default function ContactsPage() {
         <EmptyState illustration="approvers" title="No contacts yet" description="Run the Notion import to populate." />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="px-3 py-2 w-8">

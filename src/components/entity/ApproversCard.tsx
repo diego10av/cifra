@@ -114,7 +114,7 @@ export function ApproversCard({ entityId }: { entityId: string }) {
   if (approvers === null) {
     return (
       <div className="bg-surface border border-border rounded-lg p-4 mb-4">
-        <div className="text-[12px] text-ink-muted flex items-center gap-2">
+        <div className="text-sm text-ink-muted flex items-center gap-2">
           <Loader2Icon size={13} className="animate-spin" /> Loading approvers…
         </div>
       </div>
@@ -126,15 +126,15 @@ export function ApproversCard({ entityId }: { entityId: string }) {
       <div className="px-4 py-3 border-b border-divider flex items-center justify-between">
         <div className="flex items-center gap-2">
           <UsersIcon size={15} className="text-brand-500" />
-          <h3 className="text-[13px] font-semibold text-ink">VAT approvers</h3>
-          <span className="text-[11px] text-ink-muted">
+          <h3 className="text-sm font-semibold text-ink">VAT approvers</h3>
+          <span className="text-xs text-ink-muted">
             {approvers.length} {approvers.length === 1 ? 'person' : 'people'}
           </span>
         </div>
         {!schemaMissing && (
           <button
             onClick={() => setAdding(true)}
-            className="text-[11.5px] font-medium text-brand-600 hover:text-brand-800 inline-flex items-center gap-1"
+            className="text-xs font-medium text-brand-600 hover:text-brand-800 inline-flex items-center gap-1"
           >
             <PlusIcon size={11} /> Add approver
           </button>
@@ -142,7 +142,7 @@ export function ApproversCard({ entityId }: { entityId: string }) {
       </div>
 
       {schemaMissing && (
-        <div className="p-4 text-[12px] text-warning-800 bg-warning-50 border-b border-warning-200">
+        <div className="p-4 text-sm text-warning-800 bg-warning-50 border-b border-warning-200">
           <AlertTriangleIcon size={12} className="inline mr-1 -mt-0.5" />
           Approvers require migration 005. Apply it in Supabase to enable
           this section.
@@ -150,21 +150,21 @@ export function ApproversCard({ entityId }: { entityId: string }) {
       )}
 
       {error && (
-        <div className="px-4 py-2 text-[11.5px] text-danger-700 bg-danger-50 border-b border-danger-200">
+        <div className="px-4 py-2 text-xs text-danger-700 bg-danger-50 border-b border-danger-200">
           {error}
         </div>
       )}
 
       {!schemaMissing && approvers.length === 0 && !adding && (
         <div className="p-6 text-center">
-          <div className="text-[12.5px] text-ink-muted max-w-sm mx-auto leading-relaxed">
+          <div className="text-sm text-ink-muted max-w-sm mx-auto leading-relaxed">
             No approvers set. Add at least one person who signs off on
             this entity&apos;s VAT declarations. Their email is used for
             the approval portal link and for the draft email.
           </div>
           <button
             onClick={() => setAdding(true)}
-            className="mt-4 h-9 px-4 rounded-md bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
+            className="mt-4 h-9 px-4 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
           >
             <PlusIcon size={13} /> Add first approver
           </button>
@@ -225,29 +225,29 @@ function ApproverRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[13px] font-medium text-ink">{approver.name}</span>
+          <span className="text-sm font-medium text-ink">{approver.name}</span>
           {approver.is_primary && (
-            <span className="inline-flex items-center gap-0.5 text-[9.5px] font-bold uppercase tracking-wider bg-brand-500 text-white rounded px-1.5 py-0.5">
+            <span className="inline-flex items-center gap-0.5 text-2xs font-bold uppercase tracking-wider bg-brand-500 text-white rounded px-1.5 py-0.5">
               <StarIcon size={9} /> Primary
             </span>
           )}
           {approver.approver_role === 'cc' && (
-            <span className="inline-flex items-center text-[9.5px] font-bold uppercase tracking-wider bg-surface-alt text-ink-muted border border-border rounded px-1.5 py-0.5">
+            <span className="inline-flex items-center text-2xs font-bold uppercase tracking-wider bg-surface-alt text-ink-muted border border-border rounded px-1.5 py-0.5">
               CC only
             </span>
           )}
           {approver.approver_role === 'both' && (
-            <span className="inline-flex items-center text-[9.5px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-1.5 py-0.5">
+            <span className="inline-flex items-center text-2xs font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-1.5 py-0.5">
               Approver + CC
             </span>
           )}
           {approver.country && (
-            <span className="text-[10px] font-mono text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
+            <span className="text-2xs font-mono text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
               {approver.country}
             </span>
           )}
         </div>
-        <div className="text-[11.5px] text-ink-muted mt-0.5">
+        <div className="text-xs text-ink-muted mt-0.5">
           {approver.role && <span>{approver.role}</span>}
           {approver.role && approver.organization && <span className="text-ink-faint mx-1">·</span>}
           {approver.organization && <span>{approver.organization}</span>}
@@ -256,7 +256,7 @@ function ApproverRow({
           {approver.email && (
             <a
               href={`mailto:${approver.email}`}
-              className="text-[11.5px] text-brand-600 hover:underline inline-flex items-center gap-1"
+              className="text-xs text-brand-600 hover:underline inline-flex items-center gap-1"
             >
               <MailIcon size={11} /> {approver.email}
             </a>
@@ -264,14 +264,14 @@ function ApproverRow({
           {approver.phone && (
             <a
               href={`tel:${approver.phone}`}
-              className="text-[11.5px] text-ink-soft hover:text-ink inline-flex items-center gap-1"
+              className="text-xs text-ink-soft hover:text-ink inline-flex items-center gap-1"
             >
               <PhoneIcon size={11} /> {approver.phone}
             </a>
           )}
         </div>
         {approver.notes && (
-          <div className="mt-1.5 text-[11px] text-ink-muted italic bg-surface-alt rounded px-2 py-1">
+          <div className="mt-1.5 text-xs text-ink-muted italic bg-surface-alt rounded px-2 py-1">
             {approver.notes}
           </div>
         )}
@@ -427,7 +427,7 @@ function ApproverEditor({
   return (
     <div className={fresh ? '' : 'px-4 py-3 bg-surface-alt/40'}>
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-[13px] font-semibold text-ink">
+        <h4 className="text-sm font-semibold text-ink">
           {approver ? 'Edit approver' : 'Add approver'}
         </h4>
         <button
@@ -449,21 +449,21 @@ function ApproverEditor({
                 setContactsOpen(!contactsOpen);
                 if (!contacts) loadContacts();
               }}
-              className="w-full h-8 px-3 rounded border border-dashed border-border-strong bg-surface text-[11.5px] font-medium text-ink-soft hover:text-ink hover:border-brand-300 inline-flex items-center justify-between gap-2"
+              className="w-full h-8 px-3 rounded border border-dashed border-border-strong bg-surface text-xs font-medium text-ink-soft hover:text-ink hover:border-brand-300 inline-flex items-center justify-between gap-2"
             >
               <span>
                 {selectedContactId
                   ? `Linked to client contact · click to change`
                   : 'Pick from client contacts →'}
               </span>
-              <span className="text-ink-faint text-[10px]">{contactsOpen ? '▲' : '▼'}</span>
+              <span className="text-ink-faint text-2xs">{contactsOpen ? '▲' : '▼'}</span>
             </button>
             {contactsOpen && (
               <div className="absolute z-10 mt-1 left-0 right-0 max-h-56 overflow-y-auto bg-surface border border-border-strong rounded-md shadow-lg">
                 {!contacts ? (
-                  <div className="px-3 py-2 text-[11.5px] text-ink-muted">Loading…</div>
+                  <div className="px-3 py-2 text-xs text-ink-muted">Loading…</div>
                 ) : contacts.length === 0 ? (
-                  <div className="px-3 py-2 text-[11.5px] text-ink-muted">
+                  <div className="px-3 py-2 text-xs text-ink-muted">
                     No contacts on file for this client. Add some on the
                     client page for quicker reuse next time.
                   </div>
@@ -477,16 +477,16 @@ function ApproverEditor({
                           className="w-full text-left px-3 py-2 hover:bg-surface-alt/60"
                         >
                           <div className="flex items-center gap-2">
-                            <span className="text-[12.5px] font-medium text-ink truncate">{c.name}</span>
+                            <span className="text-sm font-medium text-ink truncate">{c.name}</span>
                             {c.is_main && (
-                              <span className="text-[9px] uppercase tracking-wide bg-brand-50 text-brand-700 px-1 rounded border border-brand-100">
+                              <span className="text-2xs uppercase tracking-wide bg-brand-50 text-brand-700 px-1 rounded border border-brand-100">
                                 Main
                               </span>
                             )}
-                            {c.role && <span className="text-[10.5px] text-ink-muted">· {c.role}</span>}
+                            {c.role && <span className="text-2xs text-ink-muted">· {c.role}</span>}
                           </div>
                           {c.email && (
-                            <div className="text-[11px] text-ink-muted truncate mt-0.5">{c.email}</div>
+                            <div className="text-xs text-ink-muted truncate mt-0.5">{c.email}</div>
                           )}
                         </button>
                       </li>
@@ -496,11 +496,11 @@ function ApproverEditor({
               </div>
             )}
             {selectedContactId && (
-              <div className="mt-1 flex items-center gap-2 text-[10.5px] text-brand-700">
+              <div className="mt-1 flex items-center gap-2 text-2xs text-brand-700">
                 <CheckIcon size={10} /> fields pre-filled · you can still edit
                 <button
                   onClick={() => { setSelectedContactId(null); }}
-                  className="ml-auto text-[10.5px] text-ink-muted hover:text-ink underline-offset-2 underline"
+                  className="ml-auto text-2xs text-ink-muted hover:text-ink underline-offset-2 underline"
                 >
                   unlink
                 </button>
@@ -514,7 +514,7 @@ function ApproverEditor({
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="e.g. Maria Kowalski"
-            className="w-full border border-border-strong rounded px-3 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-3 py-1.5 text-sm"
             autoFocus
           />
         </Field>
@@ -524,14 +524,14 @@ function ApproverEditor({
             <input
               value={form.role}
               onChange={(e) => setForm({ ...form, role: e.target.value })}
-              className="w-full border border-border-strong rounded px-3 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-1.5 text-sm"
             />
           </Field>
           <Field label="Organisation" hint="CSP name or client HQ">
             <input
               value={form.organization}
               onChange={(e) => setForm({ ...form, organization: e.target.value })}
-              className="w-full border border-border-strong rounded px-3 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-1.5 text-sm"
             />
           </Field>
           <Field label="Email">
@@ -539,7 +539,7 @@ function ApproverEditor({
               type="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full border border-border-strong rounded px-3 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-1.5 text-sm"
             />
           </Field>
           <Field label="Phone">
@@ -547,7 +547,7 @@ function ApproverEditor({
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
               placeholder="+352 …"
-              className="w-full border border-border-strong rounded px-3 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-1.5 text-sm"
             />
           </Field>
           <Field label="Country (ISO-2)">
@@ -556,14 +556,14 @@ function ApproverEditor({
               onChange={(e) => setForm({ ...form, country: e.target.value.toUpperCase().slice(0, 2) })}
               maxLength={2}
               placeholder="LU"
-              className="w-full border border-border-strong rounded px-3 py-1.5 text-[12.5px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-1.5 text-sm font-mono"
             />
           </Field>
           <Field label="Side" hint="CSP, client-side, or other">
             <select
               value={form.approver_type}
               onChange={(e) => setForm({ ...form, approver_type: e.target.value as ApproverType })}
-              className="w-full border border-border-strong rounded px-3 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-1.5 text-sm"
             >
               <option value="client">Client side</option>
               <option value="csp">CSP side</option>
@@ -588,14 +588,14 @@ function ApproverEditor({
                 key={opt.key}
                 onClick={() => setForm({ ...form, approver_role: opt.key })}
                 className={[
-                  'text-left px-3 py-2 rounded border text-[12px] transition-all',
+                  'text-left px-3 py-2 rounded border text-sm transition-all',
                   form.approver_role === opt.key
                     ? 'border-brand-500 bg-brand-50 text-brand-800'
                     : 'border-border bg-surface text-ink-soft hover:border-border-strong',
                 ].join(' ')}
               >
                 <div className="font-semibold">{opt.label}</div>
-                <div className="text-[10.5px] text-ink-muted mt-0.5">{opt.hint}</div>
+                <div className="text-2xs text-ink-muted mt-0.5">{opt.hint}</div>
               </button>
             ))}
           </div>
@@ -607,7 +607,7 @@ function ApproverEditor({
             onChange={(e) => setForm({ ...form, notes: e.target.value })}
             rows={2}
             placeholder="Availability, escalation path, holiday schedule…"
-            className="w-full border border-border-strong rounded px-3 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
+            className="w-full border border-border-strong rounded px-3 py-1.5 text-sm resize-none"
           />
         </Field>
 
@@ -616,7 +616,7 @@ function ApproverEditor({
             allowed via this checkbox; demoting is blocked by the server
             (use another approver's promote button instead). */}
         {(!approver || !approver.is_primary) && (
-          <label className="flex items-start gap-2 text-[12px] text-ink-soft cursor-pointer">
+          <label className="flex items-start gap-2 text-sm text-ink-soft cursor-pointer">
             <input
               type="checkbox"
               checked={form.is_primary}
@@ -631,7 +631,7 @@ function ApproverEditor({
         )}
 
         {err && (
-          <div className="text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+          <div className="text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
             {err}
           </div>
         )}
@@ -640,14 +640,14 @@ function ApproverEditor({
           <button
             onClick={onClose}
             disabled={saving}
-            className="h-8 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt"
+            className="h-8 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt"
           >
             Cancel
           </button>
           <button
             onClick={save}
             disabled={saving || !form.name.trim()}
-            className="h-8 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+            className="h-8 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
           >
             {saving ? <Loader2Icon size={12} className="animate-spin" /> : <CheckIcon size={12} />}
             {approver ? 'Save' : 'Add'}
@@ -665,7 +665,7 @@ function TypeBadge({ type }: { type: ApproverType }) {
     other:  { label: 'Other',  colour: 'bg-surface-alt text-ink-soft border-border' },
   }[type];
   return (
-    <span className={`text-[9.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 mt-1 ${config.colour}`}>
+    <span className={`text-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 mt-1 ${config.colour}`}>
       {config.label}
     </span>
   );
@@ -676,7 +676,7 @@ function Field({
 }: { label: string; hint?: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+      <span className="block text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
         {label} {required && <span className="text-danger-600">*</span>}
         {hint && <span className="normal-case text-ink-faint font-normal ml-1">— {hint}</span>}
       </span>

@@ -31,8 +31,8 @@ export default function SettingsPage() {
   return (
     <div>
       <div className="mb-5">
-        <h1 className="text-[20px] font-semibold tracking-tight">Settings &amp; system</h1>
-        <p className="text-[12px] text-ink-muted mt-1">
+        <h1 className="text-lg font-semibold tracking-tight">Settings &amp; system</h1>
+        <p className="text-sm text-ink-muted mt-1">
           Configuration status and stored data overview.
         </p>
       </div>
@@ -40,7 +40,7 @@ export default function SettingsPage() {
       <div className="grid grid-cols-2 gap-4 mb-5">
         {/* System status */}
         <div className="bg-surface border border-border rounded-lg p-4">
-          <h3 className="text-[13px] font-semibold text-ink mb-3">System status</h3>
+          <h3 className="text-sm font-semibold text-ink mb-3">System status</h3>
           <div className="space-y-2">
             <Row label="Database" value={status.database} ok={status.database === 'ok'} />
             <Row label="Storage" value={status.storage} ok={status.storage === 'ok'} />
@@ -53,9 +53,9 @@ export default function SettingsPage() {
 
         {/* Stats */}
         <div className="bg-surface border border-border rounded-lg p-4">
-          <h3 className="text-[13px] font-semibold text-ink mb-3">Data overview</h3>
+          <h3 className="text-sm font-semibold text-ink mb-3">Data overview</h3>
           {!status.stats ? (
-            <div className="text-[12px] text-ink-faint">Stats unavailable.</div>
+            <div className="text-sm text-ink-faint">Stats unavailable.</div>
           ) : (
             <div className="grid grid-cols-2 gap-x-4 gap-y-2">
               <StatRow label="Entities" value={status.stats.entities} />
@@ -82,8 +82,8 @@ export default function SettingsPage() {
               <UsersIcon size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-ink">Users &amp; AI caps →</h3>
-              <p className="text-[12px] text-ink-soft mt-1">
+              <h3 className="text-sm font-semibold text-ink">Users &amp; AI caps →</h3>
+              <p className="text-sm text-ink-soft mt-1">
                 Per-user monthly AI-spend caps. Add / deactivate users, toggle admin.
               </p>
             </div>
@@ -99,8 +99,8 @@ export default function SettingsPage() {
               <MessageCircleIcon size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-ink">Feedback triage →</h3>
-              <p className="text-[12px] text-ink-soft mt-1">
+              <h3 className="text-sm font-semibold text-ink">Feedback triage →</h3>
+              <p className="text-sm text-ink-soft mt-1">
                 In-product reports from the floating button.
               </p>
             </div>
@@ -116,8 +116,8 @@ export default function SettingsPage() {
               <ActivityIcon size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-ink">Application logs →</h3>
-              <p className="text-[12px] text-ink-soft mt-1">
+              <h3 className="text-sm font-semibold text-ink">Application logs →</h3>
+              <p className="text-sm text-ink-soft mt-1">
                 Recent error + warning records from the structured logger.
               </p>
             </div>
@@ -133,8 +133,8 @@ export default function SettingsPage() {
               <ShieldCheckIcon size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-ink">Classifier accuracy →</h3>
-              <p className="text-[12px] text-ink-soft mt-1">
+              <h3 className="text-sm font-semibold text-ink">Classifier accuracy →</h3>
+              <p className="text-sm text-ink-soft mt-1">
                 Live pass-rate against the 60-fixture synthetic corpus. The brain&rsquo;s health check.
               </p>
             </div>
@@ -150,8 +150,8 @@ export default function SettingsPage() {
               <ArchiveIcon size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="text-[13px] font-semibold text-ink">Trash →</h3>
-              <p className="text-[12px] text-ink-soft mt-1">
+              <h3 className="text-sm font-semibold text-ink">Trash →</h3>
+              <p className="text-sm text-ink-soft mt-1">
                 Soft-archived clients + entities. Restore with one click.
               </p>
             </div>
@@ -161,32 +161,32 @@ export default function SettingsPage() {
 
       {/* Authentication */}
       <div className="bg-surface border border-border rounded-lg p-4 mb-5">
-        <h3 className="text-[13px] font-semibold text-ink mb-3">Authentication</h3>
-        <p className="text-[12px] text-ink-soft mb-3">
-          The login password is set as the <code className="text-[11px] bg-surface-alt px-1 rounded">AUTH_PASSWORD</code> environment variable in Vercel.
+        <h3 className="text-sm font-semibold text-ink mb-3">Authentication</h3>
+        <p className="text-sm text-ink-soft mb-3">
+          The login password is set as the <code className="text-xs bg-surface-alt px-1 rounded">AUTH_PASSWORD</code> environment variable in Vercel.
           To change it, update the variable in <strong>Vercel → Project Settings → Environment Variables</strong> and redeploy.
         </p>
-        <p className="text-[12px] text-ink-soft">
+        <p className="text-sm text-ink-soft">
           Sessions last 30 days from the moment you log in. To invalidate all existing sessions, regenerate
-          <code className="text-[11px] bg-surface-alt px-1 rounded mx-1">AUTH_SECRET</code> as well.
+          <code className="text-xs bg-surface-alt px-1 rounded mx-1">AUTH_SECRET</code> as well.
         </p>
       </div>
 
       {/* Data export */}
       <div className="bg-surface border border-border rounded-lg p-4 mb-5">
-        <h3 className="text-[13px] font-semibold text-ink mb-3">Data export &amp; backup</h3>
-        <p className="text-[12px] text-ink-soft mb-3">
+        <h3 className="text-sm font-semibold text-ink mb-3">Data export &amp; backup</h3>
+        <p className="text-sm text-ink-soft mb-3">
           All data is stored in your Supabase project (Frankfurt, EU). You can take a full backup at any time
           from the Supabase dashboard:
         </p>
-        <ul className="text-[12px] text-ink-soft space-y-1 list-disc pl-5 mb-3">
+        <ul className="text-sm text-ink-soft space-y-1 list-disc pl-5 mb-3">
           <li>Database: Supabase → Database → Backups (automatic daily, 7-day retention on free tier)</li>
           <li>Storage: Supabase → Storage → bucket &quot;documents&quot; (download via API or CLI)</li>
         </ul>
         <a
           href="https://supabase.com/dashboard"
           target="_blank" rel="noreferrer"
-          className="text-[12px] text-brand-600 hover:underline font-medium"
+          className="text-sm text-brand-600 hover:underline font-medium"
         >
           Open Supabase dashboard ↗
         </a>
@@ -194,8 +194,8 @@ export default function SettingsPage() {
 
       {/* Useful links */}
       <div className="bg-surface border border-border rounded-lg p-4">
-        <h3 className="text-[13px] font-semibold text-ink mb-3">Useful links</h3>
-        <div className="grid grid-cols-2 gap-2 text-[12px]">
+        <h3 className="text-sm font-semibold text-ink mb-3">Useful links</h3>
+        <div className="grid grid-cols-2 gap-2 text-sm">
           <Link href="https://console.anthropic.com/settings/keys" label="Anthropic API keys" />
           <Link href="https://console.anthropic.com/settings/usage" label="Anthropic usage / billing" />
           <Link href="https://supabase.com/dashboard" label="Supabase dashboard" />
@@ -210,9 +210,9 @@ export default function SettingsPage() {
 
 function Row({ label, value, ok }: { label: string; value: string; ok: boolean }) {
   return (
-    <div className="flex items-center justify-between text-[12px]">
+    <div className="flex items-center justify-between text-sm">
       <span className="text-ink-soft">{label}</span>
-      <span className={`font-mono text-[11px] ${ok ? 'text-emerald-700' : 'text-red-700'}`}>
+      <span className={`font-mono text-xs ${ok ? 'text-emerald-700' : 'text-red-700'}`}>
         {ok ? '● ' : '○ '}{value}
       </span>
     </div>
@@ -220,7 +220,7 @@ function Row({ label, value, ok }: { label: string; value: string; ok: boolean }
 }
 function StatRow({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex items-center justify-between text-[12px] py-1">
+    <div className="flex items-center justify-between text-sm py-1">
       <span className="text-ink-soft">{label}</span>
       <span className="font-semibold tabular-nums text-ink">{value.toLocaleString()}</span>
     </div>

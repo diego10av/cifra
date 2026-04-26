@@ -57,7 +57,7 @@ export function ApplyTemplateButton({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt"
+        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-sm font-medium text-ink-soft hover:bg-surface-alt"
         title="Apply a task template — creates N tasks at once"
       >
         <BookOpenCheckIcon size={13} />
@@ -71,20 +71,20 @@ export function ApplyTemplateButton({
           size="lg"
         >
           {templates === null ? (
-            <div className="text-[12px] text-ink-muted italic py-6 text-center">Loading…</div>
+            <div className="text-sm text-ink-muted italic py-6 text-center">Loading…</div>
           ) : templates.length === 0 ? (
-            <div className="text-[12px] text-ink-muted italic py-6 text-center">No templates for this scope.</div>
+            <div className="text-sm text-ink-muted italic py-6 text-center">No templates for this scope.</div>
           ) : (
             <ul className="space-y-2">
               {templates.map(t => (
                 <li key={t.id} className="border border-border rounded-md p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-semibold text-ink">{t.name}</div>
+                      <div className="text-sm font-semibold text-ink">{t.name}</div>
                       {t.description && (
-                        <div className="text-[11.5px] text-ink-muted mt-0.5">{t.description}</div>
+                        <div className="text-xs text-ink-muted mt-0.5">{t.description}</div>
                       )}
-                      <div className="text-[10.5px] text-ink-muted mt-1">
+                      <div className="text-2xs text-ink-muted mt-1">
                         Creates {t.items.length} task{t.items.length === 1 ? '' : 's'}: {t.items.slice(0, 3).map(i => i.title).join(' · ')}{t.items.length > 3 ? ` · +${t.items.length - 3} more` : ''}
                       </div>
                     </div>

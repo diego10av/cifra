@@ -96,7 +96,7 @@ export default function CalendarPage() {
 
   return (
     <div>
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm" className="hover:underline">← CRM home</Link>
       </div>
       <PageHeader
@@ -116,7 +116,7 @@ export default function CalendarPage() {
                 const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0);
                 setCursor(d); setSelectedDate(null);
               }}
-              className="h-8 px-3 rounded-md border border-border bg-white text-[12px] hover:bg-surface-alt"
+              className="h-8 px-3 rounded-md border border-border bg-white text-sm hover:bg-surface-alt"
             >
               Today
             </button>
@@ -134,8 +134,8 @@ export default function CalendarPage() {
       {error && <div className="mb-3"><CrmErrorBox message={error} onRetry={refetch} /></div>}
 
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-[16px] font-semibold text-ink">{monthLabel}</h2>
-        {isLoading && <span className="text-[11px] text-ink-muted italic">Loading events…</span>}
+        <h2 className="text-base font-semibold text-ink">{monthLabel}</h2>
+        {isLoading && <span className="text-xs text-ink-muted italic">Loading events…</span>}
       </div>
 
       <div className="grid grid-cols-[1fr,320px] gap-4">
@@ -143,7 +143,7 @@ export default function CalendarPage() {
         <div className="border border-border rounded-lg bg-white overflow-hidden">
           <div className="grid grid-cols-7 bg-surface-alt/50 border-b border-border">
             {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => (
-              <div key={d} className="text-[10.5px] uppercase font-semibold text-ink-muted px-2 py-1.5 text-center">
+              <div key={d} className="text-2xs uppercase font-semibold text-ink-muted px-2 py-1.5 text-center">
                 {d}
               </div>
             ))}
@@ -163,21 +163,21 @@ export default function CalendarPage() {
                     inMonth ? 'bg-white' : 'bg-surface-alt/30'
                   } ${isSelected ? 'ring-2 ring-brand-500 ring-inset' : 'hover:bg-surface-alt/60'}`}
                 >
-                  <div className={`text-[11.5px] tabular-nums ${isToday ? 'font-bold text-brand-700' : inMonth ? 'text-ink' : 'text-ink-muted'}`}>
+                  <div className={`text-xs tabular-nums ${isToday ? 'font-bold text-brand-700' : inMonth ? 'text-ink' : 'text-ink-muted'}`}>
                     {d.getDate()}
                   </div>
                   <div className="mt-1 space-y-0.5">
                     {events.slice(0, 3).map(e => (
                       <div
                         key={e.id}
-                        className={`text-[10px] leading-tight border rounded px-1 py-0.5 truncate ${TYPE_META[e.type].tone}`}
+                        className={`text-2xs leading-tight border rounded px-1 py-0.5 truncate ${TYPE_META[e.type].tone}`}
                         title={e.title}
                       >
                         {TYPE_META[e.type].icon} {e.title}
                       </div>
                     ))}
                     {events.length > 3 && (
-                      <div className="text-[9.5px] text-ink-muted italic">+{events.length - 3} more</div>
+                      <div className="text-2xs text-ink-muted italic">+{events.length - 3} more</div>
                     )}
                   </div>
                 </button>
@@ -190,21 +190,21 @@ export default function CalendarPage() {
         <aside className="border border-border rounded-lg bg-white p-3 h-fit sticky top-4">
           {selectedDate ? (
             <>
-              <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+              <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
                 {new Date(selectedDate).toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
               </div>
               {selectedEvents.length === 0 ? (
-                <p className="text-[12px] text-ink-muted italic">Nothing scheduled on this day.</p>
+                <p className="text-sm text-ink-muted italic">Nothing scheduled on this day.</p>
               ) : (
                 <ul className="space-y-2">
                   {selectedEvents.map(e => (
-                    <li key={e.id} className={`border rounded-md p-2 text-[12px] ${TYPE_META[e.type].tone}`}>
+                    <li key={e.id} className={`border rounded-md p-2 text-sm ${TYPE_META[e.type].tone}`}>
                       <div className="flex items-start gap-1.5">
                         <span>{TYPE_META[e.type].icon}</span>
                         <div className="flex-1 min-w-0">
                           <div className="font-medium">{e.title}</div>
-                          {e.detail && <div className="text-[11px] opacity-80 mt-0.5">{e.detail}</div>}
-                          <Link href={e.link} className="inline-block mt-1 text-[11px] underline opacity-80 hover:opacity-100">
+                          {e.detail && <div className="text-xs opacity-80 mt-0.5">{e.detail}</div>}
+                          <Link href={e.link} className="inline-block mt-1 text-xs underline opacity-80 hover:opacity-100">
                             Open →
                           </Link>
                         </div>
@@ -215,13 +215,13 @@ export default function CalendarPage() {
               )}
             </>
           ) : (
-            <p className="text-[12px] text-ink-muted italic">Click a day to see its events.</p>
+            <p className="text-sm text-ink-muted italic">Click a day to see its events.</p>
           )}
         </aside>
       </div>
 
       {/* Legend */}
-      <div className="mt-4 flex flex-wrap gap-2 text-[10.5px]">
+      <div className="mt-4 flex flex-wrap gap-2 text-2xs">
         {(Object.keys(TYPE_META) as EventType[]).map(t => (
           <span key={t} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded border ${TYPE_META[t].tone}`}>
             {TYPE_META[t].icon} {TYPE_META[t].label}

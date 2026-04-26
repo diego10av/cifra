@@ -42,7 +42,7 @@ export function OfflineBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="fixed top-0 inset-x-0 z-50 bg-warning-500 text-white text-[12px] font-medium px-4 py-1.5 flex items-center justify-center gap-2 shadow"
+      className="fixed top-0 inset-x-0 z-50 bg-warning-500 text-white text-sm font-medium px-4 py-1.5 flex items-center justify-center gap-2 shadow"
     >
       <WifiOffIcon size={14} />
       <span>You&apos;re offline. Actions that require the server will fail until you reconnect.</span>

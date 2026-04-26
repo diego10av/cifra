@@ -105,7 +105,7 @@ export default function TaxOpsTeamPage() {
 
   return (
     <div>
-      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink mb-2">
+      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink mb-2">
         <ArrowLeftIcon size={12} /> Back to settings
       </Link>
       <PageHeader
@@ -115,7 +115,7 @@ export default function TaxOpsTeamPage() {
           newRow ? null : (
             <button
               onClick={() => setNewRow({ short_name: '', full_name: '', email: '' })}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white"
             >
               <PlusIcon size={12} /> Add member
             </button>
@@ -126,7 +126,7 @@ export default function TaxOpsTeamPage() {
       {error && <CrmErrorBox message={error} onRetry={load} />}
 
       <div className="rounded-md border border-border bg-surface overflow-hidden">
-        <table className="w-full text-[12.5px]">
+        <table className="w-full text-sm">
           <thead className="bg-surface-alt text-ink-muted">
             <tr className="text-left">
               <th className="px-3 py-2 font-medium">Short name</th>
@@ -145,7 +145,7 @@ export default function TaxOpsTeamPage() {
                     value={newRow.short_name}
                     onChange={e => setNewRow({ ...newRow, short_name: e.target.value })}
                     placeholder=""
-                    className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                    className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                   />
                 </td>
                 <td className="px-3 py-1.5">
@@ -153,7 +153,7 @@ export default function TaxOpsTeamPage() {
                     value={newRow.full_name}
                     onChange={e => setNewRow({ ...newRow, full_name: e.target.value })}
                     placeholder="Full name"
-                    className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                    className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                   />
                 </td>
                 <td className="px-3 py-1.5">
@@ -161,15 +161,15 @@ export default function TaxOpsTeamPage() {
                     value={newRow.email}
                     onChange={e => setNewRow({ ...newRow, email: e.target.value })}
                     placeholder="email@firm.com"
-                    className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                    className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                   />
                 </td>
                 <td className="px-3 py-1.5 text-ink-muted">Yes (default)</td>
                 <td className="px-3 py-1.5 text-right">
-                  <button onClick={createNew} className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600">
+                  <button onClick={createNew} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600">
                     <CheckIcon size={11} /> Save
                   </button>
-                  <button onClick={() => setNewRow(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-[11.5px] rounded-md border border-border hover:bg-surface-alt">
+                  <button onClick={() => setNewRow(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-xs rounded-md border border-border hover:bg-surface-alt">
                     <XIcon size={11} />
                   </button>
                 </td>
@@ -192,21 +192,21 @@ export default function TaxOpsTeamPage() {
                       <input
                         value={draft.short_name ?? ''}
                         onChange={e => setDraft({ ...draft, short_name: e.target.value })}
-                        className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                        className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                       />
                     </td>
                     <td className="px-3 py-1.5">
                       <input
                         value={draft.full_name ?? ''}
                         onChange={e => setDraft({ ...draft, full_name: e.target.value })}
-                        className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                        className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                       />
                     </td>
                     <td className="px-3 py-1.5">
                       <input
                         value={draft.email ?? ''}
                         onChange={e => setDraft({ ...draft, email: e.target.value })}
-                        className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                        className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                       />
                     </td>
                     <td className="px-3 py-1.5">
@@ -216,14 +216,14 @@ export default function TaxOpsTeamPage() {
                           checked={draft.is_active ?? true}
                           onChange={e => setDraft({ ...draft, is_active: e.target.checked })}
                         />
-                        <span className="text-[11.5px]">{draft.is_active ? 'Active' : 'Archived'}</span>
+                        <span className="text-xs">{draft.is_active ? 'Active' : 'Archived'}</span>
                       </label>
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      <button onClick={() => saveEdit(m.id)} className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600">
+                      <button onClick={() => saveEdit(m.id)} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600">
                         <CheckIcon size={11} /> Save
                       </button>
-                      <button onClick={() => setEditingId(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-[11.5px] rounded-md border border-border hover:bg-surface-alt">
+                      <button onClick={() => setEditingId(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-xs rounded-md border border-border hover:bg-surface-alt">
                         <XIcon size={11} />
                       </button>
                     </td>
@@ -235,13 +235,13 @@ export default function TaxOpsTeamPage() {
                     <td className="px-3 py-1.5 text-ink-soft">{m.email ?? '—'}</td>
                     <td className="px-3 py-1.5">
                       {m.is_active ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-green-100 text-green-800">Active</span>
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-green-100 text-green-800">Active</span>
                       ) : (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-surface-alt text-ink-muted">Archived</span>
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-surface-alt text-ink-muted">Archived</span>
                       )}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      <button onClick={() => startEdit(m)} className="text-[11.5px] text-brand-700 hover:text-brand-800 mr-2">
+                      <button onClick={() => startEdit(m)} className="text-xs text-brand-700 hover:text-brand-800 mr-2">
                         Edit
                       </button>
                       <button

@@ -89,7 +89,7 @@ export function EntityTaxStatusPills({ filings }: { filings: Filing[] }) {
 
   if (pills.length === 0) {
     return (
-      <div className="text-[12px] text-ink-muted italic">
+      <div className="text-sm text-ink-muted italic">
         No filings on record yet for this entity.
       </div>
     );
@@ -110,7 +110,7 @@ export function EntityTaxStatusPills({ filings }: { filings: Filing[] }) {
             ].join(' ')}
             title={`${label} — ${filingStatusLabel(filing.status)} · click to open filing`}
           >
-            <span className="text-[11px] text-ink-soft">{label}</span>
+            <span className="text-xs text-ink-soft">{label}</span>
             <FilingStatusBadge status={filing.status} />
           </Link>
         );

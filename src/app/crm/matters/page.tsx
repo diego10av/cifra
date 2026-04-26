@@ -90,7 +90,7 @@ export default function MattersPage() {
           <>
             <Link
               href="/crm/matters/new"
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-brand-600 text-white text-[12.5px] font-semibold hover:bg-brand-700"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-brand-600 text-white text-sm font-semibold hover:bg-brand-700"
             >
               <PlusIcon size={13} />
               New matter (wizard)
@@ -116,16 +116,16 @@ export default function MattersPage() {
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search reference or title..."
-            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md" />
         </div>
         <select value={status} onChange={e => setStatus(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
           <option value="">All statuses</option>
           {MATTER_STATUSES.map(s => <option key={s} value={s}>{LABELS_MATTER_STATUS[s]}</option>)}
         </select>
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="matters" />
-          <span className="text-[11.5px] text-ink-muted">{rows.length} matters</span>
+          <span className="text-xs text-ink-muted">{rows.length} matters</span>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export default function MattersPage() {
         <EmptyState illustration="folder" title="No matters yet" description="Matters typically arrive from won opportunities, or direct from Notion import." />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="px-3 py-2 w-8">
@@ -170,7 +170,7 @@ export default function MattersPage() {
                   <td className="px-3 py-2">
                     <Link href={`/crm/matters/${r.id}`} className="font-medium text-brand-700 hover:underline font-mono">{r.matter_reference}</Link>
                     {!r.conflict_check_done && r.status === 'active' && (
-                      <span className="ml-2 text-[9.5px] uppercase tracking-wide text-danger-700 bg-danger-50 border border-danger-200 rounded px-1 py-0.5" title="Conflict check pending">No conflict check</span>
+                      <span className="ml-2 text-2xs uppercase tracking-wide text-danger-700 bg-danger-50 border border-danger-200 rounded px-1 py-0.5" title="Conflict check pending">No conflict check</span>
                     )}
                   </td>
                   <td className="px-3 py-2">

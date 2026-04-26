@@ -11,6 +11,7 @@ import { TasksDueWidget } from '@/components/tax-ops/TasksDueWidget';
 import { RolloverModal } from '@/components/tax-ops/RolloverModal';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageContainer } from '@/components/ui/PageContainer';
+import { Button } from '@/components/ui/Button';
 
 // /tax-ops home — daily landing for compliance work.
 //
@@ -89,13 +90,14 @@ export default function TaxOpsHomePage() {
           </>
         }
         actions={
-          <button
+          <Button
+            variant="primary"
+            size="md"
+            icon={<CalendarPlusIcon size={14} />}
             onClick={() => setRolloverOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md bg-brand-500 hover:bg-brand-600 text-white whitespace-nowrap"
           >
-            <CalendarPlusIcon size={14} />
             Open {nextYear}
-          </button>
+          </Button>
         }
       />
 

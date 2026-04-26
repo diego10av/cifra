@@ -66,7 +66,7 @@ export function RetainerLedger({ companyId, companyName }: { companyId: string; 
   }
 
   if (!data) {
-    return <div className="text-[12px] text-ink-muted italic px-3 py-4">Loading retainer ledger…</div>;
+    return <div className="text-sm text-ink-muted italic px-3 py-4">Loading retainer ledger…</div>;
   }
 
   const { balance_eur, total_topped_up_eur, total_drawn_down_eur, topups, drawdowns } = data;
@@ -81,7 +81,7 @@ export function RetainerLedger({ companyId, companyName }: { companyId: string; 
       <div className="px-3 py-2 flex items-center justify-between border-b border-border bg-surface-alt/40">
         <div className="flex items-center gap-2">
           <WalletIcon size={14} className="text-ink-muted" />
-          <span className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted">Retainer ledger</span>
+          <span className="text-sm uppercase tracking-wide font-semibold text-ink-muted">Retainer ledger</span>
         </div>
         <Button variant="primary" size="sm" icon={<PlusIcon size={12} />} onClick={() => setAddOpen(true)}>
           Record top-up
@@ -95,26 +95,26 @@ export function RetainerLedger({ companyId, companyName }: { companyId: string; 
       </div>
 
       {!hasAnyActivity && (
-        <p className="p-3 text-[12px] text-ink-muted italic">
+        <p className="p-3 text-sm text-ink-muted italic">
           No retainer activity yet for {companyName}. Record a top-up when funds arrive.
         </p>
       )}
 
       {topups.length > 0 && (
         <div className="p-3 border-b border-border">
-          <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Top-ups ({topups.length})</div>
+          <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Top-ups ({topups.length})</div>
           <ul className="space-y-1">
             {topups.map(t => {
               const amt = Number(t.amount_eur);
               const isNegative = amt < 0;
               return (
-                <li key={t.id} className="flex items-center gap-2 text-[12px] border border-border rounded px-2 py-1.5">
+                <li key={t.id} className="flex items-center gap-2 text-sm border border-border rounded px-2 py-1.5">
                   <span className="tabular-nums text-ink-muted shrink-0 w-[80px]">{formatDate(t.topup_date)}</span>
                   <span className={`tabular-nums font-medium shrink-0 w-[90px] ${isNegative ? 'text-danger-700' : 'text-emerald-700'}`}>
                     {isNegative ? '−' : '+'}{formatEur(Math.abs(amt))}
                   </span>
-                  <span className="text-ink-muted font-mono text-[11px] shrink-0">{t.reference ?? '—'}</span>
-                  <span className="text-ink-muted flex-1 truncate text-[11px]" title={t.notes ?? ''}>{t.notes ?? ''}</span>
+                  <span className="text-ink-muted font-mono text-xs shrink-0">{t.reference ?? '—'}</span>
+                  <span className="text-ink-muted flex-1 truncate text-xs" title={t.notes ?? ''}>{t.notes ?? ''}</span>
                   <button onClick={() => removeTopup(t.id)} className="text-danger-600 hover:text-danger-800 shrink-0" title="Remove">
                     <Trash2Icon size={11} />
                   </button>
@@ -127,15 +127,15 @@ export function RetainerLedger({ companyId, companyName }: { companyId: string; 
 
       {drawdowns.length > 0 && (
         <div className="p-3">
-          <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Drawdowns ({drawdowns.length})</div>
+          <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Drawdowns ({drawdowns.length})</div>
           <ul className="space-y-1">
             {drawdowns.map(d => {
               const amt = Number(d.drawn_from_retainer_eur);
               return (
-                <li key={d.id} className="flex items-center gap-2 text-[12px] border border-border rounded px-2 py-1.5">
+                <li key={d.id} className="flex items-center gap-2 text-sm border border-border rounded px-2 py-1.5">
                   <span className="tabular-nums text-ink-muted shrink-0 w-[80px]">{formatDate(d.issue_date)}</span>
                   <span className="tabular-nums font-medium shrink-0 w-[90px] text-danger-700">−{formatEur(amt)}</span>
-                  <Link href={`/crm/billing/${d.id}`} className="font-mono text-[11px] text-brand-700 hover:underline">
+                  <Link href={`/crm/billing/${d.id}`} className="font-mono text-xs text-brand-700 hover:underline">
                     {d.invoice_number}
                   </Link>
                 </li>
@@ -159,8 +159,8 @@ export function RetainerLedger({ companyId, companyName }: { companyId: string; 
 function Kpi({ label, value, tone }: { label: string; value: string; tone: string }) {
   return (
     <div className="px-3 py-2 border-r border-border last:border-r-0">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
-      <div className={`text-[15px] font-semibold tabular-nums ${tone}`}>{value}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
+      <div className={`text-base font-semibold tabular-nums ${tone}`}>{value}</div>
     </div>
   );
 }
@@ -210,28 +210,28 @@ function AddTopupModal({
       size="md"
       footer={
         <div className="flex items-center gap-2 justify-end">
-          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
+          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-sm text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
           <Button variant="primary" size="sm" onClick={submit} loading={saving}>Record</Button>
         </div>
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Amount (€) *</label>
-          <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="10000" className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums" />
-          <p className="mt-1 text-[10.5px] text-ink-muted">Negative = adjustment or refund.</p>
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Amount (€) *</label>
+          <input type="number" step="0.01" value={amount} onChange={e => setAmount(e.target.value)} placeholder="10000" className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums" />
+          <p className="mt-1 text-2xs text-ink-muted">Negative = adjustment or refund.</p>
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Received on *</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Received on *</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full h-9 px-2.5 text-sm border border-border rounded-md" />
         </div>
         <div className="md:col-span-2">
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Bank reference</label>
-          <input value={reference} onChange={e => setReference(e.target.value)} placeholder="Bank statement ref" className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md font-mono" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Bank reference</label>
+          <input value={reference} onChange={e => setReference(e.target.value)} placeholder="Bank statement ref" className="w-full h-9 px-2.5 text-sm border border-border rounded-md font-mono" />
         </div>
         <div className="md:col-span-2">
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Notes</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full px-2.5 py-2 text-[13px] border border-border rounded-md resize-y" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Notes</label>
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full px-2.5 py-2 text-sm border border-border rounded-md resize-y" />
         </div>
       </div>
     </Modal>

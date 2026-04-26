@@ -1681,7 +1681,7 @@ function TableRow({
       {/* Provider */}
       <td {...editCellProps()}>
         {isEditing && !isLocked ? (
-          <input autoFocus className="w-full border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <input autoFocus className="w-full border border-border-strong rounded px-1.5 py-0.5 text-sm"
             defaultValue={line.provider}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { provider: e.target.value })} />
@@ -1693,7 +1693,7 @@ function TableRow({
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input className="w-14 border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            <input className="w-14 border border-border-strong rounded px-1.5 py-0.5 text-sm"
               defaultValue={line.country}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { country: e.target.value })} />
@@ -1703,7 +1703,7 @@ function TableRow({
 
       <td {...editCellProps()} title={line.description}>
         {isEditing && !isLocked ? (
-          <input className="w-full border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <input className="w-full border border-border-strong rounded px-1.5 py-0.5 text-sm"
             defaultValue={line.description}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { description: e.target.value })} />
@@ -1715,7 +1715,7 @@ function TableRow({
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input type="date" className="border border-border-strong rounded px-1 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            <input type="date" className="border border-border-strong rounded px-1 py-0.5 text-sm"
               defaultValue={line.invoice_date}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { invoice_date: e.target.value })} />
@@ -1726,7 +1726,7 @@ function TableRow({
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input className="w-20 border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            <input className="w-20 border border-border-strong rounded px-1.5 py-0.5 text-sm"
               defaultValue={line.invoice_number}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { invoice_number: e.target.value })} />
@@ -1736,7 +1736,7 @@ function TableRow({
 
       <td {...editCellProps()} className="px-2 py-1.5 text-right font-mono cursor-pointer tabular-nums">
         {isEditing && !isLocked ? (
-          <input className="w-24 border border-border-strong rounded px-1.5 py-0.5 text-sm text-right focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <input className="w-24 border border-border-strong rounded px-1.5 py-0.5 text-sm text-right"
             type="number" step="0.01" defaultValue={line.amount_eur}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { amount_eur: parseFloat(e.target.value) })} />
@@ -1763,7 +1763,7 @@ function TableRow({
       <td {...editCellProps()}>
         {isEditing && !isLocked ? (
           <select
-            className="border border-border-strong rounded px-1.5 py-0.5 text-xs focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="border border-border-strong rounded px-1.5 py-0.5 text-xs"
             value={line.treatment || ''}
             onClick={e => e.stopPropagation()}
             onChange={e => onUpdate(line.id, { treatment: e.target.value || null, treatment_source: 'manual' })}

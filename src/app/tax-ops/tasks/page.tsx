@@ -183,13 +183,13 @@ export default function TasksListPage() {
           <div className="flex items-center gap-1.5 rounded-md border border-border bg-surface p-0.5">
             <button
               onClick={() => setView('list')}
-              className={`inline-flex items-center gap-1 px-2 py-1 text-[12px] rounded ${view === 'list' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 text-sm rounded ${view === 'list' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
             >
               <LayoutListIcon size={11} /> List
             </button>
             <button
               onClick={() => setView('board')}
-              className={`inline-flex items-center gap-1 px-2 py-1 text-[12px] rounded ${view === 'board' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 text-sm rounded ${view === 'board' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
             >
               <LayoutGridIcon size={11} /> Board
             </button>
@@ -204,13 +204,13 @@ export default function TasksListPage() {
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Search title, description, tags…"
-            className="pl-7 pr-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface w-[260px]"
+            className="pl-7 pr-2 py-1.5 text-sm border border-border rounded-md bg-surface w-[260px]"
           />
         </div>
         <select
           value={status}
           onChange={e => setStatus(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-surface"
         >
           <option value="">All statuses</option>
           {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
@@ -219,7 +219,7 @@ export default function TasksListPage() {
           value={assignee}
           onChange={e => setAssignee(e.target.value)}
           placeholder="Assignee short name"
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface w-[160px]"
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-surface w-[160px]"
         />
         <div className="flex gap-1 ml-2">
           {QUICK_FILTERS.map(f => (
@@ -227,7 +227,7 @@ export default function TasksListPage() {
               key={f.key}
               onClick={() => setPreset(preset === f.key ? '' : f.key)}
               title={f.tooltip}
-              className={`px-2 py-1 text-[11.5px] rounded-md border ${preset === f.key ? 'bg-brand-500 text-white border-brand-500' : 'border-border hover:bg-surface-alt'}`}
+              className={`px-2 py-1 text-xs rounded-md border ${preset === f.key ? 'bg-brand-500 text-white border-brand-500' : 'border-border hover:bg-surface-alt'}`}
             >
               {f.label}
             </button>
@@ -236,7 +236,7 @@ export default function TasksListPage() {
         {hasFilters && (
           <button
             onClick={clearFilters}
-            className="inline-flex items-center gap-1 px-2 py-1.5 text-[12px] text-ink-muted hover:text-ink border border-border rounded-md"
+            className="inline-flex items-center gap-1 px-2 py-1.5 text-sm text-ink-muted hover:text-ink border border-border rounded-md"
           >
             <FilterXIcon size={12} /> Clear
           </button>
@@ -246,9 +246,9 @@ export default function TasksListPage() {
             onClick={() => {
               window.dispatchEvent(new KeyboardEvent('keydown', { key: 'N' }));
             }}
-            className="inline-flex items-center gap-1 px-3 py-1.5 text-[12.5px] rounded-md bg-brand-500 hover:bg-brand-600 text-white"
+            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white"
           >
-            <PlusIcon size={12} /> New <kbd className="text-[9px] px-1 py-0.5 rounded bg-brand-600">N</kbd>
+            <PlusIcon size={12} /> New <kbd className="text-2xs px-1 py-0.5 rounded bg-brand-600">N</kbd>
           </button>
         </div>
       </div>
@@ -262,7 +262,7 @@ export default function TasksListPage() {
         />
       ) : view === 'list' ? (
         <div className="rounded-md border border-border bg-surface overflow-auto">
-          <table className="w-full text-[12px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted sticky top-0 z-10">
               <tr className="text-left">
                 <th className="px-2 py-1.5 font-medium w-[120px]">Family</th>
@@ -281,10 +281,10 @@ export default function TasksListPage() {
             <tbody>
               {rows.map(t => (
                 <tr key={t.id} className="border-t border-border/70 hover:bg-surface-alt/40 align-top">
-                  <td className="px-2 py-1.5 text-ink-soft text-[11.5px] truncate max-w-[120px]">
+                  <td className="px-2 py-1.5 text-ink-soft text-xs truncate max-w-[120px]">
                     {t.family_name ?? '—'}
                   </td>
-                  <td className="px-2 py-1.5 text-ink-soft text-[11.5px] truncate max-w-[150px]" title={t.entity_name ?? undefined}>
+                  <td className="px-2 py-1.5 text-ink-soft text-xs truncate max-w-[150px]" title={t.entity_name ?? undefined}>
                     {t.entity_id ? (
                       <Link href={`/tax-ops/entities/${t.entity_id}`} className="hover:text-brand-700">
                         {t.entity_name ?? '(unknown)'}
@@ -292,37 +292,37 @@ export default function TasksListPage() {
                     ) : '—'}
                   </td>
                   <td className="px-2 py-1.5">
-                    <Link href={`/tax-ops/tasks/${t.id}`} className="font-medium text-ink hover:text-brand-700 text-[12.5px]">
+                    <Link href={`/tax-ops/tasks/${t.id}`} className="font-medium text-ink hover:text-brand-700 text-sm">
                       {t.title}
                     </Link>
                     {t.tags.length > 0 && (
                       <div className="mt-0.5 flex flex-wrap gap-1">
                         {t.tags.filter(tg => !tg.startsWith('recurring_from:')).slice(0, 3).map((tg, i) => (
-                          <span key={i} className="text-[9.5px] px-1 py-0 rounded bg-surface-alt text-ink-muted">{tg}</span>
+                          <span key={i} className="text-2xs px-1 py-0 rounded bg-surface-alt text-ink-muted">{tg}</span>
                         ))}
                       </div>
                     )}
                   </td>
-                  <td className="px-2 py-1.5 text-[11.5px] text-ink-soft">
+                  <td className="px-2 py-1.5 text-xs text-ink-soft">
                     {TASK_KIND_LABELS[t.task_kind] ?? t.task_kind}
                   </td>
                   <td className="px-2 py-1.5">
                     <select
                       value={t.status}
                       onChange={e => patchTask(t.id, { status: e.target.value }).catch(err => toast.error(String(err)))}
-                      className="w-full px-1 py-0.5 text-[11px] border border-border rounded bg-surface"
+                      className="w-full px-1 py-0.5 text-xs border border-border rounded bg-surface"
                     >
                       {STATUSES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
                   </td>
-                  <td className="px-2 py-1.5 text-[11.5px]">
+                  <td className="px-2 py-1.5 text-xs">
                     {t.waiting_on_kind ? (
                       <div>
-                        <span className="inline-flex items-center px-1 py-0 rounded bg-amber-50 text-amber-800 text-[10px]">
+                        <span className="inline-flex items-center px-1 py-0 rounded bg-amber-50 text-amber-800 text-2xs">
                           {WAITING_ON_LABELS[t.waiting_on_kind] ?? t.waiting_on_kind}
                         </span>
                         {t.waiting_on_note && (
-                          <div className="text-[10.5px] text-ink-muted mt-0.5 truncate" title={t.waiting_on_note}>
+                          <div className="text-2xs text-ink-muted mt-0.5 truncate" title={t.waiting_on_note}>
                             {t.waiting_on_note}
                           </div>
                         )}
@@ -332,14 +332,14 @@ export default function TasksListPage() {
                   <td className="px-2 py-1.5">
                     <DateBadge value={t.follow_up_date} mode="urgency" />
                   </td>
-                  <td className="px-2 py-1.5 text-ink-soft text-[11.5px]">
+                  <td className="px-2 py-1.5 text-ink-soft text-xs">
                     {t.assignee ?? '—'}
                   </td>
                   <td className="px-2 py-1.5">
                     <DateBadge value={t.due_date} mode="urgency" />
                   </td>
                   <td className="px-2 py-1.5">
-                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium ${PRIORITY_COLORS[t.priority] ?? ''}`}>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs font-medium ${PRIORITY_COLORS[t.priority] ?? ''}`}>
                       {t.priority}
                     </span>
                   </td>

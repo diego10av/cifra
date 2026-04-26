@@ -76,7 +76,7 @@ export function InlineTextCell({
       ariaLabel="Edit text"
       renderDisplay={(v) => (
         <span
-          className={v ? 'text-ink-soft text-[11.5px] line-clamp-2' : 'text-ink-faint italic text-[11.5px]'}
+          className={v ? 'text-ink-soft text-xs line-clamp-2' : 'text-ink-faint italic text-xs'}
           title={v || undefined}
         >
           {v || (placeholder ?? 'Add note…')}
@@ -124,8 +124,8 @@ export function InlineTagsCell({
       ariaLabel="Edit tags"
       renderDisplay={(v) => (
         v.length === 0
-          ? <span className="text-ink-faint italic text-[11.5px]">{placeholder ?? 'Add…'}</span>
-          : <span className="text-ink-soft text-[11.5px]">{v.join(', ')}</span>
+          ? <span className="text-ink-faint italic text-xs">{placeholder ?? 'Add…'}</span>
+          : <span className="text-ink-soft text-xs">{v.join(', ')}</span>
       )}
       renderEditor={({ value, setValue, commit, cancel }) => (
         <AutoInput
@@ -169,7 +169,7 @@ export function InlineDateCell({
             else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
           }}
           onBlur={() => commit()}
-          className="px-1.5 py-0.5 text-[11.5px] border border-border rounded bg-surface tabular-nums"
+          className="px-1.5 py-0.5 text-xs border border-border rounded bg-surface tabular-nums"
         />
       )}
     />
@@ -207,7 +207,7 @@ export function InlinePriceCell({
       ariaLabel="Edit invoice price"
       renderDisplay={() => {
         if (!priceEur) {
-          return <span className="text-ink-faint italic text-[11px]">—</span>;
+          return <span className="text-ink-faint italic text-xs">—</span>;
         }
         const fmtEur = (() => {
           const n = Number(priceEur);
@@ -219,7 +219,7 @@ export function InlinePriceCell({
           : '';
         return (
           <span
-            className="inline-block text-[11.5px] text-ink font-mono whitespace-nowrap"
+            className="inline-block text-xs text-ink font-mono whitespace-nowrap"
             title={note ?? ''}
           >
             {fmtEur}{compactNote ? <span className="text-ink-muted"> {compactNote}</span> : null}
@@ -231,7 +231,7 @@ export function InlinePriceCell({
         const effNote = curNote || (priceEur ? '' : defaultNote);
         return (
           <div className="flex flex-col gap-1 p-1 w-[260px] bg-surface border border-border rounded shadow-sm">
-            <label className="text-[11px] text-ink-muted">Price (€)</label>
+            <label className="text-xs text-ink-muted">Price (€)</label>
             <input
               type="number"
               step="1"
@@ -243,10 +243,10 @@ export function InlinePriceCell({
                 if (e.key === 'Enter') { e.preventDefault(); commit(); }
                 else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
               }}
-              className="px-1.5 py-1 text-[12px] border border-border rounded bg-surface tabular-nums"
+              className="px-1.5 py-1 text-sm border border-border rounded bg-surface tabular-nums"
               placeholder="e.g. 3000"
             />
-            <label className="text-[11px] text-ink-muted mt-1">Note (shown next to €)</label>
+            <label className="text-xs text-ink-muted mt-1">Note (shown next to €)</label>
             <textarea
               value={effNote}
               onChange={(e) => setValue(`${curEur}|${e.target.value}`)}
@@ -258,21 +258,21 @@ export function InlinePriceCell({
                 }
               }}
               rows={2}
-              className="px-1.5 py-1 text-[11.5px] border border-border rounded bg-surface"
+              className="px-1.5 py-1 text-xs border border-border rounded bg-surface"
               placeholder="+5% office expenses +VAT if applicable"
             />
             <div className="flex justify-end gap-1 mt-1">
               <button
                 type="button"
                 onClick={cancel}
-                className="px-2 py-0.5 text-[11px] rounded border border-border hover:bg-surface-alt"
+                className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => commit()}
-                className="px-2 py-0.5 text-[11px] rounded bg-brand-500 text-white hover:bg-brand-600"
+                className="px-2 py-0.5 text-xs rounded bg-brand-500 text-white hover:bg-brand-600"
               >
                 Save
               </button>
@@ -303,7 +303,7 @@ function AutoSelect({
       ref={ref}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="px-1.5 py-0.5 text-[11px] border border-border rounded bg-surface"
+      className="px-1.5 py-0.5 text-xs border border-border rounded bg-surface"
     >
       {children}
     </select>
@@ -336,7 +336,7 @@ function AutoInput({
         else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
       }}
       onBlur={onCommit}
-      className="px-1.5 py-0.5 text-[11.5px] border border-border rounded bg-surface w-full min-w-[140px]"
+      className="px-1.5 py-0.5 text-xs border border-border rounded bg-surface w-full min-w-[140px]"
     />
   );
 }
@@ -373,7 +373,7 @@ function AutoTextarea({
       }}
       onBlur={onCommit}
       rows={3}
-      className="px-1.5 py-1 text-[11.5px] border border-border rounded bg-surface w-full min-w-[200px]"
+      className="px-1.5 py-1 text-xs border border-border rounded bg-surface w-full min-w-[200px]"
     />
   );
 }

@@ -41,13 +41,13 @@ export function DocRow({
       tabIndex={0}
       aria-pressed={selected}
       aria-label={`Document ${doc.filename}, status ${doc.status}${doc.triage_result ? `, triage ${doc.triage_result}` : ''}`}
-      className={`px-4 py-2 border-b border-divider last:border-0 text-[12px] cursor-pointer transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-inset ${selected ? 'bg-blue-50' : 'hover:bg-surface-alt'}`}
+      className={`px-4 py-2 border-b border-divider last:border-0 text-sm cursor-pointer transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-inset ${selected ? 'bg-blue-50' : 'hover:bg-surface-alt'}`}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <FileIcon type={doc.file_type} />
           <span className="truncate">{doc.filename}</span>
-          <span className="text-[10px] text-ink-faint shrink-0">{(doc.file_size / 1024).toFixed(0)} KB</span>
+          <span className="text-2xs text-ink-faint shrink-0">{(doc.file_size / 1024).toFixed(0)} KB</span>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <TriageTag triage={doc.triage_result} />
@@ -58,7 +58,7 @@ export function DocRow({
         <div
           onClick={e => e.stopPropagation()}
           onKeyDown={e => e.stopPropagation()}
-          className="mt-1 ml-6 text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 break-words flex items-start justify-between gap-2"
+          className="mt-1 ml-6 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 break-words flex items-start justify-between gap-2"
         >
           <div className="flex-1"><span className="font-semibold">Error:</span> {doc.error_message}</div>
           <button
@@ -89,7 +89,7 @@ export function StatusBadge({ status }: { status: string }) {
     paid: 'bg-teal-100 text-teal-800',
   };
   return (
-    <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-surface-alt'}`}>
+    <span className={`text-2xs px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-surface-alt'}`}>
       {status}
     </span>
   );
@@ -106,7 +106,7 @@ export function DocStatusTag({ status }: { status: string }) {
     error: 'bg-red-100 text-red-600',
   };
   return (
-    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[status] || 'bg-surface-alt'}`}>
+    <span className={`text-2xs px-1.5 py-0.5 rounded font-medium ${colors[status] || 'bg-surface-alt'}`}>
       {status}
     </span>
   );
@@ -134,7 +134,7 @@ const TRIAGE_LABEL: Record<string, string> = {
 };
 
 export function TriageTag({ triage }: { triage: string | null }) {
-  if (!triage) return <span className="text-[10px] text-ink-faint">—</span>;
+  if (!triage) return <span className="text-2xs text-ink-faint">—</span>;
   const colors: Record<string, string> = {
     invoice: 'bg-blue-100 text-blue-700',
     credit_note: 'bg-purple-100 text-purple-700',
@@ -151,7 +151,7 @@ export function TriageTag({ triage }: { triage: string | null }) {
     other: 'bg-surface-alt text-ink-soft',
   };
   return (
-    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${colors[triage] || 'bg-surface-alt'}`}>
+    <span className={`text-2xs px-1.5 py-0.5 rounded font-medium ${colors[triage] || 'bg-surface-alt'}`}>
       {TRIAGE_LABEL[triage] ?? triage}
     </span>
   );

@@ -131,8 +131,8 @@ export function ShareLinkModal({
               <ShareIcon size={13} />
             </div>
             <div>
-              <h3 id="share-link-title" className="text-[14px] font-semibold text-ink leading-tight">Share for client approval</h3>
-              <div className="text-[11px] text-ink-muted leading-tight mt-0.5">
+              <h3 id="share-link-title" className="text-base font-semibold text-ink leading-tight">Share for client approval</h3>
+              <div className="text-xs text-ink-muted leading-tight mt-0.5">
                 One-time link, no login required on the client side
               </div>
             </div>
@@ -151,14 +151,14 @@ export function ShareLinkModal({
           {!result ? (
             <>
               <label className="block">
-                <span className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted">
+                <span className="text-xs uppercase tracking-wide font-semibold text-ink-muted">
                   Link expires after
                 </span>
                 <select
                   value={expiryDays}
                   onChange={e => setExpiryDays(Number(e.target.value))}
                   disabled={loading}
-                  className="mt-1.5 w-full border border-border-strong rounded px-3 py-2 text-[13px] bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="mt-1.5 w-full border border-border-strong rounded px-3 py-2 text-sm bg-surface"
                 >
                   <option value={1}>1 day</option>
                   <option value={3}>3 days</option>
@@ -168,13 +168,13 @@ export function ShareLinkModal({
                 </select>
               </label>
 
-              <div className="mt-3 text-[11.5px] text-ink-muted leading-relaxed">
+              <div className="mt-3 text-xs text-ink-muted leading-relaxed">
                 The client can approve with one click. We record their IP +
                 timestamp + a cryptographic nonce in the audit trail.
               </div>
 
               {error && (
-                <div className="mt-3 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+                <div className="mt-3 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
                   <AlertCircleIcon size={13} className="mt-0.5 shrink-0" /> {error}
                 </div>
               )}
@@ -182,14 +182,14 @@ export function ShareLinkModal({
               <div className="mt-5 flex gap-2 justify-end">
                 <button
                   onClick={onClose}
-                  className="h-9 px-4 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt"
+                  className="h-9 px-4 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={generate}
                   disabled={loading}
-                  className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+                  className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
                   {loading ? (
                     <>
@@ -203,13 +203,13 @@ export function ShareLinkModal({
             </>
           ) : (
             <>
-              <div className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted">
+              <div className="text-xs uppercase tracking-wide font-semibold text-ink-muted">
                 Shareable link
               </div>
-              <div className="mt-1.5 bg-surface-alt border border-border rounded p-2 font-mono text-[11.5px] text-ink break-all select-all">
+              <div className="mt-1.5 bg-surface-alt border border-border rounded p-2 font-mono text-xs text-ink break-all select-all">
                 {result.url}
               </div>
-              <div className="text-[11px] text-ink-muted mt-2">
+              <div className="text-xs text-ink-muted mt-2">
                 Expires{' '}
                 <span className="font-medium text-ink-soft">
                   {new Date(result.expires_at).toLocaleString('en-GB', {
@@ -222,14 +222,14 @@ export function ShareLinkModal({
                   receive the email when they click "Draft email". */}
               {result.approvers.length > 0 ? (
                 <div className="mt-4">
-                  <div className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-2">
+                  <div className="text-xs uppercase tracking-wide font-semibold text-ink-muted mb-2">
                     Will send to
                   </div>
                   <div className="space-y-1.5">
                     {result.approvers.map(a => (
-                      <div key={a.id} className="flex items-center gap-2 text-[12px]">
+                      <div key={a.id} className="flex items-center gap-2 text-sm">
                         <span className={[
-                          'text-[9.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0',
+                          'text-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0',
                           a.is_primary
                             ? 'bg-brand-500 text-white'
                             : 'bg-surface-alt text-ink-soft border border-border',
@@ -239,16 +239,16 @@ export function ShareLinkModal({
                         <span className="text-ink font-medium">{a.name}</span>
                         {a.role && <span className="text-ink-muted">· {a.role}</span>}
                         {a.email ? (
-                          <span className="text-ink-muted font-mono text-[11px]">{a.email}</span>
+                          <span className="text-ink-muted font-mono text-xs">{a.email}</span>
                         ) : (
-                          <span className="text-warning-700 text-[11px]">(no email)</span>
+                          <span className="text-warning-700 text-xs">(no email)</span>
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 text-[11.5px] text-warning-800 bg-warning-50 border border-warning-200 rounded px-3 py-2">
+                <div className="mt-4 text-xs text-warning-800 bg-warning-50 border border-warning-200 rounded px-3 py-2">
                   No approvers configured for this entity.
                   Add them on the entity page so &ldquo;Draft email&rdquo; can
                   pre-fill To / Cc automatically.
@@ -258,13 +258,13 @@ export function ShareLinkModal({
               <div className="mt-5 flex gap-2 justify-end">
                 <button
                   onClick={openInMail}
-                  className="h-9 px-4 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt"
+                  className="h-9 px-4 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt"
                 >
                   Draft email
                 </button>
                 <button
                   onClick={copy}
-                  className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
+                  className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
                 >
                   {copied ? <CheckIcon size={13} /> : <CopyIcon size={13} />}
                   {copied ? 'Copied' : 'Copy link'}

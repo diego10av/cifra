@@ -99,21 +99,21 @@ export default function TrashPage() {
   return (
     <div className="max-w-5xl">
       <div className="mb-5">
-        <div className="text-[11px] text-ink-faint mb-1">
+        <div className="text-xs text-ink-faint mb-1">
           <Link href="/settings" className="hover:underline">Settings</Link> ›
         </div>
-        <h1 className="text-[22px] font-semibold tracking-tight inline-flex items-center gap-2">
+        <h1 className="text-xl font-semibold tracking-tight inline-flex items-center gap-2">
           <ArchiveIcon size={18} className="text-brand-500" />
           Trash
         </h1>
-        <p className="text-[12.5px] text-ink-muted mt-1 max-w-xl">
+        <p className="text-sm text-ink-muted mt-1 max-w-xl">
           Soft-archived clients and entities. They&apos;re hidden from the
           workspace but the data is fully intact — restore any time.
         </p>
       </div>
 
       {/* Retention notice */}
-      <div className="mb-6 rounded-md border border-border bg-surface-alt/40 px-4 py-3 text-[12px] text-ink-soft leading-relaxed">
+      <div className="mb-6 rounded-md border border-border bg-surface-alt/40 px-4 py-3 text-sm text-ink-soft leading-relaxed">
         <strong>Retention note.</strong> Today archived items stay here
         indefinitely. A future 90-day auto-purge is on the roadmap
         (Fase 2) — items archived <em>more than 90 days ago</em> will
@@ -136,7 +136,7 @@ export default function TrashPage() {
             <section className="bg-surface border border-border rounded-lg overflow-hidden">
               <header className="px-4 py-3 border-b border-divider flex items-center gap-2">
                 <Building2Icon size={13} className="text-ink-muted" />
-                <h3 className="text-[13px] font-semibold text-ink">
+                <h3 className="text-sm font-semibold text-ink">
                   Archived clients <span className="text-ink-muted font-normal">· {clients.length}</span>
                 </h3>
               </header>
@@ -144,8 +144,8 @@ export default function TrashPage() {
                 {clients.map(c => (
                   <li key={c.id} className="px-4 py-3 flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-medium text-ink">{c.name}</div>
-                      <div className="text-[11px] text-ink-muted mt-0.5">
+                      <div className="text-sm font-medium text-ink">{c.name}</div>
+                      <div className="text-xs text-ink-muted mt-0.5">
                         Archived {formatRelative(c.archived_at)} · kind: {c.kind}
                         {c.entity_count > 0 && ` · ${c.entity_count} entit${c.entity_count === 1 ? 'y' : 'ies'} still active under this client`}
                       </div>
@@ -153,7 +153,7 @@ export default function TrashPage() {
                     <button
                       onClick={() => restoreClient(c)}
                       disabled={busyId === c.id}
-                      className="h-8 px-3 rounded-md border border-border-strong text-[12px] font-medium text-ink-soft hover:text-ink hover:bg-surface-alt disabled:opacity-50 inline-flex items-center gap-1.5"
+                      className="h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-alt disabled:opacity-50 inline-flex items-center gap-1.5"
                     >
                       <RotateCcwIcon size={12} /> Restore
                     </button>
@@ -167,7 +167,7 @@ export default function TrashPage() {
             <section className="bg-surface border border-border rounded-lg overflow-hidden">
               <header className="px-4 py-3 border-b border-divider flex items-center gap-2">
                 <Trash2Icon size={13} className="text-ink-muted" />
-                <h3 className="text-[13px] font-semibold text-ink">
+                <h3 className="text-sm font-semibold text-ink">
                   Archived entities <span className="text-ink-muted font-normal">· {entities.length}</span>
                 </h3>
               </header>
@@ -175,8 +175,8 @@ export default function TrashPage() {
                 {entities.map(e => (
                   <li key={e.id} className="px-4 py-3 flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-medium text-ink">{e.name}</div>
-                      <div className="text-[11px] text-ink-muted mt-0.5">
+                      <div className="text-sm font-medium text-ink">{e.name}</div>
+                      <div className="text-xs text-ink-muted mt-0.5">
                         Archived {formatRelative(e.deleted_at)}
                         {e.client_name && <> · client: {e.client_name}</>}
                         {e.declaration_count > 0 && ` · ${e.declaration_count} declaration${e.declaration_count === 1 ? '' : 's'} still under this entity`}
@@ -186,7 +186,7 @@ export default function TrashPage() {
                     <button
                       onClick={() => restoreEntity(e)}
                       disabled={busyId === e.id}
-                      className="h-8 px-3 rounded-md border border-border-strong text-[12px] font-medium text-ink-soft hover:text-ink hover:bg-surface-alt disabled:opacity-50 inline-flex items-center gap-1.5"
+                      className="h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-alt disabled:opacity-50 inline-flex items-center gap-1.5"
                     >
                       <RotateCcwIcon size={12} /> Restore
                     </button>

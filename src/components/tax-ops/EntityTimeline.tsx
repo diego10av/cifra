@@ -45,11 +45,11 @@ export function EntityTimeline({ entityId }: { entityId: string }) {
     return () => { cancelled = true; };
   }, [entityId]);
 
-  if (loading) return <div className="text-[12px] text-ink-muted italic">Loading activity…</div>;
-  if (error)   return <div className="text-[12px] text-danger-700">Activity load failed: {error}</div>;
+  if (loading) return <div className="text-sm text-ink-muted italic">Loading activity…</div>;
+  if (error)   return <div className="text-sm text-danger-700">Activity load failed: {error}</div>;
   if (!data || data.rows.length === 0) {
     return (
-      <div className="text-[12px] text-ink-muted italic">
+      <div className="text-sm text-ink-muted italic">
         No recorded activity yet. Status changes, family moves, contact edits and merges
         will appear here as they happen.
       </div>
@@ -64,14 +64,14 @@ export function EntityTimeline({ entityId }: { entityId: string }) {
       <ol className="relative border-l border-border ml-2">
         {groups.map(g => (
           <li key={g.key} className="mb-4 ml-4">
-            <div className="text-[11px] text-ink-muted mb-1.5 font-medium">{g.label}</div>
+            <div className="text-xs text-ink-muted mb-1.5 font-medium">{g.label}</div>
             <ul className="space-y-1.5">
               {g.items.map(r => (
-                <li key={r.id} className="flex items-start gap-2 text-[12.5px]">
+                <li key={r.id} className="flex items-start gap-2 text-sm">
                   <span className="w-5 shrink-0 text-center" aria-hidden>{iconFor(r.action)}</span>
                   <span className="flex-1 min-w-0">
                     <span className="text-ink">{humanize(r)}</span>
-                    <span className="text-ink-muted ml-2 text-[11px] tabular-nums">
+                    <span className="text-ink-muted ml-2 text-xs tabular-nums">
                       {formatTime(r.created_at)}
                       {r.user_id && r.user_id !== 'founder' ? ` · ${r.user_id}` : ''}
                     </span>
@@ -83,13 +83,13 @@ export function EntityTimeline({ entityId }: { entityId: string }) {
         ))}
       </ol>
       <div className="mt-2 flex items-center gap-3">
-        <span className="text-[11px] text-ink-muted">
+        <span className="text-xs text-ink-muted">
           {data.rows.length} event{data.rows.length === 1 ? '' : 's'}
           {rowCapped ? ' (most recent 200)' : ''}
         </span>
         <Link
           href={`/audit?target_id=${entityId}`}
-          className="text-[11px] text-brand-700 hover:text-brand-900 underline inline-flex items-center gap-1"
+          className="text-xs text-brand-700 hover:text-brand-900 underline inline-flex items-center gap-1"
         >
           <ExternalLinkIcon size={10} /> Full audit log
         </Link>

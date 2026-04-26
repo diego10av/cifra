@@ -53,7 +53,7 @@ export function KeyAccountHealthWidget() {
 
   if (error) return <CrmErrorBox message={error} onRetry={refetch} />;
   if (!data || isLoading) {
-    return <div className="text-[12px] text-ink-muted italic px-3 py-6">Computing Key Account health…</div>;
+    return <div className="text-sm text-ink-muted italic px-3 py-6">Computing Key Account health…</div>;
   }
 
   if (data.accounts.length === 0) {
@@ -61,9 +61,9 @@ export function KeyAccountHealthWidget() {
       <div className="border border-border rounded-lg bg-white p-4">
         <div className="flex items-center gap-2 mb-2">
           <ShieldCheckIcon size={14} className="text-brand-600" />
-          <h2 className="text-[13px] uppercase tracking-wide font-semibold text-ink-muted">Key Account health</h2>
+          <h2 className="text-sm uppercase tracking-wide font-semibold text-ink-muted">Key Account health</h2>
         </div>
-        <p className="text-[13px] text-ink-soft">
+        <p className="text-sm text-ink-soft">
           No Key Accounts set yet. Mark your top clients with classification = Key Account on the company detail page.
         </p>
       </div>
@@ -75,11 +75,11 @@ export function KeyAccountHealthWidget() {
       <div className="px-4 py-2.5 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">
           <ShieldCheckIcon size={14} className="text-brand-600" />
-          <h2 className="text-[13px] uppercase tracking-wide font-semibold text-ink-muted">
+          <h2 className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
             Key Account health · {data.accounts.length}
           </h2>
         </div>
-        <div className="flex items-center gap-3 text-[11px] tabular-nums">
+        <div className="flex items-center gap-3 text-xs tabular-nums">
           {data.at_risk_count > 0 && (
             <span className="text-danger-700"><strong>{data.at_risk_count}</strong> at risk</span>
           )}
@@ -90,7 +90,7 @@ export function KeyAccountHealthWidget() {
         </div>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full text-[12.5px]">
+        <table className="w-full text-sm">
           <thead className="bg-surface-alt/40 text-ink-muted">
             <tr>
               <th className="text-left px-3 py-1.5 font-medium">Account</th>
@@ -127,7 +127,7 @@ export function KeyAccountHealthWidget() {
                     : '—'}
                 </td>
                 <td className="px-3 py-2">
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10.5px] font-medium ${RISK_CLASS[a.risk]}`}>
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-2xs font-medium ${RISK_CLASS[a.risk]}`}>
                     {RISK_LABEL[a.risk]}
                   </span>
                 </td>

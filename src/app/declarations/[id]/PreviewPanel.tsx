@@ -48,7 +48,7 @@ export function PreviewPanel({
       <div className="px-3 h-10 border-b border-border flex items-center justify-between bg-surface">
         <div className="flex items-center gap-2 min-w-0">
           <FileIcon type={fileType || 'pdf'} />
-          <span className="text-[12px] font-medium truncate text-gray-800">
+          <span className="text-sm font-medium truncate text-gray-800">
             {preview.kind === 'manual' ? 'No source document' : (filename || 'Loading…')}
           </span>
         </div>
@@ -88,7 +88,7 @@ export function PreviewPanel({
         ) : loading ? (
           <div className="flex items-center justify-center h-full"><Spinner /></div>
         ) : error ? (
-          <div className="p-4 text-[12px] text-red-600 bg-red-50 border-b border-red-200">Error: {error}</div>
+          <div className="p-4 text-sm text-red-600 bg-red-50 border-b border-red-200">Error: {error}</div>
         ) : signedUrl ? (
           fileType === 'image' ? (
             <div className="flex items-start justify-center p-4">
@@ -105,7 +105,7 @@ export function PreviewPanel({
           ) : fileType === 'pdf' ? (
             <iframe src={pdfSrc!} className="w-full h-full bg-surface" title={filename} />
           ) : (
-            <div className="p-4 text-[12px] text-ink-soft">
+            <div className="p-4 text-sm text-ink-soft">
               <a href={signedUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">Download to preview</a>.
             </div>
           )
@@ -113,7 +113,7 @@ export function PreviewPanel({
       </div>
 
       {/* Footer hint */}
-      <div className="px-3 h-7 border-t border-border text-[10px] text-ink-faint flex items-center justify-between bg-surface-alt">
+      <div className="px-3 h-7 border-t border-border text-2xs text-ink-faint flex items-center justify-between bg-surface-alt">
         <span>↑/↓ to navigate · Esc to close{typeof zoom === 'number' ? ` · zoom ${Math.round(zoomPct * 100)}%` : ''}</span>
         {preview.kind === 'document' && signedUrl && (
           <a href={signedUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
@@ -132,8 +132,8 @@ function ManualPlaceholder() {
         <div className="w-12 h-12 mx-auto rounded-full bg-gray-200 flex items-center justify-center mb-3">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-ink-faint"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         </div>
-        <div className="text-[13px] font-medium text-ink-soft">No source document</div>
-        <div className="text-[11px] text-ink-muted mt-1 max-w-[260px] mx-auto">
+        <div className="text-sm font-medium text-ink-soft">No source document</div>
+        <div className="text-xs text-ink-muted mt-1 max-w-[260px] mx-auto">
           This entry was added manually — it is an outgoing invoice issued by the entity.
         </div>
       </div>

@@ -40,8 +40,8 @@ export default function CrmSettingsIndex() {
                 <Icon size={15} />
               </div>
               <div className="flex-1">
-                <div className="text-[13px] font-semibold text-ink">{it.title}</div>
-                <div className="text-[11.5px] text-ink-muted mt-0.5">{it.blurb}</div>
+                <div className="text-sm font-semibold text-ink">{it.title}</div>
+                <div className="text-xs text-ink-muted mt-0.5">{it.blurb}</div>
               </div>
               <ChevronRightIcon size={14} className="text-ink-muted mt-2" />
             </Link>

@@ -51,7 +51,7 @@ export default function CrmLayout({ children }: { children: React.ReactNode }) {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-medium border-b-2 transition-colors whitespace-nowrap ${
+              className={`inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                 isActive
                   ? 'border-brand-500 text-brand-700'
                   : 'border-transparent text-ink-muted hover:text-ink hover:border-border-strong'
@@ -68,12 +68,12 @@ export default function CrmLayout({ children }: { children: React.ReactNode }) {
               // Simulate ⌘K — dispatch a synthetic event.
               window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
             }}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11.5px] text-ink-muted hover:text-ink border border-border rounded-md hover:bg-surface-alt whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-ink-muted hover:text-ink border border-border rounded-md hover:bg-surface-alt whitespace-nowrap"
             title="Search across all CRM entities (⌘K)"
           >
             <SearchIcon size={12} />
             Search
-            <kbd className="text-[9.5px] px-1 py-0.5 rounded bg-surface-alt border border-border text-ink-faint">⌘K</kbd>
+            <kbd className="text-2xs px-1 py-0.5 rounded bg-surface-alt border border-border text-ink-faint">⌘K</kbd>
           </button>
           <OverflowMenu items={OVERFLOW_ITEMS} ariaLabel="More CRM sections" />
         </div>

@@ -104,7 +104,7 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
 
   if (events === null) {
     return (
-      <div className="p-10 text-center text-[12px] text-ink-muted">
+      <div className="p-10 text-center text-sm text-ink-muted">
         <Loader2Icon className="inline-block animate-spin mr-2" size={14} />
         Loading audit trail…
       </div>
@@ -116,11 +116,11 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
       {/* ─── Header: summary + export ─── */}
       <div className="flex items-start justify-between gap-4 mb-5">
         <div>
-          <h2 className="text-[16px] font-semibold text-ink tracking-tight flex items-center gap-2">
+          <h2 className="text-base font-semibold text-ink tracking-tight flex items-center gap-2">
             <ShieldCheckIcon size={16} className="text-brand-600" />
             Audit trail
           </h2>
-          <p className="text-[11.5px] text-ink-muted mt-1 max-w-xl leading-relaxed">
+          <p className="text-xs text-ink-muted mt-1 max-w-xl leading-relaxed">
             Every change that&rsquo;s happened on this declaration — edits,
             treatment overrides, status transitions — with timestamps
             and the reason you gave at the moment. Defensible evidence
@@ -130,7 +130,7 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
         <div className="shrink-0 flex gap-2">
           <a
             href={`/api/declarations/${declarationId}/audit-log.csv`}
-            className="h-9 px-3.5 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:text-ink transition-colors inline-flex items-center gap-1.5"
+            className="h-9 px-3.5 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt hover:text-ink transition-colors inline-flex items-center gap-1.5"
             title="Download as CSV for accounting / reconciliation"
           >
             <DownloadIcon size={14} /> CSV
@@ -139,7 +139,7 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
             href={`/api/declarations/${declarationId}/audit-log.pdf`}
             target="_blank"
             rel="noreferrer"
-            className="h-9 px-3.5 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 transition-colors inline-flex items-center gap-1.5"
+            className="h-9 px-3.5 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors inline-flex items-center gap-1.5"
             title="Formal audit PDF for AED defence + retention"
           >
             <DownloadIcon size={14} /> PDF
@@ -167,7 +167,7 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
       </div>
 
       {error && (
-        <div className="mb-3 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+        <div className="mb-3 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
           {error}
         </div>
       )}
@@ -178,7 +178,7 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
           <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-600 inline-flex items-center justify-center mb-3">
             <CheckCircle2Icon size={20} />
           </div>
-          <div className="text-[13px] font-medium text-ink">
+          <div className="text-sm font-medium text-ink">
             {filter === 'overrides'
               ? 'No AI overrides yet'
               : filter === 'treatments'
@@ -187,7 +187,7 @@ export function AuditTrailPanel({ declarationId }: { declarationId: string }) {
               ? 'No other changes yet'
               : 'No activity yet'}
           </div>
-          <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-sm mx-auto leading-relaxed">
+          <div className="text-xs text-ink-muted mt-1.5 max-w-sm mx-auto leading-relaxed">
             {filter === 'overrides'
               ? 'When you disagree with cifra\u2019s classification and change a treatment, it\u2019ll show up here with the original suggestion and your reason.'
               : 'Edits and status transitions will appear here as soon as they happen.'}
@@ -214,8 +214,8 @@ function SumBox({ label, value, tone }: { label: string; value: number; tone: 'n
     : 'bg-surface border-border text-ink';
   return (
     <div className={`rounded-lg border p-3 ${cls}`}>
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold opacity-70">{label}</div>
-      <div className="text-[20px] font-bold tabular-nums mt-0.5" style={{ letterSpacing: '-0.01em' }}>
+      <div className="text-2xs uppercase tracking-wide font-semibold opacity-70">{label}</div>
+      <div className="text-lg font-bold tabular-nums mt-0.5" style={{ letterSpacing: '-0.01em' }}>
         {value}
       </div>
     </div>
@@ -229,7 +229,7 @@ function FilterPill({
     <button
       onClick={onClick}
       className={[
-        'h-7 px-2.5 rounded-md text-[11.5px] font-medium border transition-colors inline-flex items-center gap-1.5',
+        'h-7 px-2.5 rounded-md text-xs font-medium border transition-colors inline-flex items-center gap-1.5',
         active
           ? highlight
             ? 'bg-warning-100 text-warning-800 border-warning-300'
@@ -239,7 +239,7 @@ function FilterPill({
     >
       {label}
       {count > 0 && (
-        <span className={`text-[10px] tabular-nums ${active ? 'font-bold' : 'text-ink-faint'}`}>
+        <span className={`text-2xs tabular-nums ${active ? 'font-bold' : 'text-ink-faint'}`}>
           {count}
         </span>
       )}
@@ -275,7 +275,7 @@ function AiOverrideRow({ event, timeStr }: { event: AuditEvent; timeStr: string 
           </div>
           <div className="flex-1 min-w-0">
             {/* Top row: timestamp, user, override badge */}
-            <div className="flex items-center gap-2 flex-wrap text-[11px] text-ink-muted">
+            <div className="flex items-center gap-2 flex-wrap text-xs text-ink-muted">
               <span className="inline-flex items-center gap-1">
                 <ClockIcon size={10} /> {timeStr}
               </span>
@@ -283,31 +283,31 @@ function AiOverrideRow({ event, timeStr }: { event: AuditEvent; timeStr: string 
               <span className="inline-flex items-center gap-1">
                 <UserIcon size={10} /> {who}
               </span>
-              <span className="px-1.5 py-0.5 rounded bg-warning-100 text-warning-800 text-[9.5px] uppercase tracking-wider font-bold">
+              <span className="px-1.5 py-0.5 rounded bg-warning-100 text-warning-800 text-2xs uppercase tracking-wider font-bold">
                 AI override
               </span>
             </div>
 
             {/* The override: cifra → you */}
-            <div className="mt-2 flex items-center gap-2 flex-wrap text-[12.5px]">
+            <div className="mt-2 flex items-center gap-2 flex-wrap text-sm">
               <span className="text-ink-muted">cifra suggested</span>
-              <code className="px-1.5 py-0.5 rounded bg-surface-alt text-ink font-mono text-[11.5px] border border-border">
+              <code className="px-1.5 py-0.5 rounded bg-surface-alt text-ink font-mono text-xs border border-border">
                 {ai}
               </code>
               {rule && (
-                <span className="text-[10.5px] text-ink-faint font-mono">
+                <span className="text-2xs text-ink-faint font-mono">
                   ({rule})
                 </span>
               )}
               <ArrowRightIcon size={14} className="text-ink-muted mx-0.5" />
               <span className="text-ink-muted">you changed to</span>
-              <code className="px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 font-mono text-[11.5px] font-semibold border border-brand-200">
+              <code className="px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 font-mono text-xs font-semibold border border-brand-200">
                 {user}
               </code>
             </div>
 
             {/* Line context */}
-            <div className="mt-2 text-[11.5px] text-ink-soft flex items-center gap-1.5">
+            <div className="mt-2 text-xs text-ink-soft flex items-center gap-1.5">
               <FileTextIcon size={11} className="text-ink-faint" />
               <span className="font-medium">{event.line_provider ?? '—'}</span>
               <span className="text-ink-faint">·</span>
@@ -316,11 +316,11 @@ function AiOverrideRow({ event, timeStr }: { event: AuditEvent; timeStr: string 
 
             {/* Reason (if given) */}
             {event.reason ? (
-              <div className="mt-2 text-[12px] text-ink bg-surface-alt/50 border-l-2 border-brand-300 pl-3 py-1.5 italic">
+              <div className="mt-2 text-sm text-ink bg-surface-alt/50 border-l-2 border-brand-300 pl-3 py-1.5 italic">
                 &ldquo;{event.reason}&rdquo;
               </div>
             ) : (
-              <div className="mt-1.5 text-[11px] text-ink-faint italic">
+              <div className="mt-1.5 text-xs text-ink-faint italic">
                 (no reason provided)
               </div>
             )}
@@ -343,8 +343,8 @@ function CompactRow({ event, timeStr }: { event: AuditEvent; timeStr: string }) 
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-[12.5px] text-ink leading-snug">{title}</div>
-        <div className="flex items-center gap-2 mt-0.5 text-[10.5px] text-ink-muted">
+        <div className="text-sm text-ink leading-snug">{title}</div>
+        <div className="flex items-center gap-2 mt-0.5 text-2xs text-ink-muted">
           <span>{timeStr}</span>
           <span className="text-ink-faint">·</span>
           <span>{who}</span>
@@ -356,7 +356,7 @@ function CompactRow({ event, timeStr }: { event: AuditEvent; timeStr: string }) 
           )}
         </div>
         {event.reason && (
-          <div className="mt-1 text-[11px] text-ink-soft italic">&ldquo;{event.reason}&rdquo;</div>
+          <div className="mt-1 text-xs text-ink-soft italic">&ldquo;{event.reason}&rdquo;</div>
         )}
       </div>
     </div>

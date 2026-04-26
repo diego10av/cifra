@@ -172,7 +172,7 @@ function ToastRack({
       {toasts.length >= 3 && (
         <button
           onClick={onClearAll}
-          className="text-[10.5px] text-ink-muted bg-white border border-border rounded-md px-2 py-1 shadow-sm hover:text-ink"
+          className="text-2xs text-ink-muted bg-white border border-border rounded-md px-2 py-1 shadow-sm hover:text-ink"
         >
           Clear all ({toasts.length})
         </button>

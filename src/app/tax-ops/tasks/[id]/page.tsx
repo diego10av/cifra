@@ -188,7 +188,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="space-y-4 max-w-5xl">
-      <Link href="/tax-ops/tasks" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink">
+      <Link href="/tax-ops/tasks" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeftIcon size={12} /> Back to tasks
       </Link>
 
@@ -200,10 +200,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           onBlur={() => {
             if (title.trim() && title !== t.title) patch({ title: title.trim() }, 'Title saved');
           }}
-          className={`w-full text-[16px] font-semibold bg-transparent border-0 p-0 focus:ring-0 focus:outline-none focus:bg-surface-alt/60 px-1 rounded ${isDone ? 'line-through text-ink-muted' : 'text-ink'}`}
+          className={`w-full text-base font-semibold bg-transparent border-0 p-0 focus:ring-0 focus:bg-surface-alt/60 px-1 rounded ${isDone ? 'line-through text-ink-muted' : 'text-ink'}`}
           disabled={isDone}
         />
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-[12px]">
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
           <select
             value={t.status}
             onChange={e => patch({ status: e.target.value }, 'Status updated')}
@@ -237,7 +237,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             />
           </label>
           {t.auto_generated && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-brand-100 text-brand-800">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-brand-100 text-brand-800">
               Auto-generated
             </span>
           )}
@@ -245,7 +245,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         {visibleTags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {visibleTags.map((tg, i) => (
-              <span key={i} className="text-[10.5px] px-1.5 py-0.5 rounded bg-surface-alt text-ink-muted">{tg}</span>
+              <span key={i} className="text-2xs px-1.5 py-0.5 rounded bg-surface-alt text-ink-muted">{tg}</span>
             ))}
           </div>
         )}
@@ -256,7 +256,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         <div className="lg:col-span-2 space-y-4">
           {/* Description */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">Description</h3>
+            <h3 className="text-sm font-semibold text-ink mb-2">Description</h3>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -267,25 +267,25 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               }}
               rows={6}
               placeholder="Markdown. Saved on blur."
-              className="w-full px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface font-mono"
+              className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-surface font-mono"
             />
           </div>
 
           {/* Subtasks */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">
+            <h3 className="text-sm font-semibold text-ink mb-2">
               Subtasks
-              <span className="ml-2 text-[11.5px] font-normal text-ink-muted">
+              <span className="ml-2 text-xs font-normal text-ink-muted">
                 ({data.subtasks.filter(s => s.status === 'done').length}/{data.subtasks.length})
               </span>
             </h3>
             {data.subtasks.length === 0 && (
-              <div className="text-[12px] text-ink-muted italic mb-2">
+              <div className="text-sm text-ink-muted italic mb-2">
                 No subtasks yet. Break a big task into checklist items.
               </div>
             )}
             {data.subtasks.map(sub => (
-              <div key={sub.id} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-b-0 text-[12.5px]">
+              <div key={sub.id} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-b-0 text-sm">
                 <input
                   type="checkbox"
                   checked={sub.status === 'done'}
@@ -298,10 +298,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   {sub.title}
                 </Link>
                 {sub.due_date && (
-                  <span className="text-[11px]"><DateBadge value={sub.due_date} mode="urgency" /></span>
+                  <span className="text-xs"><DateBadge value={sub.due_date} mode="urgency" /></span>
                 )}
                 {sub.assignee && (
-                  <span className="text-[11px] px-1 bg-surface-alt text-ink-soft rounded">{sub.assignee}</span>
+                  <span className="text-xs px-1 bg-surface-alt text-ink-soft rounded">{sub.assignee}</span>
                 )}
                 <button
                   onClick={() => deleteSubtask(sub.id)}
@@ -318,12 +318,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 onChange={e => setSubtaskDraft(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') createSubtask(); }}
                 placeholder="+ Add subtask"
-                className="flex-1 px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                className="flex-1 px-2 py-1 text-sm border border-border rounded-md bg-surface"
               />
               <button
                 onClick={createSubtask}
                 disabled={!subtaskDraft.trim()}
-                className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
               >
                 <PlusIcon size={11} /> Add
               </button>
@@ -332,20 +332,20 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Comments */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">
-              Comments <span className="text-[11.5px] font-normal text-ink-muted">({comments.length})</span>
+            <h3 className="text-sm font-semibold text-ink mb-2">
+              Comments <span className="text-xs font-normal text-ink-muted">({comments.length})</span>
             </h3>
             <div className="space-y-2 mb-3">
               {comments.map(c => (
                 <div key={c.id} className="rounded-md bg-surface-alt/40 px-3 py-2">
-                  <div className="text-[11px] text-ink-muted mb-1">
+                  <div className="text-xs text-ink-muted mb-1">
                     {c.created_by ?? 'system'} · {new Date(c.created_at).toLocaleString()}
                   </div>
-                  <div className="text-[12.5px] whitespace-pre-wrap">{c.body}</div>
+                  <div className="text-sm whitespace-pre-wrap">{c.body}</div>
                 </div>
               ))}
               {comments.length === 0 && (
-                <div className="text-[12px] text-ink-muted italic">No comments yet.</div>
+                <div className="text-sm text-ink-muted italic">No comments yet.</div>
               )}
             </div>
             <div className="flex items-start gap-2">
@@ -355,12 +355,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addComment(); }}
                 rows={2}
                 placeholder="Add a comment. ⌘+Enter to send."
-                className="flex-1 px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface"
+                className="flex-1 px-2 py-1.5 text-sm border border-border rounded-md bg-surface"
               />
               <button
                 onClick={addComment}
                 disabled={!commentDraft.trim()}
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50 self-start"
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50 self-start"
               >
                 <SendIcon size={11} /> Send
               </button>
@@ -372,14 +372,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         <div className="space-y-4">
           {/* Dependencies */}
           {(data.blocker || data.blocked_by_us.length > 0) && (
-            <div className="rounded-md border border-border bg-surface px-4 py-3 text-[12px]">
-              <h3 className="text-[13px] font-semibold text-ink mb-2">Dependencies</h3>
+            <div className="rounded-md border border-border bg-surface px-4 py-3 text-sm">
+              <h3 className="text-sm font-semibold text-ink mb-2">Dependencies</h3>
               {data.blocker && (
                 <div className="mb-2">
                   <div className="text-ink-muted mb-0.5">Blocked by</div>
                   <Link
                     href={`/tax-ops/tasks/${data.blocker.id}`}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200 text-[11.5px]"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs"
                   >
                     {data.blocker.title}
                     {data.blocker.status === 'done' && <CheckIcon size={10} />}
@@ -394,7 +394,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                       <Link
                         key={b.id}
                         href={`/tax-ops/tasks/${b.id}`}
-                        className="block text-[11.5px] text-brand-700 hover:text-brand-800"
+                        className="block text-xs text-brand-700 hover:text-brand-800"
                       >
                         → {b.title}
                       </Link>
@@ -407,13 +407,13 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Recurrence */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">Recurrence</h3>
+            <h3 className="text-sm font-semibold text-ink mb-2">Recurrence</h3>
             <RecurrenceEditor
               value={t.recurrence_rule}
               onChange={rule => patch({ recurrence_rule: rule }, 'Recurrence saved')}
             />
             {t.recurrence_rule && (
-              <p className="mt-2 text-[11.5px] text-ink-muted italic">
+              <p className="mt-2 text-xs text-ink-muted italic">
                 When marked done, a new instance will be created on the next occurrence.
                 ({describeRecurrence(t.recurrence_rule)})
               </p>
@@ -422,8 +422,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
           {/* Related */}
           {(data.related_entity_name || data.related_filing_label) && (
-            <div className="rounded-md border border-border bg-surface px-4 py-3 text-[12px]">
-              <h3 className="text-[13px] font-semibold text-ink mb-2">Related</h3>
+            <div className="rounded-md border border-border bg-surface px-4 py-3 text-sm">
+              <h3 className="text-sm font-semibold text-ink mb-2">Related</h3>
               {data.related_entity_name && t.related_entity_id && (
                 <Link
                   href={`/tax-ops/entities/${t.related_entity_id}`}
@@ -444,7 +444,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           )}
 
           {/* Meta */}
-          <div className="text-[11px] text-ink-muted space-y-0.5">
+          <div className="text-xs text-ink-muted space-y-0.5">
             <div>Created: {new Date(t.created_at).toLocaleString()}</div>
             <div>Updated: {new Date(t.updated_at).toLocaleString()}</div>
             {t.completed_at && (

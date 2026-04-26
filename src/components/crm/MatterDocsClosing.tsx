@@ -78,7 +78,7 @@ export function MatterDocsClosing({ matterId }: { matterId: string }) {
   }
 
   if (docs === null || steps === null) {
-    return <div className="text-[12px] text-ink-muted italic px-3 py-4">Loading documents…</div>;
+    return <div className="text-sm text-ink-muted italic px-3 py-4">Loading documents…</div>;
   }
 
   const stepsDone = steps.filter(s => s.completed).length;
@@ -90,7 +90,7 @@ export function MatterDocsClosing({ matterId }: { matterId: string }) {
       {/* Documents column */}
       <div className="border border-border rounded-lg bg-white">
         <div className="px-3 py-2 flex items-center justify-between border-b border-border">
-          <span className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted">
+          <span className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
             Documents ({docs.length})
           </span>
           <Button variant="primary" size="sm" icon={<PlusIcon size={12} />} onClick={() => setAddOpen(true)}>
@@ -99,21 +99,21 @@ export function MatterDocsClosing({ matterId }: { matterId: string }) {
         </div>
         <div className="p-3">
           {docs.length === 0 ? (
-            <p className="text-[12px] text-ink-muted italic">No documents linked yet. Attach your engagement letter, drafts, and final deliverables with a URL.</p>
+            <p className="text-sm text-ink-muted italic">No documents linked yet. Attach your engagement letter, drafts, and final deliverables with a URL.</p>
           ) : (
             <ul className="space-y-1.5">
               {docs.map(d => (
                 <li key={d.id} className="flex items-start gap-2 border border-border rounded-md px-2 py-1.5">
-                  <a href={d.file_path} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 text-[12px] font-medium text-brand-700 hover:underline inline-flex items-center gap-1 truncate">
+                  <a href={d.file_path} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 text-sm font-medium text-brand-700 hover:underline inline-flex items-center gap-1 truncate">
                     {d.filename}
                     <ExternalLinkIcon size={10} />
                   </a>
                   {d.kind && (
-                    <span className="text-[10px] uppercase tracking-wide bg-surface-alt border border-border rounded px-1.5 py-0.5 text-ink-muted shrink-0">
+                    <span className="text-2xs uppercase tracking-wide bg-surface-alt border border-border rounded px-1.5 py-0.5 text-ink-muted shrink-0">
                       {d.kind.replace(/_/g, ' ')}
                     </span>
                   )}
-                  <span className="text-[10.5px] text-ink-muted shrink-0 tabular-nums">{formatDate(d.uploaded_at)}</span>
+                  <span className="text-2xs text-ink-muted shrink-0 tabular-nums">{formatDate(d.uploaded_at)}</span>
                   <button onClick={() => removeDoc(d.id)} className="text-danger-600 hover:text-danger-800 shrink-0" title="Unlink">
                     <Trash2Icon size={11} />
                   </button>
@@ -127,10 +127,10 @@ export function MatterDocsClosing({ matterId }: { matterId: string }) {
       {/* Closing checklist */}
       <div className="border border-border rounded-lg bg-white">
         <div className="px-3 py-2 flex items-center justify-between border-b border-border">
-          <span className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted">
+          <span className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
             Closing checklist ({stepsDone}/{stepsTotal})
           </span>
-          <span className={`text-[11px] font-medium ${checklistPct === 100 ? 'text-emerald-700' : 'text-ink-muted'}`}>
+          <span className={`text-xs font-medium ${checklistPct === 100 ? 'text-emerald-700' : 'text-ink-muted'}`}>
             {checklistPct.toFixed(0)}%
           </span>
         </div>
@@ -141,7 +141,7 @@ export function MatterDocsClosing({ matterId }: { matterId: string }) {
         </div>
         <ul className="divide-y divide-border">
           {steps.map(s => (
-            <li key={s.step_name} className="px-3 py-2 flex items-start gap-2.5 text-[12px]">
+            <li key={s.step_name} className="px-3 py-2 flex items-start gap-2.5 text-sm">
               <button
                 onClick={() => toggleStep(s.step_name, !s.completed)}
                 className={`shrink-0 mt-0.5 ${s.completed ? 'text-emerald-600' : 'text-ink-muted hover:text-ink'}`}
@@ -157,7 +157,7 @@ export function MatterDocsClosing({ matterId }: { matterId: string }) {
                   {s.label}
                 </div>
                 {s.completed && s.completed_at && (
-                  <div className="text-[10.5px] text-ink-faint">
+                  <div className="text-2xs text-ink-faint">
                     ✓ {formatDate(s.completed_at)} {s.completed_by && `· ${s.completed_by}`}
                   </div>
                 )}
@@ -166,7 +166,7 @@ export function MatterDocsClosing({ matterId }: { matterId: string }) {
           ))}
         </ul>
         {checklistPct < 100 && (
-          <div className="px-3 py-2 border-t border-border text-[11px] text-ink-muted italic">
+          <div className="px-3 py-2 border-t border-border text-xs text-ink-muted italic">
             Matter cannot transition to <strong>closed</strong> until all steps are complete.
           </div>
         )}
@@ -221,30 +221,30 @@ function AddDocModal({
       size="md"
       footer={
         <div className="flex items-center gap-2 justify-end">
-          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
+          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-sm text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
           <Button variant="primary" size="sm" onClick={submit} loading={saving}>Attach</Button>
         </div>
       }
     >
       <div className="space-y-3">
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">URL *</label>
-          <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://sharepoint.com/..." className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">URL *</label>
+          <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://sharepoint.com/..." className="w-full h-9 px-2.5 text-sm border border-border rounded-md" />
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Filename *</label>
-          <input value={filename} onChange={e => setFilename(e.target.value)} placeholder="Engagement letter — signed.pdf" className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Filename *</label>
+          <input value={filename} onChange={e => setFilename(e.target.value)} placeholder="Engagement letter — signed.pdf" className="w-full h-9 px-2.5 text-sm border border-border rounded-md" />
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Kind</label>
-          <select value={kind} onChange={e => setKind(e.target.value)} className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md bg-white">
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Kind</label>
+          <select value={kind} onChange={e => setKind(e.target.value)} className="w-full h-9 px-2.5 text-sm border border-border rounded-md bg-white">
             <option value="">—</option>
             {DOC_KINDS.map(k => <option key={k.value} value={k.value}>{k.label}</option>)}
           </select>
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Notes</label>
-          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full px-2.5 py-2 text-[13px] border border-border rounded-md resize-y" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Notes</label>
+          <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} className="w-full px-2.5 py-2 text-sm border border-border rounded-md resize-y" />
         </div>
       </div>
     </Modal>

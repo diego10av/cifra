@@ -23,7 +23,7 @@ export function VatTabs() {
             key={tab.href}
             href={tab.href}
             className={[
-              'px-3 py-1.5 text-[12.5px] border-b-2 transition-colors',
+              'px-3 py-1.5 text-sm border-b-2 transition-colors',
               isActive
                 ? 'border-brand-500 text-brand-700 font-medium'
                 : 'border-transparent text-ink-muted hover:text-ink hover:border-border-strong',

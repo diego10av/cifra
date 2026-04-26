@@ -94,7 +94,7 @@ export function NwtReviewInlineCell({
         type="button"
         onClick={handleOptIn}
         disabled={busy}
-        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10.5px] bg-surface-alt text-ink-muted hover:bg-surface-alt/80 hover:text-ink transition-colors"
+        className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-2xs bg-surface-alt text-ink-muted hover:bg-surface-alt/80 hover:text-ink transition-colors"
         title="Click to opt this entity into year-end NWT review"
       >
         {busy ? 'Adding…' : '+ Opt in'}
@@ -134,7 +134,7 @@ export function NwtReviewInlineCell({
         onChange={(e) => void handleStatusPick(e.target.value)}
         disabled={busy}
         title={tooltip}
-        className="px-1 py-0 text-[10.5px] border border-border rounded bg-surface disabled:opacity-50"
+        className="px-1 py-0 text-2xs border border-border rounded bg-surface disabled:opacity-50"
       >
         {FILING_STATUSES.map(s => (
           <option key={s} value={s}>{filingStatusLabel(s)}</option>
@@ -145,7 +145,7 @@ export function NwtReviewInlineCell({
           the field is unset and onPatchDates is wired. */}
       {cell.draft_sent_at ? (
         <span
-          className="inline-flex items-center px-1 py-0 rounded bg-blue-50 text-blue-700 text-[10px]"
+          className="inline-flex items-center px-1 py-0 rounded bg-blue-50 text-blue-700 text-2xs"
           title={`Interim financials received ${cell.draft_sent_at}`}
         >
           IF · {cell.draft_sent_at.slice(5)}
@@ -155,7 +155,7 @@ export function NwtReviewInlineCell({
           type="button"
           onClick={() => void markDateToday('draft_sent_at')}
           disabled={busy}
-          className="inline-flex items-center px-1 py-0 rounded border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 text-[10px] disabled:opacity-50"
+          className="inline-flex items-center px-1 py-0 rounded border border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 text-2xs disabled:opacity-50"
           title="Mark interim financials received today"
         >
           + IF
@@ -163,7 +163,7 @@ export function NwtReviewInlineCell({
       ) : null}
       {cell.filed_at ? (
         <span
-          className="inline-flex items-center px-1 py-0 rounded bg-green-100 text-green-800 text-[10px]"
+          className="inline-flex items-center px-1 py-0 rounded bg-green-100 text-green-800 text-2xs"
           title={`Recommendation sent ${cell.filed_at}`}
         >
           RS · {cell.filed_at.slice(5)}
@@ -173,7 +173,7 @@ export function NwtReviewInlineCell({
           type="button"
           onClick={() => void markDateToday('filed_at')}
           disabled={busy}
-          className="inline-flex items-center px-1 py-0 rounded border border-dashed border-green-300 text-green-700 hover:bg-green-50 text-[10px] disabled:opacity-50"
+          className="inline-flex items-center px-1 py-0 rounded border border-dashed border-green-300 text-green-700 hover:bg-green-50 text-2xs disabled:opacity-50"
           title="Mark recommendation sent today"
         >
           + RS
@@ -181,7 +181,7 @@ export function NwtReviewInlineCell({
       ) : null}
       {cell.last_action_at && (
         <span
-          className="inline-flex items-center text-[9.5px] text-ink-faint"
+          className="inline-flex items-center text-2xs text-ink-faint"
           title={`Last NWT action: ${cell.last_action_at}`}
         >
           · {cell.last_action_at.slice(5)}
@@ -190,7 +190,7 @@ export function NwtReviewInlineCell({
       {cell.filing_id && (
         <Link
           href={`/tax-ops/filings/${cell.filing_id}`}
-          className="text-[9.5px] text-ink-muted hover:text-ink underline"
+          className="text-2xs text-ink-muted hover:text-ink underline"
           title={`Open NWT Review ${year} filing`}
         >
           edit
@@ -209,13 +209,13 @@ export function NwtReviewInlineCell({
             finally { setBusy(false); }
           }}
           disabled={busy}
-          className="text-[9px] text-ink-muted hover:text-danger-600 underline disabled:opacity-50"
+          className="text-2xs text-ink-muted hover:text-danger-600 underline disabled:opacity-50"
           title="Archive the NWT review obligation"
         >
           opt out
         </button>
       )}
-      {error && <span className="text-[10px] text-danger-700" title={error}>⚠</span>}
+      {error && <span className="text-2xs text-danger-700" title={error}>⚠</span>}
     </div>
   );
 }

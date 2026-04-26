@@ -202,27 +202,27 @@ export default function Home() {
                 </div>
               )}
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <button
+                <Button
+                  variant="primary"
+                  size="lg"
+                  loading={seeding}
+                  icon={seeding ? null : <WandIcon size={13} />}
                   onClick={handleSeedDemo}
-                  disabled={seeding}
-                  className="h-9 px-3.5 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
-                  {seeding
-                    ? (<><Loader2Icon size={13} className="animate-spin" /> Creating demo…</>)
-                    : (<><WandIcon size={13} /> Load demo data</>)}
-                </button>
-                <Link
-                  href="/clients/new"
-                  className="h-9 px-3.5 rounded-md border border-border-strong text-sm font-semibold text-ink hover:bg-surface-alt inline-flex items-center gap-1.5"
-                >
-                  <PlusIcon size={13} /> Create my first client
+                  {seeding ? 'Creating demo…' : 'Load demo data'}
+                </Button>
+                <Link href="/clients/new">
+                  <Button variant="secondary" size="lg" icon={<PlusIcon size={13} />}>
+                    Create my first client
+                  </Button>
                 </Link>
-                <button
+                <Button
+                  variant="ghost"
+                  size="lg"
                   onClick={handleDismissOnboarding}
-                  className="h-9 px-3 text-sm text-ink-soft hover:text-ink"
                 >
                   Skip for now
-                </button>
+                </Button>
               </div>
             </div>
           </div>

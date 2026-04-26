@@ -96,16 +96,16 @@ export default function ActivitiesPage() {
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search activity..."
-            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md" />
         </div>
         <select value={type} onChange={e => setType(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
           <option value="">All types</option>
           {ACTIVITY_TYPES.map(t => <option key={t} value={t}>{LABELS_ACTIVITY_TYPE[t]}</option>)}
         </select>
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="activities" />
-          <span className="text-[11.5px] text-ink-muted">{rows.length} activities</span>
+          <span className="text-xs text-ink-muted">{rows.length} activities</span>
         </div>
       </div>
 
@@ -113,7 +113,7 @@ export default function ActivitiesPage() {
         <EmptyState illustration="clock" title="No activities yet" description="Log calls, meetings and emails to build the client timeline." />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="text-left px-3 py-2 font-medium">Date</th>

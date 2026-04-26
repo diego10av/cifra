@@ -98,11 +98,11 @@ export default function TrashPage() {
             if (items.length === 0) return null;
             return (
               <div key={kind}>
-                <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted mb-2">
+                <h3 className="text-sm uppercase tracking-wide font-semibold text-ink-muted mb-2">
                   {KIND_LABELS[kind]} ({items.length})
                 </h3>
                 <div className="border border-border rounded-lg overflow-hidden bg-white">
-                  <table className="w-full text-[12.5px]">
+                  <table className="w-full text-sm">
                     <thead className="bg-surface-alt text-ink-muted">
                       <tr>
                         <th className="text-left px-3 py-2 font-medium">Name</th>
@@ -121,7 +121,7 @@ export default function TrashPage() {
                             <td className="px-3 py-2">{r.label}</td>
                             <td className="px-3 py-2 text-ink-muted tabular-nums">
                               {deletedDate.toISOString().slice(0, 10)}
-                              <span className={`ml-2 text-[10.5px] ${daysLeft < 7 ? 'text-danger-700' : 'text-ink-faint'}`}>
+                              <span className={`ml-2 text-2xs ${daysLeft < 7 ? 'text-danger-700' : 'text-ink-faint'}`}>
                                 · purge in {daysLeft}d
                               </span>
                             </td>
@@ -138,7 +138,7 @@ export default function TrashPage() {
                               <button
                                 onClick={() => handlePermanentDelete(r.kind, r.id, r.label)}
                                 disabled={busyId === r.id}
-                                className="ml-2 h-7 px-2.5 rounded-md border border-danger-300 text-[11px] text-danger-700 hover:bg-danger-50 inline-flex items-center gap-1 disabled:opacity-40"
+                                className="ml-2 h-7 px-2.5 rounded-md border border-danger-300 text-xs text-danger-700 hover:bg-danger-50 inline-flex items-center gap-1 disabled:opacity-40"
                               >
                                 <Trash2Icon size={11} /> Delete permanently
                               </button>

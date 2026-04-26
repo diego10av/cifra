@@ -76,23 +76,23 @@ export function RecordHistory({
       >
         {open ? <ChevronDownIcon size={13} /> : <ChevronRightIcon size={13} />}
         <HistoryIcon size={13} className="text-ink-muted" />
-        <span className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted">
+        <span className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
           History
         </span>
         {rows && rows.length > 0 && (
-          <span className="text-[10.5px] text-ink-muted font-normal">· {rows.length} change{rows.length === 1 ? '' : 's'}</span>
+          <span className="text-2xs text-ink-muted font-normal">· {rows.length} change{rows.length === 1 ? '' : 's'}</span>
         )}
       </button>
       {open && (
         <div className="border-t border-border">
           {loading ? (
-            <div className="px-3 py-4 text-[12px] text-ink-muted italic">Loading history…</div>
+            <div className="px-3 py-4 text-sm text-ink-muted italic">Loading history…</div>
           ) : rows && rows.length > 0 ? (
             <ol className="divide-y divide-border">
               {rows.map(r => <AuditRow key={r.id} entry={r} />)}
             </ol>
           ) : (
-            <div className="px-3 py-4 text-[12px] text-ink-muted italic">No history yet.</div>
+            <div className="px-3 py-4 text-sm text-ink-muted italic">No history yet.</div>
           )}
         </div>
       )}
@@ -110,17 +110,17 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
   const age = humanAge(when);
 
   return (
-    <li className="px-3 py-2.5 text-[12px]">
+    <li className="px-3 py-2.5 text-sm">
       <div className="flex items-baseline gap-2 flex-wrap">
         <span className="font-medium text-ink">{entry.user_id}</span>
         <span className="text-ink-soft">{actionLabel.toLowerCase()}</span>
         {entry.field && (
-          <code className="text-[10.5px] bg-surface-alt px-1 py-0.5 rounded text-ink-soft">{entry.field}</code>
+          <code className="text-2xs bg-surface-alt px-1 py-0.5 rounded text-ink-soft">{entry.field}</code>
         )}
         <span className="text-ink-faint ml-auto" title={whenStr}>{age}</span>
       </div>
       {(entry.old_value || entry.new_value) && (
-        <div className="mt-1 text-[11.5px] text-ink-muted">
+        <div className="mt-1 text-xs text-ink-muted">
           {entry.old_value && (
             <span className="line-through text-danger-600/80 mr-2 break-all">{truncate(entry.old_value, 100)}</span>
           )}
@@ -130,7 +130,7 @@ function AuditRow({ entry }: { entry: AuditEntry }) {
         </div>
       )}
       {entry.reason && (
-        <div className="mt-0.5 text-[10.5px] text-ink-faint italic">{entry.reason}</div>
+        <div className="mt-0.5 text-2xs text-ink-faint italic">{entry.reason}</div>
       )}
     </li>
   );

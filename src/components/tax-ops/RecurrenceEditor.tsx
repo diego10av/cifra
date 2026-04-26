@@ -90,13 +90,13 @@ export function RecurrenceEditor({
 
   return (
     <div className="space-y-2">
-      <label className="inline-flex items-center gap-2 text-[12.5px]">
+      <label className="inline-flex items-center gap-2 text-sm">
         <input type="checkbox" checked={enabled} onChange={e => toggle(e.target.checked)} />
         Recurring task
       </label>
 
       {enabled && (
-        <div className="rounded-md border border-border bg-surface-alt/40 p-2 space-y-2 text-[12px]">
+        <div className="rounded-md border border-border bg-surface-alt/40 p-2 space-y-2 text-sm">
           <label className="block">
             <span className="text-ink-muted">Cadence</span>
             <select
@@ -185,7 +185,7 @@ export function RecurrenceEditor({
             </label>
           )}
 
-          <div className="text-[11px] text-ink-muted italic">
+          <div className="text-xs text-ink-muted italic">
             Description: {describeRecurrence(rule)}
           </div>
         </div>

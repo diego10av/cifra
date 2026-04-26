@@ -61,7 +61,7 @@ export default function AutomationsPage() {
   }
 
   if (rules === null) {
-    return <div className="text-[12px] text-ink-muted italic px-3 py-6">Loading automations…</div>;
+    return <div className="text-sm text-ink-muted italic px-3 py-6">Loading automations…</div>;
   }
 
   // Group by trigger event for a cleaner presentation.
@@ -73,16 +73,16 @@ export default function AutomationsPage() {
 
   return (
     <div className="max-w-[880px]">
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/settings" className="hover:underline">← Settings</Link>
       </div>
       <PageHeader
         title="Automations"
         subtitle={`${rules.filter(r => r.enabled).length}/${rules.length} rules enabled`}
       />
-      <p className="text-[12.5px] text-ink-muted mb-4">
+      <p className="text-sm text-ink-muted mb-4">
         Each rule fires a side-effect when its trigger matches. Disable any that don&apos;t fit your workflow.
-        Advanced: add custom rules by INSERTing rows into <code className="font-mono text-[11px]">crm_automation_rules</code>.
+        Advanced: add custom rules by INSERTing rows into <code className="font-mono text-xs">crm_automation_rules</code>.
       </p>
 
       <div className="space-y-5">
@@ -90,7 +90,7 @@ export default function AutomationsPage() {
           <div key={trigger} className="border border-border rounded-lg bg-white overflow-hidden">
             <div className="px-3 py-2 bg-surface-alt/40 border-b border-border flex items-center gap-2">
               <ZapIcon size={13} className="text-brand-600" />
-              <span className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted">
+              <span className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
                 {TRIGGER_LABELS[trigger] ?? trigger}
               </span>
             </div>
@@ -105,17 +105,17 @@ export default function AutomationsPage() {
                     {r.enabled ? <CheckCircle2Icon size={18} /> : <CircleIcon size={18} />}
                   </button>
                   <div className="flex-1 min-w-0">
-                    <div className={`text-[13px] font-medium ${r.enabled ? 'text-ink' : 'text-ink-muted line-through'}`}>
+                    <div className={`text-sm font-medium ${r.enabled ? 'text-ink' : 'text-ink-muted line-through'}`}>
                       {r.name}
                     </div>
                     {r.description && (
-                      <div className="text-[11.5px] text-ink-muted mt-0.5">{r.description}</div>
+                      <div className="text-xs text-ink-muted mt-0.5">{r.description}</div>
                     )}
-                    <div className="text-[10.5px] text-ink-faint mt-1 font-mono">
+                    <div className="text-2xs text-ink-faint mt-1 font-mono">
                       {r.action_type}({Object.entries(r.action_params).map(([k, v]) => `${k}=${String(v)}`).join(', ')})
                     </div>
                   </div>
-                  <div className="shrink-0 text-[10.5px] text-ink-muted text-right">
+                  <div className="shrink-0 text-2xs text-ink-muted text-right">
                     <div>Fired {r.fire_count}×</div>
                     {r.last_fired_at && (
                       <div className="italic">Last {formatDate(r.last_fired_at)}</div>

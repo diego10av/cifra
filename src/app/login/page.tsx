@@ -40,15 +40,15 @@ export default function LoginPage() {
         <div className="mb-6">
           <Logo />
         </div>
-        <h1 className="text-[18px] font-semibold text-ink tracking-tight">Sign in</h1>
-        <p className="text-[12.5px] text-ink-muted mt-1 mb-6">
+        <h1 className="text-lg font-semibold text-ink tracking-tight">Sign in</h1>
+        <p className="text-sm text-ink-muted mt-1 mb-6">
           Luxembourg tax &amp; compliance, in one workspace.
           <br />
           <span className="text-ink-faint">AI reads, humans review. Starting with VAT.</span>
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           {error && (
-            <div className="text-[12px] text-danger-700 bg-danger-50 border border-[#F4B9B7] rounded-md px-3 py-2 animate-fadeIn">
+            <div className="text-sm text-danger-700 bg-danger-50 border border-[#F4B9B7] rounded-md px-3 py-2 animate-fadeIn">
               {error}
             </div>
           )}

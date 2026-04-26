@@ -123,7 +123,7 @@ export default function ClientGroupsPage() {
 
   return (
     <div>
-      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink mb-2">
+      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink mb-2">
         <ArrowLeftIcon size={12} /> Back to settings
       </Link>
       <PageHeader
@@ -133,7 +133,7 @@ export default function ClientGroupsPage() {
           newRow ? null : (
             <button
               onClick={() => setNewRow({ name: '', notes: '' })}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white"
             >
               <PlusIcon size={12} /> Add family
             </button>
@@ -144,7 +144,7 @@ export default function ClientGroupsPage() {
       {error && <CrmErrorBox message={error} onRetry={load} />}
 
       <div className="rounded-md border border-border bg-surface overflow-hidden">
-        <table className="w-full text-[12.5px]">
+        <table className="w-full text-sm">
           <thead className="bg-surface-alt text-ink-muted">
             <tr className="text-left">
               <th className="px-3 py-2 font-medium">Name</th>
@@ -163,7 +163,7 @@ export default function ClientGroupsPage() {
                     value={newRow.name}
                     onChange={e => setNewRow({ ...newRow, name: e.target.value })}
                     placeholder="e.g. Acme Holdings"
-                    className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                    className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                   />
                 </td>
                 <td className="px-3 py-1.5">
@@ -171,16 +171,16 @@ export default function ClientGroupsPage() {
                     value={newRow.notes}
                     onChange={e => setNewRow({ ...newRow, notes: e.target.value })}
                     placeholder="optional notes"
-                    className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                    className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                   />
                 </td>
                 <td className="px-3 py-1.5 text-right text-ink-muted">—</td>
                 <td className="px-3 py-1.5 text-ink-muted">Yes (default)</td>
                 <td className="px-3 py-1.5 text-right">
-                  <button onClick={createNew} className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600">
+                  <button onClick={createNew} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600">
                     <CheckIcon size={11} /> Save
                   </button>
-                  <button onClick={() => setNewRow(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-[11.5px] rounded-md border border-border hover:bg-surface-alt">
+                  <button onClick={() => setNewRow(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-xs rounded-md border border-border hover:bg-surface-alt">
                     <XIcon size={11} />
                   </button>
                 </td>
@@ -203,14 +203,14 @@ export default function ClientGroupsPage() {
                       <input
                         value={draft.name ?? ''}
                         onChange={e => setDraft({ ...draft, name: e.target.value })}
-                        className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                        className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                       />
                     </td>
                     <td className="px-3 py-1.5">
                       <input
                         value={draft.notes ?? ''}
                         onChange={e => setDraft({ ...draft, notes: e.target.value })}
-                        className="w-full px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+                        className="w-full px-2 py-1 text-sm border border-border rounded-md bg-surface"
                       />
                     </td>
                     <td className="px-3 py-1.5 text-right tabular-nums">{g.entity_count}</td>
@@ -221,14 +221,14 @@ export default function ClientGroupsPage() {
                           checked={draft.is_active ?? true}
                           onChange={e => setDraft({ ...draft, is_active: e.target.checked })}
                         />
-                        <span className="text-[11.5px]">{draft.is_active ? 'Active' : 'Archived'}</span>
+                        <span className="text-xs">{draft.is_active ? 'Active' : 'Archived'}</span>
                       </label>
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      <button onClick={() => saveEdit(g.id)} className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600">
+                      <button onClick={() => saveEdit(g.id)} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600">
                         <CheckIcon size={11} /> Save
                       </button>
-                      <button onClick={() => setEditingId(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-[11.5px] rounded-md border border-border hover:bg-surface-alt">
+                      <button onClick={() => setEditingId(null)} className="inline-flex items-center gap-1 px-2 py-1 ml-1 text-xs rounded-md border border-border hover:bg-surface-alt">
                         <XIcon size={11} />
                       </button>
                     </td>
@@ -247,13 +247,13 @@ export default function ClientGroupsPage() {
                     <td className="px-3 py-1.5 text-right tabular-nums">{g.entity_count}</td>
                     <td className="px-3 py-1.5">
                       {g.is_active ? (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-green-100 text-green-800">Active</span>
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-green-100 text-green-800">Active</span>
                       ) : (
-                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-surface-alt text-ink-muted">Archived</span>
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-surface-alt text-ink-muted">Archived</span>
                       )}
                     </td>
                     <td className="px-3 py-1.5 text-right">
-                      <button onClick={() => startEdit(g)} className="text-[11.5px] text-brand-700 hover:text-brand-800 mr-2">
+                      <button onClick={() => startEdit(g)} className="text-xs text-brand-700 hover:text-brand-800 mr-2">
                         Edit
                       </button>
                       <button

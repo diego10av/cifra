@@ -112,7 +112,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
 
       {/* Subtle leader-key hint */}
       {pendingLeader === 'g' && (
-        <div className="fixed bottom-4 left-4 z-[95] bg-ink text-white rounded-md px-3 py-2 text-[11.5px] flex items-center gap-2 shadow-lg animate-fadeIn pointer-events-none">
+        <div className="fixed bottom-4 left-4 z-[95] bg-ink text-white rounded-md px-3 py-2 text-xs flex items-center gap-2 shadow-lg animate-fadeIn pointer-events-none">
           <kbd className="font-mono bg-white/10 rounded px-1 py-0.5">g</kbd>
           <span>then</span>
           <kbd className="font-mono bg-white/10 rounded px-1 py-0.5">h</kbd>
@@ -141,7 +141,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
 
 function ShortcutsHelp({ currentPath }: { currentPath: string }) {
   return (
-    <div className="space-y-5 text-[12.5px]">
+    <div className="space-y-5 text-sm">
       <Section title="Global">
         <Row keys={['⌘', 'K']} desc="Open command palette · search + actions" />
         <Row keys={['?']} desc="Open this help overlay" />
@@ -166,23 +166,23 @@ function ShortcutsHelp({ currentPath }: { currentPath: string }) {
           <Row keys={['/']} desc="Focus search / filter" />
           <Row keys={['a']} desc="Approve declaration (needs all lines clean)" />
           <Row keys={['r']} desc="Reopen declaration (confirms)" />
-          <div className="text-[11px] text-ink-muted mt-2 italic">
+          <div className="text-xs text-ink-muted mt-2 italic">
             Row-level shortcuts are active only while the Review tab is focused.
           </div>
         </Section>
       )}
 
       <Section title="Command palette ⌘K">
-        <div className="text-[12px] text-ink-soft">
+        <div className="text-sm text-ink-soft">
           Type to filter actions + search. Matches against entities,
           declarations, providers, and 13 built-in verbs (Create client,
-          Go to classifier, etc.). Hit <kbd className="text-[10.5px] px-1 py-0.5 rounded bg-surface-alt border border-border font-mono">Enter</kbd> to run.
+          Go to classifier, etc.). Hit <kbd className="text-2xs px-1 py-0.5 rounded bg-surface-alt border border-border font-mono">Enter</kbd> to run.
         </div>
       </Section>
 
-      <div className="pt-3 border-t border-divider text-[11px] text-ink-muted">
+      <div className="pt-3 border-t border-divider text-xs text-ink-muted">
         Missing a shortcut? Open Feedback
-        (<kbd className="text-[10px] px-1 py-0.5 rounded bg-surface-alt border border-border font-mono">Shift + ?</kbd>
+        (<kbd className="text-2xs px-1 py-0.5 rounded bg-surface-alt border border-border font-mono">Shift + ?</kbd>
         {' '}then click <em>Feedback</em>) and we'll add it.
       </div>
     </div>
@@ -192,7 +192,7 @@ function ShortcutsHelp({ currentPath }: { currentPath: string }) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-2">
+      <h3 className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-2">
         {title}
       </h3>
       <div className="space-y-1.5">{children}</div>
@@ -206,10 +206,10 @@ function Row({ keys, desc }: { keys: string[]; desc: string }) {
       <div className="shrink-0 flex items-center gap-1 min-w-[100px]">
         {keys.map((k, i) => (
           <span key={i}>
-            <kbd className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded bg-surface-alt border border-border font-mono text-[11px] font-semibold">
+            <kbd className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded bg-surface-alt border border-border font-mono text-xs font-semibold">
               {k}
             </kbd>
-            {i < keys.length - 1 && <span className="text-ink-faint text-[10px] mx-0.5">then</span>}
+            {i < keys.length - 1 && <span className="text-ink-faint text-2xs mx-0.5">then</span>}
           </span>
         ))}
       </div>

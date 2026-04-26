@@ -95,7 +95,7 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/contacts" className="hover:underline">← All contacts</Link>
       </div>
       <PageHeader
@@ -159,23 +159,23 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
 
       {(c.next_follow_up || c.birthday || c.client_anniversary) && (
         <div className="mb-5 p-3 border border-border rounded-md bg-white">
-          <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-2">Important dates</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[12.5px]">
+          <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-2">Important dates</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
             {c.next_follow_up && (
               <div>
-                <div className="text-[10px] uppercase text-ink-muted mb-0.5">📞 Next follow-up</div>
+                <div className="text-2xs uppercase text-ink-muted mb-0.5">📞 Next follow-up</div>
                 <div className="tabular-nums">{formatDate(String(c.next_follow_up))}</div>
               </div>
             )}
             {c.birthday && (
               <div>
-                <div className="text-[10px] uppercase text-ink-muted mb-0.5">🎂 Birthday</div>
+                <div className="text-2xs uppercase text-ink-muted mb-0.5">🎂 Birthday</div>
                 <div className="tabular-nums">{formatBirthday(String(c.birthday))}</div>
               </div>
             )}
             {c.client_anniversary && (
               <div>
-                <div className="text-[10px] uppercase text-ink-muted mb-0.5">🥂 Relationship since</div>
+                <div className="text-2xs uppercase text-ink-muted mb-0.5">🥂 Relationship since</div>
                 <div className="tabular-nums">{formatDate(String(c.client_anniversary))}</div>
               </div>
             )}
@@ -184,13 +184,13 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
       )}
 
       {c.notes && (
-        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(c.notes)}</div>
+        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-sm whitespace-pre-wrap">{String(c.notes)}</div>
       )}
 
       {(c.lifecycle_stage === 'lead' || c.lifecycle_stage === 'prospect') && c.lead_score !== null && c.lead_score !== undefined && (
         <div className="mb-5 p-3 border border-border rounded bg-white flex items-start gap-3">
           <div className="shrink-0">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-[14px] tabular-nums ${
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center font-semibold text-base tabular-nums ${
               Number(c.lead_score) >= 70 ? 'bg-emerald-100 text-emerald-800'
               : Number(c.lead_score) >= 40 ? 'bg-amber-100 text-amber-800'
               : 'bg-danger-50 text-danger-700'
@@ -199,10 +199,10 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
           <div className="flex-1">
-            <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
+            <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
               Lead score {c.lead_score_updated_at ? `· updated ${new Date(String(c.lead_score_updated_at)).toLocaleDateString('en-GB')}` : ''}
             </div>
-            <div className="text-[12px] text-ink-soft whitespace-pre-wrap">
+            <div className="text-sm text-ink-soft whitespace-pre-wrap">
               {c.lead_score_reasoning ? String(c.lead_score_reasoning) : <span className="italic text-ink-muted">Will be scored on next monthly run.</span>}
             </div>
           </div>
@@ -251,8 +251,8 @@ function formatBirthday(iso: string): string {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
-      <div className="text-[13px]">{children}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
+      <div className="text-sm">{children}</div>
     </div>
   );
 }
@@ -260,17 +260,17 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
+      <h3 className="text-sm uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
       {children}
     </div>
   );
 }
 
 function Table({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
-  if (rows.length === 0) return <div className="text-[12px] text-ink-muted italic px-3 py-2">None</div>;
+  if (rows.length === 0) return <div className="text-sm text-ink-muted italic px-3 py-2">None</div>;
   return (
     <div className="border border-border rounded-md overflow-hidden bg-white">
-      <table className="w-full text-[12px]">
+      <table className="w-full text-sm">
         <thead className="bg-surface-alt text-ink-muted">
           <tr>{headers.map((h, i) => <th key={i} className="text-left px-3 py-1.5 font-medium">{h}</th>)}</tr>
         </thead>

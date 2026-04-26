@@ -85,7 +85,7 @@ export function ProrataPanel({
 
   if (!data && !error) {
     return (
-      <div className="mt-6 p-4 bg-surface border border-border rounded-lg text-[12px] text-ink-muted">
+      <div className="mt-6 p-4 bg-surface border border-border rounded-lg text-sm text-ink-muted">
         Loading pro-rata breakdown…
       </div>
     );
@@ -93,7 +93,7 @@ export function ProrataPanel({
 
   if (error || !data) {
     return (
-      <div className="mt-6 p-4 bg-danger-50 border border-danger-200 rounded-lg text-[12px] text-danger-800">
+      <div className="mt-6 p-4 bg-danger-50 border border-danger-200 rounded-lg text-sm text-danger-800">
         {error ?? 'Pro-rata unavailable.'}
       </div>
     );
@@ -108,10 +108,10 @@ export function ProrataPanel({
       <header className="px-5 py-3.5 border-b border-divider flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <ScaleIcon size={14} className="text-brand-500" />
-          <h3 className="text-[14px] font-semibold text-ink">
+          <h3 className="text-base font-semibold text-ink">
             Input-VAT pro-rata
           </h3>
-          <span className="text-[11px] text-ink-muted">
+          <span className="text-xs text-ink-muted">
             · {period.start} → {period.end}
           </span>
         </div>
@@ -119,7 +119,7 @@ export function ProrataPanel({
           {hasConfig && (
             <button
               onClick={() => setEditing(!editing)}
-              className="h-7 px-2.5 rounded-md border border-border-strong text-[11.5px] font-medium text-ink-soft hover:text-ink inline-flex items-center gap-1"
+              className="h-7 px-2.5 rounded-md border border-border-strong text-xs font-medium text-ink-soft hover:text-ink inline-flex items-center gap-1"
             >
               <PencilIcon size={11} /> {editing ? 'Close' : 'Edit'}
             </button>
@@ -127,7 +127,7 @@ export function ProrataPanel({
           {!hasConfig && !schema_missing && (
             <button
               onClick={() => setEditing(true)}
-              className="h-7 px-3 rounded-md bg-brand-500 text-white text-[11.5px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1"
+              className="h-7 px-3 rounded-md bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 inline-flex items-center gap-1"
             >
               Set up pro-rata
             </button>
@@ -136,7 +136,7 @@ export function ProrataPanel({
       </header>
 
       {schema_missing && (
-        <div className="px-5 py-3 bg-amber-50 border-b border-amber-200 text-[12px] text-amber-900">
+        <div className="px-5 py-3 bg-amber-50 border-b border-amber-200 text-sm text-amber-900">
           <strong>Schema missing:</strong> run migration 011 to enable pro-rata tracking.
         </div>
       )}
@@ -155,7 +155,7 @@ export function ProrataPanel({
         <div className="px-5 py-4 bg-danger-50 border-b border-danger-200">
           <div className="flex items-start gap-2">
             <AlertCircleIcon size={14} className="text-danger-700 mt-0.5 shrink-0" />
-            <div className="text-[12px] text-danger-800">
+            <div className="text-sm text-danger-800">
               <strong>No pro-rata configured for this period.</strong>
               {' '}
               Defaulting to 100% deductible. If the entity provides any
@@ -191,15 +191,15 @@ export function ProrataPanel({
       <div className="px-5 py-4 border-t border-divider bg-surface-alt/30">
         <div className="flex items-center gap-2 mb-2">
           <CalculatorIcon size={13} className="text-ink-muted" />
-          <span className="text-[11.5px] uppercase tracking-wide font-semibold text-ink-muted">
+          <span className="text-xs uppercase tracking-wide font-semibold text-ink-muted">
             Method · {labelForMethod(breakdown.method)}
           </span>
         </div>
-        <pre className="text-[12px] leading-relaxed font-mono text-ink-soft whitespace-pre-wrap">
+        <pre className="text-sm leading-relaxed font-mono text-ink-soft whitespace-pre-wrap">
           {breakdown.formula_text}
         </pre>
         {record?.notes && (
-          <div className="mt-3 text-[11.5px] text-ink-muted italic whitespace-pre-wrap border-l-2 border-brand-200 pl-2">
+          <div className="mt-3 text-xs text-ink-muted italic whitespace-pre-wrap border-l-2 border-brand-200 pl-2">
             Reviewer note: {record.notes}
           </div>
         )}
@@ -207,20 +207,20 @@ export function ProrataPanel({
 
       {/* Legal refs */}
       <div className="px-5 py-3 border-t border-divider flex flex-wrap items-center gap-2">
-        <span className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted">
+        <span className="text-xs uppercase tracking-wide font-semibold text-ink-muted">
           Legal refs
         </span>
         {breakdown.legal_refs.map(ref => (
           <a
             key={ref}
             href={`/legal-watch?src=${encodeURIComponent(ref)}`}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-700 bg-brand-50 border border-brand-100 rounded px-1.5 py-0.5 hover:bg-brand-100"
+            className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 bg-brand-50 border border-brand-100 rounded px-1.5 py-0.5 hover:bg-brand-100"
           >
             {ref}
             <ExternalLinkIcon size={9} />
           </a>
         ))}
-        <span className="ml-auto text-[10.5px] text-ink-faint inline-flex items-center gap-1">
+        <span className="ml-auto text-2xs text-ink-faint inline-flex items-center gap-1">
           {hasConfig ? <CheckCircleIcon size={10} className="text-emerald-600" /> : null}
           {hasConfig ? 'Configuration active' : 'No configuration · default 100%'}
         </span>
@@ -264,14 +264,14 @@ function MetricCell({
     'text-ink';
   return (
     <div className={`px-5 py-5 ${bg}`}>
-      <div className={`text-[10.5px] uppercase tracking-wide font-semibold ${labelColour}`}>
+      <div className={`text-2xs uppercase tracking-wide font-semibold ${labelColour}`}>
         {label}
       </div>
-      <div className={`mt-1 text-[22px] font-semibold tabular-nums tracking-tight ${valueColour}`}>
+      <div className={`mt-1 text-xl font-semibold tabular-nums tracking-tight ${valueColour}`}>
         {value}
       </div>
       {sublabel && (
-        <div className={`text-[10.5px] mt-0.5 ${labelColour}`}>{sublabel}</div>
+        <div className={`text-2xs mt-0.5 ${labelColour}`}>{sublabel}</div>
       )}
     </div>
   );
@@ -341,7 +341,7 @@ function ProrataEditor({
   return (
     <div className="px-5 py-4 bg-amber-50/40 border-b border-amber-200">
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-[13px] font-semibold text-ink">
+        <h4 className="text-sm font-semibold text-ink">
           {existing ? 'Edit pro-rata configuration' : 'Create pro-rata configuration'}
         </h4>
         <button
@@ -354,7 +354,7 @@ function ProrataEditor({
       </div>
 
       {err && (
-        <div className="mb-3 px-3 py-2 bg-danger-50 border border-danger-200 text-[11.5px] text-danger-800 rounded">
+        <div className="mb-3 px-3 py-2 bg-danger-50 border border-danger-200 text-xs text-danger-800 rounded">
           {err}
         </div>
       )}
@@ -365,7 +365,7 @@ function ProrataEditor({
             type="date"
             value={draft.period_start || ''}
             onChange={e => setDraft({ ...draft, period_start: e.target.value })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px]"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </Field>
         <Field label="Period end (YYYY-MM-DD)">
@@ -373,7 +373,7 @@ function ProrataEditor({
             type="date"
             value={draft.period_end || ''}
             onChange={e => setDraft({ ...draft, period_end: e.target.value })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px]"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </Field>
       </div>
@@ -386,7 +386,7 @@ function ProrataEditor({
                 key={m}
                 onClick={() => setDraft({ ...draft, method: m })}
                 className={[
-                  'flex-1 h-9 px-3 rounded border text-[12px] font-medium',
+                  'flex-1 h-9 px-3 rounded border text-sm font-medium',
                   draft.method === m
                     ? 'bg-brand-500 text-white border-brand-500'
                     : 'bg-surface text-ink-soft border-border-strong hover:text-ink',
@@ -407,7 +407,7 @@ function ProrataEditor({
               step="0.01"
               value={draft.ratio_num ?? ''}
               onChange={e => setDraft({ ...draft, ratio_num: e.target.value ? Number(e.target.value) : null })}
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] tabular-nums"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm tabular-nums"
               placeholder="e.g. 820000"
             />
           </Field>
@@ -417,12 +417,12 @@ function ProrataEditor({
               step="0.01"
               value={draft.ratio_denom ?? ''}
               onChange={e => setDraft({ ...draft, ratio_denom: e.target.value ? Number(e.target.value) : null })}
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] tabular-nums"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm tabular-nums"
               placeholder="e.g. 3920000"
             />
           </Field>
           <Field label="Resulting ratio (auto)">
-            <div className="h-8 flex items-center px-2 text-[12.5px] font-mono bg-white border border-border-strong rounded">
+            <div className="h-8 flex items-center px-2 text-sm font-mono bg-white border border-border-strong rounded">
               {previewPct != null ? `${previewPct}%` : '—'}
             </div>
           </Field>
@@ -437,7 +437,7 @@ function ProrataEditor({
               max="100"
               value={draft.ratio_pct ?? ''}
               onChange={e => setDraft({ ...draft, ratio_pct: e.target.value ? Number(e.target.value) : null })}
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] tabular-nums"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm tabular-nums"
               placeholder="e.g. 75"
             />
           </Field>
@@ -450,7 +450,7 @@ function ProrataEditor({
             rows={3}
             value={draft.basis ?? ''}
             onChange={e => setDraft({ ...draft, basis: e.target.value || null })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px]"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             placeholder="e.g. Loans to non-EU subsidiaries: $820k (Art. 49§2 — with deduction). Loans to LU and EU subsidiaries: $3.1m (without deduction). Ratio: 820/(820+3100) = 20.92% → 21% after round-up."
           />
         </Field>
@@ -462,7 +462,7 @@ function ProrataEditor({
             rows={2}
             value={draft.notes ?? ''}
             onChange={e => setDraft({ ...draft, notes: e.target.value || null })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px]"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </Field>
       </div>
@@ -471,14 +471,14 @@ function ProrataEditor({
         <button
           onClick={onClose}
           disabled={saving}
-          className="h-8 px-3 rounded border border-border-strong text-[12px] text-ink-muted hover:text-ink"
+          className="h-8 px-3 rounded border border-border-strong text-sm text-ink-muted hover:text-ink"
         >
           Cancel
         </button>
         <button
           onClick={save}
           disabled={saving}
-          className="h-8 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
+          className="h-8 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
         >
           <CheckIcon size={12} /> {saving ? 'Saving…' : existing ? 'Save changes' : 'Create'}
         </button>
@@ -490,7 +490,7 @@ function ProrataEditor({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
         {label}
       </div>
       {children}

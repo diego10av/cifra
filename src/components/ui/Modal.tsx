@@ -104,7 +104,7 @@ export function Modal({
       <div
         ref={modalRef}
         tabIndex={-1}
-        className={`relative w-full ${sizeClass} max-h-[calc(100vh-4rem)] bg-surface rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale focus:outline-none`}
+        className={`relative w-full ${sizeClass} max-h-[calc(100vh-4rem)] bg-surface rounded-xl shadow-2xl flex flex-col overflow-hidden animate-fadeInScale`}
       >
         {!hideHeader && (title || dismissable) && (
           <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-divider shrink-0">

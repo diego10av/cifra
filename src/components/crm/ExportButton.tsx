@@ -18,7 +18,7 @@ export function ExportButton({
   return (
     <a
       href={`/api/crm/export?${qs}`}
-      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-border text-[11.5px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors"
+      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md border border-border text-xs text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors"
       title="Download as Excel (.xlsx)"
     >
       <DownloadIcon size={12} />

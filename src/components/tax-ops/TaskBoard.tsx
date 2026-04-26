@@ -70,7 +70,7 @@ export function TaskBoard({
           onDrop={() => handleDrop(col.key)}
           className="rounded-md border border-border bg-surface-alt/30 min-h-[200px]"
         >
-          <div className="px-3 py-2 border-b border-border bg-surface-alt text-[12px] font-semibold text-ink-soft">
+          <div className="px-3 py-2 border-b border-border bg-surface-alt text-sm font-semibold text-ink-soft">
             {col.label}
             <span className="ml-1.5 font-normal text-ink-muted tabular-nums">
               ({tasksFor(col).length})
@@ -85,11 +85,11 @@ export function TaskBoard({
                 onDragStart={() => setDragId(t.id)}
                 className={`block rounded-md border-l-[3px] ${PRIORITY_TONE[t.priority] ?? 'border-l-border-strong'} border border-border bg-surface p-2 hover:shadow-sm transition-shadow cursor-grab`}
               >
-                <div className="text-[12.5px] font-medium text-ink line-clamp-2">{t.title}</div>
+                <div className="text-sm font-medium text-ink line-clamp-2">{t.title}</div>
                 {t.related_entity_name && (
-                  <div className="text-[10.5px] text-ink-muted mt-0.5 truncate">{t.related_entity_name}</div>
+                  <div className="text-2xs text-ink-muted mt-0.5 truncate">{t.related_entity_name}</div>
                 )}
-                <div className="flex items-center gap-2 mt-1 text-[10.5px] text-ink-muted">
+                <div className="flex items-center gap-2 mt-1 text-2xs text-ink-muted">
                   {t.due_date && (
                     <span className="inline-flex items-center gap-0.5">
                       <CalendarIcon size={9} /> {new Date(t.due_date).toLocaleDateString()}

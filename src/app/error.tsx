@@ -68,14 +68,14 @@ export default function AppError({
             <AlertTriangleIcon size={18} />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-[16px] font-semibold text-ink tracking-tight">Something went wrong on this page</h1>
-            <p className="text-[12.5px] text-ink-soft mt-1.5 leading-relaxed">
+            <h1 className="text-base font-semibold text-ink tracking-tight">Something went wrong on this page</h1>
+            <p className="text-sm text-ink-soft mt-1.5 leading-relaxed">
               The rest of the app is still working — go back home, retry this
               page, or copy the error details if you want to ask Diego to look.
             </p>
 
             {error.message && (
-              <div className="mt-3 font-mono text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 break-words">
+              <div className="mt-3 font-mono text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 break-words">
                 {error.message}
                 {error.digest && (
                   <div className="mt-1 text-ink-muted">digest: {error.digest}</div>
@@ -86,19 +86,19 @@ export default function AppError({
             <div className="mt-4 flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => reset()}
-                className="inline-flex items-center gap-1.5 h-8 px-3 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-colors"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors"
               >
                 <RefreshCwIcon size={13} /> Retry
               </button>
               <Link
                 href="/"
-                className="inline-flex items-center gap-1.5 h-8 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-colors"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-colors"
               >
                 <HomeIcon size={13} /> Go home
               </Link>
               <button
                 onClick={copyDetails}
-                className="inline-flex items-center gap-1.5 h-8 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-colors"
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-colors"
               >
                 {copied ? <CheckIcon size={13} /> : <ClipboardIcon size={13} />}
                 {copied ? 'Copied' : 'Copy error details'}

@@ -236,11 +236,11 @@ export function BillingCard({ clientId }: { clientId: string }) {
   if (migrationMissing) {
     return (
       <div className="bg-amber-50/50 border border-amber-200 rounded-lg px-4 py-3">
-        <div className="text-[12.5px] font-semibold text-amber-900 flex items-center gap-1.5">
+        <div className="text-sm font-semibold text-amber-900 flex items-center gap-1.5">
           <AlertTriangleIcon size={13} /> Migration 018 pending
         </div>
-        <div className="text-[11.5px] text-amber-800 mt-1">
-          Apply <code className="text-[10.5px] bg-amber-100 px-1 rounded">018_client_billing.sql</code> to
+        <div className="text-xs text-amber-800 mt-1">
+          Apply <code className="text-2xs bg-amber-100 px-1 rounded">018_client_billing.sql</code> to
           enable the Billing panel.
         </div>
       </div>
@@ -249,7 +249,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
 
   if (billing === undefined) {
     return (
-      <div className="bg-surface border border-border rounded-lg px-4 py-3 text-[12px] text-ink-muted inline-flex items-center gap-2">
+      <div className="bg-surface border border-border rounded-lg px-4 py-3 text-sm text-ink-muted inline-flex items-center gap-2">
         <Loader2Icon size={13} className="animate-spin" /> Loading billing…
       </div>
     );
@@ -270,7 +270,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
   if (!editing && isEmpty) {
     return (
       <div className="bg-surface border border-dashed border-border rounded-lg px-4 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-[12px] text-ink-muted min-w-0">
+        <div className="flex items-center gap-2 text-sm text-ink-muted min-w-0">
           <BanknoteIcon size={13} className="text-ink-faint shrink-0" />
           <span className="truncate">
             <strong className="text-ink-soft">No fee schedule on record.</strong>{' '}
@@ -280,7 +280,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
         </div>
         <button
           onClick={() => setEditing(true)}
-          className="shrink-0 h-7 px-2.5 rounded-md border border-border-strong text-[11.5px] font-medium text-ink-soft hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1"
+          className="shrink-0 h-7 px-2.5 rounded-md border border-border-strong text-xs font-medium text-ink-soft hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1"
         >
           <PlusIcon size={11} /> Add fee schedule
         </button>
@@ -293,12 +293,12 @@ export function BillingCard({ clientId }: { clientId: string }) {
       <div className="bg-emerald-50/20 border border-emerald-200 rounded-lg px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 text-[10.5px] uppercase tracking-wide font-semibold text-emerald-800">
+            <div className="flex items-center gap-2 text-2xs uppercase tracking-wide font-semibold text-emerald-800">
               <BanknoteIcon size={11} /> Billing · fees agreed with this client
             </div>
 
             {/* Fee rows */}
-            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-[12px]">
+            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1 text-sm">
               <FeeItem label="Monthly" cents={billing.fee_monthly_cents} currency={billing.currency} />
               <FeeItem label="Quarterly" cents={billing.fee_quarterly_cents} currency={billing.currency} />
               <FeeItem label="Annual" cents={billing.fee_annual_cents} currency={billing.currency} />
@@ -308,7 +308,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
             </div>
 
             {billing.disbursement_fee_bps != null && (
-              <div className="mt-2 text-[12px] text-ink-soft">
+              <div className="mt-2 text-sm text-ink-soft">
                 <span className="font-medium">
                   Disbursement fee: {(billing.disbursement_fee_bps / 100).toFixed(2)}%
                 </span>
@@ -321,7 +321,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
             )}
 
             {billing.billing_notes && (
-              <div className="mt-2 text-[11.5px] text-ink-muted italic leading-relaxed">
+              <div className="mt-2 text-xs text-ink-muted italic leading-relaxed">
                 {billing.billing_notes}
               </div>
             )}
@@ -332,10 +332,10 @@ export function BillingCard({ clientId }: { clientId: string }) {
                 <div className="flex items-center gap-2 min-w-0">
                   <FileTextIcon size={13} className="text-emerald-700 shrink-0" />
                   <div className="min-w-0">
-                    <div className="text-[12px] font-medium text-ink truncate">
+                    <div className="text-sm font-medium text-ink truncate">
                       {billing.engagement_letter_filename}
                     </div>
-                    <div className="text-[10.5px] text-ink-muted">
+                    <div className="text-2xs text-ink-muted">
                       {billing.engagement_letter_signed_on && `Signed ${billing.engagement_letter_signed_on}`}
                       {billing.engagement_letter_signed_on && billing.engagement_letter_uploaded_at && ' · '}
                       {billing.engagement_letter_uploaded_at && `Uploaded ${fmtDate(billing.engagement_letter_uploaded_at)}`}
@@ -346,13 +346,13 @@ export function BillingCard({ clientId }: { clientId: string }) {
                 <div className="flex items-center gap-1 shrink-0">
                   <button
                     onClick={openEngagementLetter}
-                    className="h-7 px-2 rounded border border-border text-[11px] text-ink-muted hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1"
+                    className="h-7 px-2 rounded border border-border text-xs text-ink-muted hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1"
                   >
                     <ExternalLinkIcon size={10} /> Open
                   </button>
                   <button
                     onClick={deleteEngagementLetter}
-                    className="h-7 px-2 rounded border border-border text-[11px] text-ink-muted hover:text-danger-700 hover:border-danger-200 hover:bg-danger-50 inline-flex items-center gap-1"
+                    className="h-7 px-2 rounded border border-border text-xs text-ink-muted hover:text-danger-700 hover:border-danger-200 hover:bg-danger-50 inline-flex items-center gap-1"
                     title="Delete engagement letter"
                   >
                     <Trash2Icon size={10} />
@@ -360,7 +360,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
                 </div>
               </div>
             ) : (
-              <div className="mt-3 text-[11px] text-ink-muted">
+              <div className="mt-3 text-xs text-ink-muted">
                 No engagement letter on file.{' '}
                 <button
                   onClick={() => setEditing(true)}
@@ -374,7 +374,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
 
           <button
             onClick={() => setEditing(true)}
-            className="shrink-0 h-7 px-2.5 rounded-md border border-border-strong text-[11.5px] font-medium text-ink-soft hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1"
+            className="shrink-0 h-7 px-2.5 rounded-md border border-border-strong text-xs font-medium text-ink-soft hover:text-ink hover:bg-surface-alt inline-flex items-center gap-1"
           >
             <PencilIcon size={11} /> Edit
           </button>
@@ -387,7 +387,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
   return (
     <div className="bg-emerald-50/30 border border-emerald-300 rounded-lg p-4">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[13px] font-semibold text-ink inline-flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-ink inline-flex items-center gap-2">
           <BanknoteIcon size={14} className="text-emerald-700" />
           {billing ? 'Edit billing' : 'Add fee schedule'}
         </h3>
@@ -444,7 +444,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
         </div>
 
         <div className="pt-2 border-t border-emerald-200/60">
-          <div className="text-[11px] uppercase tracking-wide font-semibold text-emerald-900 mb-2">
+          <div className="text-xs uppercase tracking-wide font-semibold text-emerald-900 mb-2">
             Disbursements
           </div>
           <div className="grid grid-cols-3 gap-3">
@@ -455,16 +455,16 @@ export function BillingCard({ clientId }: { clientId: string }) {
                   onChange={(e) => setDraft({ ...draft, disbursement_fee_pct: e.target.value })}
                   placeholder="4.25"
                   inputMode="decimal"
-                  className="w-full border border-border-strong rounded px-2 py-1.5 pr-8 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-2 py-1.5 pr-8 text-sm"
                 />
-                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-ink-muted">%</span>
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-ink-muted">%</span>
               </div>
             </Field>
             <Field label="VAT on disbursement fee?">
               <select
                 value={draft.vat_on_disbursement_fee}
                 onChange={(e) => setDraft({ ...draft, vat_on_disbursement_fee: e.target.value as Draft['vat_on_disbursement_fee'] })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
               >
                 <option value="unknown">Unknown / not discussed</option>
                 <option value="yes">Yes (VAT-subject)</option>
@@ -475,7 +475,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
               <input
                 value={draft.currency}
                 onChange={(e) => setDraft({ ...draft, currency: e.target.value.toUpperCase().slice(0, 3) })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] font-mono uppercase focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm font-mono uppercase"
               />
             </Field>
           </div>
@@ -485,7 +485,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
                 value={draft.disbursement_notes}
                 onChange={(e) => setDraft({ ...draft, disbursement_notes: e.target.value })}
                 placeholder="e.g. 5% up to €100k, 4% above"
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
               />
             </Field>
           </div>
@@ -497,13 +497,13 @@ export function BillingCard({ clientId }: { clientId: string }) {
             onChange={(e) => setDraft({ ...draft, billing_notes: e.target.value })}
             rows={2}
             placeholder="e.g. Billed quarterly in advance; invoice issued on the 1st of the period."
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </Field>
 
         {/* Engagement letter upload */}
         <div className="pt-2 border-t border-emerald-200/60">
-          <div className="text-[11px] uppercase tracking-wide font-semibold text-emerald-900 mb-2">
+          <div className="text-xs uppercase tracking-wide font-semibold text-emerald-900 mb-2">
             Engagement letter
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -512,7 +512,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
                 type="date"
                 value={draft.engagement_letter_signed_on}
                 onChange={(e) => setDraft({ ...draft, engagement_letter_signed_on: e.target.value })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
               />
             </Field>
             <div className="flex flex-col justify-end">
@@ -531,7 +531,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
                 type="button"
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
-                className="h-9 px-3 rounded border border-emerald-300 bg-emerald-50 text-emerald-800 text-[12px] font-medium hover:bg-emerald-100 disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+                className="h-9 px-3 rounded border border-emerald-300 bg-emerald-50 text-emerald-800 text-sm font-medium hover:bg-emerald-100 disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
               >
                 {uploading
                   ? <Loader2Icon size={12} className="animate-spin" />
@@ -541,7 +541,7 @@ export function BillingCard({ clientId }: { clientId: string }) {
             </div>
           </div>
           {billing?.engagement_letter_filename && (
-            <div className="mt-2 text-[11px] text-ink-muted flex items-center gap-2">
+            <div className="mt-2 text-xs text-ink-muted flex items-center gap-2">
               <FileTextIcon size={11} /> Current: {billing.engagement_letter_filename}
             </div>
           )}
@@ -552,14 +552,14 @@ export function BillingCard({ clientId }: { clientId: string }) {
         <button
           onClick={() => setEditing(false)}
           disabled={saving}
-          className="h-8 px-3 rounded border border-border-strong text-[12px] text-ink-muted hover:text-ink"
+          className="h-8 px-3 rounded border border-border-strong text-sm text-ink-muted hover:text-ink"
         >
           Cancel
         </button>
         <button
           onClick={save}
           disabled={saving}
-          className="h-8 px-4 rounded bg-emerald-600 text-white text-[12px] font-semibold hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1"
+          className="h-8 px-4 rounded bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 inline-flex items-center gap-1"
         >
           {saving ? <Loader2Icon size={12} className="animate-spin" /> : <CheckIcon size={12} />}
           {saving ? 'Saving…' : 'Save'}
@@ -574,9 +574,9 @@ function Field({
 }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5 flex items-baseline gap-2">
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-0.5 flex items-baseline gap-2">
         <span>{label}</span>
-        {hint && <span className="text-[9.5px] text-ink-faint normal-case tracking-normal font-normal">{hint}</span>}
+        {hint && <span className="text-2xs text-ink-faint normal-case tracking-normal font-normal">{hint}</span>}
       </div>
       {children}
     </label>
@@ -596,13 +596,13 @@ function EuroField({
   return (
     <Field label={label} hint={hint}>
       <div className="relative">
-        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11.5px] text-ink-muted">{symbol}</span>
+        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-ink-muted">{symbol}</span>
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="0.00"
           inputMode="decimal"
-          className="w-full border border-border-strong rounded pl-6 pr-2 py-1.5 text-[12.5px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="w-full border border-border-strong rounded pl-6 pr-2 py-1.5 text-sm font-mono"
         />
       </div>
     </Field>
@@ -620,16 +620,16 @@ function FeeItem({
   if (cents == null) {
     return (
       <div>
-        <div className="text-[10px] uppercase tracking-wide text-ink-faint">{label}</div>
-        <div className="text-ink-faint italic text-[11.5px]">—</div>
+        <div className="text-2xs uppercase tracking-wide text-ink-faint">{label}</div>
+        <div className="text-ink-faint italic text-xs">—</div>
       </div>
     );
   }
   return (
     <div>
-      <div className="text-[10px] uppercase tracking-wide text-ink-muted">{label}</div>
+      <div className="text-2xs uppercase tracking-wide text-ink-muted">{label}</div>
       <div className="text-ink font-semibold">
-        {fmtMoney(cents, currency)}{suffix && <span className="text-[10.5px] text-ink-muted font-normal">{suffix}</span>}
+        {fmtMoney(cents, currency)}{suffix && <span className="text-2xs text-ink-muted font-normal">{suffix}</span>}
       </div>
     </div>
   );

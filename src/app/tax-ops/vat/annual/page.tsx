@@ -60,7 +60,7 @@ export default function VatAnnualPage() {
         const subtype = (e as CombinedEntity).subtype;
         return (
           <span className={[
-            'inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px]',
+            'inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs',
             subtype === 'simplified' ? 'bg-brand-50 text-brand-700' : 'bg-surface-alt text-ink-soft',
           ].join(' ')}>
             {subtype}

@@ -103,12 +103,12 @@ export default function TasksPage() {
       {error && <div className="mb-3"><CrmErrorBox message={error} onRetry={load} /></div>}
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <select value={status} onChange={e => setStatus(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
           <option value="">Open + In progress + Snoozed</option>
           {TASK_STATUSES.map(s => <option key={s} value={s}>{LABELS_TASK_STATUS[s]}</option>)}
         </select>
         <select value={priority} onChange={e => setPriority(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
           <option value="">All priorities</option>
           {TASK_PRIORITIES.map(p => <option key={p} value={p}>{LABELS_TASK_PRIORITY[p]}</option>)}
         </select>
@@ -121,7 +121,7 @@ export default function TasksPage() {
         <EmptyState illustration="inbox" title="No tasks" description="Create a task to track a follow-up, or let cifra auto-generate them when a Key Account has a stale declaration." />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="text-left px-3 py-2 font-medium w-8"></th>

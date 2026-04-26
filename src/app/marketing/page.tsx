@@ -27,7 +27,7 @@ function Container({ children, className = '' }: { children: React.ReactNode; cl
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <div className="inline-block text-[11px] tracking-[0.16em] uppercase font-semibold text-brand-700">
+    <div className="inline-block text-xs tracking-[0.16em] uppercase font-semibold text-brand-700">
       {children}
     </div>
   );
@@ -36,7 +36,7 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 function CifraWordmark() {
   // Handmade — matches the product's Logo component but at landing scale.
   return (
-    <span className="inline-flex items-center gap-1.5 font-medium text-ink text-[19px] tracking-tight">
+    <span className="inline-flex items-center gap-1.5 font-medium text-ink text-lg tracking-tight">
       <span className="block w-[10px] h-[10px] rounded-full bg-brand-500" aria-hidden />
       cifra
     </span>
@@ -60,19 +60,19 @@ function TopNav() {
         <nav className="flex items-center gap-6 md:gap-7">
           <a
             href="#product"
-            className="hidden md:inline-block text-[13px] text-ink-soft hover:text-ink transition-colors"
+            className="hidden md:inline-block text-sm text-ink-soft hover:text-ink transition-colors"
           >
             Product
           </a>
           <a
             href="#depth"
-            className="hidden md:inline-block text-[13px] text-ink-soft hover:text-ink transition-colors"
+            className="hidden md:inline-block text-sm text-ink-soft hover:text-ink transition-colors"
           >
             Depth
           </a>
           <a
             href="#roadmap"
-            className="hidden md:inline-block text-[13px] text-ink-soft hover:text-ink transition-colors"
+            className="hidden md:inline-block text-sm text-ink-soft hover:text-ink transition-colors"
           >
             Roadmap
           </a>
@@ -80,7 +80,7 @@ function TopNav() {
           <span aria-hidden className="hidden md:inline-block h-5 w-px bg-[#EFEAE2]" />
           <a
             href="/login"
-            className="inline-flex items-center text-[13px] font-medium text-ink-soft hover:text-ink transition-colors group"
+            className="inline-flex items-center text-sm font-medium text-ink-soft hover:text-ink transition-colors group"
           >
             Sign in
             <span
@@ -92,7 +92,7 @@ function TopNav() {
           </a>
           <a
             href="mailto:contact@cifracompliance.com"
-            className="inline-flex items-center h-8 px-3.5 rounded-md bg-ink text-white text-[13px] font-medium hover:bg-ink-soft transition-colors"
+            className="inline-flex items-center h-8 px-3.5 rounded-md bg-ink text-white text-sm font-medium hover:bg-ink-soft transition-colors"
           >
             Get in touch
           </a>
@@ -117,7 +117,7 @@ function Hero() {
           <br />
           <span className="text-brand-500">rebuilt from the law up.</span>
         </h1>
-        <p className="mt-7 max-w-[640px] text-[19px] md:text-[20px] leading-[1.55] text-ink-soft">
+        <p className="mt-7 max-w-[640px] text-lg md:text-lg leading-[1.55] text-ink-soft">
           cifra prepares VAT returns for fund entities in minutes, with
           the classifier depth a Magic Circle partner would sign off on.
           Starting with VAT. Built for every LU filing your firm owns.
@@ -125,19 +125,19 @@ function Hero() {
         <div className="mt-10 flex flex-wrap items-center gap-6">
           <a
             href="mailto:contact@cifracompliance.com?subject=cifra%20demo%20request"
-            className="inline-flex items-center h-11 px-5 rounded-md bg-ink text-white text-[14px] font-medium hover:bg-ink-soft transition-colors"
+            className="inline-flex items-center h-11 px-5 rounded-md bg-ink text-white text-base font-medium hover:bg-ink-soft transition-colors"
           >
             Request a private demo
             <span className="ml-2" aria-hidden>→</span>
           </a>
           <a
             href="#depth"
-            className="inline-flex items-center text-[14px] font-medium text-ink underline underline-offset-4 decoration-[1.5px] hover:text-brand-600 transition-colors"
+            className="inline-flex items-center text-base font-medium text-ink underline underline-offset-4 decoration-[1.5px] hover:text-brand-600 transition-colors"
           >
             See the classifier depth
           </a>
         </div>
-        <p className="mt-10 max-w-[560px] text-[13px] text-ink-muted">
+        <p className="mt-10 max-w-[560px] text-sm text-ink-muted">
           Built by a Luxembourg VAT professional. Private beta with a
           handful of firms. If you prepare LU fund VAT returns, we can
           probably save you an hour per return today — and everything
@@ -162,7 +162,7 @@ function WhyVertical() {
               <br />
               <span className="text-ink-soft">Luxembourg deserves better.</span>
             </h2>
-            <p className="mt-6 text-[16px] leading-[1.65] text-ink-soft">
+            <p className="mt-6 text-base leading-[1.65] text-ink-soft">
               LU VAT classification hinges on Art. 44 sub-paragraphs,
               CJEU jurisprudence (BlackRock, Fiscale Eenheid X, DBKAG,
               Polysar), AED circulars that move quarterly, and a
@@ -175,10 +175,10 @@ function WhyVertical() {
           <div className="md:col-span-7 md:pl-10 md:border-l md:border-[#EFEAE2]">
             <dl className="space-y-8">
               <div>
-                <dt className="text-[15px] font-semibold text-ink">
+                <dt className="text-base font-semibold text-ink">
                   32+ deterministic rules with full legal citations
                 </dt>
-                <dd className="mt-2 text-[15px] leading-[1.6] text-ink-soft">
+                <dd className="mt-2 text-base leading-[1.6] text-ink-soft">
                   Every classification line carries the LTVA article +
                   CJEU case + AED circular that supports it. BlackRock
                   C-231/19, Fiscale Eenheid X C-595/13, DBKAG C-58/20,
@@ -189,10 +189,10 @@ function WhyVertical() {
               </div>
 
               <div>
-                <dt className="text-[15px] font-semibold text-ink">
+                <dt className="text-base font-semibold text-ink">
                   Override log as compliance evidence
                 </dt>
-                <dd className="mt-2 text-[15px] leading-[1.6] text-ink-soft">
+                <dd className="mt-2 text-base leading-[1.6] text-ink-soft">
                   Every AI suggestion is frozen on first
                   classification. When your reviewer changes the
                   treatment, cifra records the before/after +
@@ -204,10 +204,10 @@ function WhyVertical() {
               </div>
 
               <div>
-                <dt className="text-[15px] font-semibold text-ink">
+                <dt className="text-base font-semibold text-ink">
                   Legal-watch that surfaces when rules need re-review
                 </dt>
-                <dd className="mt-2 text-[15px] leading-[1.6] text-ink-soft">
+                <dd className="mt-2 text-base leading-[1.6] text-ink-soft">
                   60+ legal sources tracked with review dates. When
                   the AED publishes a new circular or the CJEU issues
                   a ruling that affects LU practice, cifra flags which
@@ -269,13 +269,13 @@ function HowItWorks() {
               key={s.n}
               className="rounded-xl border border-[#EFEAE2] bg-[#FBFAF7] p-6 flex flex-col"
             >
-              <span className="text-[11.5px] font-semibold tracking-[0.12em] text-brand-700">
+              <span className="text-xs font-semibold tracking-[0.12em] text-brand-700">
                 {s.n}
               </span>
-              <h3 className="mt-3 text-[17px] font-semibold text-ink leading-snug">
+              <h3 className="mt-3 text-lg font-semibold text-ink leading-snug">
                 {s.title}
               </h3>
-              <p className="mt-2 text-[14px] leading-[1.55] text-ink-soft flex-1">
+              <p className="mt-2 text-base leading-[1.55] text-ink-soft flex-1">
                 {s.body}
               </p>
             </li>
@@ -298,7 +298,7 @@ function Depth() {
             <h2 className="mt-4 text-[34px] md:text-[44px] leading-[1.08] tracking-[-0.02em] font-semibold text-ink">
               Numbers a Big-4 VAT partner would recognise.
             </h2>
-            <p className="mt-6 text-[16px] leading-[1.65] text-ink-soft">
+            <p className="mt-6 text-base leading-[1.65] text-ink-soft">
               cifra treats Luxembourg tax like a first-class engineering
               discipline. Every rule is regression-tested. Every legal
               source has a review date. Every AI decision is logged.
@@ -319,10 +319,10 @@ function Depth() {
 
         <div className="mt-16 rounded-xl border border-[#EFEAE2] bg-[#FBFAF7] px-6 md:px-10 py-8">
           <div className="grid md:grid-cols-[auto_1fr] md:gap-8 items-start">
-            <div className="text-[11px] tracking-[0.16em] uppercase font-semibold text-brand-700 md:mt-1.5">
+            <div className="text-xs tracking-[0.16em] uppercase font-semibold text-brand-700 md:mt-1.5">
               Recent case-law cifra already encodes
             </div>
-            <ul className="mt-4 md:mt-0 grid md:grid-cols-2 gap-y-3 gap-x-8 text-[14px] leading-snug">
+            <ul className="mt-4 md:mt-0 grid md:grid-cols-2 gap-y-3 gap-x-8 text-base leading-snug">
               <CaseLi
                 c="CJEU C-288/22 TP"
                 date="2023-12-21"
@@ -367,7 +367,7 @@ function StatCell({ value, label }: { value: string; label: string }) {
       <div className="text-[36px] md:text-[42px] leading-none font-semibold text-ink tracking-tight tabular-nums">
         {value}
       </div>
-      <div className="mt-2 text-[13px] leading-snug text-ink-soft">{label}</div>
+      <div className="mt-2 text-sm leading-snug text-ink-soft">{label}</div>
     </div>
   );
 }
@@ -418,7 +418,7 @@ function Roadmap() {
           <h2 className="mt-4 text-[34px] md:text-[44px] leading-[1.08] tracking-[-0.02em] font-semibold text-ink">
             One workspace for every Luxembourg filing your firm owns.
           </h2>
-          <p className="mt-6 text-[16px] leading-[1.65] text-ink-soft">
+          <p className="mt-6 text-base leading-[1.65] text-ink-soft">
             cifra is built vertical-deep. That means new filings stack
             on the same data foundation — entities, declarations,
             invoices, legal-sources, audit-log. One login, one audit
@@ -435,15 +435,15 @@ function Roadmap() {
                 className="flex items-start gap-4 py-3 border-b border-[#EFEAE2] last:border-b-0"
               >
                 <span
-                  className={`shrink-0 inline-flex items-center justify-center h-[22px] px-2 rounded-full text-[10.5px] font-semibold tracking-wide border ${p.cls}`}
+                  className={`shrink-0 inline-flex items-center justify-center h-[22px] px-2 rounded-full text-2xs font-semibold tracking-wide border ${p.cls}`}
                 >
                   {p.label}
                 </span>
                 <div>
-                  <div className="text-[15px] font-medium text-ink leading-snug">
+                  <div className="text-base font-medium text-ink leading-snug">
                     {item.label}
                   </div>
-                  <div className="text-[13px] text-ink-soft leading-snug mt-0.5">
+                  <div className="text-sm text-ink-soft leading-snug mt-0.5">
                     {item.desc}
                   </div>
                 </div>
@@ -468,7 +468,7 @@ function Close() {
             <br />
             <span className="text-brand-500">run through cifra?</span>
           </h2>
-          <p className="mt-6 text-[17px] leading-[1.6] text-ink-soft">
+          <p className="mt-6 text-lg leading-[1.6] text-ink-soft">
             Send us an old return — anonymised is fine — and we&apos;ll
             run it through the classifier and validator, and send back
             the side-by-side. 30-minute private demo, no slide deck.
@@ -476,7 +476,7 @@ function Close() {
           <div className="mt-9">
             <a
               href="mailto:contact@cifracompliance.com?subject=cifra%20side-by-side%20request"
-              className="inline-flex items-center h-11 px-5 rounded-md bg-ink text-white text-[14px] font-medium hover:bg-ink-soft transition-colors"
+              className="inline-flex items-center h-11 px-5 rounded-md bg-ink text-white text-base font-medium hover:bg-ink-soft transition-colors"
             >
               contact@cifracompliance.com
               <span className="ml-2" aria-hidden>→</span>
@@ -496,9 +496,9 @@ function Footer() {
       <Container className="py-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <CifraWordmark />
-          <span className="text-[12.5px] text-ink-muted">· Luxembourg</span>
+          <span className="text-sm text-ink-muted">· Luxembourg</span>
         </div>
-        <div className="flex items-center gap-5 text-[12.5px] text-ink-muted">
+        <div className="flex items-center gap-5 text-sm text-ink-muted">
           <a
             href="mailto:contact@cifracompliance.com"
             className="hover:text-ink transition-colors"

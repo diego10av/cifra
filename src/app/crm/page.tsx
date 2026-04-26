@@ -19,8 +19,8 @@ export default function CrmHomePage() {
     <div className="space-y-5">
       <FirstTimeBanner />
       <div>
-        <h1 className="text-[18px] font-semibold text-ink">CRM home</h1>
-        <p className="text-[12.5px] text-ink-muted mt-0.5">
+        <h1 className="text-lg font-semibold text-ink">CRM home</h1>
+        <p className="text-sm text-ink-muted mt-0.5">
           Daily landing — pipeline forecast, unbilled work, Key Account health, deals at risk,
           actions due today, and what&apos;s hitting this week.
         </p>

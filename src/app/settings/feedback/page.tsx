@@ -124,13 +124,13 @@ export default function FeedbackAdminPage() {
   return (
     <div>
       <div className="mb-5">
-        <div className="text-[11px] text-ink-faint mb-1">
+        <div className="text-xs text-ink-faint mb-1">
           <Link href="/settings" className="hover:underline">Settings</Link> ›
         </div>
-        <h1 className="text-[20px] font-semibold tracking-tight flex items-center gap-2">
+        <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
           <MessageCircleIcon size={18} className="text-brand-500" /> Feedback triage
         </h1>
-        <p className="text-[12.5px] text-ink-muted mt-1 max-w-xl">
+        <p className="text-sm text-ink-muted mt-1 max-w-xl">
           In-product reports from the floating button. Triage new → resolved.
         </p>
       </div>
@@ -141,9 +141,9 @@ export default function FeedbackAdminPage() {
             <AlertTriangleIcon size={16} />
           </div>
           <div>
-            <h3 className="text-[14px] font-semibold text-ink">Migration not applied</h3>
-            <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
-              Apply <code className="text-[11.5px] bg-surface-alt px-1 py-0.5 rounded">migrations/002_feedback.sql</code> to
+            <h3 className="text-base font-semibold text-ink">Migration not applied</h3>
+            <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+              Apply <code className="text-xs bg-surface-alt px-1 py-0.5 rounded">migrations/002_feedback.sql</code> to
               enable feedback collection. Until then, user submissions are stashed in their browser localStorage
               and will be sent on the first post-migration retry.
             </p>
@@ -152,7 +152,7 @@ export default function FeedbackAdminPage() {
       )}
 
       {error && (
-        <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+        <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
           {error}
         </div>
       )}
@@ -173,8 +173,8 @@ export default function FeedbackAdminPage() {
           <div className="w-10 h-10 mx-auto rounded-lg bg-surface-alt text-ink-muted inline-flex items-center justify-center mb-3">
             <MessageCircleIcon size={16} />
           </div>
-          <div className="text-[13px] font-medium text-ink">No feedback yet</div>
-          <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-sm mx-auto">
+          <div className="text-sm font-medium text-ink">No feedback yet</div>
+          <div className="text-xs text-ink-muted mt-1.5 max-w-sm mx-auto">
             Ask your partner to tap the Feedback button bottom-right while testing.
           </div>
         </div>
@@ -208,8 +208,8 @@ function CounterCard({
   };
   return (
     <div className={`rounded-lg border p-3 ${colours[tone]}`}>
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold opacity-80">{label}</div>
-      <div className="text-[22px] font-bold tabular-nums mt-0.5">{count}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold opacity-80">{label}</div>
+      <div className="text-xl font-bold tabular-nums mt-0.5">{count}</div>
     </div>
   );
 }
@@ -247,29 +247,29 @@ function FeedbackCard({
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide border ${meta.colour}`}>
+            <span className={`text-2xs px-1.5 py-0.5 rounded font-semibold uppercase tracking-wide border ${meta.colour}`}>
               {meta.label}
             </span>
-            <span className={`text-[11px] ${SEVERITY_COLOUR[item.severity]}`}>
+            <span className={`text-xs ${SEVERITY_COLOUR[item.severity]}`}>
               {item.severity}
             </span>
-            <span className="text-[10.5px] text-ink-faint">
+            <span className="text-2xs text-ink-faint">
               {created.toLocaleString('en-GB', {
                 day: '2-digit', month: 'short',
                 hour: '2-digit', minute: '2-digit',
               })}
             </span>
             {item.user_id && (
-              <span className="text-[10.5px] text-ink-muted font-mono">@{item.user_id}</span>
+              <span className="text-2xs text-ink-muted font-mono">@{item.user_id}</span>
             )}
             {item.entity_name && (
-              <span className="text-[10.5px] text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded">
+              <span className="text-2xs text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded">
                 {item.entity_name}
               </span>
             )}
           </div>
-          <p className="text-[13px] text-ink mt-1.5 leading-relaxed whitespace-pre-wrap">{item.message}</p>
-          <div className="mt-2 flex items-center gap-2 flex-wrap text-[11px]">
+          <p className="text-sm text-ink mt-1.5 leading-relaxed whitespace-pre-wrap">{item.message}</p>
+          <div className="mt-2 flex items-center gap-2 flex-wrap text-xs">
             <a href={item.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-ink-muted hover:text-brand-600">
               <ExternalLinkIcon size={11} /> open URL
             </a>
@@ -279,7 +279,7 @@ function FeedbackCard({
           </div>
 
           {item.resolution_note && !notesOpen && (
-            <div className="mt-2 text-[11.5px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
+            <div className="mt-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
               <span className="font-semibold">Resolution:</span> {item.resolution_note}
             </div>
           )}
@@ -291,19 +291,19 @@ function FeedbackCard({
                 onChange={(e) => setNoteInput(e.target.value)}
                 rows={2}
                 placeholder="Resolution note (visible on triage list only)"
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm resize-none"
               />
               <div className="mt-2 flex gap-2">
                 <button
                   onClick={() => { saveNote(); setNotesOpen(false); }}
                   disabled={saving}
-                  className="h-7 px-3 rounded bg-brand-500 text-white text-[11px] font-semibold hover:bg-brand-600 disabled:opacity-50"
+                  className="h-7 px-3 rounded bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 disabled:opacity-50"
                 >
                   {saving ? 'Saving…' : 'Save note'}
                 </button>
                 <button
                   onClick={() => setNotesOpen(false)}
-                  className="h-7 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt"
+                  className="h-7 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt"
                 >
                   Cancel
                 </button>
@@ -316,7 +316,7 @@ function FeedbackCard({
           <select
             value={item.status}
             onChange={(e) => onStatusChange(e.target.value as Feedback['status'])}
-            className="h-7 px-2 rounded border border-border-strong text-[11px] bg-surface cursor-pointer focus:border-brand-500 focus:outline-none"
+            className="h-7 px-2 rounded border border-border-strong text-xs bg-surface cursor-pointer"
           >
             <option value="new">New</option>
             <option value="triaged">Triaged</option>
@@ -326,7 +326,7 @@ function FeedbackCard({
           {!notesOpen && !item.resolution_note && (
             <button
               onClick={() => setNotesOpen(true)}
-              className="text-[10.5px] text-brand-600 hover:text-brand-800 hover:underline"
+              className="text-2xs text-brand-600 hover:text-brand-800 hover:underline"
             >
               add note
             </button>
@@ -334,14 +334,14 @@ function FeedbackCard({
           {item.resolution_note && !notesOpen && (
             <button
               onClick={() => setNotesOpen(true)}
-              className="text-[10.5px] text-ink-muted hover:text-ink hover:underline"
+              className="text-2xs text-ink-muted hover:text-ink hover:underline"
             >
               edit note
             </button>
           )}
           <button
             onClick={onDelete}
-            className="text-[10.5px] text-ink-muted hover:text-danger-600"
+            className="text-2xs text-ink-muted hover:text-danger-600"
             title="Hard delete"
           >
             <TrashIcon size={11} />

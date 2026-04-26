@@ -132,7 +132,7 @@ export function AddEntityRow({
       <button
         type="button"
         onClick={() => setMode('input')}
-        className="inline-flex items-center gap-1 text-[11.5px] text-ink-muted hover:text-brand-700 px-2 py-1"
+        className="inline-flex items-center gap-1 text-xs text-ink-muted hover:text-brand-700 px-2 py-1"
       >
         <PlusIcon size={11} /> Add entity to {groupName || '(no family)'}
       </button>
@@ -156,24 +156,24 @@ export function AddEntityRow({
         }}
         placeholder={`Legal name (adding to ${groupName || '(no family)'})`}
         disabled={busy}
-        className="flex-1 min-w-[220px] max-w-[360px] px-2 py-0.5 text-[12px] border border-border rounded bg-surface"
+        className="flex-1 min-w-[220px] max-w-[360px] px-2 py-0.5 text-sm border border-border rounded bg-surface"
       />
       <button
         type="button"
         onClick={() => void create()}
         disabled={busy || !legalName.trim()}
-        className="px-2 py-0.5 text-[11.5px] rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+        className="px-2 py-0.5 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
       >
         {busy ? 'Creating…' : 'Add'}
       </button>
       <button
         type="button"
         onClick={() => { setLegalName(''); setMode('button'); }}
-        className="px-2 py-0.5 text-[11.5px] rounded border border-border hover:bg-surface-alt"
+        className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
       >
         Cancel
       </button>
-      {error && <span className="text-[10.5px] text-danger-700" title={error}>⚠</span>}
+      {error && <span className="text-2xs text-danger-700" title={error}>⚠</span>}
     </div>
   );
 }

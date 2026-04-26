@@ -123,7 +123,7 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-4 max-w-5xl">
-      <Link href="/tax-ops/filings" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink">
+      <Link href="/tax-ops/filings" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeftIcon size={12} /> Back to filings
       </Link>
 
@@ -131,10 +131,10 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
       <div className="rounded-md border border-border bg-surface px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <Link href={`/tax-ops/entities/${data.entity_id}`} className="text-[15px] font-semibold text-ink hover:text-brand-700">
+            <Link href={`/tax-ops/entities/${data.entity_id}`} className="text-base font-semibold text-ink hover:text-brand-700">
               {data.entity_name}
             </Link>
-            <div className="text-[12px] text-ink-muted mt-0.5">
+            <div className="text-sm text-ink-muted mt-0.5">
               {data.group_name && <span className="mr-2">{data.group_name}</span>}
               {humanTaxType(data.tax_type)} · {data.period_label} ({data.period_pattern})
             </div>
@@ -144,14 +144,14 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
             <select
               value={data.status}
               onChange={e => patch({ status: e.target.value }, 'Status updated')}
-              className="px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+              className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
               aria-label="Change status"
             >
               {FILING_STATUSES.map(s => <option key={s} value={s}>{filingStatusLabel(s)}</option>)}
             </select>
           </div>
         </div>
-        <div className="mt-2 flex items-center gap-4 text-[12px]">
+        <div className="mt-2 flex items-center gap-4 text-sm">
           <div>
             <span className="text-ink-muted mr-1">Deadline:</span>
             <DateBadge value={data.deadline_date} mode="urgency" />
@@ -173,8 +173,8 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
         <div className="lg:col-span-2 space-y-4">
           {/* Timeline */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">Timeline</h3>
-            <div className="space-y-2 text-[12.5px]">
+            <h3 className="text-sm font-semibold text-ink mb-2">Timeline</h3>
+            <div className="space-y-2 text-sm">
               <TimelineRow
                 label="Draft sent to client"
                 value={data.draft_sent_at}
@@ -206,8 +206,8 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
           {/* CSP contacts */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[13px] font-semibold text-ink">CSP contacts</h3>
-              <span className="text-[11px] text-ink-muted">
+              <h3 className="text-sm font-semibold text-ink">CSP contacts</h3>
+              <span className="text-xs text-ink-muted">
                 {data.csp_contacts.length > 0 ? 'Override for this filing' : 'Using entity defaults'}
               </span>
             </div>
@@ -219,7 +219,7 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
             <div className="mt-2">
               <button
                 onClick={() => patch({ csp_contacts: cspContacts }, 'CSP contacts saved')}
-                className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border hover:bg-surface-alt"
               >
                 <CheckIcon size={11} /> Save contacts
               </button>
@@ -228,8 +228,8 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
 
           {/* Amounts */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">Amounts</h3>
-            <div className="grid grid-cols-2 gap-3 text-[12.5px]">
+            <h3 className="text-sm font-semibold text-ink mb-2">Amounts</h3>
+            <div className="grid grid-cols-2 gap-3 text-sm">
               <AmountField
                 label="Amount due"
                 value={data.amount_due}
@@ -245,7 +245,7 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
 
           {/* Assessment URL */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">Tax assessment</h3>
+            <h3 className="text-sm font-semibold text-ink mb-2">Tax assessment</h3>
             <UrlField
               label="Assessment URL"
               value={data.tax_assessment_url}
@@ -259,7 +259,7 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
         <div className="space-y-4">
           {/* Comments */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-[13px] font-semibold text-ink mb-2">Comments</h3>
+            <h3 className="text-sm font-semibold text-ink mb-2">Comments</h3>
             <textarea
               value={comments}
               onChange={e => setComments(e.target.value)}
@@ -270,14 +270,14 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
               }}
               rows={8}
               placeholder="Notes, status log, todos. Saved on blur."
-              className="w-full px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface font-mono"
+              className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-surface font-mono"
             />
           </div>
 
           {/* Rule context — explains where the deadline comes from */}
           {data.rule_statutory_description && (
-            <div className="rounded-md border border-border bg-surface-alt/40 px-4 py-3 text-[11.5px] text-ink-soft">
-              <h3 className="text-[12px] font-semibold text-ink mb-1">Deadline rule</h3>
+            <div className="rounded-md border border-border bg-surface-alt/40 px-4 py-3 text-xs text-ink-soft">
+              <h3 className="text-sm font-semibold text-ink mb-1">Deadline rule</h3>
               <p className="mb-1.5">{data.rule_statutory_description}</p>
               {typeof data.rule_admin_tolerance_days === 'number' && data.rule_admin_tolerance_days > 0 && (
                 <p className="mb-1.5">Admin tolerance: <strong>{data.rule_admin_tolerance_days} days</strong> past statutory.</p>
@@ -287,7 +287,7 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
           )}
 
           {/* Meta */}
-          <div className="text-[11px] text-ink-muted space-y-0.5">
+          <div className="text-xs text-ink-muted space-y-0.5">
             <div>Source: {data.import_source}</div>
             <div>Created: {new Date(data.created_at).toLocaleString()}</div>
             <div>Updated: {new Date(data.updated_at).toLocaleString()}</div>
@@ -357,7 +357,7 @@ function UrlField({
   const [local, setLocal] = useState(value ?? '');
   useEffect(() => setLocal(value ?? ''), [value]);
   return (
-    <label className="flex flex-col gap-1 text-[12.5px]">
+    <label className="flex flex-col gap-1 text-sm">
       <span className="text-ink-muted">{label}</span>
       <input
         value={local}
@@ -370,7 +370,7 @@ function UrlField({
         className="px-2 py-1 border border-border rounded-md bg-surface"
       />
       {value && (
-        <a href={value} target="_blank" rel="noopener noreferrer" className="text-[11px] text-brand-700 hover:underline truncate">
+        <a href={value} target="_blank" rel="noopener noreferrer" className="text-xs text-brand-700 hover:underline truncate">
           Open ↗
         </a>
       )}

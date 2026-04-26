@@ -62,21 +62,21 @@ export default async function LegalWatchPage() {
             <AlertOctagonIcon size={16} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-[14px] font-semibold text-ink">
+            <h3 className="text-base font-semibold text-ink">
               {due.length} source{due.length === 1 ? '' : 's'} due for re-review
             </h3>
-            <p className="text-[12.5px] text-ink-soft mt-1">
-              Last reviewed more than 12 months ago. Confirm the citation is still current, then update <code className="text-[11.5px] bg-surface-alt px-1 py-0.5 rounded">last_reviewed</code> in{' '}
-              <code className="text-[11.5px] bg-surface-alt px-1 py-0.5 rounded">src/config/legal-sources.ts</code>.
+            <p className="text-sm text-ink-soft mt-1">
+              Last reviewed more than 12 months ago. Confirm the citation is still current, then update <code className="text-xs bg-surface-alt px-1 py-0.5 rounded">last_reviewed</code> in{' '}
+              <code className="text-xs bg-surface-alt px-1 py-0.5 rounded">src/config/legal-sources.ts</code>.
             </p>
             <details className="mt-3">
-              <summary className="text-[12px] font-medium text-brand-600 cursor-pointer hover:text-brand-700">
+              <summary className="text-sm font-medium text-brand-600 cursor-pointer hover:text-brand-700">
                 Show list
               </summary>
               <ul className="mt-2 space-y-1">
                 {due.map(s => (
-                  <li key={s.id} className="text-[12px] text-ink-soft">
-                    <span className="font-mono text-[11px] text-ink-muted">{s.id}</span> · {s.title}
+                  <li key={s.id} className="text-sm text-ink-soft">
+                    <span className="font-mono text-xs text-ink-muted">{s.id}</span> · {s.title}
                     <span className="text-ink-muted ml-2">(last {s.last_reviewed})</span>
                   </li>
                 ))}
@@ -106,12 +106,12 @@ export default async function LegalWatchPage() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-[14px] font-semibold text-ink tracking-tight">Your legal overrides</h2>
+              <h2 className="text-base font-semibold text-ink tracking-tight">Your legal overrides</h2>
               <Badge tone={overridesCount > 0 ? 'brand' : 'neutral'} size="xs">
                 {overridesCount} {overridesCount === 1 ? 'override' : 'overrides'}
               </Badge>
             </div>
-            <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+            <p className="text-sm text-ink-soft mt-1 leading-relaxed">
               Firm-specific positions (e.g. a CJEU ruling, an AED circular, or a conservative
               stance for a given provider) that change how a matching invoice is classified.
               <span className="text-ink-muted"> Overrides beat precedent and inference — but yield to direct evidence.</span>
@@ -119,7 +119,7 @@ export default async function LegalWatchPage() {
           </div>
           <Link
             href="/legal-overrides"
-            className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border-strong bg-surface text-[12px] font-medium text-ink-soft hover:border-brand-300 hover:text-brand-700 transition-colors"
+            className="shrink-0 inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border-strong bg-surface text-sm font-medium text-ink-soft hover:border-brand-300 hover:text-brand-700 transition-colors"
           >
             {overridesCount > 0 ? 'Manage' : 'Add override'} <ArrowUpRightIcon size={12} />
           </Link>
@@ -147,8 +147,8 @@ export default async function LegalWatchPage() {
             <GavelIcon size={14} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-semibold text-ink">Legilux — LU official journal</div>
-            <div className="text-[11.5px] text-ink-muted mt-0.5">Check here when a new LU law or règlement grand-ducal is reported.</div>
+            <div className="text-sm font-semibold text-ink">Legilux — LU official journal</div>
+            <div className="text-xs text-ink-muted mt-0.5">Check here when a new LU law or règlement grand-ducal is reported.</div>
           </div>
           <ArrowUpRightIcon size={14} className="text-ink-muted" />
         </Link>
@@ -170,7 +170,7 @@ function SourceGroup({
       <header className="px-5 py-3 border-b border-divider flex items-center justify-between bg-surface-alt/40">
         <div className="flex items-center gap-2">
           <span className={tone}>{icon}</span>
-          <h2 className="text-[13px] font-semibold text-ink tracking-tight">{label}</h2>
+          <h2 className="text-sm font-semibold text-ink tracking-tight">{label}</h2>
           <Badge tone="neutral" size="xs">{entries.length}</Badge>
         </div>
       </header>
@@ -180,29 +180,29 @@ function SourceGroup({
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-[11px] text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
+                  <span className="font-mono text-xs text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
                     {s.id}
                   </span>
-                  <span className="text-[13px] font-medium text-ink">{s.title}</span>
+                  <span className="text-sm font-medium text-ink">{s.title}</span>
                   {s.article && (
                     <Badge tone="neutral" size="xs">Art. {s.article}</Badge>
                   )}
                 </div>
-                <p className="text-[12px] text-ink-soft mt-1.5 leading-relaxed">{s.subject}</p>
-                <p className="text-[11.5px] text-ink-muted mt-1.5 italic">{s.relevance}</p>
+                <p className="text-sm text-ink-soft mt-1.5 leading-relaxed">{s.subject}</p>
+                <p className="text-xs text-ink-muted mt-1.5 italic">{s.relevance}</p>
                 {s.notes && (
-                  <p className="text-[11px] text-warning-700 mt-1.5">⚠ {s.notes}</p>
+                  <p className="text-xs text-warning-700 mt-1.5">⚠ {s.notes}</p>
                 )}
               </div>
               <div className="shrink-0 text-right">
-                <div className="text-[10.5px] uppercase tracking-wide text-ink-muted font-semibold">Last reviewed</div>
-                <div className="text-[11.5px] text-ink-soft tabular-nums mt-0.5">{s.last_reviewed}</div>
+                <div className="text-2xs uppercase tracking-wide text-ink-muted font-semibold">Last reviewed</div>
+                <div className="text-xs text-ink-soft tabular-nums mt-0.5">{s.last_reviewed}</div>
                 {s.sources_url && (
                   <a
                     href={s.sources_url}
                     target="_blank"
                     rel="noopener"
-                    className="inline-flex items-center gap-1 mt-1.5 text-[11.5px] font-medium text-brand-600 hover:text-brand-700"
+                    className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-brand-600 hover:text-brand-700"
                   >
                     Source <ArrowUpRightIcon size={10} />
                   </a>

@@ -394,12 +394,12 @@ export default function SearchBar() {
     <div ref={ref} className="relative w-full max-w-md">
       <button
         onClick={() => { setOpen(true); requestAnimationFrame(() => inputRef.current?.focus()); }}
-        className="w-full h-9 px-3 rounded-md border border-border bg-surface text-[13px] text-ink-muted hover:bg-surface-alt hover:border-border-strong transition-all duration-150 text-left flex items-center gap-2"
+        className="w-full h-9 px-3 rounded-md border border-border bg-surface text-sm text-ink-muted hover:bg-surface-alt hover:border-border-strong transition-all duration-150 text-left flex items-center gap-2"
         aria-label="Open command palette (⌘K)"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span className="flex-1 truncate">Search · Command…</span>
-        <kbd className="text-[10px] px-1.5 py-0.5 rounded border border-border text-ink-faint font-mono">⌘K</kbd>
+        <kbd className="text-2xs px-1.5 py-0.5 rounded border border-border text-ink-faint font-mono">⌘K</kbd>
       </button>
 
       {open && (
@@ -415,7 +415,7 @@ export default function SearchBar() {
               onChange={e => { setQ(e.target.value); setHighlight(0); }}
               onKeyDown={onKey}
               placeholder="Command (create client), or find (Acme, Q4 2026, a provider)…"
-              className="w-full text-[13px] focus:outline-none"
+              className="w-full text-sm"
               autoFocus
               aria-label="Command or search query"
             />
@@ -431,7 +431,7 @@ export default function SearchBar() {
                         <Icon size={13} className="text-ink-muted shrink-0" />
                         <span className="font-medium">{c.label}</span>
                         {c.hint && (
-                          <span className="text-[11px] text-ink-muted ml-1">{c.hint}</span>
+                          <span className="text-xs text-ink-muted ml-1">{c.hint}</span>
                         )}
                       </span>
                     </Item>
@@ -451,7 +451,7 @@ export default function SearchBar() {
                   return (
                     <Item key={e.id} active={highlight === idx} onClick={() => go(e)}>
                       <span className="font-medium">{e.name}</span>
-                      <span className="text-[11px] text-ink-muted ml-2">{e.client_name || ''} · {e.regime}</span>
+                      <span className="text-xs text-ink-muted ml-2">{e.client_name || ''} · {e.regime}</span>
                     </Item>
                   );
                 })}
@@ -464,7 +464,7 @@ export default function SearchBar() {
                   return (
                     <Item key={d.id} active={highlight === idx} onClick={() => go(d)}>
                       <span className="font-medium">{d.entity_name}</span>
-                      <span className="text-[11px] text-ink-muted ml-2">{d.year} {d.period} · {d.status}</span>
+                      <span className="text-xs text-ink-muted ml-2">{d.year} {d.period} · {d.status}</span>
                     </Item>
                   );
                 })}
@@ -477,7 +477,7 @@ export default function SearchBar() {
                   return (
                     <Item key={p.provider + p.declaration_id} active={highlight === idx} onClick={() => go(p)}>
                       <span className="font-medium">{p.provider}</span>
-                      <span className="text-[11px] text-ink-muted ml-2">{p.entity_name} · {p.year} {p.period}</span>
+                      <span className="text-xs text-ink-muted ml-2">{p.entity_name} · {p.year} {p.period}</span>
                     </Item>
                   );
                 })}
@@ -491,7 +491,7 @@ export default function SearchBar() {
               <Tip>No results.</Tip>
             )}
           </div>
-          <div className="px-3 py-1.5 border-t border-divider text-[10px] text-ink-muted flex items-center justify-between bg-surface-alt">
+          <div className="px-3 py-1.5 border-t border-divider text-2xs text-ink-muted flex items-center justify-between bg-surface-alt">
             <span>↑↓ navigate · Enter to run · Esc to close</span>
             <span>{flat.length} result{flat.length === 1 ? '' : 's'}</span>
           </div>
@@ -504,7 +504,7 @@ export default function SearchBar() {
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <div className="px-3 py-1 text-[10px] uppercase tracking-[0.06em] font-semibold text-ink-muted bg-surface-alt border-y border-divider">
+      <div className="px-3 py-1 text-2xs uppercase tracking-[0.06em] font-semibold text-ink-muted bg-surface-alt border-y border-divider">
         {title}
       </div>
       {children}
@@ -515,7 +515,7 @@ function Item({ active, onClick, children }: { active: boolean; onClick: () => v
   return (
     <button
       onClick={onClick}
-      className={`block w-full text-left px-3 py-2 text-[12.5px] transition-colors duration-150 ${active ? 'bg-brand-50 text-brand-800' : 'hover:bg-surface-alt'}`}
+      className={`block w-full text-left px-3 py-2 text-sm transition-colors duration-150 ${active ? 'bg-brand-50 text-brand-800' : 'hover:bg-surface-alt'}`}
     >
       {children}
     </button>
@@ -523,7 +523,7 @@ function Item({ active, onClick, children }: { active: boolean; onClick: () => v
 }
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="px-3 py-4 text-[12px] text-ink-muted text-center">{children}</div>
+    <div className="px-3 py-4 text-sm text-ink-muted text-center">{children}</div>
   );
 }
 

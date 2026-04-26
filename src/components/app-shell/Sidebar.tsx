@@ -358,7 +358,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
           <Link
             href={item.href}
             className={[
-              'flex items-center gap-2.5 pr-1 h-8 rounded-md text-[13px]',
+              'flex items-center gap-2.5 pr-1 h-8 rounded-md text-sm',
               'transition-colors duration-150 flex-1 min-w-0',
               indentClass(depth),
               active
@@ -376,7 +376,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
               <span
                 className={[
                   'tabular-nums inline-flex items-center justify-center',
-                  'min-w-[18px] h-[18px] px-1 rounded-full text-[10.5px] font-semibold',
+                  'min-w-[18px] h-[18px] px-1 rounded-full text-2xs font-semibold',
                   active
                     ? 'bg-brand-500 text-white'
                     : 'bg-brand-50 text-brand-700 border border-brand-100',
@@ -428,7 +428,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
         {groups.map((group, i) => (
           <div key={i} className={i > 0 ? 'mt-5' : ''}>
             {group.label && (
-              <div className="px-3 mb-1.5 text-[10.5px] uppercase tracking-[0.08em] font-semibold text-ink-faint">
+              <div className="px-3 mb-1.5 text-2xs uppercase tracking-[0.08em] font-semibold text-ink-faint">
                 {group.label}
               </div>
             )}
@@ -455,10 +455,10 @@ function UserMenu({ role }: { role: Role }) {
     'cifra · founder';
   return (
     <div className="flex flex-col px-3 py-1.5 rounded-md hover:bg-surface-alt transition-colors cursor-pointer">
-      <div className="text-[12.5px] font-medium text-ink truncate leading-tight">
+      <div className="text-sm font-medium text-ink truncate leading-tight">
         {label}
       </div>
-      <div className="text-[10.5px] text-ink-muted truncate leading-tight mt-0.5">
+      <div className="text-2xs text-ink-muted truncate leading-tight mt-0.5">
         {tagline}
       </div>
     </div>

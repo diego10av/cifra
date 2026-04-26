@@ -106,7 +106,7 @@ export function ActionsDueWidget() {
 
   if (error) return <CrmErrorBox message={error} onRetry={refetch} />;
   if (!data) {
-    return <div className="text-[12px] text-ink-muted italic px-3 py-6">Computing today&apos;s focus…</div>;
+    return <div className="text-sm text-ink-muted italic px-3 py-6">Computing today&apos;s focus…</div>;
   }
 
   const actions = data.actions ?? [];
@@ -114,14 +114,14 @@ export function ActionsDueWidget() {
     return (
       <div className="border border-border rounded-lg bg-white p-4">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-[13px] uppercase tracking-wide font-semibold text-ink-muted">Actions due</h2>
-          <button onClick={refetch} className="text-[11px] text-ink-muted hover:text-ink inline-flex items-center gap-1">
+          <h2 className="text-sm uppercase tracking-wide font-semibold text-ink-muted">Actions due</h2>
+          <button onClick={refetch} className="text-xs text-ink-muted hover:text-ink inline-flex items-center gap-1">
             <RefreshCwIcon size={11} />
             Refresh
           </button>
         </div>
-        <p className="text-[13px] text-emerald-700 font-medium">✓ Inbox zero.</p>
-        <p className="text-[11.5px] text-ink-muted mt-1 italic">Good time to prospect, log time, or polish a matter.</p>
+        <p className="text-sm text-emerald-700 font-medium">✓ Inbox zero.</p>
+        <p className="text-xs text-ink-muted mt-1 italic">Good time to prospect, log time, or polish a matter.</p>
       </div>
     );
   }
@@ -129,10 +129,10 @@ export function ActionsDueWidget() {
   return (
     <div className="border border-border rounded-lg bg-white">
       <div className="px-4 py-2.5 flex items-center justify-between border-b border-border">
-        <h2 className="text-[13px] uppercase tracking-wide font-semibold text-ink-muted">
+        <h2 className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
           Actions due · {actions.length}
         </h2>
-        <button onClick={refetch} className="text-[11px] text-ink-muted hover:text-ink inline-flex items-center gap-1">
+        <button onClick={refetch} className="text-xs text-ink-muted hover:text-ink inline-flex items-center gap-1">
           <RefreshCwIcon size={11} />
           Refresh
         </button>
@@ -150,8 +150,8 @@ export function ActionsDueWidget() {
               <div className="flex items-start gap-3 px-4 py-2.5">
                 <Icon size={15} className="mt-0.5 shrink-0 text-ink-soft" />
                 <Link href={a.link} className="flex-1 min-w-0 hover:underline">
-                  <div className="text-[13px] font-medium text-ink truncate">{a.title}</div>
-                  <div className="text-[11.5px] text-ink-muted mt-0.5">{a.detail}</div>
+                  <div className="text-sm font-medium text-ink truncate">{a.title}</div>
+                  <div className="text-xs text-ink-muted mt-0.5">{a.detail}</div>
                 </Link>
                 <div className="flex items-center gap-1 shrink-0">
                   {isTask && taskId && (
@@ -182,7 +182,7 @@ export function ActionsDueWidget() {
                       compact
                     />
                   )}
-                  <span className="ml-1 text-[10px] uppercase tracking-wide tabular-nums text-ink-muted">
+                  <span className="ml-1 text-2xs uppercase tracking-wide tabular-nums text-ink-muted">
                     {a.priority}
                   </span>
                   <Link href={a.link} className="text-ink-muted hover:text-ink">

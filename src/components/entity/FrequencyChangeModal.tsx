@@ -141,21 +141,21 @@ export function FrequencyChangeModal({
       size="lg"
       footer={
         <div className="flex items-center justify-between w-full">
-          <div className="text-[11px] text-ink-muted">
+          <div className="text-xs text-ink-muted">
             {!canSubmit && 'Pick a different frequency or regime to continue.'}
           </div>
           <div className="flex gap-2">
             <button
               onClick={onClose}
               disabled={submitting}
-              className="h-8 px-3 rounded border border-border-strong text-[12px] text-ink-muted hover:text-ink"
+              className="h-8 px-3 rounded border border-border-strong text-sm text-ink-muted hover:text-ink"
             >
               Cancel
             </button>
             <button
               onClick={submit}
               disabled={!canSubmit || submitting}
-              className="h-8 px-4 rounded bg-amber-600 text-white text-[12px] font-semibold hover:bg-amber-700 disabled:opacity-50 inline-flex items-center gap-1"
+              className="h-8 px-4 rounded bg-amber-600 text-white text-sm font-semibold hover:bg-amber-700 disabled:opacity-50 inline-flex items-center gap-1"
             >
               {submitting ? <Loader2Icon size={12} className="animate-spin" /> : <CheckIcon size={12} />}
               Apply change
@@ -167,24 +167,24 @@ export function FrequencyChangeModal({
       <div className="space-y-4">
         {/* Frequency change visualiser */}
         <div className="rounded-md border border-amber-200 bg-amber-50/60 p-3">
-          <div className="text-[10.5px] uppercase tracking-wide font-semibold text-amber-900 mb-1.5">
+          <div className="text-2xs uppercase tracking-wide font-semibold text-amber-900 mb-1.5">
             Filing frequency
           </div>
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="text-[12px] text-ink-muted">
-              <span className="block text-[9.5px] uppercase">Current</span>
+            <div className="text-sm text-ink-muted">
+              <span className="block text-2xs uppercase">Current</span>
               <span className="font-semibold text-ink-soft">{normalizedCurrent}</span>
             </div>
             <ArrowRightIcon size={14} className="text-amber-700" />
             <div>
-              <span className="block text-[9.5px] uppercase text-ink-muted">New</span>
+              <span className="block text-2xs uppercase text-ink-muted">New</span>
               <div className="flex gap-1.5 mt-0.5">
                 {(['monthly', 'quarterly', 'annual'] as const).map((f) => (
                   <button
                     key={f}
                     onClick={() => setNewFrequency(f)}
                     className={[
-                      'h-8 px-3 rounded border text-[11.5px] font-medium transition-colors',
+                      'h-8 px-3 rounded border text-xs font-medium transition-colors',
                       newFrequency === f
                         ? 'border-amber-400 bg-amber-100 text-amber-900'
                         : 'border-border bg-surface text-ink-soft hover:bg-surface-alt',
@@ -200,17 +200,17 @@ export function FrequencyChangeModal({
 
         {/* Regime (optional) */}
         <div>
-          <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+          <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
             Regime (optional)
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[11.5px] text-ink-muted">
+            <span className="text-xs text-ink-muted">
               Currently <strong className="text-ink-soft">{currentRegime}</strong>.
             </span>
             <select
               value={newRegime}
               onChange={(e) => setNewRegime(e.target.value as Regime | '')}
-              className="border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="border border-border-strong rounded px-2 py-1.5 text-sm"
             >
               <option value="">Don&apos;t change</option>
               <option value="simplified">Change to simplified</option>
@@ -222,16 +222,16 @@ export function FrequencyChangeModal({
         {/* Effective from */}
         <div>
           <label className="block">
-            <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1 flex items-center gap-1.5">
+            <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1 flex items-center gap-1.5">
               <CalendarIcon size={10} /> Effective from
             </div>
             <input
               type="date"
               value={effectiveFrom}
               onChange={(e) => setEffectiveFrom(e.target.value)}
-              className="border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="border border-border-strong rounded px-2 py-1.5 text-sm"
             />
-            <div className="text-[10.5px] text-ink-muted mt-0.5">
+            <div className="text-2xs text-ink-muted mt-0.5">
               The date this change takes effect per the letter. Declarations filed before this date keep their historical period type.
             </div>
           </label>
@@ -239,18 +239,18 @@ export function FrequencyChangeModal({
 
         {/* Linked document */}
         <div>
-          <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1 flex items-center gap-1.5">
+          <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1 flex items-center gap-1.5">
             <FileTextIcon size={10} /> Linked document (optional)
           </div>
           {availableDocs.length === 0 ? (
-            <div className="text-[11.5px] text-ink-muted italic">
+            <div className="text-xs text-ink-muted italic">
               No documents uploaded yet. You can still apply the change and attach a letter later via the Official documents card.
             </div>
           ) : (
             <select
               value={sourceDocId}
               onChange={(e) => setSourceDocId(e.target.value)}
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             >
               <option value="">— No link —</option>
               {availableDocs.map((d) => (
@@ -265,7 +265,7 @@ export function FrequencyChangeModal({
         {/* Notes */}
         <div>
           <label className="block">
-            <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+            <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
               Notes (optional)
             </div>
             <textarea
@@ -273,7 +273,7 @@ export function FrequencyChangeModal({
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
               placeholder="e.g. Turnover threshold crossed Q3 2025; AED letter confirms monthly from 2026-01-01."
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             />
           </label>
         </div>
@@ -281,7 +281,7 @@ export function FrequencyChangeModal({
         {/* Impact reminder */}
         <div className="rounded-md border border-ink-faint/30 bg-surface-alt/40 px-3 py-2 flex items-start gap-2">
           <AlertTriangleIcon size={12} className="text-ink-muted mt-0.5 shrink-0" />
-          <div className="text-[10.5px] text-ink-muted leading-relaxed">
+          <div className="text-2xs text-ink-muted leading-relaxed">
             The change is logged in the entity&apos;s audit trail with the new
             frequency, effective date and linked document. Past filings aren&apos;t touched.
           </div>

@@ -46,7 +46,7 @@ export function Logo({ className = '' }: { className?: string }) {
           clipped to the text glyphs so the brand-500 primary sits at
           the visual centre. CSS gradient (no raster) = crisp at any DPR. */}
       <span
-        className="font-semibold tracking-tight text-[16px] bg-clip-text text-transparent"
+        className="font-semibold tracking-tight text-base bg-clip-text text-transparent"
         style={{
           letterSpacing: '-0.02em',
           backgroundImage: 'linear-gradient(90deg, #F14E72 0%, #E8264C 50%, #C61640 100%)',

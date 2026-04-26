@@ -183,21 +183,21 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
           <div className="flex-1 min-w-0">
             {data ? (
               <>
-                <div className="text-[13px] font-semibold text-ink truncate">{data.entity_name}</div>
-                <div className="text-[11px] text-ink-muted truncate">
+                <div className="text-sm font-semibold text-ink truncate">{data.entity_name}</div>
+                <div className="text-xs text-ink-muted truncate">
                   {data.group_name && <>{data.group_name} · </>}
                   {data.tax_type.replace(/_/g, ' ')} · {data.period_label}
                 </div>
               </>
             ) : (
-              <div className="text-[12px] text-ink-muted">Loading…</div>
+              <div className="text-sm text-ink-muted">Loading…</div>
             )}
           </div>
           {data && (
             <Link
               href={`/tax-ops/filings/${data.id}`}
               target="_blank"
-              className="text-[11px] text-ink-muted hover:text-ink inline-flex items-center gap-1"
+              className="text-xs text-ink-muted hover:text-ink inline-flex items-center gap-1"
               title="Open full detail page in new tab"
             >
               <ExternalLinkIcon size={11} /> Full detail
@@ -214,17 +214,17 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
         </div>
 
         {error && (
-          <div className="mx-4 mt-3 px-3 py-2 text-[12px] rounded-md bg-danger-50 text-danger-800 border border-danger-200">
+          <div className="mx-4 mt-3 px-3 py-2 text-sm rounded-md bg-danger-50 text-danger-800 border border-danger-200">
             {error}
           </div>
         )}
 
         {loading && !data && (
-          <div className="p-4 text-[12px] text-ink-muted italic">Loading filing…</div>
+          <div className="p-4 text-sm text-ink-muted italic">Loading filing…</div>
         )}
 
         {draft && (
-          <div className="p-4 space-y-4 text-[12.5px]">
+          <div className="p-4 space-y-4 text-sm">
             {/* Status + Deadline */}
             <div className="grid grid-cols-2 gap-3">
               <Field label="Status">
@@ -431,7 +431,7 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1.5 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+                className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface-alt"
               >
                 Cancel
               </button>
@@ -439,7 +439,7 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
                 type="button"
                 onClick={() => void save()}
                 disabled={saving}
-                className="px-3 py-1.5 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
+                className="px-3 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
               >
                 {saving ? 'Saving…' : 'Save all'}
               </button>
@@ -454,7 +454,7 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[11px] font-medium text-ink-muted mb-1">{label}</span>
+      <span className="block text-xs font-medium text-ink-muted mb-1">{label}</span>
       {children}
     </label>
   );

@@ -35,7 +35,7 @@ export function TreatmentBadge({
 
   if (!treatment) {
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 border border-red-200 tracking-wide">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-2xs font-semibold bg-red-100 text-red-700 border border-red-200 tracking-wide">
         UNCLASSIFIED
       </span>
     );
@@ -48,7 +48,7 @@ export function TreatmentBadge({
   return (
     <span className="relative inline-block">
       <span
-        className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide cursor-help ${colors}`}
+        className={`inline-flex items-center px-2 py-0.5 rounded text-2xs font-semibold tracking-wide cursor-help ${colors}`}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
         onFocus={() => setOpen(true)}
@@ -61,17 +61,17 @@ export function TreatmentBadge({
       {open && (
         <span
           role="tooltip"
-          className="absolute z-30 left-0 top-full mt-1 min-w-[320px] max-w-[440px] bg-ink text-white text-[11px] leading-snug rounded-md shadow-lg p-3 pointer-events-none"
+          className="absolute z-30 left-0 top-full mt-1 min-w-[320px] max-w-[440px] bg-ink text-white text-xs leading-snug rounded-md shadow-lg p-3 pointer-events-none"
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
         >
           {/* Header: code + direction badge */}
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="font-mono font-semibold text-[12px] text-brand-200">
+            <span className="font-mono font-semibold text-sm text-brand-200">
               {treatment}
             </span>
             {spec?.direction && (
-              <span className="text-[9.5px] uppercase tracking-wide text-white/50">
+              <span className="text-2xs uppercase tracking-wide text-white/50">
                 {spec.direction}
               </span>
             )}
@@ -87,14 +87,14 @@ export function TreatmentBadge({
 
           {rule && rule !== 'NO_MATCH' && (
             <div className="flex items-baseline gap-1.5 mb-2 pb-2 border-b border-white/10">
-              <span className="text-[9.5px] uppercase tracking-wide text-white/40 shrink-0">
+              <span className="text-2xs uppercase tracking-wide text-white/40 shrink-0">
                 Rule
               </span>
-              <span className="font-mono font-semibold text-brand-200 text-[10.5px]">
+              <span className="font-mono font-semibold text-brand-200 text-2xs">
                 {rule}
               </span>
               {source && (
-                <span className="text-[9.5px] uppercase tracking-wide text-white/40 ml-auto">
+                <span className="text-2xs uppercase tracking-wide text-white/40 ml-auto">
                   {ruleSourceLabel(rule, source)}
                 </span>
               )}
@@ -103,7 +103,7 @@ export function TreatmentBadge({
 
           {reason && (
             <div className="mb-2">
-              <div className="text-[9.5px] uppercase tracking-wide text-white/40 mb-0.5">
+              <div className="text-2xs uppercase tracking-wide text-white/40 mb-0.5">
                 Reason
               </div>
               <p className="text-white/90">
@@ -114,7 +114,7 @@ export function TreatmentBadge({
 
           {flagReason && (
             <div className="bg-amber-500/20 border-l-2 border-amber-400 px-2 py-1.5 rounded-r">
-              <div className="text-[9.5px] uppercase tracking-wide text-amber-200 mb-0.5 flex items-center gap-1">
+              <div className="text-2xs uppercase tracking-wide text-amber-200 mb-0.5 flex items-center gap-1">
                 <span aria-hidden>⚠</span> Reviewer note
               </div>
               <p className="text-amber-100">{flagReason}</p>
@@ -191,7 +191,7 @@ function highlightLegalRefs(text: string): React.ReactNode {
     out.push(
       <span
         key={`ref-${i}-${s.start}`}
-        className="inline-flex items-center px-1 rounded bg-brand-400/30 text-white font-mono text-[10px]"
+        className="inline-flex items-center px-1 rounded bg-brand-400/30 text-white font-mono text-2xs"
       >
         {text.slice(s.start, s.end)}
       </span>,

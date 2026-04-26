@@ -141,25 +141,25 @@ export function ConflictCheckPanel({
         ) : (
           <ShieldCheckIcon size={14} className="text-ink-muted" />
         )}
-        <span className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted flex-1">
+        <span className="text-sm uppercase tracking-wide font-semibold text-ink-muted flex-1">
           Conflict check
         </span>
         {result && (
-          <span className="text-[10.5px] text-ink-muted">
+          <span className="text-2xs text-ink-muted">
             Last checked {new Date(result.checked_at).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
         <button
           onClick={runCheck}
           disabled={running}
-          className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-border text-[11.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40"
+          className="inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-border text-xs text-ink-soft hover:bg-surface-alt disabled:opacity-40"
         >
           <RefreshCwIcon size={12} className={running ? 'animate-spin' : ''} />
           {running ? 'Scanning…' : result ? 'Re-run' : 'Run check'}
         </button>
       </div>
 
-      <div className="p-3 text-[12px]">
+      <div className="p-3 text-sm">
         {!result && (
           <p className="text-ink-muted italic">
             Scan open / on-hold matters for party-name overlaps with this matter&apos;s
@@ -192,17 +192,17 @@ export function ConflictCheckPanel({
                 return (
                   <li key={key} className={`border rounded-md px-2.5 py-1.5 flex items-start gap-2 ${borderTone}`}>
                     <div className="flex-1 min-w-0">
-                      <Link href={`/crm/matters/${h.matter_id}`} className="font-mono text-[11.5px] font-medium text-brand-700 hover:underline">
+                      <Link href={`/crm/matters/${h.matter_id}`} className="font-mono text-xs font-medium text-brand-700 hover:underline">
                         {h.matter_reference}
                       </Link>
                       {h.client_name && (
-                        <span className="ml-2 text-[11px] text-ink-muted">· {h.client_name}</span>
+                        <span className="ml-2 text-xs text-ink-muted">· {h.client_name}</span>
                       )}
-                      <div className="text-[11px] text-ink-muted">
+                      <div className="text-xs text-ink-muted">
                         <strong>{FIELD_LABELS[h.field]}</strong> of matter matched party <em>&ldquo;{h.party}&rdquo;</em> via <em>&ldquo;{h.match_value}&rdquo;</em>
                       </div>
                       {h.verdict && h.reasoning && (
-                        <div className={`mt-1 text-[11px] flex items-start gap-1.5 ${isTrueConflict ? 'text-danger-700' : 'text-ink-soft'}`}>
+                        <div className={`mt-1 text-xs flex items-start gap-1.5 ${isTrueConflict ? 'text-danger-700' : 'text-ink-soft'}`}>
                           <SparklesIcon size={11} className="shrink-0 mt-0.5" />
                           <span>
                             <strong className="font-semibold">AI verdict: {h.verdict === 'true_conflict' ? 'real conflict' : 'uncertain'}</strong>
@@ -214,7 +214,7 @@ export function ConflictCheckPanel({
                     </div>
                     <button
                       onClick={() => dismissHit(key)}
-                      className="h-6 px-2 rounded text-[10.5px] text-ink-muted hover:text-ink border border-border hover:bg-surface-alt"
+                      className="h-6 px-2 rounded text-2xs text-ink-muted hover:text-ink border border-border hover:bg-surface-alt"
                       title="Mark as false positive — will stay dismissed across future scans"
                     >
                       False positive
@@ -228,7 +228,7 @@ export function ConflictCheckPanel({
               <div className="mt-2 border border-border rounded-md bg-surface-alt/40">
                 <button
                   onClick={() => setShowAiDismissed(s => !s)}
-                  className="w-full px-2.5 py-1.5 text-left text-[11px] text-ink-muted hover:text-ink inline-flex items-center gap-1.5"
+                  className="w-full px-2.5 py-1.5 text-left text-xs text-ink-muted hover:text-ink inline-flex items-center gap-1.5"
                 >
                   <SparklesIcon size={11} />
                   {aiAutoDismissed.length} false positive{aiAutoDismissed.length === 1 ? '' : 's'} dismissed by AI (click to review)
@@ -240,15 +240,15 @@ export function ConflictCheckPanel({
                       const key = `${h.matter_id}:${h.field}:${h.party}`;
                       return (
                         <li key={key} className="border border-border rounded-md px-2 py-1.5 bg-white">
-                          <Link href={`/crm/matters/${h.matter_id}`} className="font-mono text-[11px] font-medium text-brand-700 hover:underline">
+                          <Link href={`/crm/matters/${h.matter_id}`} className="font-mono text-xs font-medium text-brand-700 hover:underline">
                             {h.matter_reference}
                           </Link>
-                          {h.client_name && <span className="ml-2 text-[11px] text-ink-muted">· {h.client_name}</span>}
-                          <div className="text-[10.5px] text-ink-muted">
+                          {h.client_name && <span className="ml-2 text-xs text-ink-muted">· {h.client_name}</span>}
+                          <div className="text-2xs text-ink-muted">
                             <strong>{FIELD_LABELS[h.field]}</strong> matched <em>&ldquo;{h.party}&rdquo;</em> via <em>&ldquo;{h.match_value}&rdquo;</em>
                           </div>
                           {h.reasoning && (
-                            <div className="text-[10.5px] text-ink-soft mt-0.5 italic">
+                            <div className="text-2xs text-ink-soft mt-0.5 italic">
                               AI ({typeof h.confidence === 'number' ? `${Math.round(h.confidence * 100)}%` : '—'}): {h.reasoning}
                             </div>
                           )}
@@ -261,7 +261,7 @@ export function ConflictCheckPanel({
             )}
 
             {result.false_positive_ids && result.false_positive_ids.length > 0 && (
-              <p className="mt-2 text-[10.5px] text-ink-muted italic">
+              <p className="mt-2 text-2xs text-ink-muted italic">
                 {result.false_positive_ids.length} prior hit{result.false_positive_ids.length === 1 ? '' : 's'} manually marked as false positive (hidden).
               </p>
             )}

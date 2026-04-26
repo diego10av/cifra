@@ -155,7 +155,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <div className="space-y-4">
-      <Link href="/tax-ops/entities" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink">
+      <Link href="/tax-ops/entities" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeftIcon size={12} /> Back to entities
       </Link>
 
@@ -164,7 +164,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
         <div className="flex items-center gap-2">
           <span
             className={[
-              'inline-flex items-center px-2 py-0.5 rounded text-[12px] font-medium',
+              'inline-flex items-center px-2 py-0.5 rounded text-sm font-medium',
               familyChipClasses(family.name),
             ].join(' ')}
           >
@@ -174,10 +174,10 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
             key={family.name}
             defaultValue={family.name}
             onBlur={(e) => void renameFamily(e.target.value)}
-            className="flex-1 text-[15px] font-semibold text-ink bg-transparent border-0 focus:bg-surface-alt/60 px-1 rounded"
+            className="flex-1 text-base font-semibold text-ink bg-transparent border-0 focus:bg-surface-alt/60 px-1 rounded"
           />
         </div>
-        <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3 text-[12px]">
+        <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
           <div>
             <div className="text-ink-muted">Entities</div>
             <div className="font-mono tabular-nums text-ink">
@@ -207,10 +207,10 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
       {source && (
         <div className="sticky top-0 z-10 rounded-md border border-brand-300 bg-brand-50 px-4 py-2 flex items-center gap-3 flex-wrap">
           <CopyIcon size={14} className="text-brand-700" />
-          <div className="text-[12.5px] text-ink">
+          <div className="text-sm text-ink">
             Copy {source.csp_contacts.length} contact{source.csp_contacts.length === 1 ? '' : 's'} from <strong>{source.legal_name}</strong> to:
           </div>
-          <div className="text-[12px] text-ink-muted">
+          <div className="text-sm text-ink-muted">
             {selectedTargets.size} {selectedTargets.size === 1 ? 'entity' : 'entities'} selected
           </div>
           <div className="ml-auto flex items-center gap-2">
@@ -220,7 +220,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                 setCopySourceId(null);
                 setSelectedTargets(new Set());
               }}
-              className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] rounded border border-border hover:bg-surface"
+              className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded border border-border hover:bg-surface"
             >
               <XIcon size={11} /> Cancel
             </button>
@@ -228,7 +228,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
               type="button"
               onClick={() => void applyBulkCopy()}
               disabled={selectedTargets.size === 0 || applying}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
             >
               {applying ? 'Applying…' : 'Apply'}
             </button>
@@ -244,7 +244,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
         />
       ) : (
         <div className="rounded-md border border-border bg-surface overflow-hidden">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr className="text-left">
                 <th className="px-2 py-1.5 font-medium w-[28px]"></th>
@@ -279,7 +279,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                         />
                       )}
                       {isSource && (
-                        <span className="inline-flex items-center px-1 py-0 rounded bg-brand-100 text-brand-700 text-[9px] font-medium">
+                        <span className="inline-flex items-center px-1 py-0 rounded bg-brand-100 text-brand-700 text-2xs font-medium">
                           source
                         </span>
                       )}
@@ -292,7 +292,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                         {e.legal_name}
                       </Link>
                       {!e.is_active && (
-                        <span className="ml-2 inline-flex items-center px-1 py-0 rounded-full text-[9.5px] bg-surface-alt text-ink-muted">
+                        <span className="ml-2 inline-flex items-center px-1 py-0 rounded-full text-2xs bg-surface-alt text-ink-muted">
                           {e.liquidation_date ? `Liquidated ${e.liquidation_date}` : 'Inactive'}
                         </span>
                       )}
@@ -305,7 +305,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                           e.tax_types.slice(0, 4).map(t => (
                             <span
                               key={t}
-                              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] bg-surface-alt text-ink-soft"
+                              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-surface-alt text-ink-soft"
                               title={humanTaxType(t)}
                             >
                               {humanTaxType(t).replace(/^(CIT|VAT|WHT|BCL|Subscription|NWT) /, '$1·')}
@@ -313,19 +313,19 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                           ))
                         )}
                         {e.tax_types.length > 4 && (
-                          <span className="text-[10.5px] text-ink-muted">+{e.tax_types.length - 4}</span>
+                          <span className="text-2xs text-ink-muted">+{e.tax_types.length - 4}</span>
                         )}
                       </div>
                     </td>
                     <td className="px-3 py-1.5">
                       <div className="flex flex-wrap gap-1 items-center">
                         {e.csp_contacts.length === 0 ? (
-                          <span className="text-ink-muted italic text-[11px]">none</span>
+                          <span className="text-ink-muted italic text-xs">none</span>
                         ) : (
                           e.csp_contacts.slice(0, 3).map((c, i) => (
                             <span
                               key={i}
-                              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-brand-50 text-brand-700"
+                              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-brand-50 text-brand-700"
                               title={`${c.name}${c.email ? ` (${c.email})` : ''}${c.role ? ` · ${c.role}` : ''}`}
                             >
                               {c.name}
@@ -333,7 +333,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                           ))
                         )}
                         {e.csp_contacts.length > 3 && (
-                          <span className="text-[10.5px] text-ink-muted">+{e.csp_contacts.length - 3}</span>
+                          <span className="text-2xs text-ink-muted">+{e.csp_contacts.length - 3}</span>
                         )}
                       </div>
                     </td>
@@ -351,7 +351,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
                             setCopySourceId(e.id);
                             setSelectedTargets(new Set());
                           }}
-                          className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded border border-border hover:border-brand-500 hover:text-brand-700"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded border border-border hover:border-brand-500 hover:text-brand-700"
                           title={`Use this entity's ${e.csp_contacts.length} contacts as the source for a bulk copy`}
                         >
                           <UsersIcon size={11} /> Use contacts
@@ -366,7 +366,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
         </div>
       )}
 
-      <div className="rounded-md border border-border bg-surface-alt/40 px-4 py-2 text-[11.5px] text-ink-muted">
+      <div className="rounded-md border border-border bg-surface-alt/40 px-4 py-2 text-xs text-ink-muted">
         Tip: click &quot;Use contacts&quot; on the entity whose contact list is most complete,
         then tick the entities that share the same contacts, and Apply. It replaces the
         target entities&apos; csp_contacts in one atomic update (audit-logged).

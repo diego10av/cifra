@@ -127,10 +127,10 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
         {/* Header */}
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
           <div>
-            <h3 id="bulk-edit-title" className="text-[14px] font-semibold text-ink leading-tight">
+            <h3 id="bulk-edit-title" className="text-base font-semibold text-ink leading-tight">
               Edit {lineIds.length} line{lineIds.length === 1 ? '' : 's'}
             </h3>
-            <p className="text-[11px] text-ink-muted mt-0.5 leading-tight">
+            <p className="text-xs text-ink-muted mt-0.5 leading-tight">
               Tick the fields you want to change. Only ticked fields are touched.
             </p>
           </div>
@@ -151,7 +151,7 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
             <select
               value={fields.treatment.value}
               onChange={(e) => setFields(f => ({ ...f, treatment: { ...f.treatment, value: e.target.value } }))}
-              className="w-full h-9 px-3 text-[12.5px] border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full h-9 px-3 text-sm border border-border-strong rounded-md bg-surface"
             >
               <option value="">Pick a treatment code…</option>
               {treatments.map(t => (
@@ -173,7 +173,7 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
               type="date"
               value={fields.invoice_date.value}
               onChange={(e) => setFields(f => ({ ...f, invoice_date: { ...f.invoice_date, value: e.target.value } }))}
-              className="w-full h-9 px-3 text-[12.5px] border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full h-9 px-3 text-sm border border-border-strong rounded-md bg-surface"
             />
           </FieldRow>
 
@@ -189,7 +189,7 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
               value={fields.description.value}
               onChange={(e) => setFields(f => ({ ...f, description: { ...f.description, value: e.target.value } }))}
               placeholder="e.g. Consulting services Q1"
-              className="w-full h-9 px-3 text-[12.5px] border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full h-9 px-3 text-sm border border-border-strong rounded-md bg-surface"
             />
           </FieldRow>
 
@@ -204,7 +204,7 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
               value={fields.note.value}
               onChange={(e) => setFields(f => ({ ...f, note: { ...f.note, value: e.target.value } }))}
               rows={2}
-              className="w-full px-3 py-2 text-[12.5px] border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-border-strong rounded-md bg-surface resize-none"
             />
           </FieldRow>
 
@@ -216,7 +216,7 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
             onToggle={(on) => setFields(f => ({ ...f, reviewed: { ...f.reviewed, enabled: on } }))}
           >
             <div className="flex items-center gap-4">
-              <label className="inline-flex items-center gap-1.5 text-[12px]">
+              <label className="inline-flex items-center gap-1.5 text-sm">
                 <input
                   type="radio"
                   checked={fields.reviewed.value === true}
@@ -225,7 +225,7 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
                 <CheckIcon size={13} className="text-emerald-600" />
                 Reviewed
               </label>
-              <label className="inline-flex items-center gap-1.5 text-[12px]">
+              <label className="inline-flex items-center gap-1.5 text-sm">
                 <input
                   type="radio"
                   checked={fields.reviewed.value === false}
@@ -238,7 +238,7 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
 
           {/* Reason */}
           <div className="pt-2 border-t border-divider">
-            <label className="block text-[12px] font-medium text-ink mb-1 flex items-center gap-1.5">
+            <label className="block text-sm font-medium text-ink mb-1 flex items-center gap-1.5">
               <ShieldCheckIcon size={12} className="text-brand-600" />
               Reason <span className="text-ink-faint font-normal">(optional — recorded in the audit trail)</span>
             </label>
@@ -248,12 +248,12 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
               placeholder="e.g. Supplier re-issued with corrected date in follow-up email."
               rows={2}
               maxLength={500}
-              className="w-full px-3 py-2 text-[12.5px] border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
+              className="w-full px-3 py-2 text-sm border border-border-strong rounded-md bg-surface resize-none"
             />
           </div>
 
           {error && (
-            <div className="text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+            <div className="text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
               <AlertTriangleIcon size={13} className="mt-0.5 shrink-0" />
               {error}
             </div>
@@ -262,18 +262,18 @@ export function BulkEditModal({ lineIds, direction, onClose, onApplied }: Props)
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-border bg-surface-alt flex items-center justify-between">
-          <div className="text-[10.5px] text-ink-faint">
+          <div className="text-2xs text-ink-faint">
             Every actual change is logged per line in the audit trail.
           </div>
           <div className="flex gap-2">
             <button onClick={onClose}
-                    className="h-9 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt">
+                    className="h-9 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt">
               Cancel
             </button>
             <button
               onClick={apply}
               disabled={submitting || !somethingEnabled}
-              className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+              className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
             >
               {submitting
                 ? (<><Loader2Icon size={13} className="animate-spin" /> Applying…</>)
@@ -305,8 +305,8 @@ function FieldRow({
           className="mt-0.5 accent-brand-500 cursor-pointer"
         />
         <div className="flex-1">
-          <span className="text-[12.5px] font-medium text-ink">{label}</span>
-          {hint && <div className="text-[10.5px] text-ink-muted leading-snug mt-0.5">{hint}</div>}
+          <span className="text-sm font-medium text-ink">{label}</span>
+          {hint && <div className="text-2xs text-ink-muted leading-snug mt-0.5">{hint}</div>}
         </div>
       </label>
       {enabled && (

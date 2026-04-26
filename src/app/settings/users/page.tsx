@@ -117,13 +117,13 @@ export default function UsersPage() {
       {/* Header */}
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <div className="text-[11px] text-ink-faint mb-1">
+          <div className="text-xs text-ink-faint mb-1">
             <Link href="/settings" className="hover:underline">Settings</Link> ›
           </div>
-          <h1 className="text-[20px] font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
             <UsersIcon size={18} className="text-brand-500" /> Users &amp; AI caps
           </h1>
-          <p className="text-[12.5px] text-ink-muted mt-1 max-w-xl">
+          <p className="text-sm text-ink-muted mt-1 max-w-xl">
             Each user has a monthly AI-spend cap denominated in euros.
             Raise or lower per user on the ladder (€1 / €2 / €5 / €10 /
             €20 / €30). See <a href="/docs" className="underline">docs/MODELS.md §4</a> for the
@@ -133,7 +133,7 @@ export default function UsersPage() {
         {!schemaMissing && (
           <button
             onClick={() => setShowAdd(true)}
-            className="h-8 px-3 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 transition-colors inline-flex items-center gap-1.5 shrink-0"
+            className="h-8 px-3 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors inline-flex items-center gap-1.5 shrink-0"
           >
             <PlusIcon size={13} /> Add user
           </button>
@@ -145,7 +145,7 @@ export default function UsersPage() {
 
       {/* Error banner */}
       {error && (
-        <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+        <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
           <AlertTriangleIcon size={13} className="mt-0.5 shrink-0" /> {error}
         </div>
       )}
@@ -153,8 +153,8 @@ export default function UsersPage() {
       {/* User list */}
       {!schemaMissing && users.length > 0 && (
         <div className="bg-surface border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-[12.5px]">
-            <thead className="bg-surface-alt border-b border-border text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted">
+          <table className="w-full text-sm">
+            <thead className="bg-surface-alt border-b border-border text-2xs uppercase tracking-wide font-semibold text-ink-muted">
               <tr>
                 <th className="px-4 py-2.5 text-left">User</th>
                 <th className="px-4 py-2.5 text-left">Role</th>
@@ -183,8 +183,8 @@ export default function UsersPage() {
           <div className="w-10 h-10 mx-auto rounded-lg bg-surface-alt text-ink-muted inline-flex items-center justify-center mb-3">
             <UsersIcon size={16} />
           </div>
-          <div className="text-[13px] font-medium text-ink">No users yet</div>
-          <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-sm mx-auto">
+          <div className="text-sm font-medium text-ink">No users yet</div>
+          <div className="text-xs text-ink-muted mt-1.5 max-w-sm mx-auto">
             The founder row is seeded by migration 001. If you see this,
             the migration ran but the seed row is missing — re-run the
             <code className="mx-1">INSERT INTO users</code> block.
@@ -223,7 +223,7 @@ function UserRow({
     <tr className="border-b border-divider last:border-0 hover:bg-surface-alt/40 transition-colors">
       <td className="px-4 py-3">
         <div className="font-medium text-ink">{user.display_name}</div>
-        <div className="text-[11px] text-ink-muted mt-0.5">
+        <div className="text-xs text-ink-muted mt-0.5">
           {user.email || <span className="italic">no email</span>}
           <span className="mx-1.5 text-ink-faint">·</span>
           <span className="font-mono">{user.id}</span>
@@ -234,7 +234,7 @@ function UserRow({
           onClick={() => onPatch({ role: user.role === 'admin' ? 'member' : 'admin' })}
           disabled={saving}
           className={[
-            'inline-flex items-center gap-1 h-6 px-2 rounded text-[11px] font-semibold border transition-colors cursor-pointer disabled:opacity-50',
+            'inline-flex items-center gap-1 h-6 px-2 rounded text-xs font-semibold border transition-colors cursor-pointer disabled:opacity-50',
             user.role === 'admin'
               ? 'bg-brand-50 text-brand-700 border-brand-200 hover:bg-brand-100'
               : 'bg-surface text-ink-soft border-border hover:bg-surface-alt',
@@ -255,7 +255,7 @@ function UserRow({
               style={{ width: `${capPct}%` }}
             />
           </div>
-          <span className="tabular-nums text-[11.5px] text-ink-soft">
+          <span className="tabular-nums text-xs text-ink-soft">
             €{user.month_spend_eur.toFixed(2)} <span className="text-ink-faint">/ €{user.monthly_ai_cap_eur.toFixed(2)}</span>
           </span>
         </div>
@@ -265,7 +265,7 @@ function UserRow({
           value={user.monthly_ai_cap_eur}
           onChange={(e) => onPatch({ monthly_ai_cap_eur: Number(e.target.value) })}
           disabled={saving}
-          className="h-7 px-2 rounded border border-border-strong text-[11.5px] bg-surface cursor-pointer focus:border-brand-500 focus:outline-none"
+          className="h-7 px-2 rounded border border-border-strong text-xs bg-surface cursor-pointer"
         >
           {/* If the current cap is off the ladder (e.g. €50 seeded for founder), keep it as an option. */}
           {!CAP_LADDER.includes(user.monthly_ai_cap_eur) && (
@@ -282,7 +282,7 @@ function UserRow({
         ) : (
           <button
             onClick={onDeactivate}
-            className="inline-flex items-center gap-1 h-7 px-2 rounded text-[11px] font-medium text-ink-muted hover:text-danger-600 hover:bg-danger-50 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1 h-7 px-2 rounded text-xs font-medium text-ink-muted hover:text-danger-600 hover:bg-danger-50 transition-colors cursor-pointer"
             title="Deactivate user"
           >
             <TrashIcon size={12} />
@@ -300,19 +300,19 @@ function SchemaMissingCard() {
         <AlertTriangleIcon size={16} />
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-[14px] font-semibold text-ink">Migration not applied</h3>
-        <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
-          The <code className="text-[11.5px] bg-surface-alt px-1 py-0.5 rounded">users</code> table
+        <h3 className="text-base font-semibold text-ink">Migration not applied</h3>
+        <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+          The <code className="text-xs bg-surface-alt px-1 py-0.5 rounded">users</code> table
           doesn&rsquo;t exist yet. This screen is read-only until you apply migration 001 in
           Supabase SQL Editor.
         </p>
-        <ol className="text-[12px] text-ink-soft mt-3 space-y-1 list-decimal pl-5 leading-relaxed">
+        <ol className="text-sm text-ink-soft mt-3 space-y-1 list-decimal pl-5 leading-relaxed">
           <li>Open <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="text-brand-600 underline">Supabase dashboard</a> → SQL Editor</li>
-          <li>Paste the contents of <code className="text-[11.5px] bg-surface-alt px-1 py-0.5 rounded">migrations/001_per_user_ai_budget_and_chat.sql</code></li>
+          <li>Paste the contents of <code className="text-xs bg-surface-alt px-1 py-0.5 rounded">migrations/001_per_user_ai_budget_and_chat.sql</code></li>
           <li>Click Run — idempotent, safe to re-run</li>
           <li>Refresh this page</li>
         </ol>
-        <p className="text-[11.5px] text-ink-muted mt-3">
+        <p className="text-xs text-ink-muted mt-3">
           Until then, the chat and the rest of the app keep working with the founder account
           and no per-user cap enforcement (firm-wide €75/mo budget still applies).
         </p>
@@ -376,7 +376,7 @@ function AddUserDialog({
         aria-labelledby="add-user-title"
       >
         <div className="px-5 py-3 border-b border-border flex items-center justify-between">
-          <h3 id="add-user-title" className="text-[14px] font-semibold text-ink">Add user</h3>
+          <h3 id="add-user-title" className="text-base font-semibold text-ink">Add user</h3>
           <button
             type="button"
             onClick={onClose}
@@ -391,14 +391,14 @@ function AddUserDialog({
             <input
               value={id} onChange={e => setId(e.target.value)}
               placeholder="e.g. maria-l"
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             />
           </Field>
           <Field label="Display name *">
             <input
               value={displayName} onChange={e => setDisplayName(e.target.value)}
               placeholder="Maria L."
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             />
           </Field>
           <Field label="Email">
@@ -406,14 +406,14 @@ function AddUserDialog({
               type="email"
               value={email} onChange={e => setEmail(e.target.value)}
               placeholder="maria@example.com"
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
             />
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Role">
               <select
                 value={role} onChange={e => setRole(e.target.value as 'admin' | 'member')}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
               >
                 <option value="member">Member</option>
                 <option value="admin">Admin</option>
@@ -422,7 +422,7 @@ function AddUserDialog({
             <Field label="Monthly AI cap">
               <select
                 value={cap} onChange={e => setCap(Number(e.target.value))}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
               >
                 {CAP_LADDER.map(v => <option key={v} value={v}>€{v}</option>)}
               </select>
@@ -430,19 +430,19 @@ function AddUserDialog({
           </div>
 
           {err && (
-            <div className="text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+            <div className="text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
               {err}
             </div>
           )}
         </div>
         <div className="px-5 py-3 border-t border-border flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="h-9 px-4 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt">
+          <button type="button" onClick={onClose} className="h-9 px-4 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt">
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving || !id.trim() || !displayName.trim()}
-            className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+            className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
           >
             {saving ? <><Loader2Icon size={13} className="animate-spin" /> Creating…</> : <><CheckIcon size={13} /> Create</>}
           </button>
@@ -457,9 +457,9 @@ function Field({
 }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</span>
+      <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</span>
       {children}
-      {hint && <span className="block text-[10.5px] text-ink-faint mt-1">{hint}</span>}
+      {hint && <span className="block text-2xs text-ink-faint mt-1">{hint}</span>}
     </label>
   );
 }

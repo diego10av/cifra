@@ -137,11 +137,11 @@ export function InlineCellEditor<T>({
         <span className="relative">
           {renderEditor({ value: draft, setValue: setDraft, commit, cancel })}
           {busy && (
-            <span className="ml-1 text-[10px] text-ink-muted italic">saving…</span>
+            <span className="ml-1 text-2xs text-ink-muted italic">saving…</span>
           )}
           {error && (
             <span
-              className="block text-[10px] text-danger-700 mt-0.5 truncate max-w-[200px]"
+              className="block text-2xs text-danger-700 mt-0.5 truncate max-w-[200px]"
               title={error}
             >
               {error}

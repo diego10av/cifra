@@ -181,19 +181,19 @@ export function LegalWatchQueueCard() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="text-[14px] font-semibold text-ink tracking-tight">
+            <h2 className="text-base font-semibold text-ink tracking-tight">
               Live feed — candidate jurisprudence & notices
             </h2>
-            <span className={`inline-flex items-center h-[18px] px-2 rounded-full text-[10.5px] font-semibold tracking-wide border ${newItems.length > 0 ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-surface-alt text-ink-muted border-border'}`}>
+            <span className={`inline-flex items-center h-[18px] px-2 rounded-full text-2xs font-semibold tracking-wide border ${newItems.length > 0 ? 'bg-brand-50 text-brand-700 border-brand-200' : 'bg-surface-alt text-ink-muted border-border'}`}>
               {loading ? '…' : `${newItems.length} new`}
             </span>
             {escalatedItems.length > 0 && (
-              <span className="inline-flex items-center h-[18px] px-2 rounded-full text-[10.5px] font-semibold tracking-wide border bg-emerald-50 text-emerald-800 border-emerald-200">
+              <span className="inline-flex items-center h-[18px] px-2 rounded-full text-2xs font-semibold tracking-wide border bg-emerald-50 text-emerald-800 border-emerald-200">
                 {escalatedItems.length} pending rule update
               </span>
             )}
           </div>
-          <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+          <p className="text-sm text-ink-soft mt-1 leading-relaxed">
             Auto-fetched from public feeds (VATupdate, curia.europa.eu via sample seed),
             filtered by the cifra watchlist, pre-triaged by Opus 4.7.
           </p>
@@ -202,7 +202,7 @@ export function LegalWatchQueueCard() {
           <button
             onClick={() => runScan('sample')}
             disabled={scanState === 'scanning'}
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border-strong bg-surface text-[12px] font-medium text-ink-soft hover:border-brand-300 hover:text-brand-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border-strong bg-surface text-sm font-medium text-ink-soft hover:border-brand-300 hover:text-brand-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             title="Insert the three flagship sample cases (Versãofast, Finanzamt T II, C-288/22 TP) so you can see the triage flow even without network"
           >
             <BookmarkIcon size={12} />
@@ -211,7 +211,7 @@ export function LegalWatchQueueCard() {
           <button
             onClick={() => runScan('vatupdate')}
             disabled={scanState === 'scanning'}
-            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-violet-600 text-white text-[12px] font-medium hover:bg-violet-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {scanState === 'scanning' ? <Loader2Icon size={12} className="animate-spin" /> : <SparklesIcon size={12} />}
             Scan now
@@ -220,17 +220,17 @@ export function LegalWatchQueueCard() {
       </header>
 
       {scanBanner && (
-        <div className={`px-5 py-2 text-[12px] border-b border-divider ${scanState === 'error' ? 'bg-danger-50 text-danger-800' : 'bg-emerald-50 text-emerald-800'}`}>
+        <div className={`px-5 py-2 text-sm border-b border-divider ${scanState === 'error' ? 'bg-danger-50 text-danger-800' : 'bg-emerald-50 text-emerald-800'}`}>
           {scanBanner}
         </div>
       )}
 
       {loading ? (
-        <div className="px-5 py-8 text-center text-[12px] text-ink-muted">Loading queue…</div>
+        <div className="px-5 py-8 text-center text-sm text-ink-muted">Loading queue…</div>
       ) : items.length === 0 ? (
-        <div className="px-5 py-8 text-center text-[12.5px] text-ink-muted">
+        <div className="px-5 py-8 text-center text-sm text-ink-muted">
           Queue is empty — no candidate items currently awaiting triage.
-          <div className="mt-2 text-[11.5px] text-ink-faint">
+          <div className="mt-2 text-xs text-ink-faint">
             Click <strong className="font-semibold">Scan now</strong> to pull the VATupdate feed,
             or <strong className="font-semibold">Seed samples</strong> to drop in the three flagship cases for demo.
           </div>
@@ -295,19 +295,19 @@ export function LegalWatchQueueCard() {
                 if (!includeDismissed) setIncludeDismissed(true);
                 setDismissedOpen(v => !v);
               }}
-              className="inline-flex items-center gap-2 text-[11.5px] text-ink-soft hover:text-ink transition-colors"
+              className="inline-flex items-center gap-2 text-xs text-ink-soft hover:text-ink transition-colors"
               title="Show items you've dismissed — they stay in the database for audit"
             >
               {includeDismissed && dismissedOpen ? <EyeOffIcon size={12} /> : <EyeIcon size={12} />}
               {includeDismissed && dismissedOpen ? 'Hide dismissed items' : 'Show dismissed items'}
               {includeDismissed && dismissedItems.length > 0 && (
-                <span className="ml-1 text-[10.5px] text-ink-muted">({dismissedItems.length})</span>
+                <span className="ml-1 text-2xs text-ink-muted">({dismissedItems.length})</span>
               )}
             </button>
             {includeDismissed && dismissedOpen && (
               <div className="mt-3">
                 {dismissedItems.length === 0 ? (
-                  <div className="text-[11.5px] text-ink-muted italic">No dismissed items.</div>
+                  <div className="text-xs text-ink-muted italic">No dismissed items.</div>
                 ) : (
                   <ItemList
                     items={dismissedItems}
@@ -347,8 +347,8 @@ function SectionToggle({
         className={`w-full flex items-center gap-2 px-5 py-2.5 text-left hover:brightness-95 transition-all ${accentClasses}`}
       >
         {open ? <ChevronDownIcon size={14} /> : <ChevronRightIcon size={14} />}
-        <span className="text-[12.5px] font-semibold">{title}</span>
-        <span className="text-[11px] opacity-80">{subtitle}</span>
+        <span className="text-sm font-semibold">{title}</span>
+        <span className="text-xs opacity-80">{subtitle}</span>
       </button>
       {open && <div>{children}</div>}
     </div>
@@ -382,31 +382,31 @@ function ItemList({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 {item.ai_triage_severity && (
-                  <span className={`inline-flex items-center h-[17px] px-1.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${severityPill(item.ai_triage_severity)}`}
+                  <span className={`inline-flex items-center h-[17px] px-1.5 rounded text-2xs font-semibold uppercase tracking-wide border ${severityPill(item.ai_triage_severity)}`}
                     title={item.ai_triage_summary ?? undefined}
                   >
                     {item.ai_triage_severity}
                   </span>
                 )}
-                <span className={`inline-flex items-center h-[17px] px-1.5 rounded text-[10px] font-semibold uppercase tracking-wide border ${statusPill(item.status)}`}>
+                <span className={`inline-flex items-center h-[17px] px-1.5 rounded text-2xs font-semibold uppercase tracking-wide border ${statusPill(item.status)}`}>
                   {item.status === 'escalated' ? 'to update' : item.status === 'flagged' ? 'reminder' : item.status}
                 </span>
-                <span className="text-[11px] font-mono text-ink-muted">{item.source}</span>
+                <span className="text-xs font-mono text-ink-muted">{item.source}</span>
                 {item.external_id && (
-                  <span className="text-[11px] font-mono text-ink-faint">· {item.external_id}</span>
+                  <span className="text-xs font-mono text-ink-faint">· {item.external_id}</span>
                 )}
                 {item.published_at && (
-                  <span className="text-[11px] text-ink-muted tabular-nums">
+                  <span className="text-xs text-ink-muted tabular-nums">
                     · {new Date(item.published_at).toISOString().slice(0, 10)}
                   </span>
                 )}
                 {item.triaged_by === 'ai_auto' && (
-                  <span className="text-[10px] text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">
+                  <span className="text-2xs text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">
                     AI auto-dismiss
                   </span>
                 )}
               </div>
-              <div className="mt-1.5 text-[13px] font-medium text-ink leading-snug">
+              <div className="mt-1.5 text-sm font-medium text-ink leading-snug">
                 {item.url ? (
                   <a href={item.url} target="_blank" rel="noopener" className="hover:underline inline-flex items-start gap-1">
                     {item.title}
@@ -420,7 +420,7 @@ function ItemList({
               {/* AI triage block */}
               {item.ai_triage_summary && (
                 <div className="mt-2 rounded border border-violet-200 bg-violet-50/60 px-2.5 py-2">
-                  <div className="flex items-center gap-1.5 text-[10.5px] font-semibold text-violet-800 uppercase tracking-wide">
+                  <div className="flex items-center gap-1.5 text-2xs font-semibold text-violet-800 uppercase tracking-wide">
                     <SparklesIcon size={10} />
                     AI triage
                     {item.ai_triage_confidence != null && (
@@ -429,9 +429,9 @@ function ItemList({
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 text-[12px] text-ink leading-relaxed">{item.ai_triage_summary}</p>
+                  <p className="mt-1 text-sm text-ink leading-relaxed">{item.ai_triage_summary}</p>
                   {item.ai_triage_proposed_action && (
-                    <p className="mt-1 text-[11.5px] text-ink-soft leading-relaxed">
+                    <p className="mt-1 text-xs text-ink-soft leading-relaxed">
                       <strong className="font-semibold">Proposed action:</strong> {item.ai_triage_proposed_action}
                     </p>
                   )}
@@ -440,7 +440,7 @@ function ItemList({
                       {item.ai_triage_affected_rules.map(r => (
                         <span
                           key={r}
-                          className="inline-flex items-center h-[17px] px-1.5 rounded bg-white text-violet-800 border border-violet-200 text-[10px] font-semibold"
+                          className="inline-flex items-center h-[17px] px-1.5 rounded bg-white text-violet-800 border border-violet-200 text-2xs font-semibold"
                         >
                           {r}
                         </span>
@@ -471,8 +471,8 @@ function ItemList({
               )}
 
               {item.summary && (
-                <p className="mt-2 text-[11.5px] text-ink-muted leading-relaxed line-clamp-2">
-                  <span className="uppercase text-[9.5px] tracking-wider font-semibold text-ink-faint mr-1">source</span>
+                <p className="mt-2 text-xs text-ink-muted leading-relaxed line-clamp-2">
+                  <span className="uppercase text-2xs tracking-wider font-semibold text-ink-faint mr-1">source</span>
                   {item.summary}
                 </p>
               )}
@@ -481,13 +481,13 @@ function ItemList({
                   {item.matched_keywords.slice(0, 6).map(kw => (
                     <span
                       key={kw}
-                      className="inline-flex items-center h-[18px] px-1.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100 text-[10px] font-medium"
+                      className="inline-flex items-center h-[18px] px-1.5 rounded-full bg-brand-50 text-brand-700 border border-brand-100 text-2xs font-medium"
                     >
                       {kw}
                     </span>
                   ))}
                   {item.matched_keywords.length > 6 && (
-                    <span className="inline-flex items-center h-[18px] px-1.5 text-[10px] text-ink-muted">
+                    <span className="inline-flex items-center h-[18px] px-1.5 text-2xs text-ink-muted">
                       +{item.matched_keywords.length - 6} more
                     </span>
                   )}
@@ -731,23 +731,23 @@ function PatchProposalBlock({
         className="w-full flex items-center gap-1.5 text-left"
       >
         {open ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
-        <span className="text-[10.5px] font-semibold text-emerald-800 uppercase tracking-wide flex items-center gap-1">
+        <span className="text-2xs font-semibold text-emerald-800 uppercase tracking-wide flex items-center gap-1">
           <SparklesIcon size={10} />
           AI-proposed rule patch
         </span>
         {pct != null && (
-          <span className="text-[10.5px] text-emerald-700 font-normal">· confidence {pct}%</span>
+          <span className="text-2xs text-emerald-700 font-normal">· confidence {pct}%</span>
         )}
         {modifiedByHuman && !appliedAt && !successSha && (
           <span
-            className="text-[10px] text-amber-800 bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5 font-medium"
+            className="text-2xs text-amber-800 bg-amber-100 border border-amber-300 rounded px-1.5 py-0.5 font-medium"
             title={`Reviewer${modifiedBy ? ` (${modifiedBy})` : ''} edited the drafter's diff. The original is preserved in the audit log.`}
           >
             Edited by reviewer
           </span>
         )}
         {(appliedAt || successSha) && (
-          <span className="text-[10.5px] text-emerald-700 font-normal">
+          <span className="text-2xs text-emerald-700 font-normal">
             · applied {(commitSha || successSha) ? `(${(commitSha || successSha)!.slice(0, 7)})` : ''}
           </span>
         )}
@@ -755,15 +755,15 @@ function PatchProposalBlock({
       {open && (
         <div className="mt-2">
           {reasoning && (
-            <p className="text-[11.5px] text-ink leading-relaxed mb-2 whitespace-pre-wrap">
+            <p className="text-xs text-ink leading-relaxed mb-2 whitespace-pre-wrap">
               {reasoning}
             </p>
           )}
           {targetFiles && targetFiles.length > 0 && (
-            <div className="mb-2 text-[10.5px] text-ink-soft">
+            <div className="mb-2 text-2xs text-ink-soft">
               <strong className="font-semibold">Target files:</strong>{' '}
               {targetFiles.map((f, i) => (
-                <code key={i} className="text-[10px] bg-white px-1 rounded mr-1">{f}</code>
+                <code key={i} className="text-2xs bg-white px-1 rounded mr-1">{f}</code>
               ))}
             </div>
           )}
@@ -772,11 +772,11 @@ function PatchProposalBlock({
               value={draftDiff}
               onChange={e => setDraftDiff(e.target.value)}
               spellCheck={false}
-              className="w-full text-[10.5px] font-mono bg-white border border-amber-300 rounded p-2 min-h-[240px] max-h-[480px] resize-y focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full text-2xs font-mono bg-white border border-amber-300 rounded p-2 min-h-[240px] max-h-[480px] resize-y focus:ring-2 focus:ring-amber-400"
               placeholder="Edit the unified diff. Only these files are allowed: src/config/classification-rules.ts, src/config/legal-sources.ts, src/config/exemption-keywords.ts, src/__tests__/fixtures/synthetic-corpus.ts"
             />
           ) : (
-            <pre className="text-[10.5px] font-mono bg-white border border-emerald-200 rounded p-2 overflow-x-auto max-h-[320px] overflow-y-auto">
+            <pre className="text-2xs font-mono bg-white border border-emerald-200 rounded p-2 overflow-x-auto max-h-[320px] overflow-y-auto">
               {diff.split('\n').map((line, i) => {
                 const colour = line.startsWith('+++') || line.startsWith('---')
                   ? 'text-ink-muted font-semibold'
@@ -792,16 +792,16 @@ function PatchProposalBlock({
             </pre>
           )}
           {savedBanner && (
-            <div className="mt-2 text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+            <div className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
               Diff updated — the original AI draft is preserved in the audit log. Tests are now stale; Accept will commit without fresh test evidence.
             </div>
           )}
 
           {error && (
-            <div className="mt-2 text-[11px] text-red-800 bg-red-50 border border-red-200 rounded px-2 py-1.5">
+            <div className="mt-2 text-xs text-red-800 bg-red-50 border border-red-200 rounded px-2 py-1.5">
               {error}
               {error.includes('GITHUB_TOKEN') && (
-                <div className="mt-1 text-[10.5px] text-red-700">
+                <div className="mt-1 text-2xs text-red-700">
                   Fallback: copy the git-apply command and paste it in your terminal.
                 </div>
               )}
@@ -811,7 +811,7 @@ function PatchProposalBlock({
           {!appliedAt && !successSha && (
             <div className="mt-2 space-y-2">
               {isCritical && (
-                <label className="flex items-center gap-2 text-[11px] text-red-800 bg-red-50 border border-red-200 rounded px-2 py-1.5 cursor-pointer">
+                <label className="flex items-center gap-2 text-xs text-red-800 bg-red-50 border border-red-200 rounded px-2 py-1.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={readChecked}
@@ -829,7 +829,7 @@ function PatchProposalBlock({
                     <button
                       onClick={saveEdit}
                       disabled={saving}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-amber-600 text-white text-[11px] font-semibold hover:bg-amber-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {saving ? <Loader2Icon size={11} className="animate-spin" /> : <CheckCheckIcon size={11} />}
                       {saving ? 'Saving…' : 'Save edits'}
@@ -837,7 +837,7 @@ function PatchProposalBlock({
                     <button
                       onClick={cancelEdit}
                       disabled={saving}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-xs text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
                     >
                       <XIcon size={11} />
                       Cancel
@@ -849,7 +849,7 @@ function PatchProposalBlock({
                       onClick={accept}
                       disabled={acceptDisabled}
                       title={acceptTooltip}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       {accepting ? <Loader2Icon size={11} className="animate-spin" /> : <CheckCheckIcon size={11} />}
                       {accepting ? 'Committing…' : 'Accept & commit'}
@@ -857,7 +857,7 @@ function PatchProposalBlock({
                     <button
                       onClick={startEdit}
                       disabled={accepting || rejecting}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-amber-300 text-[11px] text-amber-800 hover:bg-amber-50 hover:border-amber-400 transition-colors disabled:opacity-40"
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-amber-300 text-xs text-amber-800 hover:bg-amber-50 hover:border-amber-400 transition-colors disabled:opacity-40"
                       title="Open the diff in an editable textarea. The original AI draft is preserved in the audit log."
                     >
                       <PencilIcon size={11} />
@@ -866,14 +866,14 @@ function PatchProposalBlock({
                     <button
                       onClick={reject}
                       disabled={accepting || rejecting}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-xs text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors disabled:opacity-40"
                     >
                       <XIcon size={11} />
                       {rejecting ? 'Rejecting…' : 'Reject'}
                     </button>
                     <button
                       onClick={copyCommand}
-                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-[11px] text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors"
+                      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded border border-border text-xs text-ink-soft hover:bg-surface-alt hover:text-ink hover:border-border-strong transition-colors"
                       title="Fallback: copy the git-apply command to run locally if the Accept button is blocked (e.g. GITHUB_TOKEN not configured in Vercel env)."
                     >
                       <BookmarkIcon size={11} />
@@ -882,7 +882,7 @@ function PatchProposalBlock({
                   </>
                 )}
               </div>
-              <div className="text-[10px] text-ink-muted italic">
+              <div className="text-2xs text-ink-muted italic">
                 Accept uses the GitHub API to commit the diff to main with a signed <code className="bg-white px-1 rounded">ai_drafted=true</code> attribution. When edited, the commit also carries <code className="bg-white px-1 rounded">human_edited: true</code>. Vercel auto-deploys.
               </div>
             </div>
@@ -910,7 +910,7 @@ function TriageButton({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className={`inline-flex items-center gap-1 h-7 px-2 rounded-md border border-border text-[11px] text-ink-soft transition-colors whitespace-nowrap ${tones[tone]} disabled:opacity-40 disabled:cursor-wait`}
+      className={`inline-flex items-center gap-1 h-7 px-2 rounded-md border border-border text-xs text-ink-soft transition-colors whitespace-nowrap ${tones[tone]} disabled:opacity-40 disabled:cursor-wait`}
     >
       {icon}
       {label}

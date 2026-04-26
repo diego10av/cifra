@@ -148,14 +148,14 @@ export function QuickCaptureModal() {
       subtitle="Press N from any /tax-ops page. Enter to create, Esc to cancel. Expand for more fields."
       size="md"
     >
-      <div className="space-y-3 text-[12.5px]">
+      <div className="space-y-3 text-sm">
         <input
           ref={inputRef}
           value={title}
           onChange={e => setTitle(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !busy) submit(); }}
           placeholder="What needs to happen?"
-          className="w-full px-2.5 py-2 border border-border rounded-md bg-surface text-[13px]"
+          className="w-full px-2.5 py-2 border border-border rounded-md bg-surface text-sm"
         />
 
         <div className="grid grid-cols-2 gap-3">
@@ -197,7 +197,7 @@ export function QuickCaptureModal() {
               size={Math.min(5, filteredEntities.length + 1)}
               value={entityId}
               onChange={e => setEntityId(e.target.value)}
-              className="mt-1 w-full px-2 py-1 border border-border rounded-md bg-surface font-mono text-[11.5px]"
+              className="mt-1 w-full px-2 py-1 border border-border rounded-md bg-surface font-mono text-xs"
             >
               <option value="">— no entity —</option>
               {filteredEntities.map(e => (
@@ -233,7 +233,7 @@ export function QuickCaptureModal() {
         <button
           type="button"
           onClick={() => setShowMore(v => !v)}
-          className="text-[11.5px] text-brand-700 hover:text-brand-800"
+          className="text-xs text-brand-700 hover:text-brand-800"
         >
           {showMore ? '− Hide extra fields' : '+ Show more (description, waiting on, follow-up)'}
         </button>
@@ -286,7 +286,7 @@ export function QuickCaptureModal() {
         )}
 
         {error && (
-          <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-[12px] text-danger-800">
+          <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-sm text-danger-800">
             {error}
           </div>
         )}
@@ -294,14 +294,14 @@ export function QuickCaptureModal() {
         <div className="flex justify-end gap-2 pt-1">
           <button
             onClick={() => setOpen(false)}
-            className="px-3 py-1.5 text-[12.5px] rounded-md border border-border hover:bg-surface-alt"
+            className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface-alt"
           >
             Cancel
           </button>
           <button
             onClick={submit}
             disabled={busy || !title.trim()}
-            className="px-3 py-1.5 text-[12.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {busy ? 'Creating…' : 'Create task'}
           </button>

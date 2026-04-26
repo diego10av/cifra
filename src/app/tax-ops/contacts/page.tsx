@@ -65,7 +65,7 @@ export default function ContactsPage() {
 
   return (
     <div className="space-y-4">
-      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink">
+      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink">
         <ArrowLeftIcon size={12} /> Back to settings
       </Link>
 
@@ -81,9 +81,9 @@ export default function ContactsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter by name, email or role"
-          className="flex-1 max-w-md px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
+          className="flex-1 max-w-md px-2 py-1 text-sm border border-border rounded-md bg-surface"
         />
-        <span className="text-[11.5px] text-ink-muted ml-auto">
+        <span className="text-xs text-ink-muted ml-auto">
           {filtered.length} shown
         </span>
       </div>
@@ -97,7 +97,7 @@ export default function ContactsPage() {
         />
       ) : (
         <div className="rounded-md border border-border bg-surface overflow-hidden">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr className="text-left">
                 <th className="px-3 py-1.5 font-medium">Name</th>
@@ -113,11 +113,11 @@ export default function ContactsPage() {
               {filtered.map(c => (
                 <tr key={c.email_norm} className="border-t border-border/70 hover:bg-surface-alt/40">
                   <td className="px-3 py-1.5 font-medium">{c.name ?? <span className="text-ink-muted italic">—</span>}</td>
-                  <td className="px-3 py-1.5 font-mono text-[11.5px] text-ink-soft">{c.email ?? c.email_norm}</td>
+                  <td className="px-3 py-1.5 font-mono text-xs text-ink-soft">{c.email ?? c.email_norm}</td>
                   <td className="px-3 py-1.5 text-ink-soft">{c.role ?? <span className="text-ink-muted italic">—</span>}</td>
                   <td className="px-3 py-1.5 text-right tabular-nums">{c.entity_count}</td>
                   <td className="px-3 py-1.5 text-right tabular-nums">{c.filing_count}</td>
-                  <td className="px-3 py-1.5 text-ink-muted text-[11.5px] truncate max-w-[260px]" title={c.sample_entities.join(', ')}>
+                  <td className="px-3 py-1.5 text-ink-muted text-xs truncate max-w-[260px]" title={c.sample_entities.join(', ')}>
                     {c.sample_entities.slice(0, 3).join(', ')}
                     {c.sample_entities.length > 3 ? '…' : ''}
                   </td>
@@ -125,7 +125,7 @@ export default function ContactsPage() {
                     <button
                       type="button"
                       onClick={() => setEditing(c)}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] rounded border border-border hover:border-brand-500 hover:text-brand-700"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded border border-border hover:border-brand-500 hover:text-brand-700"
                     >
                       <EditIcon size={11} /> Rename
                     </button>
@@ -149,7 +149,7 @@ export default function ContactsPage() {
         />
       )}
 
-      <div className="rounded-md border border-border bg-surface-alt/40 px-4 py-2 text-[11.5px] text-ink-muted">
+      <div className="rounded-md border border-border bg-surface-alt/40 px-4 py-2 text-xs text-ink-muted">
         <UsersIcon size={12} className="inline mr-1" />
         Tip: click <em>Rename</em> to change name / email / role for a contact. The update
         propagates to every entity + filing that references the old email in a single
@@ -243,7 +243,7 @@ function RenameModal({
       >
         <div className="flex items-center gap-2">
           <EditIcon size={14} className="text-brand-500" />
-          <h2 className="text-[14px] font-semibold text-ink flex-1">Rename contact</h2>
+          <h2 className="text-base font-semibold text-ink flex-1">Rename contact</h2>
           <button
             type="button"
             onClick={onClose}
@@ -254,14 +254,14 @@ function RenameModal({
           </button>
         </div>
 
-        <p className="text-[11.5px] text-ink-muted">
+        <p className="text-xs text-ink-muted">
           Changes to name / email / role propagate to every entity + filing
           referencing the old email (<span className="font-mono">{contact.email_norm}</span>).
         </p>
 
-        <div className="grid gap-2 text-[12.5px]">
+        <div className="grid gap-2 text-sm">
           <label className="block">
-            <span className="block text-[11px] font-medium text-ink-muted mb-1">Name</span>
+            <span className="block text-xs font-medium text-ink-muted mb-1">Name</span>
             <input
               type="text"
               value={name}
@@ -270,7 +270,7 @@ function RenameModal({
             />
           </label>
           <label className="block">
-            <span className="block text-[11px] font-medium text-ink-muted mb-1">Email</span>
+            <span className="block text-xs font-medium text-ink-muted mb-1">Email</span>
             <input
               type="email"
               value={email}
@@ -279,7 +279,7 @@ function RenameModal({
             />
           </label>
           <label className="block">
-            <span className="block text-[11px] font-medium text-ink-muted mb-1">Role</span>
+            <span className="block text-xs font-medium text-ink-muted mb-1">Role</span>
             <input
               type="text"
               value={role}
@@ -291,13 +291,13 @@ function RenameModal({
         </div>
 
         {error && (
-          <div className="text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-2 py-1">
+          <div className="text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-2 py-1">
             {error}
           </div>
         )}
 
         {preview && (
-          <div className="text-[11.5px] bg-brand-50 border border-brand-200 rounded px-2 py-1.5 text-brand-900">
+          <div className="text-xs bg-brand-50 border border-brand-200 rounded px-2 py-1.5 text-brand-900">
             Will update <strong>{preview.entity_rows_affected}</strong> entit{preview.entity_rows_affected === 1 ? 'y' : 'ies'} and <strong>{preview.filing_rows_affected}</strong> filing{preview.filing_rows_affected === 1 ? '' : 's'}.
           </div>
         )}
@@ -306,7 +306,7 @@ function RenameModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+            className="px-3 py-1 text-sm rounded-md border border-border hover:bg-surface-alt"
           >
             Cancel
           </button>
@@ -314,7 +314,7 @@ function RenameModal({
             <button
               type="button"
               onClick={() => void runPreview()}
-              className="px-3 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+              className="px-3 py-1 text-sm rounded-md border border-border hover:bg-surface-alt"
             >
               Preview changes
             </button>
@@ -323,7 +323,7 @@ function RenameModal({
               type="button"
               onClick={() => void apply()}
               disabled={applying}
-              className="inline-flex items-center gap-1 px-3 py-1 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1 px-3 py-1 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
             >
               <CheckIcon size={11} />
               {applying ? 'Applying…' : 'Apply'}

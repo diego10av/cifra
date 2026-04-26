@@ -106,8 +106,8 @@ function ClosingContent() {
     <div className="max-w-[1400px]">
       <div className="mb-5 flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-[22px] font-semibold tracking-tight">Closing dashboard</h1>
-          <p className="text-[12.5px] text-ink-muted mt-1 max-w-xl">
+          <h1 className="text-xl font-semibold tracking-tight">Closing dashboard</h1>
+          <p className="text-sm text-ink-muted mt-1 max-w-xl">
             One row per entity for the chosen period. Fastest way to see "which
             returns still need work" at the end of a quarter.
           </p>
@@ -118,7 +118,7 @@ function ClosingContent() {
               key={p.value}
               onClick={() => setPeriod(p.value)}
               className={[
-                'h-8 px-3 rounded-md text-[12px] font-medium transition-colors',
+                'h-8 px-3 rounded-md text-sm font-medium transition-colors',
                 period === p.value
                   ? 'bg-brand-500 text-white shadow-xs'
                   : 'bg-surface border border-border text-ink-soft hover:bg-surface-alt',
@@ -131,7 +131,7 @@ function ClosingContent() {
       </div>
 
       {error && (
-        <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+        <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
           {error}
         </div>
       )}
@@ -186,7 +186,7 @@ function ClosingContent() {
                 title="No entities yet"
                 description="Create a client + entity first, then the closing dashboard lights up."
                 action={
-                  <Link href="/clients/new" className="h-9 px-4 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600">
+                  <Link href="/clients/new" className="h-9 px-4 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600">
                     Create first client
                   </Link>
                 }
@@ -194,7 +194,7 @@ function ClosingContent() {
             </div>
           ) : (
             <div className="bg-surface border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-[12.5px]">
+              <table className="w-full text-sm">
                 <thead className="bg-surface-alt border-b border-divider text-ink-muted">
                   <tr>
                     <Th>Entity</Th>
@@ -239,19 +239,19 @@ function ClosingContent() {
                         {r.declaration_id ? (
                           <Link
                             href={`/declarations/${r.declaration_id}`}
-                            className="inline-flex items-center gap-1 text-[11.5px] text-brand-600 hover:text-brand-700 font-medium"
+                            className="inline-flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium"
                           >
                             Open <ArrowRightIcon size={11} />
                           </Link>
                         ) : r.expected ? (
                           <Link
                             href={`/declarations?entity_id=${r.entity_id}`}
-                            className="inline-flex items-center gap-1 text-[11.5px] text-brand-600 hover:text-brand-700 font-medium"
+                            className="inline-flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium"
                           >
                             <PlusIcon size={11} /> Start
                           </Link>
                         ) : (
-                          <span className="text-[11px] text-ink-faint italic">Not expected this period</span>
+                          <span className="text-xs text-ink-faint italic">Not expected this period</span>
                         )}
                       </td>
                     </tr>
@@ -269,15 +269,15 @@ function ClosingContent() {
 // ───────────────────────────── subcomponents ─────────────────────────────
 
 function Th({ children }: { children?: React.ReactNode }) {
-  return <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">{children}</th>;
+  return <th className="px-4 py-2.5 text-left font-medium text-2xs uppercase tracking-[0.06em]">{children}</th>;
 }
 
 function StatusCell({ row, expectedFrequency }: { row: EntityStatus; expectedFrequency: string }) {
   if (!row.expected) {
-    return <span className="text-[11px] text-ink-faint italic">{row.frequency} freq · not this period</span>;
+    return <span className="text-xs text-ink-faint italic">{row.frequency} freq · not this period</span>;
   }
   if (!row.declaration_id) {
-    return <span className="inline-flex items-center gap-1.5 text-danger-700 text-[11.5px] font-semibold">
+    return <span className="inline-flex items-center gap-1.5 text-danger-700 text-xs font-semibold">
       <CircleIcon size={10} className="fill-danger-500 stroke-danger-500" />
       Not started
     </span>;
@@ -300,7 +300,7 @@ function StatusCell({ row, expectedFrequency }: { row: EntityStatus; expectedFre
     : tone === 'info' ? 'bg-brand-50 text-brand-700 border-brand-100'
     : 'bg-surface-alt text-ink-muted border-border';
   return (
-    <span className={`inline-flex items-center h-5 px-1.5 rounded border text-[10.5px] font-semibold tracking-wide ${cls}`}>
+    <span className={`inline-flex items-center h-5 px-1.5 rounded border text-2xs font-semibold tracking-wide ${cls}`}>
       {label}
     </span>
   );
@@ -323,11 +323,11 @@ function Metric({
     : 'bg-surface border-border text-ink-muted';
   return (
     <div className={`border rounded-lg px-3 py-2.5 ${palette}`}>
-      <div className="flex items-center gap-1.5 text-[9.5px] uppercase tracking-wide font-semibold">
+      <div className="flex items-center gap-1.5 text-2xs uppercase tracking-wide font-semibold">
         {icon}{label}
       </div>
-      <div className="text-[22px] font-semibold tabular-nums text-ink mt-0.5">{value}</div>
-      {caption && <div className="text-[9.5px] text-ink-muted mt-0.5">{caption}</div>}
+      <div className="text-xl font-semibold tabular-nums text-ink mt-0.5">{value}</div>
+      {caption && <div className="text-2xs text-ink-muted mt-0.5">{caption}</div>}
     </div>
   );
 }

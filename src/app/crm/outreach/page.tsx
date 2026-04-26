@@ -136,20 +136,20 @@ export default function OutreachPage() {
             <div className="flex items-center gap-1.5 rounded-md border border-border bg-surface p-0.5">
               <button
                 onClick={() => setView('list')}
-                className={`inline-flex items-center gap-1 px-2 py-1 text-[12px] rounded ${view === 'list' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
+                className={`inline-flex items-center gap-1 px-2 py-1 text-sm rounded ${view === 'list' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
               >
                 <LayoutListIcon size={11} /> List
               </button>
               <button
                 onClick={() => setView('board')}
-                className={`inline-flex items-center gap-1 px-2 py-1 text-[12px] rounded ${view === 'board' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
+                className={`inline-flex items-center gap-1 px-2 py-1 text-sm rounded ${view === 'board' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
               >
                 <LayoutGridIcon size={11} /> Board
               </button>
             </div>
             <button
               onClick={() => setAddOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white"
             >
               <PlusIcon size={12} /> New prospect
             </button>
@@ -158,7 +158,7 @@ export default function OutreachPage() {
       />
 
       {metrics && metrics.total > 0 && (
-        <div className="flex flex-wrap gap-2 mb-3 text-[11.5px]">
+        <div className="flex flex-wrap gap-2 mb-3 text-xs">
           <span className="inline-flex items-center px-2 py-1 rounded border border-border bg-surface">
             <span className="text-ink-muted mr-1">Total</span><strong>{metrics.total}</strong>
           </span>
@@ -193,7 +193,7 @@ export default function OutreachPage() {
         />
       ) : view === 'list' ? (
         <div className="rounded-md border border-border bg-surface overflow-auto">
-          <table className="w-full text-[12px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr className="text-left">
                 <th className="px-2 py-1.5 font-medium">Name</th>
@@ -215,7 +215,7 @@ export default function OutreachPage() {
                       onBlur={e => { if (e.target.value !== p.name) patchProspect(p.id, { name: e.target.value }); }}
                       className="font-medium bg-transparent hover:bg-surface-alt/50 px-1 rounded w-full"
                     />
-                    <div className="flex gap-2 mt-0.5 text-[10.5px]">
+                    <div className="flex gap-2 mt-0.5 text-2xs">
                       {p.contact_linkedin_url && (
                         <a href={p.contact_linkedin_url} target="_blank" rel="noreferrer" className="text-brand-700 hover:underline">LinkedIn ↗</a>
                       )}
@@ -228,7 +228,7 @@ export default function OutreachPage() {
                     <select
                       value={p.firm_type ?? ''}
                       onChange={e => patchProspect(p.id, { firm_type: e.target.value || null })}
-                      className="px-1 py-0 text-[11px] border border-border rounded bg-surface"
+                      className="px-1 py-0 text-xs border border-border rounded bg-surface"
                     >
                       {FIRM_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
@@ -245,7 +245,7 @@ export default function OutreachPage() {
                     <select
                       value={p.stage}
                       onChange={e => patchProspect(p.id, { stage: e.target.value })}
-                      className="px-1 py-0 text-[11px] border border-border rounded bg-surface"
+                      className="px-1 py-0 text-xs border border-border rounded bg-surface"
                     >
                       {STAGES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
@@ -255,7 +255,7 @@ export default function OutreachPage() {
                       defaultValue={p.next_action ?? ''}
                       onBlur={e => { if ((e.target.value || null) !== p.next_action) patchProspect(p.id, { next_action: e.target.value || null }); }}
                       placeholder="e.g. coffee · Follow-up DM"
-                      className="bg-transparent hover:bg-surface-alt/50 px-1 rounded w-full text-[11.5px]"
+                      className="bg-transparent hover:bg-surface-alt/50 px-1 rounded w-full text-xs"
                     />
                   </td>
                   <td className="px-2 py-1.5">
@@ -263,7 +263,7 @@ export default function OutreachPage() {
                       type="date"
                       defaultValue={p.next_action_date ?? ''}
                       onBlur={e => { if ((e.target.value || null) !== p.next_action_date) patchProspect(p.id, { next_action_date: e.target.value || null }); }}
-                      className="px-1 py-0 text-[11px] border border-border rounded bg-surface tabular-nums"
+                      className="px-1 py-0 text-xs border border-border rounded bg-surface tabular-nums"
                     />
                     {p.next_action_date && <div className="mt-0.5"><DateBadge value={p.next_action_date} mode="urgency" /></div>}
                   </td>
@@ -271,7 +271,7 @@ export default function OutreachPage() {
                     <select
                       value={p.source ?? ''}
                       onChange={e => patchProspect(p.id, { source: e.target.value || null })}
-                      className="px-1 py-0 text-[11px] border border-border rounded bg-surface"
+                      className="px-1 py-0 text-xs border border-border rounded bg-surface"
                     >
                       {SOURCES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                     </select>
@@ -325,7 +325,7 @@ function BoardView({
             onDrop={() => handleDrop(st.value)}
             className="rounded-md border border-border bg-surface-alt/30 min-h-[200px]"
           >
-            <div className="px-3 py-2 border-b border-border bg-surface-alt text-[12px] font-semibold">
+            <div className="px-3 py-2 border-b border-border bg-surface-alt text-sm font-semibold">
               {st.label} <span className="text-ink-muted font-normal">({items.length})</span>
             </div>
             <div className="p-2 space-y-1.5">
@@ -334,10 +334,10 @@ function BoardView({
                   key={p.id}
                   draggable
                   onDragStart={() => setDragId(p.id)}
-                  className="rounded border border-border bg-surface p-2 cursor-grab text-[11.5px]"
+                  className="rounded border border-border bg-surface p-2 cursor-grab text-xs"
                 >
                   <div className="font-medium text-ink">{p.name}</div>
-                  {p.company_name && <div className="text-[10.5px] text-ink-muted">{p.company_name}</div>}
+                  {p.company_name && <div className="text-2xs text-ink-muted">{p.company_name}</div>}
                   {p.next_action_date && (
                     <div className="mt-1">
                       <DateBadge value={p.next_action_date} mode="urgency" />
@@ -414,14 +414,14 @@ function NewProspectModal({
       open={open} onClose={onClose} title="New prospect" size="md"
       footer={
         <>
-          <button onClick={onClose} className="px-3 py-1.5 text-[12.5px] rounded-md border border-border hover:bg-surface-alt">Cancel</button>
-          <button onClick={submit} disabled={busy || !name.trim()} className="px-3 py-1.5 text-[12.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50">
+          <button onClick={onClose} className="px-3 py-1.5 text-sm rounded-md border border-border hover:bg-surface-alt">Cancel</button>
+          <button onClick={submit} disabled={busy || !name.trim()} className="px-3 py-1.5 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50">
             {busy ? 'Creating…' : 'Create'}
           </button>
         </>
       }
     >
-      <div className="space-y-3 text-[12.5px]">
+      <div className="space-y-3 text-sm">
         <label className="block">
           <span className="text-ink-muted">Name</span>
           <input autoFocus value={name} onChange={e => setName(e.target.value)} placeholder="Full name" className="mt-1 w-full px-2 py-1.5 border border-border rounded-md bg-surface" />
@@ -476,7 +476,7 @@ function NewProspectModal({
           <span className="text-ink-muted">Notes</span>
           <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={3} className="mt-1 w-full px-2 py-1.5 border border-border rounded-md bg-surface" />
         </label>
-        {error && <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-[12px] text-danger-800">{error}</div>}
+        {error && <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2 text-sm text-danger-800">{error}</div>}
       </div>
     </Modal>
   );

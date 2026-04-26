@@ -64,8 +64,8 @@ export function ContactsCard({ clientId }: { clientId: string }) {
     <div className="bg-surface border border-border rounded-lg">
       <div className="px-4 py-3 border-b border-divider flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h3 className="text-[13px] font-semibold text-ink">Contacts</h3>
-          <span className="text-[11px] text-ink-muted tabular-nums">
+          <h3 className="text-sm font-semibold text-ink">Contacts</h3>
+          <span className="text-xs text-ink-muted tabular-nums">
             {contacts.length}
             {mainCount === 0 && contacts.length > 0 && (
               <span className="text-amber-600"> · no main set</span>
@@ -75,7 +75,7 @@ export function ContactsCard({ clientId }: { clientId: string }) {
         {!adding && (
           <button
             onClick={() => setAdding(true)}
-            className="h-7 px-2.5 rounded-md bg-surface-alt border border-border-strong text-[11.5px] font-medium text-ink-soft hover:text-ink hover:bg-surface inline-flex items-center gap-1"
+            className="h-7 px-2.5 rounded-md bg-surface-alt border border-border-strong text-xs font-medium text-ink-soft hover:text-ink hover:bg-surface inline-flex items-center gap-1"
           >
             <PlusIcon size={12} /> Add contact
           </button>
@@ -83,7 +83,7 @@ export function ContactsCard({ clientId }: { clientId: string }) {
       </div>
 
       {error && (
-        <div className="px-4 py-2 bg-danger-50 text-danger-800 text-[11.5px] border-b border-danger-200">
+        <div className="px-4 py-2 bg-danger-50 text-danger-800 text-xs border-b border-danger-200">
           {error}
         </div>
       )}
@@ -97,13 +97,13 @@ export function ContactsCard({ clientId }: { clientId: string }) {
       )}
 
       {loading && contacts.length === 0 ? (
-        <div className="px-4 py-6 text-[12px] text-ink-muted text-center">Loading…</div>
+        <div className="px-4 py-6 text-sm text-ink-muted text-center">Loading…</div>
       ) : contacts.length === 0 && !adding ? (
         <div className="px-4 py-8 text-center">
-          <div className="text-[13px] text-ink-muted">No contacts yet</div>
+          <div className="text-sm text-ink-muted">No contacts yet</div>
           <button
             onClick={() => setAdding(true)}
-            className="inline-block mt-3 text-[12px] font-medium text-brand-600 hover:underline"
+            className="inline-block mt-3 text-sm font-medium text-brand-600 hover:underline"
           >
             Add the first one →
           </button>
@@ -132,7 +132,7 @@ export function ContactsCard({ clientId }: { clientId: string }) {
         </ul>
       )}
 
-      <div className="px-4 py-2 border-t border-divider text-[10.5px] text-ink-faint">
+      <div className="px-4 py-2 border-t border-divider text-2xs text-ink-faint">
         Contacts are re-usable: when you add an entity approver, pick from this list instead of typing the same details again.
       </div>
     </div>
@@ -181,20 +181,20 @@ function ContactRow({
     <div className="px-4 py-3 flex items-start gap-3 hover:bg-surface-alt/40 transition-colors">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="text-[13px] font-medium text-ink truncate">{contact.name}</div>
+          <div className="text-sm font-medium text-ink truncate">{contact.name}</div>
           {contact.is_main && (
-            <span className="text-[9.5px] uppercase tracking-wide font-semibold bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded border border-brand-100 inline-flex items-center gap-0.5">
+            <span className="text-2xs uppercase tracking-wide font-semibold bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded border border-brand-100 inline-flex items-center gap-0.5">
               <StarIcon size={9} className="fill-brand-500 stroke-brand-500" /> Main
             </span>
           )}
           {contact.role && (
-            <span className="text-[11px] text-ink-muted">· {contact.role}</span>
+            <span className="text-xs text-ink-muted">· {contact.role}</span>
           )}
           {contact.country && (
-            <span className="text-[10.5px] font-mono text-ink-muted">· {contact.country}</span>
+            <span className="text-2xs font-mono text-ink-muted">· {contact.country}</span>
           )}
         </div>
-        <div className="mt-1 flex items-center gap-3 text-[11.5px] text-ink-muted">
+        <div className="mt-1 flex items-center gap-3 text-xs text-ink-muted">
           {contact.email && (
             <a
               href={`mailto:${contact.email}`}
@@ -213,7 +213,7 @@ function ContactRow({
           )}
         </div>
         {contact.notes && (
-          <div className="mt-1 text-[11px] text-ink-muted italic whitespace-pre-wrap">
+          <div className="mt-1 text-xs text-ink-muted italic whitespace-pre-wrap">
             {contact.notes}
           </div>
         )}
@@ -302,7 +302,7 @@ function ContactForm({
   return (
     <div className="px-4 py-3 bg-surface-alt/40 border-b border-divider">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-[12px] font-semibold text-ink">
+        <div className="text-sm font-semibold text-ink">
           {editing ? 'Edit contact' : 'New contact'}
         </div>
         <button
@@ -315,7 +315,7 @@ function ContactForm({
       </div>
 
       {err && (
-        <div className="mb-2 px-2 py-1 bg-danger-50 border border-danger-200 text-[11px] text-danger-800 rounded">
+        <div className="mb-2 px-2 py-1 bg-danger-50 border border-danger-200 text-xs text-danger-800 rounded">
           {err}
         </div>
       )}
@@ -325,7 +325,7 @@ function ContactForm({
           <input
             value={draft.name ?? ''}
             onChange={e => setDraft({ ...draft, name: e.target.value })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </FormField>
         <FormField label="Role">
@@ -333,7 +333,7 @@ function ContactForm({
             value={draft.role ?? ''}
             onChange={e => setDraft({ ...draft, role: e.target.value || null })}
             placeholder="CFO, Head of Finance…"
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </FormField>
         <FormField label="Email">
@@ -341,21 +341,21 @@ function ContactForm({
             type="email"
             value={draft.email ?? ''}
             onChange={e => setDraft({ ...draft, email: e.target.value || null })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </FormField>
         <FormField label="Phone">
           <input
             value={draft.phone ?? ''}
             onChange={e => setDraft({ ...draft, phone: e.target.value || null })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </FormField>
         <FormField label="Organisation">
           <input
             value={draft.organization ?? ''}
             onChange={e => setDraft({ ...draft, organization: e.target.value || null })}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </FormField>
         <FormField label="Country (ISO-2)">
@@ -363,7 +363,7 @@ function ContactForm({
             value={draft.country ?? ''}
             onChange={e => setDraft({ ...draft, country: e.target.value.toUpperCase().slice(0, 2) || null })}
             maxLength={2}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm font-mono"
           />
         </FormField>
       </div>
@@ -374,13 +374,13 @@ function ContactForm({
             value={draft.notes ?? ''}
             onChange={e => setDraft({ ...draft, notes: e.target.value || null })}
             rows={2}
-            className="w-full border border-border-strong rounded px-2 py-1.5 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-2 py-1.5 text-sm"
           />
         </FormField>
       </div>
 
       <div className="mt-2 flex items-center justify-between">
-        <label className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-soft cursor-pointer">
+        <label className="inline-flex items-center gap-1.5 text-xs text-ink-soft cursor-pointer">
           <input
             type="checkbox"
             checked={!!draft.is_main}
@@ -392,14 +392,14 @@ function ContactForm({
         <div className="flex gap-2">
           <button
             onClick={onCancel}
-            className="h-7 px-3 rounded border border-border-strong text-[11.5px] text-ink-muted hover:text-ink"
+            className="h-7 px-3 rounded border border-border-strong text-xs text-ink-muted hover:text-ink"
           >
             Cancel
           </button>
           <button
             onClick={save}
             disabled={saving}
-            className="h-7 px-3 rounded bg-brand-500 text-white text-[11.5px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
+            className="h-7 px-3 rounded bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1"
           >
             <CheckIcon size={12} /> {saving ? 'Saving…' : editing ? 'Save' : 'Add'}
           </button>
@@ -412,7 +412,7 @@ function ContactForm({
 function FormField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-0.5">
         {label}
       </div>
       {children}

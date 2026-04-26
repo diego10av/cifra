@@ -47,17 +47,17 @@ function FilingRow({ f, subLine }: { f: ActionableFiling; subLine?: string }) {
   return (
     <Link
       href={`/tax-ops/filings/${f.id}`}
-      className="flex items-center gap-2 px-3 py-2 border-b border-border last:border-b-0 hover:bg-surface-alt transition-colors text-[12.5px]"
+      className="flex items-center gap-2 px-3 py-2 border-b border-border last:border-b-0 hover:bg-surface-alt transition-colors text-sm"
     >
       <div className="flex-1 min-w-0">
         <div className="font-medium text-ink truncate">{f.entity_name}</div>
-        <div className="text-[11.5px] text-ink-muted truncate">
+        <div className="text-xs text-ink-muted truncate">
           {f.group_name && <span className="mr-2">{f.group_name}</span>}
           {humanTaxType(f.tax_type)} · {f.period_label}
           {subLine && <span className="ml-2">· {subLine}</span>}
         </div>
       </div>
-      <div className="shrink-0 text-[11.5px]">
+      <div className="shrink-0 text-xs">
         <DateBadge value={f.deadline_date} mode="urgency" />
       </div>
       <ChevronRightIcon size={14} className="text-ink-faint shrink-0" />
@@ -87,11 +87,11 @@ function WidgetShell({ title, subtitle, icon: Icon, tone, count, children }: Wid
       <div className={`flex items-start gap-2 px-3 py-2 ${TONE_HEADER[tone]}`}>
         <Icon size={16} className="mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
-          <div className="font-semibold text-[13px] text-ink">
+          <div className="font-semibold text-sm text-ink">
             {title}
-            <span className="ml-2 text-[11.5px] font-normal text-ink-muted tabular-nums">({count})</span>
+            <span className="ml-2 text-xs font-normal text-ink-muted tabular-nums">({count})</span>
           </div>
-          <div className="text-[11.5px] text-ink-muted">{subtitle}</div>
+          <div className="text-xs text-ink-muted">{subtitle}</div>
         </div>
       </div>
       {children}
@@ -100,7 +100,7 @@ function WidgetShell({ title, subtitle, icon: Icon, tone, count, children }: Wid
 }
 
 function EmptyWidget({ message }: { message: string }) {
-  return <div className="px-3 py-3 text-[12px] text-ink-muted italic">{message}</div>;
+  return <div className="px-3 py-3 text-sm text-ink-muted italic">{message}</div>;
 }
 
 export function TaxOpsHomeWidgets() {

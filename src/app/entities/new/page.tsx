@@ -178,36 +178,36 @@ function NewEntityPageInner() {
 
     return (
       <div className="max-w-[540px]">
-        <div className="text-[11px] text-ink-faint mb-1">
+        <div className="text-xs text-ink-faint mb-1">
           <Link href="/clients" className="hover:underline">Clients</Link> ›{' '}
           <Link href="/entities" className="hover:underline">All entities</Link> ›
         </div>
-        <h1 className="text-[20px] font-semibold tracking-tight">New entity</h1>
-        <p className="text-[12.5px] text-ink-muted mt-1 mb-5">
+        <h1 className="text-lg font-semibold tracking-tight">New entity</h1>
+        <p className="text-sm text-ink-muted mt-1 mb-5">
           Every entity belongs to a client. Pick the client first.
         </p>
 
         {error && (
-          <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+          <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
             <AlertTriangleIcon size={13} className="mt-0.5 shrink-0" />
             {error}
           </div>
         )}
 
         {allClients === null ? (
-          <div className="text-[12px] text-ink-muted flex items-center gap-2">
+          <div className="text-sm text-ink-muted flex items-center gap-2">
             <Loader2Icon size={13} className="animate-spin" /> Loading clients…
           </div>
         ) : allClients.length === 0 ? (
           <div className="bg-surface border border-border rounded-lg p-8 text-center">
             <Building2Icon size={22} className="text-ink-muted mx-auto mb-2" />
-            <div className="text-[13px] font-medium text-ink">No clients yet</div>
-            <div className="text-[12px] text-ink-muted mt-1.5 max-w-sm mx-auto">
+            <div className="text-sm font-medium text-ink">No clients yet</div>
+            <div className="text-sm text-ink-muted mt-1.5 max-w-sm mx-auto">
               Start by creating a client. The entity will be attached to it.
             </div>
             <Link
               href="/clients/new"
-              className="inline-block mt-4 h-9 px-4 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600"
+              className="inline-block mt-4 h-9 px-4 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600"
             >
               Create first client
             </Link>
@@ -220,7 +220,7 @@ function NewEntityPageInner() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Find client by name"
-                className="w-full h-8 pl-7 pr-3 text-[12.5px] border border-border rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full h-8 pl-7 pr-3 text-sm border border-border rounded-md bg-surface"
                 autoFocus
               />
             </div>
@@ -233,20 +233,20 @@ function NewEntityPageInner() {
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-medium text-ink truncate">{c.name}</div>
-                        <div className="text-[11px] text-ink-muted mt-0.5">
+                        <div className="text-sm font-medium text-ink truncate">{c.name}</div>
+                        <div className="text-xs text-ink-muted mt-0.5">
                           {c.kind === 'end_client' ? 'End client' : c.kind === 'csp' ? 'CSP' : 'Other'}
                           <span className="text-ink-faint mx-1.5">·</span>
                           {c.entity_count} {c.entity_count === 1 ? 'entity' : 'entities'}
                         </div>
                       </div>
-                      <span className="text-[11px] text-brand-600 font-medium shrink-0">Use this →</span>
+                      <span className="text-xs text-brand-600 font-medium shrink-0">Use this →</span>
                     </div>
                   </button>
                 </li>
               ))}
               {filtered.length === 0 && (
-                <li className="px-4 py-8 text-center text-[12px] text-ink-muted">
+                <li className="px-4 py-8 text-center text-sm text-ink-muted">
                   No match.{' '}
                   <Link href="/clients/new" className="text-brand-600 hover:underline font-medium">
                     Create a new client →
@@ -263,12 +263,12 @@ function NewEntityPageInner() {
   // Form mode: client selected
   return (
     <div className="max-w-[640px]">
-      <div className="text-[11px] text-ink-faint mb-1">
+      <div className="text-xs text-ink-faint mb-1">
         <Link href="/clients" className="hover:underline">Clients</Link> ›{' '}
         <Link href={`/clients/${client.id}`} className="hover:underline">{client.name}</Link> ›
       </div>
-      <h1 className="text-[20px] font-semibold tracking-tight">New entity</h1>
-      <p className="text-[12.5px] text-ink-muted mt-1 mb-5">
+      <h1 className="text-lg font-semibold tracking-tight">New entity</h1>
+      <p className="text-sm text-ink-muted mt-1 mb-5">
         Under client <strong>{client.name}</strong>.{' '}
         <button
           onClick={() => setPicking(true)}
@@ -279,7 +279,7 @@ function NewEntityPageInner() {
       </p>
 
       {error && (
-        <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+        <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
           <AlertTriangleIcon size={13} className="mt-0.5 shrink-0" />
           {error}
         </div>
@@ -290,8 +290,8 @@ function NewEntityPageInner() {
       <div className="bg-brand-50/30 border border-brand-200 rounded-lg p-4 mb-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0">
-            <div className="text-[13px] font-semibold text-ink">Got the VAT registration letter?</div>
-            <div className="text-[11.5px] text-ink-soft mt-0.5 leading-relaxed">
+            <div className="text-sm font-semibold text-ink">Got the VAT registration letter?</div>
+            <div className="text-xs text-ink-soft mt-0.5 leading-relaxed">
               Upload the AED &ldquo;Attestation d&apos;immatriculation à la TVA&rdquo;
               and cifra will fill name, VAT, matricule, RCS, address, regime
               and frequency. You review + correct whatever is missing.
@@ -326,7 +326,7 @@ function NewEntityPageInner() {
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="e.g. Luxor LuxCo 1 SARL"
-            className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             autoFocus
           />
         </Field>
@@ -337,7 +337,7 @@ function NewEntityPageInner() {
               value={form.vat_number}
               onChange={(e) => setForm({ ...form, vat_number: e.target.value })}
               placeholder="LU12345678"
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm font-mono"
             />
           </Field>
           <Field label="Matricule" hint="AED id, 11 digits">
@@ -345,21 +345,21 @@ function NewEntityPageInner() {
               value={form.matricule}
               onChange={(e) => setForm({ ...form, matricule: e.target.value })}
               placeholder="20232456346"
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm font-mono"
             />
           </Field>
           <Field label="Legal form" hint="SARL, SCSp, SA…">
             <input
               value={form.legal_form}
               onChange={(e) => setForm({ ...form, legal_form: e.target.value })}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             />
           </Field>
           <Field label="Type" hint="Drives classification rules">
             <select
               value={form.entity_type}
               onChange={(e) => setForm({ ...form, entity_type: e.target.value })}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm bg-white"
             >
               <option value="">—</option>
               <option value="fund">Fund (UCITS / SIF / RAIF / SICAR)</option>
@@ -375,7 +375,7 @@ function NewEntityPageInner() {
               value={form.rcs_number}
               onChange={(e) => setForm({ ...form, rcs_number: e.target.value })}
               placeholder="B123456"
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] font-mono focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm font-mono"
             />
           </Field>
         </div>
@@ -394,7 +394,7 @@ function NewEntityPageInner() {
                   frequency: nextRegime === 'simplified' ? 'annual' : form.frequency,
                 });
               }}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm"
             >
               <option value="simplified">Simplified</option>
               <option value="ordinary">Ordinary</option>
@@ -408,7 +408,7 @@ function NewEntityPageInner() {
               value={form.frequency}
               onChange={(e) => setForm({ ...form, frequency: e.target.value as Frequency })}
               disabled={form.regime === 'simplified'}
-              className="w-full border border-border-strong rounded px-3 py-2 text-[13px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:bg-surface-alt disabled:cursor-not-allowed"
+              className="w-full border border-border-strong rounded px-3 py-2 text-sm disabled:bg-surface-alt disabled:cursor-not-allowed"
             >
               <option value="annual">Annual</option>
               {form.regime !== 'simplified' && (
@@ -430,7 +430,7 @@ function NewEntityPageInner() {
         </Field>
       </div>
 
-      <p className="text-[11.5px] text-ink-muted mt-3">
+      <p className="text-xs text-ink-muted mt-3">
         Bank details, tax office, approvers, and other optional fields can
         be added from the entity detail page.
       </p>
@@ -439,14 +439,14 @@ function NewEntityPageInner() {
       <div className="mt-5 flex items-center justify-between">
         <Link
           href={`/clients/${client.id}`}
-          className="h-9 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
+          className="h-9 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
         >
           <ChevronLeftIcon size={13} /> Back
         </Link>
         <button
           onClick={save}
           disabled={saving || !form.name.trim()}
-          className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+          className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
         >
           {saving ? <Loader2Icon size={13} className="animate-spin" /> : <CheckIcon size={13} />}
           Create entity
@@ -469,7 +469,7 @@ function Field({
 }: { label: string; hint?: string; required?: boolean; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+      <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
         {label} {required && <span className="text-danger-600">*</span>}
         {hint && <span className="normal-case text-ink-faint font-normal ml-1">— {hint}</span>}
       </span>
@@ -485,7 +485,7 @@ function StatusOption({
     <button
       onClick={onClick}
       className={[
-        'h-9 rounded border text-[12px] font-medium transition-colors',
+        'h-9 rounded border text-sm font-medium transition-colors',
         active
           ? 'bg-brand-50 text-brand-700 border-brand-200'
           : 'bg-surface text-ink-soft border-border hover:bg-surface-alt',

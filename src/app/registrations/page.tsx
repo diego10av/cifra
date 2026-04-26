@@ -55,14 +55,14 @@ export default function RegistrationsPage() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-[20px] font-semibold tracking-tight">VAT registrations</h1>
-          <p className="text-[12px] text-ink-muted mt-1">
+          <h1 className="text-lg font-semibold tracking-tight">VAT registrations</h1>
+          <p className="text-sm text-ink-muted mt-1">
             Service Line B — register new entities with the AED. Tracks document collection, form filing, and VAT-number issuance.
           </p>
         </div>
         <button
           onClick={() => setShowForm(s => !s)}
-          className="h-8 px-3 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer"
+          className="h-8 px-3 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer"
         >
           {showForm ? 'Cancel' : '+ New registration'}
         </button>
@@ -76,12 +76,12 @@ export default function RegistrationsPage() {
 
       {showForm && (
         <form onSubmit={create} className="bg-surface border border-border rounded-lg p-4 mb-5">
-          <h3 className="text-[13px] font-semibold mb-3">New registration</h3>
+          <h3 className="text-sm font-semibold mb-3">New registration</h3>
           <div className="grid grid-cols-3 gap-3">
             <Field label="Entity *">
               <select required value={form.entity_id}
                 onChange={e => setForm({ ...form, entity_id: e.target.value })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm">
                 <option value="">Select entity…</option>
                 {entities.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
               </select>
@@ -89,7 +89,7 @@ export default function RegistrationsPage() {
             <Field label="Regime requested *">
               <select value={form.regime_requested}
                 onChange={e => setForm({ ...form, regime_requested: e.target.value })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm">
                 <option value="simplified">Simplified (assujetti simplifié)</option>
                 <option value="ordinary">Ordinary (assujetti normal)</option>
               </select>
@@ -97,7 +97,7 @@ export default function RegistrationsPage() {
             <Field label="Frequency">
               <select value={form.frequency_requested}
                 onChange={e => setForm({ ...form, frequency_requested: e.target.value })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm">
                 <option value="annual">Annual</option>
                 <option value="quarterly">Quarterly</option>
                 <option value="monthly">Monthly</option>
@@ -106,7 +106,7 @@ export default function RegistrationsPage() {
             <Field label="Triggered by">
               <select value={form.triggered_by}
                 onChange={e => setForm({ ...form, triggered_by: e.target.value })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500">
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm">
                 <option value="incorporation">Incorporation</option>
                 <option value="activity_start">Activity start</option>
                 <option value="client_request">Client request</option>
@@ -117,12 +117,12 @@ export default function RegistrationsPage() {
               <input value={form.tax_office}
                 onChange={e => setForm({ ...form, tax_office: e.target.value })}
                 placeholder="e.g. Luxembourg 3"
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm" />
             </Field>
             <Field label="Expected turnover (EUR)">
               <input type="number" value={form.expected_turnover}
                 onChange={e => setForm({ ...form, expected_turnover: e.target.value })}
-                className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+                className="w-full border border-border-strong rounded px-2 py-1.5 text-sm" />
             </Field>
           </div>
           <Field label="Comments (Section 31 of AED form)">
@@ -130,9 +130,9 @@ export default function RegistrationsPage() {
               onChange={e => setForm({ ...form, comments_field: e.target.value })}
               rows={2}
               placeholder="For simplified: invoke Circular 723 (29 December 2006), state no output VAT, request simplified regime."
-              className="w-full border border-border-strong rounded px-2 py-1.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500" />
+              className="w-full border border-border-strong rounded px-2 py-1.5 text-sm" />
           </Field>
-          <button type="submit" className="mt-3 h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer">
+          <button type="submit" className="mt-3 h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer">
             Create registration
           </button>
         </form>
@@ -141,22 +141,22 @@ export default function RegistrationsPage() {
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         {regs.length === 0 ? (
           <div className="p-10 text-center">
-            <div className="text-[13px] font-medium text-ink mb-1">No registrations yet</div>
-            <div className="text-[11.5px] text-ink-muted max-w-sm mx-auto leading-relaxed">
+            <div className="text-sm font-medium text-ink mb-1">No registrations yet</div>
+            <div className="text-xs text-ink-muted max-w-sm mx-auto leading-relaxed">
               A VAT registration tracks an entity&rsquo;s journey from
               &ldquo;applied&rdquo; to &ldquo;VAT number issued&rdquo;.
               Start one when a client entity first needs a Luxembourg VAT number.
             </div>
           </div>
         ) : (
-          <table className="w-full text-[12px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-soft border-b border-border">
               <tr>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Entity</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Regime</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Frequency</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Status</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">VAT issued</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-2xs">Entity</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-2xs">Regime</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-2xs">Frequency</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-2xs">Status</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-2xs">VAT issued</th>
                 <th className="px-3 py-2"></th>
               </tr>
             </thead>
@@ -169,7 +169,7 @@ export default function RegistrationsPage() {
                   <td className="px-3 py-2"><RegStatusPill status={r.status} /></td>
                   <td className="px-3 py-2 font-mono text-ink-soft">{r.issued_vat_number || '—'}</td>
                   <td className="px-3 py-2 text-right">
-                    <Link href={`/registrations/${r.id}`} className="text-brand-600 hover:underline text-[11px] font-medium">Open</Link>
+                    <Link href={`/registrations/${r.id}`} className="text-brand-600 hover:underline text-xs font-medium">Open</Link>
                   </td>
                 </tr>
               ))}
@@ -184,7 +184,7 @@ export default function RegistrationsPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</span>
+      <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</span>
       {children}
     </label>
   );
@@ -192,7 +192,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 function KPI({ label, value, color }: { label: string; value: number | string; color?: string }) {
   return (
     <div className="bg-surface border border-border rounded-lg p-3">
-      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
+      <div className="text-2xs text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
       <div className={`text-2xl font-bold mt-1 tabular-nums ${color || 'text-ink'}`}>{value}</div>
     </div>
   );
@@ -205,5 +205,5 @@ function RegStatusPill({ status }: { status: string }) {
     filed: 'bg-emerald-100 text-emerald-800',
     vat_received: 'bg-teal-100 text-teal-800',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-surface-alt'}`}>{status.replace('_', ' ')}</span>;
+  return <span className={`text-2xs px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-surface-alt'}`}>{status.replace('_', ' ')}</span>;
 }

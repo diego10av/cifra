@@ -113,7 +113,7 @@ export default function OtherPage() {
         actions={
           <button
             onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white"
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white"
           >
             <PlusIcon size={12} /> New ad-hoc filing
           </button>
@@ -130,7 +130,7 @@ export default function OtherPage() {
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
         >
           <option value="">All types</option>
           {ADHOC_TYPES.map(t => <option key={t} value={t}>{humanTaxType(t)}</option>)}
@@ -138,12 +138,12 @@ export default function OtherPage() {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
         >
           <option value="">All statuses</option>
           {FILING_STATUSES.map(s => <option key={s} value={s}>{filingStatusLabel(s)}</option>)}
         </select>
-        <div className="text-[11.5px] text-ink-muted ml-auto">
+        <div className="text-xs text-ink-muted ml-auto">
           {filtered.length} ad-hoc filing{filtered.length === 1 ? '' : 's'}
         </div>
       </div>
@@ -157,7 +157,7 @@ export default function OtherPage() {
         />
       ) : (
         <div className="rounded-md border border-border bg-surface overflow-hidden">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr className="text-left">
                 <th className="px-3 py-2 font-medium">Entity</th>
@@ -178,7 +178,7 @@ export default function OtherPage() {
                       {r.entity_name}
                     </Link>
                     {r.group_name && (
-                      <div className="text-[11px] text-ink-muted">{r.group_name}</div>
+                      <div className="text-xs text-ink-muted">{r.group_name}</div>
                     )}
                   </td>
                   <td className="px-3 py-2 text-ink-soft">{humanTaxType(r.tax_type)}</td>
@@ -187,7 +187,7 @@ export default function OtherPage() {
                   <td className="px-3 py-2"><FilingStatusBadge status={r.status} /></td>
                   <td className="px-3 py-2 text-ink-soft">{r.assigned_to ?? '—'}</td>
                   <td className="px-3 py-2 text-ink-soft max-w-[320px]">
-                    <span className="line-clamp-2 text-[11.5px]" title={r.comments_preview ?? ''}>
+                    <span className="line-clamp-2 text-xs" title={r.comments_preview ?? ''}>
                       {r.comments_preview ?? '—'}
                     </span>
                   </td>

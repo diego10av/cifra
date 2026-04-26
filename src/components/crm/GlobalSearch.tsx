@@ -129,27 +129,27 @@ export function GlobalSearch() {
             onChange={e => setQ(e.target.value)}
             onKeyDown={onInputKeyDown}
             placeholder="Search companies, contacts, opportunities, matters, invoices..."
-            className="flex-1 text-[14px] focus:outline-none"
+            className="flex-1 text-base"
           />
-          <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-surface-alt border border-border text-ink-muted">Esc</kbd>
+          <kbd className="text-2xs px-1.5 py-0.5 rounded bg-surface-alt border border-border text-ink-muted">Esc</kbd>
         </div>
 
         <div className="max-h-[60vh] overflow-y-auto">
           {loading && q.length >= 2 && (
-            <div className="px-3 py-4 text-[12px] text-ink-muted italic">Searching…</div>
+            <div className="px-3 py-4 text-sm text-ink-muted italic">Searching…</div>
           )}
           {!loading && q.length >= 2 && flat.length === 0 && (
-            <div className="px-3 py-4 text-[12px] text-ink-muted italic">No matches for “{q}”.</div>
+            <div className="px-3 py-4 text-sm text-ink-muted italic">No matches for “{q}”.</div>
           )}
           {q.length < 2 && (
-            <div className="px-3 py-4 text-[12px] text-ink-muted italic">Type at least 2 characters to search.</div>
+            <div className="px-3 py-4 text-sm text-ink-muted italic">Type at least 2 characters to search.</div>
           )}
           {flat.length > 0 && GROUPS.map(group => {
             const hits = results[group.key] ?? [];
             if (hits.length === 0) return null;
             return (
               <div key={group.key}>
-                <div className="px-3 py-1.5 text-[10px] uppercase tracking-wide font-semibold text-ink-muted bg-surface-alt/50">
+                <div className="px-3 py-1.5 text-2xs uppercase tracking-wide font-semibold text-ink-muted bg-surface-alt/50">
                   {group.icon} {group.title}
                 </div>
                 {hits.map(hit => {
@@ -163,8 +163,8 @@ export function GlobalSearch() {
                       className={`w-full text-left px-3 py-2 flex items-start gap-2 ${isActive ? 'bg-brand-50' : 'hover:bg-surface-alt/50'}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="text-[13px] font-medium truncate">{hit.label}</div>
-                        <div className="text-[10.5px] text-ink-muted truncate">
+                        <div className="text-sm font-medium truncate">{hit.label}</div>
+                        <div className="text-2xs text-ink-muted truncate">
                           {renderSubline(group.key, hit)}
                         </div>
                       </div>
@@ -176,7 +176,7 @@ export function GlobalSearch() {
           })}
         </div>
 
-        <div className="px-3 py-2 border-t border-border flex items-center gap-3 text-[10.5px] text-ink-muted">
+        <div className="px-3 py-2 border-t border-border flex items-center gap-3 text-2xs text-ink-muted">
           <span><kbd className="px-1 py-0.5 rounded bg-surface-alt border border-border">↑↓</kbd> navigate</span>
           <span><kbd className="px-1 py-0.5 rounded bg-surface-alt border border-border">↵</kbd> open</span>
           <span><kbd className="px-1 py-0.5 rounded bg-surface-alt border border-border">Esc</kbd> close</span>

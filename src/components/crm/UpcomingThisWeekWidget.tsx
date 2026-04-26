@@ -61,7 +61,7 @@ export function UpcomingThisWeekWidget() {
 
   if (error) return <CrmErrorBox message={error} onRetry={refetch} />;
   if (!data || isLoading) {
-    return <div className="text-[12px] text-ink-muted italic px-3 py-6">Computing upcoming events…</div>;
+    return <div className="text-sm text-ink-muted italic px-3 py-6">Computing upcoming events…</div>;
   }
 
   const events = data.events;
@@ -70,10 +70,10 @@ export function UpcomingThisWeekWidget() {
       <div className="border border-border rounded-lg bg-white p-4">
         <div className="flex items-center gap-2 mb-2">
           <CalendarDaysIcon size={14} className="text-brand-600" />
-          <h2 className="text-[13px] uppercase tracking-wide font-semibold text-ink-muted">Upcoming · next 7 days</h2>
+          <h2 className="text-sm uppercase tracking-wide font-semibold text-ink-muted">Upcoming · next 7 days</h2>
         </div>
-        <p className="text-[13px] text-ink-soft">Nothing scheduled. Good week to log time and chase invoices.</p>
-        <p className="text-[11.5px] text-ink-muted mt-1 italic">
+        <p className="text-sm text-ink-soft">Nothing scheduled. Good week to log time and chase invoices.</p>
+        <p className="text-xs text-ink-muted mt-1 italic">
           Tip: add <code className="font-mono">next_follow_up</code> on contacts, <code className="font-mono">estimated_close_date</code> on opps, or <code className="font-mono">closing_date</code> on matters to populate this view.
         </p>
       </div>
@@ -92,18 +92,18 @@ export function UpcomingThisWeekWidget() {
       <div className="px-4 py-2.5 flex items-center justify-between border-b border-border">
         <div className="flex items-center gap-2">
           <CalendarDaysIcon size={14} className="text-brand-600" />
-          <h2 className="text-[13px] uppercase tracking-wide font-semibold text-ink-muted">
+          <h2 className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
             Upcoming · next 7 days
           </h2>
         </div>
-        <Link href="/crm/calendar" className="text-[11px] text-brand-700 hover:underline inline-flex items-center gap-0.5">
+        <Link href="/crm/calendar" className="text-xs text-brand-700 hover:underline inline-flex items-center gap-0.5">
           Full calendar <ChevronRightIcon size={11} />
         </Link>
       </div>
       <ul className="divide-y divide-border">
         {Array.from(groups.entries()).map(([date, dayEvents]) => (
           <li key={date} className="p-3">
-            <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">
+            <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1.5">
               {formatDateHeader(date)}
             </div>
             <ul className="space-y-1">
@@ -111,11 +111,11 @@ export function UpcomingThisWeekWidget() {
                 <li key={e.id}>
                   <Link
                     href={e.link}
-                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-alt/60 text-[12.5px]"
+                    className="flex items-center gap-2 px-2 py-1 rounded hover:bg-surface-alt/60 text-sm"
                   >
-                    <span className="shrink-0 text-[14px] leading-none w-5" aria-label={TYPE_LABEL[e.type]}>{TYPE_ICON[e.type]}</span>
+                    <span className="shrink-0 text-base leading-none w-5" aria-label={TYPE_LABEL[e.type]}>{TYPE_ICON[e.type]}</span>
                     <span className="flex-1 min-w-0 truncate text-ink">{e.title}</span>
-                    {e.detail && <span className="shrink-0 text-[11px] text-ink-muted truncate max-w-[200px]">{e.detail}</span>}
+                    {e.detail && <span className="shrink-0 text-xs text-ink-muted truncate max-w-[200px]">{e.detail}</span>}
                     <ChevronRightIcon size={12} className="shrink-0 text-ink-muted" />
                   </Link>
                 </li>

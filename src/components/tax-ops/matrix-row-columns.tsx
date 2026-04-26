@@ -258,7 +258,7 @@ function FormInlineCell({
     <span className="relative inline-block">
       <span
         className={[
-          'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] pointer-events-none',
+          'inline-flex items-center px-1.5 py-0.5 rounded text-xs pointer-events-none',
           tone,
         ].join(' ')}
         title={
@@ -389,7 +389,7 @@ function CadenceInlineCell({
   return (
     <span className="relative inline-block">
       <span
-        className="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-surface-alt text-ink-soft pointer-events-none"
+        className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-surface-alt text-ink-soft pointer-events-none"
         title={disabled ? 'No obligation on this entity' : 'Click to change cadence'}
       >
         {label}
@@ -484,7 +484,7 @@ function ContactsInlineEditor({
           type="button"
           onClick={() => { setDraft(value); setOpen(true); }}
           disabled={disabled}
-          className="text-[11px] text-ink-muted hover:text-ink disabled:opacity-50 disabled:cursor-not-allowed italic"
+          className="text-xs text-ink-muted hover:text-ink disabled:opacity-50 disabled:cursor-not-allowed italic"
           title={disabled ? 'Set a status first (creates the filing)' : 'Click to add contacts'}
         >
           + Add contact
@@ -499,13 +499,13 @@ function ContactsInlineEditor({
           {value.slice(0, 2).map((c, i) => (
             <span
               key={i}
-              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-brand-50 text-brand-700 truncate max-w-[100px]"
+              className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-brand-50 text-brand-700 truncate max-w-[100px]"
             >
               {c.name || '—'}
             </span>
           ))}
           {value.length > 2 && (
-            <span className="text-[10.5px] text-ink-muted">+{value.length - 2}</span>
+            <span className="text-2xs text-ink-muted">+{value.length - 2}</span>
           )}
         </button>
       )}
@@ -517,7 +517,7 @@ function ContactsInlineEditor({
             if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
           }}
         >
-          <div className="text-[11px] text-ink-muted mb-1.5">Contacts for this row</div>
+          <div className="text-xs text-ink-muted mb-1.5">Contacts for this row</div>
           <CspContactsEditor
             value={draft}
             onChange={setDraft}
@@ -527,7 +527,7 @@ function ContactsInlineEditor({
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="px-2 py-0.5 text-[11px] rounded border border-border hover:bg-surface-alt"
+              className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
             >
               Cancel
             </button>
@@ -535,7 +535,7 @@ function ContactsInlineEditor({
               type="button"
               onClick={save}
               disabled={busy}
-              className="px-2 py-0.5 text-[11px] rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+              className="px-2 py-0.5 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
             >
               {busy ? 'Saving…' : 'Save'}
             </button>
@@ -632,11 +632,11 @@ export function familyColumn(
       // Display mode: colored chip — Diego wants visual differentiation
       // between families at a glance. Click-to-edit when options passed.
       if (!editable) {
-        if (!e.group_name) return <span className="text-ink-faint italic text-[11px]">—</span>;
+        if (!e.group_name) return <span className="text-ink-faint italic text-xs">—</span>;
         return (
           <span
             className={[
-              'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium truncate max-w-[150px]',
+              'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium truncate max-w-[150px]',
               familyChipClasses(e.group_name),
             ].join(' ')}
             title={e.group_name}
@@ -731,7 +731,7 @@ function FamilyInlineSelect({
       onChange={(v) => void handleChange(v)}
       ariaLabel="Change family"
       triggerClassName={[
-        'border-transparent text-[11px] font-medium px-1.5 py-0.5 min-w-[120px] max-w-[170px]',
+        'border-transparent text-xs font-medium px-1.5 py-0.5 min-w-[120px] max-w-[170px]',
         chip,
       ].join(' ')}
     />

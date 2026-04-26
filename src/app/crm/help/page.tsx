@@ -25,7 +25,7 @@ import { PageHeader } from '@/components/ui/PageHeader';
 export default function HelpPage() {
   return (
     <div className="max-w-[820px] mx-auto">
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm" className="hover:underline">← CRM home</Link>
       </div>
       <PageHeader
@@ -34,8 +34,8 @@ export default function HelpPage() {
       />
 
       {/* Table of contents */}
-      <nav className="border border-border rounded-md bg-surface-alt/30 p-3 mb-6 text-[12.5px]">
-        <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-2">Contents</div>
+      <nav className="border border-border rounded-md bg-surface-alt/30 p-3 mb-6 text-sm">
+        <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-2">Contents</div>
         <ol className="space-y-1 list-decimal list-inside text-ink-soft">
           <li><a href="#what-it-is" className="hover:underline">What this CRM is</a></li>
           <li><a href="#entities" className="hover:underline">The 7 entities + how they chain</a></li>
@@ -64,7 +64,7 @@ export default function HelpPage() {
       {/* ─── 2. The 7 entities ─── */}
       <Section id="entities" title="2 · The 7 entities + how they chain">
         <p>Every record lives in one of these categories. The chain matters — each arrow is a real database link.</p>
-        <div className="border border-border rounded-md p-3 bg-white font-mono text-[11.5px] leading-loose overflow-x-auto">
+        <div className="border border-border rounded-md p-3 bg-white font-mono text-xs leading-loose overflow-x-auto">
           Company &nbsp;→&nbsp; Contact &nbsp;→&nbsp; Opportunity &nbsp;→&nbsp; Matter &nbsp;→&nbsp; Activity / Task &nbsp;→&nbsp; Invoice &nbsp;→&nbsp; Payment
         </div>
         <EntityRow icon={BuildingIcon} title="Company" blurb="A client account (or prospect). Holds classification (Key Account / Standard / Occasional), billing address, VAT, retainer balance." />
@@ -80,7 +80,7 @@ export default function HelpPage() {
       <Section id="daily" title="3 · Daily workflow — 5 minutes">
         <ol className="list-decimal list-inside space-y-2">
           <li>Open <Link href="/crm" className="text-brand-700 hover:underline">/crm</Link>. Scan the home widgets in order:
-            <ul className="list-disc list-inside ml-5 mt-1 text-ink-soft text-[12px]">
+            <ul className="list-disc list-inside ml-5 mt-1 text-ink-soft text-sm">
               <li><strong>Forecast</strong> — weighted pipeline closing this quarter.</li>
               <li><strong>Unbilled work</strong> — top matters with WIP waiting to be invoiced.</li>
               <li><strong>Upcoming · next 7 days</strong> — everything date-driven: follow-ups, deal closes, matter closures, birthdays, invoices due.</li>
@@ -162,7 +162,7 @@ export default function HelpPage() {
           a="On the opportunity detail page, once stage=won, a green CTA appears: 'Deal won — ready to open the matter?'. Click it and the matter wizard opens with client, contact, practice areas, and title pre-filled." />
       </Section>
 
-      <div className="mt-8 p-4 border border-border rounded-md bg-surface-alt/40 text-[12.5px] text-ink-soft">
+      <div className="mt-8 p-4 border border-border rounded-md bg-surface-alt/40 text-sm text-ink-soft">
         <div className="inline-flex items-center gap-2 font-semibold text-ink mb-1">
           <HelpCircleIcon size={14} />
           Still stuck?
@@ -176,11 +176,11 @@ export default function HelpPage() {
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section id={id} className="mb-7 scroll-mt-16">
-      <h2 className="text-[15px] font-semibold text-ink mb-3 flex items-center gap-2 pb-1 border-b border-border">
+      <h2 className="text-base font-semibold text-ink mb-3 flex items-center gap-2 pb-1 border-b border-border">
         {title}
-        <a href={`#${id}`} className="text-[10px] text-ink-muted hover:text-ink ml-1 no-underline" aria-label="Permalink">#</a>
+        <a href={`#${id}`} className="text-2xs text-ink-muted hover:text-ink ml-1 no-underline" aria-label="Permalink">#</a>
       </h2>
-      <div className="text-[13px] text-ink-soft space-y-2 leading-relaxed">{children}</div>
+      <div className="text-sm text-ink-soft space-y-2 leading-relaxed">{children}</div>
     </section>
   );
 }
@@ -191,7 +191,7 @@ function EntityRow({ icon: Icon, title, blurb }: { icon: typeof BookOpenIcon; ti
       <div className="shrink-0 mt-0.5 w-7 h-7 rounded-md bg-brand-50 text-brand-700 inline-flex items-center justify-center">
         <Icon size={13} />
       </div>
-      <div className="text-[12.5px]">
+      <div className="text-sm">
         <span className="font-semibold text-ink">{title}</span>
         <span className="text-ink-soft"> — {blurb}</span>
       </div>
@@ -201,7 +201,7 @@ function EntityRow({ icon: Icon, title, blurb }: { icon: typeof BookOpenIcon; ti
 
 function Practice({ title, body }: { title: string; body: string }) {
   return (
-    <div className="flex gap-3 py-1.5 text-[12.5px]">
+    <div className="flex gap-3 py-1.5 text-sm">
       <ArrowRightIcon size={14} className="shrink-0 mt-1 text-brand-600" />
       <div>
         <div className="font-semibold text-ink">{title}</div>
@@ -213,7 +213,7 @@ function Practice({ title, body }: { title: string; body: string }) {
 
 function Power({ icon: Icon, title, body }: { icon: typeof BookOpenIcon; title: string; body: React.ReactNode }) {
   return (
-    <div className="flex gap-3 py-1.5 text-[12.5px]">
+    <div className="flex gap-3 py-1.5 text-sm">
       <div className="shrink-0 mt-0.5 w-6 h-6 rounded-md bg-surface-alt text-ink-soft inline-flex items-center justify-center">
         <Icon size={12} />
       </div>
@@ -228,8 +228,8 @@ function Power({ icon: Icon, title, body }: { icon: typeof BookOpenIcon; title: 
 function FAQ({ q, a }: { q: string; a: React.ReactNode }) {
   return (
     <details className="border border-border rounded-md p-2.5 bg-white">
-      <summary className="cursor-pointer text-[12.5px] font-semibold text-ink">{q}</summary>
-      <div className="text-[12px] text-ink-soft mt-2 pl-0.5">{a}</div>
+      <summary className="cursor-pointer text-sm font-semibold text-ink">{q}</summary>
+      <div className="text-sm text-ink-soft mt-2 pl-0.5">{a}</div>
     </details>
   );
 }

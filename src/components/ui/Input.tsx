@@ -7,7 +7,7 @@ const BASE =
   'placeholder:text-ink-faint ' +
   'transition-colors duration-150 ' +
   'hover:border-border-strong ' +
-  'focus:border-brand-500 focus:outline-none focus-visible:shadow-focus ' +
+  ' focus-visible:shadow-focus ' +
   'disabled:opacity-50 disabled:cursor-not-allowed';
 
 export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(

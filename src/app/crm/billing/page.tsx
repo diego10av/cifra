@@ -152,13 +152,13 @@ export default function BillingPage() {
         <div className="inline-flex border border-border rounded-md overflow-hidden">
           <button
             onClick={() => setView('list')}
-            className={`px-2.5 py-1.5 text-[11.5px] font-medium ${view === 'list' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+            className={`px-2.5 py-1.5 text-xs font-medium ${view === 'list' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
           >
             📋 List
           </button>
           <button
             onClick={() => setView('dashboard')}
-            className={`px-2.5 py-1.5 text-[11.5px] font-medium border-l border-border ${view === 'dashboard' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+            className={`px-2.5 py-1.5 text-xs font-medium border-l border-border ${view === 'dashboard' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
           >
             📊 Dashboard
           </button>
@@ -166,15 +166,15 @@ export default function BillingPage() {
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search invoice number..."
-            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md" />
         </div>
         <select value={year} onChange={e => setYear(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
           <option value="">All years</option>
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
         <select value={status} onChange={e => setStatus(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
           <option value="">All statuses</option>
           {INVOICE_STATUSES.map(s => <option key={s} value={s}>{LABELS_INVOICE_STATUS[s]}</option>)}
         </select>
@@ -189,7 +189,7 @@ export default function BillingPage() {
         <EmptyState illustration="stack" title="No invoices for this filter" description="Adjust filters or run the Notion import to populate." />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="text-left px-3 py-2 font-medium">Number</th>
@@ -212,7 +212,7 @@ export default function BillingPage() {
                   <td className="px-3 py-2">
                     {r.client_id ? <Link href={`/crm/companies/${r.client_id}`} className="text-brand-700 hover:underline">{r.client_name}</Link> : '—'}
                   </td>
-                  <td className="px-3 py-2 font-mono text-[11.5px] text-ink-muted">
+                  <td className="px-3 py-2 font-mono text-xs text-ink-muted">
                     {r.matter_id ? <Link href={`/crm/matters/${r.matter_id}`} className="hover:underline">{r.matter_reference}</Link> : '—'}
                   </td>
                   <td className="px-3 py-2 tabular-nums">{formatDate(r.issue_date)}</td>
@@ -241,8 +241,8 @@ function Kpi({ label, value, tone }: { label: string; value: string; tone?: 'suc
   const toneClass = tone === 'success' ? 'text-emerald-700' : tone === 'warning' ? 'text-amber-700' : 'text-ink';
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
-      <div className={`text-[16px] font-semibold tabular-nums ${toneClass}`}>{value}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
+      <div className={`text-base font-semibold tabular-nums ${toneClass}`}>{value}</div>
     </div>
   );
 }

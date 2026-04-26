@@ -175,7 +175,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/billing" className="hover:underline">← All invoices</Link>
       </div>
       <PageHeader
@@ -187,7 +187,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
               href={`/api/crm/billing/${id}/pdf?download=1`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-sm font-medium text-ink-soft hover:bg-surface-alt"
               title="Download a branded PDF of this invoice"
             >
               <DownloadIcon size={13} />
@@ -202,7 +202,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                 // mailto: because most mail clients ignore the spec.
                 window.open(`mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`, '_blank');
               }}
-              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt"
+              className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-sm font-medium text-ink-soft hover:bg-surface-alt"
               title="Open a draft email in your mail client (remember to attach the PDF)"
             >
               <MailIcon size={13} />
@@ -271,7 +271,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       />
 
       {i.status === 'credit_note' && (i as Record<string, string | null>).original_invoice_id && (
-        <div className="mb-4 p-2.5 bg-amber-50 border border-amber-300 rounded text-[12px] text-amber-900">
+        <div className="mb-4 p-2.5 bg-amber-50 border border-amber-300 rounded text-sm text-amber-900">
           ↩️ This is a <strong>credit note</strong> against invoice{' '}
           <Link href={`/crm/billing/${(i as Record<string, string>).original_invoice_id}`} className="font-mono text-brand-700 hover:underline">
             {String((i as Record<string, string>).original_invoice_number ?? (i as Record<string, string>).original_invoice_id)}
@@ -281,7 +281,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       )}
 
       {!!(i as Record<string, string | null>).approved_by && (
-        <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-300 rounded text-[12px] text-emerald-900 flex items-center gap-2">
+        <div className="mb-4 p-2.5 bg-emerald-50 border border-emerald-300 rounded text-sm text-emerald-900 flex items-center gap-2">
           <CheckCircle2Icon size={14} className="text-emerald-700" />
           Approved by <strong>{String((i as Record<string, string>).approved_by)}</strong>{' '}
           on {formatDate(String((i as Record<string, string>).approved_at ?? ''))}. Safe to issue.
@@ -289,7 +289,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       )}
 
       {i.currency && i.currency !== 'EUR' && (
-        <div className="mb-4 p-2.5 bg-brand-50 border border-brand-200 rounded text-[12px] text-brand-900">
+        <div className="mb-4 p-2.5 bg-brand-50 border border-brand-200 rounded text-sm text-brand-900">
           💱 Foreign-currency invoice in <strong>{String(i.currency)}</strong>.
           {(i as Record<string, number | null>).fx_rate_at_issue
             ? <> ECB rate on issue date: <span className="font-mono">1 EUR = {Number((i as Record<string, number>).fx_rate_at_issue).toFixed(4)} {String(i.currency)}</span>. Dashboards convert to EUR using this snapshot.</>
@@ -299,7 +299,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       )}
 
       {!!(i as Record<string, string | null>).last_reminder_kind && (
-        <div className="mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded text-[11.5px] text-amber-900">
+        <div className="mb-4 p-2.5 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900">
           ⏰ Last reminder: <strong>{String((i as Record<string, string>).last_reminder_kind)}</strong>
           {(i as Record<string, string | null>).last_reminder_sent_at && (
             <> on {formatDate(String((i as Record<string, string>).last_reminder_sent_at))}</>
@@ -326,16 +326,16 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {i.notes && (
-        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(i.notes)}</div>
+        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-sm whitespace-pre-wrap">{String(i.notes)}</div>
       )}
 
       <div className="mb-5">
-        <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted mb-2">Payments ({data.payments.length})</h3>
+        <h3 className="text-sm uppercase tracking-wide font-semibold text-ink-muted mb-2">Payments ({data.payments.length})</h3>
         {data.payments.length === 0 ? (
-          <div className="text-[12px] text-ink-muted italic px-3 py-2">No payments recorded yet.</div>
+          <div className="text-sm text-ink-muted italic px-3 py-2">No payments recorded yet.</div>
         ) : (
           <div className="border border-border rounded-md overflow-hidden bg-white">
-            <table className="w-full text-[12px]">
+            <table className="w-full text-sm">
               <thead className="bg-surface-alt text-ink-muted">
                 <tr>
                   <th className="text-left px-3 py-1.5 font-medium">Date</th>
@@ -353,7 +353,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
                     <td className="px-3 py-1.5 text-ink-muted">{p.payment_method ?? '—'}</td>
                     <td className="px-3 py-1.5 text-ink-muted font-mono">{p.payment_reference ?? '—'}</td>
                     <td className="px-3 py-1.5 text-right">
-                      <button onClick={() => handleDeletePayment(p.id)} className="text-danger-600 hover:text-danger-800 text-[11px]">
+                      <button onClick={() => handleDeletePayment(p.id)} className="text-danger-600 hover:text-danger-800 text-xs">
                         Remove
                       </button>
                     </td>
@@ -374,8 +374,8 @@ function Kpi({ label, value, tone }: { label: string; value: string; tone?: 'suc
   const toneClass = tone === 'success' ? 'text-emerald-700' : tone === 'warning' ? 'text-amber-700' : 'text-ink';
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
-      <div className={`text-[16px] font-semibold tabular-nums ${toneClass}`}>{value}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
+      <div className={`text-base font-semibold tabular-nums ${toneClass}`}>{value}</div>
     </div>
   );
 }
@@ -383,8 +383,8 @@ function Kpi({ label, value, tone }: { label: string; value: string; tone?: 'suc
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
-      <div className="text-[13px]">{children}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
+      <div className="text-sm">{children}</div>
     </div>
   );
 }
@@ -409,31 +409,31 @@ function PaymentModal({
       size="md"
       footer={
         <div className="flex items-center gap-2 justify-end">
-          <button onClick={onClose} className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt">Cancel</button>
+          <button onClick={onClose} className="h-8 px-3 rounded-md border border-border text-sm text-ink-soft hover:bg-surface-alt">Cancel</button>
           <Button variant="primary" size="sm" onClick={() => onSave(amount, date, method, ref)}>Record</Button>
         </div>
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Amount (€) *</label>
-          <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="5000" className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md focus:outline-none focus:border-brand-500 tabular-nums" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Amount (€) *</label>
+          <input type="number" value={amount} onChange={e => setAmount(e.target.value)} placeholder="5000" className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums" />
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Date *</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Date *</label>
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full h-9 px-2.5 text-sm border border-border rounded-md" />
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Method</label>
-          <select value={method} onChange={e => setMethod(e.target.value)} className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md bg-white">
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Method</label>
+          <select value={method} onChange={e => setMethod(e.target.value)} className="w-full h-9 px-2.5 text-sm border border-border rounded-md bg-white">
             <option value="bank_transfer">Bank transfer</option>
             <option value="direct_debit">Direct debit</option>
             <option value="other">Other</option>
           </select>
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Reference</label>
-          <input value={ref} onChange={e => setRef(e.target.value)} placeholder="Bank statement ref" className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Reference</label>
+          <input value={ref} onChange={e => setRef(e.target.value)} placeholder="Bank statement ref" className="w-full h-9 px-2.5 text-sm border border-border rounded-md" />
         </div>
       </div>
     </Modal>
@@ -466,18 +466,18 @@ function CreditNoteModal({
       size="md"
       footer={
         <div className="flex items-center gap-2 justify-end">
-          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
+          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-sm text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
           <Button variant="primary" size="sm" onClick={submit} loading={saving}>Create credit note</Button>
         </div>
       }
     >
       <div className="space-y-3">
-        <p className="text-[12px] text-ink-muted">
+        <p className="text-sm text-ink-muted">
           Generates a new invoice row with <strong>negative</strong> amounts, linked to {invoiceNumber}. The original stays
           as-is (its status doesn&apos;t change) — the credit note appears on dashboards and cancels the figure on aggregate.
         </p>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
             Amount to credit (€) — blank = full ({formatEur(maxAmount)})
           </label>
           <input
@@ -487,17 +487,17 @@ function CreditNoteModal({
             onChange={e => setAmount(e.target.value)}
             placeholder={formatEur(maxAmount)}
             max={maxAmount}
-            className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums"
+            className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums"
           />
         </div>
         <div>
-          <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Reason</label>
+          <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Reason</label>
           <textarea
             value={reason}
             onChange={e => setReason(e.target.value)}
             rows={3}
             placeholder="E.g. Billing error on line 3 · client goodwill gesture · scope descoping"
-            className="w-full px-2.5 py-2 text-[13px] border border-border rounded-md resize-y"
+            className="w-full px-2.5 py-2 text-sm border border-border rounded-md resize-y"
           />
         </div>
       </div>

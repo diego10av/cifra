@@ -99,7 +99,7 @@ export function EntityFilingsMatrix({
 
   if (taxTypes.length === 0) {
     return (
-      <div className="text-[12px] text-ink-muted italic">
+      <div className="text-sm text-ink-muted italic">
         No filings for this entity yet.
       </div>
     );
@@ -107,7 +107,7 @@ export function EntityFilingsMatrix({
 
   return (
     <div className="rounded-md border border-border overflow-auto">
-      <table className="text-[11.5px] border-collapse">
+      <table className="text-xs border-collapse">
         <thead className="bg-surface-alt sticky top-0 z-10">
           <tr>
             <th
@@ -237,7 +237,7 @@ function PeriodCell({ label, filing }: { label: string; filing: EntityFiling | n
         className="px-1 py-1 align-middle text-center text-ink-faint border-l border-border/30"
         title={label}
       >
-        <span className="text-[10px]">{shortPeriodLabel(label)}</span>
+        <span className="text-2xs">{shortPeriodLabel(label)}</span>
       </td>
     );
   }

@@ -142,13 +142,13 @@ export function EntityActionsMenu({
           className="absolute left-0 top-full mt-1 z-30 min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="text-[11px] font-medium text-ink">Entity actions</div>
-          <div className="text-[10.5px] text-ink-muted -mt-1.5">{entityName}</div>
+          <div className="text-xs font-medium text-ink">Entity actions</div>
+          <div className="text-2xs text-ink-muted -mt-1.5">{entityName}</div>
 
           <div className="pt-1.5 border-t border-border">
-            <div className="text-[10.5px] text-ink-muted mb-0.5">Status</div>
+            <div className="text-2xs text-ink-muted mb-0.5">Status</div>
             <div className="flex flex-col gap-0.5">
-              <label className="inline-flex items-center gap-1.5 text-[11.5px] cursor-pointer">
+              <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
                 <input
                   type="radio"
                   name={`entity-status-${entityId}`}
@@ -157,7 +157,7 @@ export function EntityActionsMenu({
                 />
                 <span>Active</span>
               </label>
-              <label className="inline-flex items-center gap-1.5 text-[11.5px] cursor-pointer">
+              <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
                 <input
                   type="radio"
                   name={`entity-status-${entityId}`}
@@ -166,7 +166,7 @@ export function EntityActionsMenu({
                 />
                 <span>Liquidating <span className="text-ink-muted">(in progress)</span></span>
               </label>
-              <label className="inline-flex items-center gap-1.5 text-[11.5px] cursor-pointer">
+              <label className="inline-flex items-center gap-1.5 text-xs cursor-pointer">
                 <input
                   type="radio"
                   name={`entity-status-${entityId}`}
@@ -182,12 +182,12 @@ export function EntityActionsMenu({
                   type="date"
                   value={draftDate}
                   onChange={(e) => setDraftDate(e.target.value)}
-                  className="px-1.5 py-0.5 text-[11.5px] border border-border rounded bg-surface tabular-nums"
+                  className="px-1.5 py-0.5 text-xs border border-border rounded bg-surface tabular-nums"
                 />
                 <button
                   type="button"
                   onClick={() => setDraftDate(new Date().toISOString().slice(0, 10))}
-                  className="text-[10.5px] text-brand-700 hover:underline"
+                  className="text-2xs text-brand-700 hover:underline"
                 >
                   today
                 </button>
@@ -200,7 +200,7 @@ export function EntityActionsMenu({
               type="button"
               onClick={() => setOpen(false)}
               disabled={busy}
-              className="px-2 py-0.5 text-[11px] rounded border border-border hover:bg-surface-alt"
+              className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
             >
               Cancel
             </button>
@@ -208,13 +208,13 @@ export function EntityActionsMenu({
               type="button"
               onClick={() => void saveStatus()}
               disabled={busy}
-              className="px-2 py-0.5 text-[11px] rounded bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50"
+              className="px-2 py-0.5 text-xs rounded bg-brand-600 text-white hover:bg-brand-700 disabled:opacity-50"
             >
               {busy ? 'Saving…' : 'Save'}
             </button>
           </div>
 
-          <div className="text-[10px] text-ink-faint italic pt-1 border-t border-border">
+          <div className="text-2xs text-ink-faint italic pt-1 border-t border-border">
             Future returns auto-hide once the date passes year-end.
             Current-year matrix keeps the entity visible so wrap-up
             filings stay actionable.

@@ -71,7 +71,7 @@ export function BulkActionBar({
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white rounded-lg shadow-xl px-3 py-2 flex items-center gap-2 text-[12.5px]">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white rounded-lg shadow-xl px-3 py-2 flex items-center gap-2 text-sm">
         <span className="font-semibold">
           {selectedIds.length} selected
         </span>
@@ -79,21 +79,21 @@ export function BulkActionBar({
         <button
           onClick={handleDelete}
           disabled={busy}
-          className="h-7 px-2.5 rounded-md bg-danger-500/90 hover:bg-danger-600 disabled:opacity-40 inline-flex items-center gap-1.5 text-[11.5px] font-medium"
+          className="h-7 px-2.5 rounded-md bg-danger-500/90 hover:bg-danger-600 disabled:opacity-40 inline-flex items-center gap-1.5 text-xs font-medium"
         >
           <Trash2Icon size={12} /> Delete
         </button>
         <button
           onClick={() => { setTagOp('add_tag'); setTagPromptOpen(true); }}
           disabled={busy}
-          className="h-7 px-2.5 rounded-md bg-white/15 hover:bg-white/25 disabled:opacity-40 inline-flex items-center gap-1.5 text-[11.5px] font-medium"
+          className="h-7 px-2.5 rounded-md bg-white/15 hover:bg-white/25 disabled:opacity-40 inline-flex items-center gap-1.5 text-xs font-medium"
         >
           <TagIcon size={12} /> Add tag
         </button>
         <button
           onClick={() => { setTagOp('remove_tag'); setTagPromptOpen(true); }}
           disabled={busy}
-          className="h-7 px-2.5 rounded-md bg-white/15 hover:bg-white/25 disabled:opacity-40 text-[11.5px] font-medium"
+          className="h-7 px-2.5 rounded-md bg-white/15 hover:bg-white/25 disabled:opacity-40 text-xs font-medium"
         >
           Remove tag
         </button>
@@ -110,7 +110,7 @@ export function BulkActionBar({
       {tagPromptOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setTagPromptOpen(false)}>
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-[14px] font-semibold mb-2">
+            <h3 className="text-base font-semibold mb-2">
               {tagOp === 'add_tag' ? 'Add tag' : 'Remove tag'} — {selectedIds.length} record{selectedIds.length === 1 ? '' : 's'}
             </h3>
             <input
@@ -119,11 +119,11 @@ export function BulkActionBar({
               onChange={e => setTagDraft(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleTagSubmit(); }}
               placeholder="Tag name"
-              className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md focus:outline-none focus:border-brand-500"
+              className="w-full h-9 px-2.5 text-sm border border-border rounded-md"
             />
             <div className="mt-3 flex items-center gap-2 justify-end">
-              <button onClick={() => setTagPromptOpen(false)} className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt">Cancel</button>
-              <button onClick={handleTagSubmit} disabled={busy || !tagDraft.trim()} className="h-8 px-3 rounded-md bg-brand-500 text-white text-[12.5px] font-medium hover:bg-brand-600 disabled:opacity-40">
+              <button onClick={() => setTagPromptOpen(false)} className="h-8 px-3 rounded-md border border-border text-sm text-ink-soft hover:bg-surface-alt">Cancel</button>
+              <button onClick={handleTagSubmit} disabled={busy || !tagDraft.trim()} className="h-8 px-3 rounded-md bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 disabled:opacity-40">
                 {busy ? 'Applying…' : tagOp === 'add_tag' ? 'Add' : 'Remove'}
               </button>
             </div>

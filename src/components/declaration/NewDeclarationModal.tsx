@@ -166,14 +166,14 @@ export function NewDeclarationModal({
           <button
             onClick={onClose}
             disabled={saving}
-            className="h-9 px-3.5 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-muted hover:text-ink disabled:opacity-50"
+            className="h-9 px-3.5 rounded-md border border-border-strong text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={create}
             disabled={saving || !entityId || !period}
-            className="h-9 px-4 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 disabled:opacity-40 inline-flex items-center gap-1.5"
+            className="h-9 px-4 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-40 inline-flex items-center gap-1.5"
           >
             {saving ? <Loader2Icon size={12} className="animate-spin" /> : <PlusIcon size={12} />}
             Create and open
@@ -182,20 +182,20 @@ export function NewDeclarationModal({
       }
     >
       {loading ? (
-        <div className="text-[13px] text-ink-muted">Loading entities…</div>
+        <div className="text-sm text-ink-muted">Loading entities…</div>
       ) : entities.length === 0 ? (
-        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-[12px] text-amber-900">
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           You need at least one entity to create a declaration.{' '}
           <a href="/clients/new" className="underline font-medium">Create your first client and entity</a>.
         </div>
       ) : (
         <div className="space-y-4">
           <label className="block">
-            <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Entity</div>
+            <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Entity</div>
             <select
               value={entityId}
               onChange={(e) => { setEntityId(e.target.value); setPeriod(''); }}
-              className="w-full border border-border-strong rounded px-2 py-2 text-[13px] bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full border border-border-strong rounded px-2 py-2 text-sm bg-white"
               autoFocus
             >
               <option value="">Select entity…</option>
@@ -210,7 +210,7 @@ export function NewDeclarationModal({
           </label>
 
           {suggested && (
-            <div className="text-[11.5px] text-brand-700 bg-brand-50 border border-brand-100 rounded-md px-3 py-2">
+            <div className="text-xs text-brand-700 bg-brand-50 border border-brand-100 rounded-md px-3 py-2">
               Suggested next unfiled period:{' '}
               <strong>{suggested.year} {suggested.period}</strong>
               {' '}({entity?.frequency})
@@ -219,11 +219,11 @@ export function NewDeclarationModal({
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Year</div>
+              <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Year</div>
               <select
                 value={year}
                 onChange={(e) => setYear(parseInt(e.target.value, 10))}
-                className="w-full border border-border-strong rounded px-2 py-2 text-[13px] bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 tabular-nums"
+                className="w-full border border-border-strong rounded px-2 py-2 text-sm bg-white tabular-nums"
               >
                 {[2024, 2025, 2026, 2027, 2028].map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -231,12 +231,12 @@ export function NewDeclarationModal({
               </select>
             </label>
             <label className="block">
-              <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Period</div>
+              <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Period</div>
               <select
                 value={period}
                 onChange={(e) => setPeriod(e.target.value)}
                 disabled={!entityId}
-                className="w-full border border-border-strong rounded px-2 py-2 text-[13px] bg-white focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 disabled:opacity-50"
+                className="w-full border border-border-strong rounded px-2 py-2 text-sm bg-white disabled:opacity-50"
               >
                 <option value="">Select period…</option>
                 {availablePeriods.map(p => (
@@ -247,7 +247,7 @@ export function NewDeclarationModal({
           </div>
 
           {entityId && period && existing.some(d => d.entity_id === entityId && d.year === year && d.period === period) && (
-            <div className="text-[11.5px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+            <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
               This entity already has a declaration for {year} {period}. Creating a duplicate will fail.
             </div>
           )}

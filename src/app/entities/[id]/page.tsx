@@ -60,13 +60,13 @@ export default function EntityDetailPage() {
   return (
     <div>
       <div className="mb-5">
-        <div className="text-[11px] text-ink-faint mb-1">
+        <div className="text-xs text-ink-faint mb-1">
           <Link href="/entities" className="hover:underline">Entities</Link> ›
         </div>
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-[20px] font-semibold tracking-tight">{e.name}</h1>
-            <div className="text-[12px] text-ink-muted mt-1 flex items-center gap-2">
+            <h1 className="text-lg font-semibold tracking-tight">{e.name}</h1>
+            <div className="text-sm text-ink-muted mt-1 flex items-center gap-2">
               {e.client_name && <span>{e.client_name}</span>}
               {e.client_name && <span className="text-ink-faint">·</span>}
               <span className="capitalize">{e.regime}</span>
@@ -78,14 +78,14 @@ export default function EntityDetailPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setDeleteOpen(true)}
-              className="h-8 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-200 transition-all duration-150 inline-flex items-center gap-1.5"
+              className="h-8 px-3 rounded border border-border-strong text-sm font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-200 transition-all duration-150 inline-flex items-center gap-1.5"
               title="Archive or permanently delete this entity"
             >
               <Trash2Icon size={12} /> Delete
             </button>
             <Link
               href={`/declarations?entity_id=${id}`}
-              className="h-8 px-3 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 transition-all duration-150 inline-flex items-center cursor-pointer"
+              className="h-8 px-3 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-all duration-150 inline-flex items-center cursor-pointer"
             >
               All declarations
             </Link>
@@ -177,19 +177,19 @@ export default function EntityDetailPage() {
         {/* Declarations history */}
         <div className="col-span-2 bg-surface border border-border rounded-lg overflow-hidden">
           <div className="px-4 py-2.5 border-b border-border bg-surface-alt">
-            <h3 className="text-[13px] font-semibold text-ink">Declarations history</h3>
+            <h3 className="text-sm font-semibold text-ink">Declarations history</h3>
           </div>
           {data.declarations.length === 0 ? (
-            <div className="p-6 text-center text-[12px] text-ink-faint">No declarations for this entity yet.</div>
+            <div className="p-6 text-center text-sm text-ink-faint">No declarations for this entity yet.</div>
           ) : (
-            <table className="w-full text-[12px]">
+            <table className="w-full text-sm">
               <thead className="text-ink-muted border-b border-divider">
                 <tr>
-                  <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Period</th>
-                  <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-[10px]">Status</th>
-                  <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-[10px]">Lines</th>
-                  <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-[10px]">Total ex.VAT</th>
-                  <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-[10px]">VAT due</th>
+                  <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-2xs">Period</th>
+                  <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-2xs">Status</th>
+                  <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-2xs">Lines</th>
+                  <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-2xs">Total ex.VAT</th>
+                  <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-2xs">VAT due</th>
                   <th className="px-3 py-2"></th>
                 </tr>
               </thead>
@@ -202,7 +202,7 @@ export default function EntityDetailPage() {
                     <td className="px-3 py-2 text-right tabular-nums text-ink-soft">€{fmtEUR(d.total_ex_vat)}</td>
                     <td className="px-3 py-2 text-right tabular-nums font-semibold">€{fmtEUR(d.vat_payable)}</td>
                     <td className="px-3 py-2 text-right">
-                      <Link href={`/declarations/${d.id}`} className="text-brand-600 hover:underline text-[11px] font-medium">Open</Link>
+                      <Link href={`/declarations/${d.id}`} className="text-brand-600 hover:underline text-xs font-medium">Open</Link>
                     </td>
                   </tr>
                 ))}
@@ -214,17 +214,17 @@ export default function EntityDetailPage() {
         {/* Top providers */}
         <div className="bg-surface border border-border rounded-lg overflow-hidden">
           <div className="px-4 py-2.5 border-b border-border bg-surface-alt">
-            <h3 className="text-[13px] font-semibold text-ink">Top providers (lifetime)</h3>
+            <h3 className="text-sm font-semibold text-ink">Top providers (lifetime)</h3>
           </div>
           {data.top_providers.length === 0 ? (
-            <div className="p-6 text-center text-[12px] text-ink-faint">No invoices yet.</div>
+            <div className="p-6 text-center text-sm text-ink-faint">No invoices yet.</div>
           ) : (
             <div className="divide-y divide-divider">
               {data.top_providers.map(p => (
-                <div key={p.provider} className="px-3 py-2 flex items-center justify-between text-[12px]">
+                <div key={p.provider} className="px-3 py-2 flex items-center justify-between text-sm">
                   <div className="min-w-0">
                     <div className="truncate font-medium text-ink">{p.provider}</div>
-                    <div className="text-[10px] text-ink-faint">{p.invoice_count} invoice{p.invoice_count === 1 ? '' : 's'}</div>
+                    <div className="text-2xs text-ink-faint">{p.invoice_count} invoice{p.invoice_count === 1 ? '' : 's'}</div>
                   </div>
                   <div className="font-mono tabular-nums text-ink-soft ml-2">€{fmtEUR(p.total)}</div>
                 </div>
@@ -238,19 +238,19 @@ export default function EntityDetailPage() {
       <div className="grid grid-cols-2 gap-4 mb-5">
         <div className="bg-surface border border-border rounded-lg overflow-hidden">
           <div className="px-4 py-2.5 border-b border-border bg-surface-alt">
-            <h3 className="text-[13px] font-semibold text-ink">Precedents ({data.precedents.length})</h3>
+            <h3 className="text-sm font-semibold text-ink">Precedents ({data.precedents.length})</h3>
           </div>
           {data.precedents.length === 0 ? (
-            <div className="p-6 text-center text-[12px] text-ink-faint">No precedents yet. They appear after the first approved declaration.</div>
+            <div className="p-6 text-center text-sm text-ink-faint">No precedents yet. They appear after the first approved declaration.</div>
           ) : (
             <div className="max-h-[300px] overflow-y-auto divide-y divide-divider">
               {data.precedents.map(p => (
-                <div key={p.id} className="px-3 py-2 flex items-center justify-between text-[11.5px]">
+                <div key={p.id} className="px-3 py-2 flex items-center justify-between text-xs">
                   <div className="min-w-0">
                     <div className="truncate font-medium text-ink">{p.provider}</div>
-                    <div className="text-[10px] text-ink-muted">{p.country || '—'} · used {p.times_used}× · last {p.last_used}</div>
+                    <div className="text-2xs text-ink-muted">{p.country || '—'} · used {p.times_used}× · last {p.last_used}</div>
                   </div>
-                  <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide bg-blue-100 text-blue-800 border border-blue-200">{p.treatment}</span>
+                  <span className="ml-2 px-2 py-0.5 rounded text-2xs font-semibold tracking-wide bg-blue-100 text-blue-800 border border-blue-200">{p.treatment}</span>
                 </div>
               ))}
             </div>
@@ -258,20 +258,20 @@ export default function EntityDetailPage() {
         </div>
         <div className="bg-surface border border-border rounded-lg overflow-hidden">
           <div className="px-4 py-2.5 border-b border-border bg-surface-alt flex items-center justify-between">
-            <h3 className="text-[13px] font-semibold text-ink">AED letters</h3>
-            <Link href={`/aed-letters`} className="text-[11px] text-brand-600 hover:underline">All letters</Link>
+            <h3 className="text-sm font-semibold text-ink">AED letters</h3>
+            <Link href={`/aed-letters`} className="text-xs text-brand-600 hover:underline">All letters</Link>
           </div>
           {data.aed_letters.length === 0 ? (
-            <div className="p-6 text-center text-[12px] text-ink-faint">No letters for this entity.</div>
+            <div className="p-6 text-center text-sm text-ink-faint">No letters for this entity.</div>
           ) : (
             <div className="max-h-[300px] overflow-y-auto divide-y divide-divider">
               {data.aed_letters.map(l => (
-                <div key={l.id} className="px-3 py-2 text-[11.5px]">
+                <div key={l.id} className="px-3 py-2 text-xs">
                   <div className="flex items-center justify-between">
                     <div className="font-medium text-ink truncate">{l.type || l.filename}</div>
-                    <span className="text-[10px] text-ink-faint ml-2 shrink-0">{formatDate(l.uploaded_at)}</span>
+                    <span className="text-2xs text-ink-faint ml-2 shrink-0">{formatDate(l.uploaded_at)}</span>
                   </div>
-                  {l.summary && <div className="text-[11px] text-ink-soft mt-0.5 line-clamp-2">{l.summary}</div>}
+                  {l.summary && <div className="text-xs text-ink-soft mt-0.5 line-clamp-2">{l.summary}</div>}
                 </div>
               ))}
             </div>
@@ -282,18 +282,18 @@ export default function EntityDetailPage() {
       {/* Recent audit */}
       <div className="bg-surface border border-border rounded-lg overflow-hidden">
         <div className="px-4 py-2.5 border-b border-border bg-surface-alt flex items-center justify-between">
-          <h3 className="text-[13px] font-semibold text-ink">Recent activity</h3>
-          <Link href={`/audit?entity_id=${id}`} className="text-[11px] text-brand-600 hover:underline">Full audit log →</Link>
+          <h3 className="text-sm font-semibold text-ink">Recent activity</h3>
+          <Link href={`/audit?entity_id=${id}`} className="text-xs text-brand-600 hover:underline">Full audit log →</Link>
         </div>
         {data.recent_audit.length === 0 ? (
-          <div className="p-6 text-center text-[12px] text-ink-faint">No activity yet.</div>
+          <div className="p-6 text-center text-sm text-ink-faint">No activity yet.</div>
         ) : (
           <div className="divide-y divide-divider">
             {data.recent_audit.slice(0, 10).map(r => (
-              <div key={r.id} className="px-3 py-2 text-[11.5px] flex items-center gap-3">
-                <span className="text-[10px] text-ink-faint w-32 shrink-0">{formatDateTime(r.created_at)}</span>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-surface-alt text-ink-soft font-medium">{r.action}</span>
-                <span className="text-ink-soft font-mono text-[10px]">{r.target_type}</span>
+              <div key={r.id} className="px-3 py-2 text-xs flex items-center gap-3">
+                <span className="text-2xs text-ink-faint w-32 shrink-0">{formatDateTime(r.created_at)}</span>
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-surface-alt text-ink-soft font-medium">{r.action}</span>
+                <span className="text-ink-soft font-mono text-2xs">{r.target_type}</span>
                 <span className="text-ink-muted truncate flex-1">
                   {r.field ? `${r.field}: ` : ''}{r.new_value || ''}
                 </span>
@@ -346,18 +346,18 @@ function NotesCard({
   return (
     <div className="bg-surface border border-border rounded-lg p-4 mb-4">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[13px] font-semibold text-ink">{title}</h3>
-        <span className="text-[10px] text-ink-faint">
+        <h3 className="text-sm font-semibold text-ink">{title}</h3>
+        <span className="text-2xs text-ink-faint">
           {saving ? 'Saving…' : savedAt ? `Saved ${savedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}` : ''}
         </span>
       </div>
-      {helper && <p className="text-[11px] text-ink-muted mb-2">{helper}</p>}
+      {helper && <p className="text-xs text-ink-muted mb-2">{helper}</p>}
       <textarea
         value={notes}
         onChange={e => { setNotes(e.target.value); setDirty(true); }}
         rows={3}
         placeholder="Add a note…"
-        className="w-full border border-border-strong rounded px-3 py-2 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="w-full border border-border-strong rounded px-3 py-2 text-sm"
       />
     </div>
   );
@@ -366,7 +366,7 @@ function NotesCard({
 function KPI({ label, value, small }: { label: string; value: string | number; small?: boolean }) {
   return (
     <div className="bg-surface border border-border rounded-lg p-3">
-      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
+      <div className="text-2xs text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
       <div className={`font-bold mt-1 tabular-nums text-ink ${small ? 'text-base' : 'text-2xl'}`}>{value}</div>
     </div>
   );
@@ -428,14 +428,14 @@ function AiModeCard({
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-[13px] font-semibold text-ink">AI mode</h3>
+            <h3 className="text-sm font-semibold text-ink">AI mode</h3>
             {isLocked && (
-              <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-warning-100 text-warning-800 border border-warning-300">
+              <span className="text-2xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-warning-100 text-warning-800 border border-warning-300">
                 Classifier only
               </span>
             )}
           </div>
-          <p className="text-[11.5px] text-ink-muted mt-1 leading-relaxed max-w-xl">
+          <p className="text-xs text-ink-muted mt-1 leading-relaxed max-w-xl">
             {isLocked
               ? 'This entity runs the deterministic classifier only. AI extraction, validator, and the chat assistant are disabled for it. The LTVA/CJEU rule engine still classifies ~80% of lines; the rest you classify manually.'
               : 'cifra uses AI to extract invoices, run the validator, and power the assistant. Switch to "classifier only" if this client\u2019s compliance policy forbids third-party LLM calls on their data.'}
@@ -457,7 +457,7 @@ function AiModeCard({
         </div>
       </div>
       {error && (
-        <div className="mt-3 text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+        <div className="mt-3 text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
           {error}
         </div>
       )}
@@ -473,7 +473,7 @@ function ModeBtn({
       onClick={onClick}
       disabled={disabled}
       className={[
-        'h-8 px-3 text-[11.5px] font-medium transition-colors',
+        'h-8 px-3 text-xs font-medium transition-colors',
         active
           ? 'bg-brand-50 text-brand-700'
           : 'bg-surface text-ink-soft hover:bg-surface-alt',
@@ -495,7 +495,7 @@ function StatusPill({ status }: { status: string }) {
     filed: 'bg-emerald-100 text-emerald-800',
     paid: 'bg-teal-100 text-teal-800',
   };
-  return <span className={`text-[10px] px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-surface-alt'}`}>{status}</span>;
+  return <span className={`text-2xs px-2 py-0.5 rounded font-semibold uppercase tracking-wide ${colors[status] || 'bg-surface-alt'}`}>{status}</span>;
 }
 function fmtEUR(n: number | string | null | undefined): string {
   if (n == null || n === '') return '—';

@@ -156,7 +156,7 @@ export function SearchableSelect({
               onKeyDown={handleKey}
               placeholder="Search…"
               aria-label={`${ariaLabel ?? 'Search'} (search)`}
-              className="w-full px-2 py-1 text-sm border border-border rounded bg-surface focus:outline-none focus:ring-2 focus:ring-brand-300"
+              className="w-full px-2 py-1 text-sm border border-border rounded bg-surface"
             />
           </div>
           <ul

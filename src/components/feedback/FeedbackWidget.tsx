@@ -79,7 +79,7 @@ export function FeedbackWidget() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 h-10 px-3 rounded-full bg-surface border border-border-strong shadow-md hover:shadow-lg hover:border-brand-400 transition-all inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-soft hover:text-brand-700"
+        className="fixed bottom-5 right-5 z-40 h-10 px-3 rounded-full bg-surface border border-border-strong shadow-md hover:shadow-lg hover:border-brand-400 transition-all inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-brand-700"
         aria-label="Report an issue or feedback (shortcut: ?)"
         title="Report an issue — press ? anywhere"
       >
@@ -225,8 +225,8 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
               <MessageCircleIcon size={13} />
             </div>
             <div>
-              <h3 id="fb-modal-title" className="text-[14px] font-semibold text-ink leading-tight">Report an issue</h3>
-              <div className="text-[11px] text-ink-muted leading-tight mt-0.5">
+              <h3 id="fb-modal-title" className="text-base font-semibold text-ink leading-tight">Report an issue</h3>
+              <div className="text-xs text-ink-muted leading-tight mt-0.5">
                 Anything off? Tell me.
               </div>
             </div>
@@ -246,14 +246,14 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
           ) : (
             <>
               {queuedCount > 0 && (
-                <div className="mb-3 text-[11.5px] text-warning-800 bg-warning-50 border border-warning-200 rounded px-3 py-2">
+                <div className="mb-3 text-xs text-warning-800 bg-warning-50 border border-warning-200 rounded px-3 py-2">
                   {queuedCount} earlier report{queuedCount === 1 ? '' : 's'} saved locally — will retry when this one sends.
                 </div>
               )}
 
               {/* Category chips */}
               <label className="block mb-3">
-                <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">
+                <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1.5">
                   Type
                 </span>
                 <div className="grid grid-cols-4 gap-1.5">
@@ -266,7 +266,7 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
 
               {/* Severity */}
               <label className="block mb-3">
-                <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">
+                <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1.5">
                   Severity
                 </span>
                 <div className="grid grid-cols-3 gap-1.5">
@@ -278,7 +278,7 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
 
               {/* Message */}
               <label className="block mb-3">
-                <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+                <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
                   What happened?
                 </span>
                 <textarea
@@ -287,29 +287,29 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
                   rows={5}
                   placeholder="Describe what you did, what you expected, what actually happened. The URL and timestamp are captured automatically."
                   maxLength={5000}
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 resize-none"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm resize-none"
                   autoFocus
                 />
-                <div className="text-[10.5px] text-ink-faint mt-1 text-right">
+                <div className="text-2xs text-ink-faint mt-1 text-right">
                   {message.length} / 5000
                 </div>
               </label>
 
               {/* Contact (optional) */}
               <label className="block mb-3">
-                <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+                <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
                   Reply-to (optional)
                 </span>
                 <input
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
                   placeholder="email or slack handle if you want a response"
-                  className="w-full border border-border-strong rounded px-3 py-2 text-[12.5px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                  className="w-full border border-border-strong rounded px-3 py-2 text-sm"
                 />
               </label>
 
               {error && (
-                <div className="mb-3 text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+                <div className="mb-3 text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
                   <AlertTriangleIcon size={13} className="mt-0.5 shrink-0" />
                   {error}
                 </div>
@@ -320,20 +320,20 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
 
         {!submitted && (
           <div className="px-5 py-3 border-t border-border bg-surface-alt flex items-center justify-between gap-2">
-            <div className="text-[10.5px] text-ink-faint">
+            <div className="text-2xs text-ink-faint">
               captured: current URL + user-agent + page context
             </div>
             <div className="flex gap-2">
               <button
                 onClick={onClose}
-                className="h-9 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt"
+                className="h-9 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt"
               >
                 Cancel
               </button>
               <button
                 onClick={submit}
                 disabled={submitting || !message.trim()}
-                className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
               >
                 {submitting ? (
                   <><Loader2Icon size={13} className="animate-spin" /> Sending…</>
@@ -355,25 +355,25 @@ function SubmittedState({ schemaMissing, onClose }: { schemaMissing: boolean; on
       <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-600 inline-flex items-center justify-center mb-3">
         <CheckIcon size={20} />
       </div>
-      <div className="text-[14px] font-semibold text-ink">Thanks — got it.</div>
-      <div className="text-[12px] text-ink-soft mt-2 max-w-sm mx-auto leading-relaxed">
+      <div className="text-base font-semibold text-ink">Thanks — got it.</div>
+      <div className="text-sm text-ink-soft mt-2 max-w-sm mx-auto leading-relaxed">
         {schemaMissing ? (
           <>
             Your message is saved locally. Once the admin applies the
-            feedback migration (<code className="text-[11px] bg-surface-alt px-1 rounded">002_feedback.sql</code>), it
+            feedback migration (<code className="text-xs bg-surface-alt px-1 rounded">002_feedback.sql</code>), it
             will be sent on your next submission.
           </>
         ) : (
           <>
             Your report is in the triage queue at{' '}
-            <code className="text-[11px] bg-surface-alt px-1 rounded">/settings/feedback</code>.
+            <code className="text-xs bg-surface-alt px-1 rounded">/settings/feedback</code>.
             Thanks for making the product better.
           </>
         )}
       </div>
       <button
         onClick={onClose}
-        className="mt-5 h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600"
+        className="mt-5 h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600"
       >
         Done
       </button>
@@ -388,7 +388,7 @@ function CategoryChip({
     <button
       onClick={onClick}
       className={[
-        'h-9 inline-flex items-center justify-center gap-1 rounded border text-[12px] font-medium transition-colors cursor-pointer',
+        'h-9 inline-flex items-center justify-center gap-1 rounded border text-sm font-medium transition-colors cursor-pointer',
         active
           ? 'bg-brand-50 text-brand-700 border-brand-200'
           : 'bg-surface text-ink-soft border-border hover:bg-surface-alt',
@@ -406,7 +406,7 @@ function SevChip({
     <button
       onClick={onClick}
       className={[
-        'h-8 inline-flex items-center justify-center rounded border text-[11.5px] font-medium transition-colors cursor-pointer',
+        'h-8 inline-flex items-center justify-center rounded border text-xs font-medium transition-colors cursor-pointer',
         active
           ? 'bg-brand-50 text-brand-700 border-brand-200'
           : 'bg-surface text-ink-soft border-border hover:bg-surface-alt',

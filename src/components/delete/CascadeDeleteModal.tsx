@@ -163,15 +163,15 @@ export function CascadeDeleteModal({
         {/* Preview of what will be cascaded */}
         {!isDeclaration && (
           <div className="rounded-md border border-border bg-surface-alt/40 p-3">
-            <div className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-2">
+            <div className="text-xs uppercase tracking-wide font-semibold text-ink-muted mb-2">
               What&apos;s attached to this {scopeLabel}
             </div>
             {loadingPreview ? (
-              <div className="text-[12px] text-ink-muted flex items-center gap-2">
+              <div className="text-sm text-ink-muted flex items-center gap-2">
                 <Loader2Icon size={12} className="animate-spin" /> Counting…
               </div>
             ) : preview && preview.summary.length > 0 ? (
-              <ul className="text-[12px] text-ink-soft space-y-0.5">
+              <ul className="text-sm text-ink-soft space-y-0.5">
                 {preview.summary.map((line, i) => (
                   <li key={i} className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-danger-400 shrink-0" />
@@ -180,7 +180,7 @@ export function CascadeDeleteModal({
                 ))}
               </ul>
             ) : (
-              <div className="text-[12px] text-ink-muted">
+              <div className="text-sm text-ink-muted">
                 Nothing else attached. Safe to delete directly.
               </div>
             )}
@@ -190,7 +190,7 @@ export function CascadeDeleteModal({
         {isDeclaration && locked && (
           <div className="rounded-md border border-danger-300 bg-danger-50 p-3 flex gap-2">
             <AlertTriangleIcon size={14} className="text-danger-600 shrink-0 mt-0.5" />
-            <div className="text-[12px] text-danger-900">
+            <div className="text-sm text-danger-900">
               <strong>This declaration is already {status?.toUpperCase()}.</strong>
               {' '}Deleting it removes the AED filing record from cifra. The audit log
               keeps the deletion event, but you&apos;ll lose the line-level detail.
@@ -206,16 +206,16 @@ export function CascadeDeleteModal({
             <div className="rounded-lg border border-border p-4 flex flex-col gap-2">
               <div className="flex items-center gap-2 text-ink">
                 <ArchiveIcon size={14} className="text-brand-500" />
-                <strong className="text-[13px]">Archive only (safe)</strong>
+                <strong className="text-sm">Archive only (safe)</strong>
               </div>
-              <p className="text-[11.5px] text-ink-soft leading-relaxed">
+              <p className="text-xs text-ink-soft leading-relaxed">
                 Soft-delete: the {scopeLabel} disappears from lists but the data stays in the database for audit.{' '}
                 {scope === 'client' && 'Only works when the client has no active entities.'}
               </p>
               <button
                 onClick={archiveOnly}
                 disabled={busy}
-                className="mt-auto h-9 px-3 rounded-md bg-surface border border-border-strong text-[12.5px] font-medium text-ink hover:bg-surface-alt disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+                className="mt-auto h-9 px-3 rounded-md bg-surface border border-border-strong text-sm font-medium text-ink hover:bg-surface-alt disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
               >
                 <ArchiveIcon size={12} /> Archive
               </button>
@@ -225,9 +225,9 @@ export function CascadeDeleteModal({
             <div className="rounded-lg border border-danger-200 bg-danger-50/40 p-4 flex flex-col gap-2">
               <div className="flex items-center gap-2 text-danger-700">
                 <Trash2Icon size={14} />
-                <strong className="text-[13px]">Delete permanently (cascade)</strong>
+                <strong className="text-sm">Delete permanently (cascade)</strong>
               </div>
-              <p className="text-[11.5px] text-danger-900 leading-relaxed">
+              <p className="text-xs text-danger-900 leading-relaxed">
                 Removes the {scopeLabel} AND everything attached. Cannot be undone.
                 Admin role required.
               </p>
@@ -235,15 +235,15 @@ export function CascadeDeleteModal({
               {/* Filed-declaration guardrail — Art. 70 LTVA */}
               {hasFiled && (
                 <div className="rounded border border-danger-400 bg-white/70 p-2.5">
-                  <div className="text-[11px] text-danger-900 font-semibold mb-1 inline-flex items-center gap-1">
+                  <div className="text-xs text-danger-900 font-semibold mb-1 inline-flex items-center gap-1">
                     <AlertTriangleIcon size={11} /> Art. 70 LTVA · retention warning
                   </div>
-                  <p className="text-[11px] text-danger-800 mb-2 leading-relaxed">
+                  <p className="text-xs text-danger-800 mb-2 leading-relaxed">
                     {preview!.filed_declaration_count} declaration{preview!.filed_declaration_count === 1 ? '' : 's'} already committed
                     {' '}({Object.entries(preview!.committed_statuses).map(([s, n]) => `${n} ${s}`).join(', ')}).
                     Luxembourg law requires retention of filed returns for 10 years.
                   </p>
-                  <label className="inline-flex items-start gap-1.5 text-[11px] text-danger-900 cursor-pointer">
+                  <label className="inline-flex items-start gap-1.5 text-xs text-danger-900 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={acknowledgedFiled}
@@ -260,13 +260,13 @@ export function CascadeDeleteModal({
               )}
 
               <label className="block">
-                <span className="text-[10.5px] uppercase tracking-wide font-semibold text-danger-800">
+                <span className="text-2xs uppercase tracking-wide font-semibold text-danger-800">
                   Type <code className="font-mono bg-white/80 px-1 rounded">{targetName}</code> to confirm
                 </span>
                 <input
                   value={typed}
                   onChange={e => setTyped(e.target.value)}
-                  className="mt-1 w-full border border-danger-300 rounded px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-danger-400"
+                  className="mt-1 w-full border border-danger-300 rounded px-2 py-1.5 text-sm focus:ring-danger-400"
                   placeholder={targetName}
                   autoComplete="off"
                   autoCapitalize="off"
@@ -276,7 +276,7 @@ export function CascadeDeleteModal({
               <button
                 onClick={cascadeDelete}
                 disabled={busy || !canProceed}
-                className="mt-auto h-9 px-3 rounded-md bg-danger-600 text-white text-[12.5px] font-semibold hover:bg-danger-700 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5"
+                className="mt-auto h-9 px-3 rounded-md bg-danger-600 text-white text-sm font-semibold hover:bg-danger-700 disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-1.5"
               >
                 {busy ? <Loader2Icon size={12} className="animate-spin" /> : <Trash2Icon size={12} />}
                 Delete permanently
@@ -286,7 +286,7 @@ export function CascadeDeleteModal({
         ) : (
           // Declaration: a single destructive action.
           <div className="rounded-lg border border-danger-200 bg-danger-50/40 p-4 space-y-3">
-            <p className="text-[12px] text-danger-900 leading-relaxed">
+            <p className="text-sm text-danger-900 leading-relaxed">
               {locked ? (
                 <>Declaring this irreversible removes the filing record. The audit log retains the delete event.</>
               ) : (
@@ -294,13 +294,13 @@ export function CascadeDeleteModal({
               )}
             </p>
             <label className="block">
-              <span className="text-[10.5px] uppercase tracking-wide font-semibold text-danger-800">
+              <span className="text-2xs uppercase tracking-wide font-semibold text-danger-800">
                 Type <code className="font-mono bg-white/80 px-1 rounded">{targetName}</code> to confirm
               </span>
               <input
                 value={typed}
                 onChange={e => setTyped(e.target.value)}
-                className="mt-1 w-full border border-danger-300 rounded px-2 py-1.5 text-[12.5px] focus:outline-none focus:ring-1 focus:ring-danger-400"
+                className="mt-1 w-full border border-danger-300 rounded px-2 py-1.5 text-sm focus:ring-danger-400"
                 placeholder={targetName}
                 autoComplete="off"
                 autoCapitalize="off"
@@ -310,7 +310,7 @@ export function CascadeDeleteModal({
             <button
               onClick={cascadeDelete}
               disabled={busy || !typedMatches}
-              className="h-9 px-3 rounded-md bg-danger-600 text-white text-[12.5px] font-semibold hover:bg-danger-700 disabled:opacity-40 inline-flex items-center gap-1.5"
+              className="h-9 px-3 rounded-md bg-danger-600 text-white text-sm font-semibold hover:bg-danger-700 disabled:opacity-40 inline-flex items-center gap-1.5"
             >
               {busy ? <Loader2Icon size={12} className="animate-spin" /> : <Trash2Icon size={12} />}
               Delete permanently
@@ -318,7 +318,7 @@ export function CascadeDeleteModal({
           </div>
         )}
 
-        <div className="text-[10.5px] text-ink-muted italic leading-relaxed">
+        <div className="text-2xs text-ink-muted italic leading-relaxed">
           All deletes are recorded in the audit log (action = delete_cascade) with
           the blast-radius counts. The audit log itself is immutable (migration 015):
           no admin can rewrite or remove the record of this action.{' '}

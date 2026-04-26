@@ -68,7 +68,7 @@ export function FilingStatusBadge({ status }: { status: string }) {
   const meta = STATUS_META[status] ?? { label: status, tone: 'bg-surface-alt text-ink-muted', description: '' };
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${meta.tone}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${meta.tone}`}
       title={meta.description ? `${meta.label} — ${meta.description}` : meta.label}
     >
       {meta.label}

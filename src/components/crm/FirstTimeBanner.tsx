@@ -30,7 +30,7 @@ export function FirstTimeBanner() {
   return (
     <div className="mb-4 border border-brand-200 bg-brand-50 rounded-md p-3 flex items-start gap-3">
       <BookOpenIcon size={16} className="shrink-0 mt-0.5 text-brand-700" />
-      <div className="flex-1 text-[12.5px] text-brand-900">
+      <div className="flex-1 text-sm text-brand-900">
         <div className="font-semibold mb-0.5">New here? Start with the Getting Started guide.</div>
         <div className="text-brand-800">
           5-min daily workflow · 20-min weekly workflow · keyboard shortcuts · best practices for LU PE law.
@@ -38,7 +38,7 @@ export function FirstTimeBanner() {
       </div>
       <Link
         href="/crm/help"
-        className="shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-brand-600 text-white text-[11.5px] font-semibold hover:bg-brand-700"
+        className="shrink-0 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700"
       >
         Read the guide →
       </Link>

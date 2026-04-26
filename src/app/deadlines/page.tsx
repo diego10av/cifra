@@ -71,7 +71,7 @@ export default function DeadlinesPage() {
             description="No items match this filter. Switch to 'All' to see the full list — or nothing is actually due."
           />
         ) : (
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt border-b border-divider text-ink-muted">
               <tr>
                 <Th>Entity</Th>
@@ -98,9 +98,9 @@ export default function DeadlinesPage() {
                   <td className="px-4 py-3 text-right"><BucketBadge bucket={r.bucket} days={r.days_until} /></td>
                   <td className="px-4 py-3 text-right">
                     {r.declaration_id ? (
-                      <Link href={`/declarations/${r.declaration_id}`} className="text-brand-600 hover:text-brand-700 text-[11.5px] font-medium transition-colors">Open</Link>
+                      <Link href={`/declarations/${r.declaration_id}`} className="text-brand-600 hover:text-brand-700 text-xs font-medium transition-colors">Open</Link>
                     ) : (
-                      <Link href={`/declarations?entity_id=${r.entity_id}`} className="text-brand-600 hover:text-brand-700 text-[11.5px] font-medium transition-colors">Create</Link>
+                      <Link href={`/declarations?entity_id=${r.entity_id}`} className="text-brand-600 hover:text-brand-700 text-xs font-medium transition-colors">Create</Link>
                     )}
                   </td>
                 </tr>
@@ -114,14 +114,14 @@ export default function DeadlinesPage() {
 }
 
 function Th({ children, align = 'left' }: { children?: React.ReactNode; align?: 'left' | 'right' }) {
-  return <th className={`px-4 py-2.5 font-medium text-[10.5px] uppercase tracking-[0.06em] ${align === 'right' ? 'text-right' : 'text-left'}`}>{children}</th>;
+  return <th className={`px-4 py-2.5 font-medium text-2xs uppercase tracking-[0.06em] ${align === 'right' ? 'text-right' : 'text-left'}`}>{children}</th>;
 }
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
-      className={`h-8 px-3 rounded-md text-[12.5px] font-medium transition-all duration-150 ${
+      className={`h-8 px-3 rounded-md text-sm font-medium transition-all duration-150 ${
         active ? 'bg-brand-500 text-white shadow-xs' : 'bg-surface border border-border text-ink-soft hover:bg-surface-alt'
       }`}
     >

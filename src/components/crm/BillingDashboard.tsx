@@ -44,9 +44,9 @@ const AGING_TONES: Record<string, string> = {
 export function BillingDashboard({ year }: { year: number }) {
   const { data, error, isLoading, refetch } = useCrmFetch<DashboardData>(`/api/crm/billing/dashboard?year=${year}`);
 
-  if (isLoading && !data) return <div className="text-[12px] text-ink-muted italic px-3 py-4">Loading dashboard…</div>;
+  if (isLoading && !data) return <div className="text-sm text-ink-muted italic px-3 py-4">Loading dashboard…</div>;
   if (error) return <CrmErrorBox message={error} onRetry={refetch} />;
-  if (!data) return <div className="text-[12px] text-ink-muted italic px-3 py-4">No data for {year}.</div>;
+  if (!data) return <div className="text-sm text-ink-muted italic px-3 py-4">No data for {year}.</div>;
 
   const current = Number(data.kpis?.total_incl_vat ?? 0);
   const prev = Number(data.prev_kpis?.total_incl_vat ?? 0);
@@ -56,7 +56,7 @@ export function BillingDashboard({ year }: { year: number }) {
     <div className="space-y-5">
       {/* YoY banner */}
       {prev > 0 && (
-        <div className="bg-brand-50 border border-brand-200 rounded-md px-3 py-2 flex items-center gap-4 text-[12.5px]">
+        <div className="bg-brand-50 border border-brand-200 rounded-md px-3 py-2 flex items-center gap-4 text-sm">
           <span><strong>{data.year}:</strong> {formatEur(current)}</span>
           <span className="text-ink-muted">vs {data.prev_year}: {formatEur(prev)}</span>
           {yoyPct !== null && (
@@ -131,7 +131,7 @@ export function BillingDashboard({ year }: { year: number }) {
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-border rounded-lg bg-white">
-      <div className="px-3 py-2 border-b border-border text-[11px] uppercase tracking-wide font-semibold text-ink-muted">
+      <div className="px-3 py-2 border-b border-border text-xs uppercase tracking-wide font-semibold text-ink-muted">
         {title}
       </div>
       <div className="p-3">{children}</div>
@@ -140,7 +140,7 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
 }
 
 function Empty() {
-  return <div className="text-[12px] text-ink-muted italic px-3 py-6 text-center">No data for this period.</div>;
+  return <div className="text-sm text-ink-muted italic px-3 py-6 text-center">No data for this period.</div>;
 }
 
 // ── Horizontal bars for top clients ────────────────────────────────────
@@ -149,7 +149,7 @@ function BarsHorizontal({ items }: { items: Array<{ label: string; value: number
   return (
     <div className="space-y-1.5">
       {items.map((item, i) => (
-        <div key={i} className="flex items-center gap-2 text-[11.5px]">
+        <div key={i} className="flex items-center gap-2 text-xs">
           <div className="w-[38%] truncate text-ink-soft font-medium" title={item.label}>{item.label}</div>
           <div className="flex-1 relative h-5 bg-surface-alt rounded">
             <div
@@ -158,7 +158,7 @@ function BarsHorizontal({ items }: { items: Array<{ label: string; value: number
             />
           </div>
           <div className="w-[22%] text-right tabular-nums font-medium">{formatEur(item.value)}</div>
-          {item.meta && <div className="w-[18%] text-right text-[10.5px] text-ink-muted">{item.meta}</div>}
+          {item.meta && <div className="w-[18%] text-right text-2xs text-ink-muted">{item.meta}</div>}
         </div>
       ))}
     </div>
@@ -194,7 +194,7 @@ function PracticePie({ items }: { items: Array<{ label: string; value: number }>
       <svg width="140" height="140" viewBox="0 0 140 140" className="shrink-0">
         {slices.map((s, i) => <path key={i} d={s.path} fill={s.color} />)}
       </svg>
-      <ul className="flex-1 space-y-1 text-[11.5px]">
+      <ul className="flex-1 space-y-1 text-xs">
         {slices.map((s, i) => (
           <li key={i} className="flex items-center gap-2">
             <span className="w-3 h-3 rounded-sm shrink-0" style={{ background: s.color }} />
@@ -258,7 +258,7 @@ function AgingBars({ items }: { items: Array<{ label: string; value: number; cou
   return (
     <div className="space-y-1.5">
       {items.map((item, i) => (
-        <div key={i} className="flex items-center gap-2 text-[11.5px]">
+        <div key={i} className="flex items-center gap-2 text-xs">
           <div className="w-[30%] truncate text-ink-soft font-medium">{item.label}</div>
           <div className="flex-1 relative h-5 bg-surface-alt rounded">
             <div
@@ -267,7 +267,7 @@ function AgingBars({ items }: { items: Array<{ label: string; value: number; cou
             />
           </div>
           <div className="w-[22%] text-right tabular-nums font-medium">{formatEur(item.value)}</div>
-          <div className="w-[14%] text-right text-[10.5px] text-ink-muted tabular-nums">
+          <div className="w-[14%] text-right text-2xs text-ink-muted tabular-nums">
             {item.count} inv
           </div>
         </div>

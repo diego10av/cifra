@@ -142,18 +142,18 @@ export default function AEDLettersPage() {
       <div className="bg-surface border border-border rounded-xl p-5 mb-6 shadow-xs">
         <div className="flex flex-col md:flex-row md:items-end gap-3">
           <div className="flex-1">
-            <label className="block text-[10.5px] uppercase tracking-[0.06em] font-semibold text-ink-muted mb-1.5">
+            <label className="block text-2xs uppercase tracking-[0.06em] font-semibold text-ink-muted mb-1.5">
               Assign to entity (optional)
             </label>
             <select
               value={selectedEntity}
               onChange={e => setSelectedEntity(e.target.value)}
-              className="w-full h-9 border border-border rounded-md px-3 text-[13px] bg-surface focus:border-brand-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20"
+              className="w-full h-9 border border-border rounded-md px-3 text-sm bg-surface focus-visible:ring-2 focus-visible:ring-brand-500/20"
             >
               <option value="">— unassigned —</option>
               {entities.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
             </select>
-            <p className="text-[11px] text-ink-muted mt-1.5">
+            <p className="text-xs text-ink-muted mt-1.5">
               If you assign an entity, the letter will appear on that entity&rsquo;s page. You can also leave it unassigned and link it later.
             </p>
           </div>
@@ -261,22 +261,22 @@ function LetterCard({
                 <TypePill type={letter.type} />
                 <UrgencyPill urgency={letter.urgency} />
                 {letter.reference && (
-                  <span className="text-[11px] font-mono text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
+                  <span className="text-xs font-mono text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
                     {letter.reference}
                   </span>
                 )}
               </div>
-              <div className="mt-1.5 text-[13px] font-medium text-ink">
+              <div className="mt-1.5 text-sm font-medium text-ink">
                 {letter.entity_name ?? (
                   <span className="text-ink-muted italic">Unassigned</span>
                 )}
               </div>
               {letter.summary ? (
-                <p className="text-[12.5px] text-ink-soft mt-1.5 leading-relaxed line-clamp-2">
+                <p className="text-sm text-ink-soft mt-1.5 leading-relaxed line-clamp-2">
                   {letter.summary}
                 </p>
               ) : (
-                <p className="text-[12px] text-ink-muted mt-1.5 italic">
+                <p className="text-sm text-ink-muted mt-1.5 italic">
                   No summary yet — <button onClick={onOpen} className="text-brand-600 hover:underline">open to review</button>.
                 </p>
               )}
@@ -285,12 +285,12 @@ function LetterCard({
             {/* Right rail — amount + deadline */}
             <div className="shrink-0 text-right">
               {letter.amount != null && (
-                <div className="text-[15px] font-bold text-ink tabular-nums tracking-tight">
+                <div className="text-base font-bold text-ink tabular-nums tracking-tight">
                   €{Number(letter.amount).toLocaleString('en-LU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               )}
               {letter.deadline_date && (
-                <div className="text-[11px] text-ink-muted mt-1">
+                <div className="text-xs text-ink-muted mt-1">
                   Deadline {formatDate(letter.deadline_date)}
                 </div>
               )}
@@ -302,14 +302,14 @@ function LetterCard({
           <div className="flex items-center gap-2 mt-3 pt-3 border-t border-divider flex-wrap">
             <button
               onClick={onOpen}
-              className="inline-flex items-center gap-1.5 text-[12px] font-medium text-brand-600 hover:text-brand-700"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:text-brand-700"
             >
               <ExternalLinkIcon size={12} /> Open PDF
             </button>
             {letter.entity_id && (
               <Link
                 href={`/entities/${letter.entity_id}`}
-                className="inline-flex items-center gap-1.5 text-[12px] font-medium text-ink-muted hover:text-ink"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-muted hover:text-ink"
               >
                 <FileTextIcon size={12} /> View entity
               </Link>
@@ -318,7 +318,7 @@ function LetterCard({
             {letter.status === 'received' && (
               <button
                 onClick={() => onSetStatus('reviewed')}
-                className="h-7 px-2.5 rounded-md border border-border text-[11.5px] font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
+                className="h-7 px-2.5 rounded-md border border-border text-xs font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
               >
                 <CheckCircle2Icon size={12} /> Mark reviewed
               </button>
@@ -326,7 +326,7 @@ function LetterCard({
             {letter.status === 'reviewed' && (
               <button
                 onClick={() => onSetStatus('actioned')}
-                className="h-7 px-2.5 rounded-md bg-success-500 text-white text-[11.5px] font-semibold hover:bg-success-700 inline-flex items-center gap-1.5"
+                className="h-7 px-2.5 rounded-md bg-success-500 text-white text-xs font-semibold hover:bg-success-700 inline-flex items-center gap-1.5"
               >
                 <CheckCircle2Icon size={12} /> Mark actioned
               </button>
@@ -334,7 +334,7 @@ function LetterCard({
             {letter.status !== 'archived' && (
               <button
                 onClick={() => onSetStatus('archived')}
-                className="h-7 px-2.5 rounded-md text-[11.5px] font-medium text-ink-muted hover:text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
+                className="h-7 px-2.5 rounded-md text-xs font-medium text-ink-muted hover:text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
               >
                 <ArchiveIcon size={12} /> Archive
               </button>
@@ -342,7 +342,7 @@ function LetterCard({
             {letter.status === 'archived' && (
               <button
                 onClick={() => onSetStatus('received')}
-                className="h-7 px-2.5 rounded-md text-[11.5px] font-medium text-ink-muted hover:text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
+                className="h-7 px-2.5 rounded-md text-xs font-medium text-ink-muted hover:text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
               >
                 Restore
               </button>
@@ -415,7 +415,7 @@ function FilterChip({
     <button
       onClick={onClick}
       className={[
-        'inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[12.5px] font-medium transition-all',
+        'inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm font-medium transition-all',
         active
           ? 'bg-brand-500 text-white shadow-xs'
           : 'bg-surface border border-border text-ink-soft hover:bg-surface-alt',
@@ -429,7 +429,7 @@ function FilterChip({
 function Count({ active, value }: { active: boolean; value: number }) {
   return (
     <span className={[
-      'tabular-nums inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10.5px] font-semibold',
+      'tabular-nums inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-2xs font-semibold',
       active ? 'bg-white/20 text-white' : 'bg-brand-50 text-brand-700',
     ].join(' ')}>
       {value}

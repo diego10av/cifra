@@ -96,7 +96,7 @@ export function LiquidationChip({
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
         disabled={busy}
         className={[
-          'inline-flex items-center px-1.5 py-0 rounded text-[10px] font-medium whitespace-nowrap',
+          'inline-flex items-center px-1.5 py-0 rounded text-2xs font-medium whitespace-nowrap',
           chipClass,
           'disabled:opacity-50',
         ].join(' ')}
@@ -109,8 +109,8 @@ export function LiquidationChip({
           className="absolute left-0 top-full mt-1 z-30 min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="text-[11px] font-medium text-ink">Liquidation date</div>
-          <div className="text-[10.5px] text-ink-muted">
+          <div className="text-xs font-medium text-ink">Liquidation date</div>
+          <div className="text-2xs text-ink-muted">
             {entityName}
           </div>
           <div className="flex items-center gap-1.5">
@@ -118,13 +118,13 @@ export function LiquidationChip({
               type="date"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              className="px-2 py-1 text-[12px] border border-border rounded bg-surface flex-1"
+              className="px-2 py-1 text-sm border border-border rounded bg-surface flex-1"
             />
             <button
               type="button"
               onClick={() => void save(draft || null)}
               disabled={busy || draft === (liquidationDate ?? '')}
-              className="px-2 py-1 text-[11.5px] bg-brand-600 text-white rounded hover:bg-brand-700 disabled:opacity-50"
+              className="px-2 py-1 text-xs bg-brand-600 text-white rounded hover:bg-brand-700 disabled:opacity-50"
             >
               Save
             </button>
@@ -134,7 +134,7 @@ export function LiquidationChip({
               type="button"
               onClick={() => void save(today)}
               disabled={busy}
-              className="text-[11px] text-brand-700 hover:underline disabled:opacity-50"
+              className="text-xs text-brand-700 hover:underline disabled:opacity-50"
             >
               Mark today ({today})
             </button>
@@ -146,13 +146,13 @@ export function LiquidationChip({
                   void save(null);
                 }}
                 disabled={busy}
-                className="text-[11px] text-danger-600 hover:underline disabled:opacity-50"
+                className="text-xs text-danger-600 hover:underline disabled:opacity-50"
               >
                 Clear
               </button>
             )}
           </div>
-          <div className="text-[10px] text-ink-faint italic pt-1 border-t border-border">
+          <div className="text-2xs text-ink-faint italic pt-1 border-t border-border">
             Future returns are auto-hidden once the date passes year-end.
             Current-year matrix keeps showing it so wrap-up filings stay
             visible.

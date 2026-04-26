@@ -132,20 +132,20 @@ export default function FilingsListPage() {
             value={q}
             onChange={e => { setQ(e.target.value); setPage(0); }}
             placeholder="Search entity / group / period…"
-            className="pl-7 pr-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface w-[220px]"
+            className="pl-7 pr-2 py-1.5 text-sm border border-border rounded-md bg-surface w-[220px]"
           />
         </div>
         <select
           value={year}
           onChange={e => { setYear(e.target.value); setPage(0); }}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-surface"
         >
           {['2024', '2025', '2026', '2027'].map(y => <option key={y} value={y}>{y}</option>)}
         </select>
         <select
           value={taxType}
           onChange={e => { setTaxType(e.target.value); setPage(0); }}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-surface"
         >
           <option value="">All tax types</option>
           {TAX_TYPES.map(t => <option key={t} value={t}>{humanTaxType(t)}</option>)}
@@ -153,7 +153,7 @@ export default function FilingsListPage() {
         <select
           value={status}
           onChange={e => { setStatus(e.target.value); setPage(0); }}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-surface"
         >
           <option value="">All statuses</option>
           {FILING_STATUSES.map(s => <option key={s} value={s}>{filingStatusLabel(s)}</option>)}
@@ -161,12 +161,12 @@ export default function FilingsListPage() {
         <select
           value={groupId}
           onChange={e => { setGroupId(e.target.value); setPage(0); }}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface"
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-surface"
         >
           <option value="">All groups</option>
           {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
-        <label className="inline-flex items-center gap-1.5 text-[12.5px] cursor-pointer">
+        <label className="inline-flex items-center gap-1.5 text-sm cursor-pointer">
           <input
             type="checkbox"
             checked={overdueOnly}
@@ -177,7 +177,7 @@ export default function FilingsListPage() {
         {hasFilters && (
           <button
             onClick={clearFilters}
-            className="inline-flex items-center gap-1 px-2 py-1.5 text-[12px] text-ink-muted hover:text-ink border border-border rounded-md"
+            className="inline-flex items-center gap-1 px-2 py-1.5 text-sm text-ink-muted hover:text-ink border border-border rounded-md"
           >
             <FilterXIcon size={12} /> Clear
           </button>
@@ -193,7 +193,7 @@ export default function FilingsListPage() {
         />
       ) : (
         <div className="rounded-md border border-border overflow-hidden bg-surface">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr className="text-left">
                 <th className="px-3 py-2 font-medium">Entity</th>
@@ -213,7 +213,7 @@ export default function FilingsListPage() {
                       {f.entity_name}
                     </Link>
                     {f.group_name && (
-                      <div className="text-[11px] text-ink-muted">{f.group_name}</div>
+                      <div className="text-xs text-ink-muted">{f.group_name}</div>
                     )}
                   </td>
                   <td className="px-3 py-2 text-ink-soft">{humanTaxType(f.tax_type)}</td>
@@ -230,7 +230,7 @@ export default function FilingsListPage() {
       )}
 
       {total > 50 && (
-        <div className="flex items-center justify-between mt-3 text-[12px] text-ink-muted">
+        <div className="flex items-center justify-between mt-3 text-sm text-ink-muted">
           <div>
             Showing {page * 50 + 1}–{Math.min((page + 1) * 50, total)} of {total}
           </div>

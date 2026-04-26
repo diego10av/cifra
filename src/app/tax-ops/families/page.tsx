@@ -66,17 +66,17 @@ export default function FamiliesIndexPage() {
       />
 
       <div className="flex items-center gap-3 flex-wrap">
-        <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+        <label className="inline-flex items-center gap-1.5 text-sm">
           <span className="text-ink-muted">Search:</span>
           <input
             type="text"
             value={query}
             onChange={(e) => setQueryString(e.target.value)}
             placeholder="name…"
-            className="px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface w-[200px]"
+            className="px-2 py-1 text-sm border border-border rounded-md bg-surface w-[200px]"
           />
         </label>
-        <label className="inline-flex items-center gap-1.5 text-[12.5px]">
+        <label className="inline-flex items-center gap-1.5 text-sm">
           <input
             type="checkbox"
             checked={showArchived}
@@ -84,7 +84,7 @@ export default function FamiliesIndexPage() {
           />
           <span className="text-ink-muted">Show archived</span>
         </label>
-        <div className="text-[11.5px] text-ink-muted">
+        <div className="text-xs text-ink-muted">
           {filtered.length} families · {totalEntities} entities
         </div>
       </div>
@@ -94,11 +94,11 @@ export default function FamiliesIndexPage() {
       {!isLoading && !error && (
         <div className="rounded-md border border-border bg-surface overflow-hidden">
           {filtered.length === 0 ? (
-            <div className="px-4 py-8 text-center text-[12.5px] text-ink-muted italic">
+            <div className="px-4 py-8 text-center text-sm text-ink-muted italic">
               No families match this filter.
             </div>
           ) : (
-            <table className="w-full text-[12.5px] border-collapse">
+            <table className="w-full text-sm border-collapse">
               <thead className="bg-surface-alt">
                 <tr className="text-left text-ink-muted">
                   <th className="border-b border-border px-2.5 py-2 font-medium">Family</th>
@@ -116,22 +116,22 @@ export default function FamiliesIndexPage() {
                       >
                         <span
                           className={[
-                            'inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium truncate max-w-[180px]',
+                            'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium truncate max-w-[180px]',
                             familyChipClasses(g.name),
                           ].join(' ')}
                           title={g.name}
                         >
                           {g.name}
                         </span>
-                        <span className="text-[11px] text-ink-muted hover:underline">view →</span>
+                        <span className="text-xs text-ink-muted hover:underline">view →</span>
                       </Link>
                     </td>
                     <td className="px-2.5 py-1.5 text-right tabular-nums">{g.entity_count}</td>
                     <td className="px-2.5 py-1.5">
                       {g.is_active ? (
-                        <span className="text-[11px] text-ink-muted">Active</span>
+                        <span className="text-xs text-ink-muted">Active</span>
                       ) : (
-                        <span className="text-[11px] text-ink-faint italic">Archived</span>
+                        <span className="text-xs text-ink-faint italic">Archived</span>
                       )}
                     </td>
                   </tr>

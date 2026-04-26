@@ -116,13 +116,13 @@ export default function CompaniesPage() {
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Search company name..."
-            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500"
+            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md"
           />
         </div>
         <select
           value={classFilter}
           onChange={e => setClassFilter(e.target.value)}
-          className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white"
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white"
         >
           <option value="">All classifications</option>
           {Object.entries(LABELS_CLASSIFICATION).map(([k, label]) => (
@@ -131,7 +131,7 @@ export default function CompaniesPage() {
         </select>
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="companies" />
-          <span className="text-[11.5px] text-ink-muted">{rows.length} companies</span>
+          <span className="text-xs text-ink-muted">{rows.length} companies</span>
         </div>
       </div>
 
@@ -143,7 +143,7 @@ export default function CompaniesPage() {
         />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="px-3 py-2 w-8">
@@ -179,7 +179,7 @@ export default function CompaniesPage() {
                       {r.company_name}
                     </Link>
                     {r.entity_id && (
-                      <span className="ml-2 text-[10px] uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1 py-0.5">
+                      <span className="ml-2 text-2xs uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1 py-0.5">
                         Tax entity linked
                       </span>
                     )}

@@ -127,13 +127,13 @@ export default function OpportunitiesPage() {
         <div className="inline-flex border border-border rounded-md overflow-hidden">
           <button
             onClick={() => setView('list')}
-            className={`px-2.5 py-1.5 text-[11.5px] font-medium ${view === 'list' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+            className={`px-2.5 py-1.5 text-xs font-medium ${view === 'list' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
           >
             📋 List
           </button>
           <button
             onClick={() => setView('kanban')}
-            className={`px-2.5 py-1.5 text-[11.5px] font-medium border-l border-border ${view === 'kanban' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
+            className={`px-2.5 py-1.5 text-xs font-medium border-l border-border ${view === 'kanban' ? 'bg-brand-500 text-white' : 'bg-white text-ink-soft hover:bg-surface-alt'}`}
           >
             📊 Kanban
           </button>
@@ -141,18 +141,18 @@ export default function OpportunitiesPage() {
         <div className="relative flex-1 min-w-[220px] max-w-xs">
           <SearchIcon size={13} className="absolute left-2 top-1/2 -translate-y-1/2 text-ink-muted" />
           <input value={q} onChange={e => setQ(e.target.value)} placeholder="Search opportunity name..."
-            className="w-full pl-7 pr-3 py-1.5 text-[12.5px] border border-border rounded-md focus:outline-none focus:border-brand-500" />
+            className="w-full pl-7 pr-3 py-1.5 text-sm border border-border rounded-md" />
         </div>
         {view === 'list' && (
           <select value={stage} onChange={e => setStage(e.target.value)}
-            className="px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-white">
+            className="px-2 py-1.5 text-sm border border-border rounded-md bg-white">
             <option value="">All stages</option>
             {OPPORTUNITY_STAGES.map(s => <option key={s} value={s}>{LABELS_STAGE[s]}</option>)}
           </select>
         )}
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="opportunities" />
-          <span className="text-[11.5px] text-ink-muted">{rows.length} opportunities</span>
+          <span className="text-xs text-ink-muted">{rows.length} opportunities</span>
         </div>
       </div>
 
@@ -162,7 +162,7 @@ export default function OpportunitiesPage() {
         <PipelineKanban rows={rows} onStageChange={handleStageChange} />
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="px-3 py-2 w-8">
@@ -210,7 +210,7 @@ export default function OpportunitiesPage() {
                     {r.next_action ? (
                       <span title={r.next_action}>
                         {r.next_action}
-                        {r.next_action_due && <span className="ml-1 text-[10px]">({formatDate(r.next_action_due)})</span>}
+                        {r.next_action_due && <span className="ml-1 text-2xs">({formatDate(r.next_action_due)})</span>}
                       </span>
                     ) : '—'}
                   </td>

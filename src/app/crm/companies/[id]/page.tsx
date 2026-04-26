@@ -96,7 +96,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/companies" className="hover:underline">← All companies</Link>
       </div>
       <PageHeader
@@ -142,7 +142,7 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {c.notes && (
-        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-[12.5px] whitespace-pre-wrap">{String(c.notes)}</div>
+        <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-sm whitespace-pre-wrap">{String(c.notes)}</div>
       )}
 
       <Section title={`Contacts (${data.contacts.length})`}>
@@ -209,8 +209,8 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
-      <div className="text-[13px]">{children}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{title}</div>
+      <div className="text-sm">{children}</div>
     </div>
   );
 }
@@ -218,17 +218,17 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="mb-5">
-      <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
+      <h3 className="text-sm uppercase tracking-wide font-semibold text-ink-muted mb-2">{title}</h3>
       {children}
     </div>
   );
 }
 
 function Table({ headers, rows }: { headers: string[]; rows: React.ReactNode[][] }) {
-  if (rows.length === 0) return <div className="text-[12px] text-ink-muted italic px-3 py-2">None</div>;
+  if (rows.length === 0) return <div className="text-sm text-ink-muted italic px-3 py-2">None</div>;
   return (
     <div className="border border-border rounded-md overflow-hidden bg-white">
-      <table className="w-full text-[12px]">
+      <table className="w-full text-sm">
         <thead className="bg-surface-alt text-ink-muted">
           <tr>{headers.map((h, i) => <th key={i} className="text-left px-3 py-1.5 font-medium">{h}</th>)}</tr>
         </thead>

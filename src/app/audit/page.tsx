@@ -95,7 +95,7 @@ function AuditContent() {
         {visible.length === 0 ? (
           <EmptyState icon={<FileSearchIcon size={22} />} title="No events match" description="Try loosening the filters." />
         ) : (
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt border-b border-divider text-ink-muted">
               <tr>
                 <Th>Time</Th>
@@ -110,9 +110,9 @@ function AuditContent() {
             <tbody>
               {visible.map(r => (
                 <tr key={r.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
-                  <td className="px-4 py-2.5 text-ink-muted whitespace-nowrap text-[11.5px]">{formatDateTime(r.created_at)}</td>
+                  <td className="px-4 py-2.5 text-ink-muted whitespace-nowrap text-xs">{formatDateTime(r.created_at)}</td>
                   <td className="px-4 py-2.5"><ActionPill action={r.action} /></td>
-                  <td className="px-4 py-2.5 text-ink-soft font-mono text-[11px]">{r.target_type}</td>
+                  <td className="px-4 py-2.5 text-ink-soft font-mono text-xs">{r.target_type}</td>
                   <td className="px-4 py-2.5 text-ink-soft">
                     {r.entity_name ? (
                       <Link href={`/entities/${r.entity_id}`} className="hover:text-brand-600 transition-colors">{r.entity_name}</Link>
@@ -121,7 +121,7 @@ function AuditContent() {
                   <td className="px-4 py-2.5 text-ink-soft">
                     {r.year && r.period ? <Link href={`/declarations/${r.declaration_id}`} className="hover:text-brand-600 transition-colors">{r.year} {r.period}</Link> : '—'}
                   </td>
-                  <td className="px-4 py-2.5 text-ink-soft font-mono text-[11px]">{r.field || '—'}</td>
+                  <td className="px-4 py-2.5 text-ink-soft font-mono text-xs">{r.field || '—'}</td>
                   <td className="px-4 py-2.5 text-ink-soft max-w-md"><ChangeView old={r.old_value} new_={r.new_value} /></td>
                 </tr>
               ))}
@@ -134,7 +134,7 @@ function AuditContent() {
 }
 
 function Th({ children }: { children?: React.ReactNode }) {
-  return <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">{children}</th>;
+  return <th className="px-4 py-2.5 text-left font-medium text-2xs uppercase tracking-[0.06em]">{children}</th>;
 }
 
 function ChangeView({ old: oldV, new_: newV }: { old: string | null; new_: string | null }) {
@@ -142,7 +142,7 @@ function ChangeView({ old: oldV, new_: newV }: { old: string | null; new_: strin
   if (!oldV) return <span className="text-success-700">+ {truncate(newV || '', 80)}</span>;
   if (!newV) return <span className="text-danger-700 line-through">- {truncate(oldV, 80)}</span>;
   return (
-    <span className="text-[11.5px]">
+    <span className="text-xs">
       <span className="text-danger-700 line-through">{truncate(oldV, 40)}</span>
       <span className="text-ink-faint mx-1.5">→</span>
       <span className="text-success-700">{truncate(newV, 40)}</span>

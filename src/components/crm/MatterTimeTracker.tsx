@@ -56,7 +56,7 @@ export function MatterTimeTracker({
   }
 
   if (entries === null) {
-    return <div className="text-[12px] text-ink-muted italic px-3 py-4">Loading time entries…</div>;
+    return <div className="text-sm text-ink-muted italic px-3 py-4">Loading time entries…</div>;
   }
 
   const totalHours = entries.reduce((s, e) => s + Number(e.hours), 0);
@@ -76,7 +76,7 @@ export function MatterTimeTracker({
   return (
     <div className="mb-5">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-[12px] uppercase tracking-wide font-semibold text-ink-muted">
+        <h3 className="text-sm uppercase tracking-wide font-semibold text-ink-muted">
           Time + WIP ({entries.length} {entries.length === 1 ? 'entry' : 'entries'})
         </h3>
         <Button variant="primary" size="sm" icon={<PlusIcon size={12} />} onClick={() => setLogOpen(true)}>
@@ -93,7 +93,7 @@ export function MatterTimeTracker({
 
       {budget && pctOfBudget !== null && (
         <div className="mb-3 border border-border rounded-md bg-white p-3">
-          <div className="flex items-baseline justify-between mb-1.5 text-[11.5px]">
+          <div className="flex items-baseline justify-between mb-1.5 text-xs">
             <span className="font-semibold text-ink">Budget burn</span>
             <span className={pctOfBudget >= 100 ? 'text-danger-700 font-semibold' : pctOfBudget >= 75 ? 'text-amber-700 font-semibold' : 'text-ink-muted'}>
               {formatEur(totalScope)} / {formatEur(budget)} ({pctOfBudget.toFixed(0)}%)
@@ -106,24 +106,24 @@ export function MatterTimeTracker({
             />
           </div>
           {pctOfBudget >= 75 && pctOfBudget < 100 && (
-            <p className="mt-1.5 text-[10.5px] text-amber-700">⚠ Approaching budget. Consider a client check-in.</p>
+            <p className="mt-1.5 text-2xs text-amber-700">⚠ Approaching budget. Consider a client check-in.</p>
           )}
           {pctOfBudget >= 100 && (
-            <p className="mt-1.5 text-[10.5px] text-danger-700">⛔ Budget exceeded. Discuss scope change with client.</p>
+            <p className="mt-1.5 text-2xs text-danger-700">⛔ Budget exceeded. Discuss scope change with client.</p>
           )}
           {capApproaching && (
-            <p className="mt-1 text-[10.5px] text-danger-700">⛔ Cap (€{capEur!.toLocaleString()}) is within 10%. Client re-approval required before proceeding.</p>
+            <p className="mt-1 text-2xs text-danger-700">⛔ Cap (€{capEur!.toLocaleString()}) is within 10%. Client re-approval required before proceeding.</p>
           )}
         </div>
       )}
 
       {entries.length === 0 ? (
-        <div className="text-[12px] text-ink-muted italic px-3 py-4 border border-border rounded-md bg-white">
+        <div className="text-sm text-ink-muted italic px-3 py-4 border border-border rounded-md bg-white">
           No time logged yet. Click &ldquo;Log time&rdquo; to start tracking.
         </div>
       ) : (
         <div className="border border-border rounded-md bg-white overflow-hidden">
-          <table className="w-full text-[12px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt text-ink-muted">
               <tr>
                 <th className="text-left px-3 py-1.5 font-medium">Date</th>
@@ -180,8 +180,8 @@ function Kpi({ label, value, tone }: { label: string; value: string; tone?: 'war
   const toneClass = tone === 'warning' ? 'text-amber-700' : 'text-ink';
   return (
     <div className="border border-border rounded-md bg-white px-3 py-2">
-      <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
-      <div className={`text-[15px] font-semibold tabular-nums ${toneClass}`}>{value}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
+      <div className={`text-base font-semibold tabular-nums ${toneClass}`}>{value}</div>
     </div>
   );
 }
@@ -233,30 +233,30 @@ function LogTimeModal({
       size="md"
       footer={
         <div className="flex items-center gap-2 justify-end">
-          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
+          <button onClick={onClose} disabled={saving} className="h-8 px-3 rounded-md border border-border text-sm text-ink-soft hover:bg-surface-alt disabled:opacity-40">Cancel</button>
           <Button variant="primary" size="sm" onClick={submit} loading={saving}>Log entry</Button>
         </div>
       }
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <Field label="Date">
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md" />
+          <input type="date" value={date} onChange={e => setDate(e.target.value)} className="w-full h-9 px-2.5 text-sm border border-border rounded-md" />
         </Field>
         <Field label="Hours">
-          <input type="number" step="0.25" value={hours} onChange={e => setHours(e.target.value)} placeholder="1.5" className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums" />
+          <input type="number" step="0.25" value={hours} onChange={e => setHours(e.target.value)} placeholder="1.5" className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums" />
         </Field>
         <Field label={`Rate (€/h, default ${defaultRateEur ?? '—'})`}>
-          <input type="number" step="0.01" value={rate} onChange={e => setRate(e.target.value)} placeholder={defaultRateEur ? String(defaultRateEur) : '400'} className="w-full h-9 px-2.5 text-[13px] border border-border rounded-md tabular-nums" />
+          <input type="number" step="0.01" value={rate} onChange={e => setRate(e.target.value)} placeholder={defaultRateEur ? String(defaultRateEur) : '400'} className="w-full h-9 px-2.5 text-sm border border-border rounded-md tabular-nums" />
         </Field>
         <Field label="Billable">
-          <label className="inline-flex items-center gap-2 h-9 text-[13px]">
+          <label className="inline-flex items-center gap-2 h-9 text-sm">
             <input type="checkbox" checked={billable} onChange={e => setBillable(e.target.checked)} className="h-4 w-4 accent-brand-500" />
             <span className="text-ink-soft">Yes, count against the client&apos;s bill</span>
           </label>
         </Field>
         <div className="md:col-span-2">
           <Field label="Description">
-            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="What did you work on?" className="w-full px-2.5 py-2 text-[13px] border border-border rounded-md resize-y" />
+            <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="What did you work on?" className="w-full px-2.5 py-2 text-sm border border-border rounded-md resize-y" />
           </Field>
         </div>
       </div>
@@ -267,7 +267,7 @@ function LogTimeModal({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</label>
+      <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">{label}</label>
       {children}
     </div>
   );

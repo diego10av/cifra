@@ -144,11 +144,11 @@ export function DeadlineRuleEditor({
       subtitle="Editing this rule can re-date every open filing of this type."
       size="lg"
     >
-      <div className="space-y-3 text-[12.5px]">
+      <div className="space-y-3 text-sm">
         {error && (
           <div className="rounded-md border border-danger-400 bg-danger-50/50 p-2.5 flex items-start gap-2">
             <AlertTriangleIcon size={14} className="mt-0.5 text-danger-700 shrink-0" />
-            <div className="text-[12px] text-danger-800">{error}</div>
+            <div className="text-sm text-danger-800">{error}</div>
           </div>
         )}
 
@@ -229,20 +229,20 @@ export function DeadlineRuleEditor({
             </label>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-border">
-              <button onClick={onClose} className="px-3 py-2 text-[12.5px] rounded-md border border-border hover:bg-surface-alt">
+              <button onClick={onClose} className="px-3 py-2 text-sm rounded-md border border-border hover:bg-surface-alt">
                 Cancel
               </button>
               <button
                 onClick={saveWithoutPropagation}
                 disabled={busy}
-                className="px-3 py-2 text-[12.5px] rounded-md border border-border hover:bg-surface-alt disabled:opacity-50"
+                className="px-3 py-2 text-sm rounded-md border border-border hover:bg-surface-alt disabled:opacity-50"
               >
                 Save (no propagation)
               </button>
               <button
                 onClick={goToConfirm}
                 disabled={busy || rule.open_filings_count === 0}
-                className="px-3 py-2 text-[12.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+                className="px-3 py-2 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
               >
                 Save + propagate to {rule.open_filings_count} filings
                 <ArrowRightIcon size={11} className="inline ml-1" />
@@ -259,7 +259,7 @@ export function DeadlineRuleEditor({
               waived filings keep their historic deadline for audit.
             </p>
             <div className="rounded-md border border-border overflow-hidden max-h-[320px] overflow-y-auto">
-              <table className="w-full text-[11.5px]">
+              <table className="w-full text-xs">
                 <thead className="bg-surface-alt text-ink-muted">
                   <tr className="text-left">
                     <th className="px-2 py-1 font-medium">Entity</th>
@@ -286,13 +286,13 @@ export function DeadlineRuleEditor({
               </table>
             </div>
             <div className="flex justify-end gap-2 pt-2 border-t border-border">
-              <button onClick={() => setStep('edit')} className="px-3 py-2 text-[12.5px] rounded-md border border-border hover:bg-surface-alt">
+              <button onClick={() => setStep('edit')} className="px-3 py-2 text-sm rounded-md border border-border hover:bg-surface-alt">
                 Back
               </button>
               <button
                 onClick={() => doSave(true)}
                 disabled={busy}
-                className="px-3 py-2 text-[12.5px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+                className="px-3 py-2 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
               >
                 {busy ? 'Updating…' : 'Confirm — update rule + filings'}
               </button>
@@ -305,14 +305,14 @@ export function DeadlineRuleEditor({
             <CheckIcon size={14} className="mt-0.5 text-green-700 shrink-0" />
             <div>
               <div className="font-semibold text-green-800">Rule saved.</div>
-              <div className="text-[11.5px] text-green-700 mt-0.5">
+              <div className="text-xs text-green-700 mt-0.5">
                 {propagated !== null && propagated > 0
                   ? `${propagated} open filings re-dated.`
                   : 'No open filings affected.'}
               </div>
               <button
                 onClick={onClose}
-                className="mt-2 px-3 py-1.5 text-[12px] rounded-md bg-brand-500 text-white hover:bg-brand-600"
+                className="mt-2 px-3 py-1.5 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600"
               >
                 Done
               </button>
@@ -358,7 +358,7 @@ function NumberField({
         max={max}
         className="mt-1 w-full px-2 py-1.5 border border-border rounded-md bg-surface tabular-nums"
       />
-      {hint && <span className="mt-0.5 block text-[11px] text-ink-muted">{hint}</span>}
+      {hint && <span className="mt-0.5 block text-xs text-ink-muted">{hint}</span>}
     </label>
   );
 }

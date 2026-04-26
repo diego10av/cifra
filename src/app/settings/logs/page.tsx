@@ -76,20 +76,20 @@ export default function LogsAdminPage() {
     <div>
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <div className="text-[11px] text-ink-faint mb-1">
+          <div className="text-xs text-ink-faint mb-1">
             <Link href="/settings" className="hover:underline">Settings</Link> ›
           </div>
-          <h1 className="text-[20px] font-semibold tracking-tight flex items-center gap-2">
+          <h1 className="text-lg font-semibold tracking-tight flex items-center gap-2">
             <ActivityIcon size={18} className="text-brand-500" /> Application logs
           </h1>
-          <p className="text-[12.5px] text-ink-muted mt-1 max-w-xl">
+          <p className="text-sm text-ink-muted mt-1 max-w-xl">
             Error + warn entries captured by the structured logger.
             Retention is not automated — trim the table manually when needed.
           </p>
         </div>
         <button
           onClick={load}
-          className="h-8 px-3 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
+          className="h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt inline-flex items-center gap-1.5"
         >
           <RefreshCwIcon size={13} /> Refresh
         </button>
@@ -101,9 +101,9 @@ export default function LogsAdminPage() {
             <AlertTriangleIcon size={16} />
           </div>
           <div>
-            <h3 className="text-[14px] font-semibold text-ink">Migration not applied</h3>
-            <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
-              Apply <code className="text-[11.5px] bg-surface-alt px-1 py-0.5 rounded">migrations/003_app_logs.sql</code> to
+            <h3 className="text-base font-semibold text-ink">Migration not applied</h3>
+            <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+              Apply <code className="text-xs bg-surface-alt px-1 py-0.5 rounded">migrations/003_app_logs.sql</code> to
               start persisting logs. Until then, errors live only in the Vercel log drawer
               (fine for dev, limiting for production triage).
             </p>
@@ -112,7 +112,7 @@ export default function LogsAdminPage() {
       )}
 
       {error && (
-        <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+        <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
           {error}
         </div>
       )}
@@ -141,8 +141,8 @@ export default function LogsAdminPage() {
           <div className="w-10 h-10 mx-auto rounded-lg bg-emerald-50 text-emerald-700 inline-flex items-center justify-center mb-3">
             <InfoIcon size={16} />
           </div>
-          <div className="text-[13px] font-medium text-ink">All quiet</div>
-          <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-sm mx-auto">
+          <div className="text-sm font-medium text-ink">All quiet</div>
+          <div className="text-xs text-ink-muted mt-1.5 max-w-sm mx-auto">
             No error or warning records in the current view. Good sign.
           </div>
         </div>
@@ -178,26 +178,26 @@ function LogItem({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               {log.module && (
-                <span className="text-[10.5px] font-mono text-brand-700 bg-brand-50 border border-brand-100 rounded px-1.5 py-0.5">
+                <span className="text-2xs font-mono text-brand-700 bg-brand-50 border border-brand-100 rounded px-1.5 py-0.5">
                   {log.module}
                 </span>
               )}
-              <span className="text-[10.5px] text-ink-faint">
+              <span className="text-2xs text-ink-faint">
                 {when.toLocaleString('en-GB', {
                   day: '2-digit', month: 'short',
                   hour: '2-digit', minute: '2-digit', second: '2-digit',
                 })}
               </span>
             </div>
-            <div className="text-[13px] text-ink mt-1 break-words">{log.msg}</div>
+            <div className="text-sm text-ink mt-1 break-words">{log.msg}</div>
             {log.err_message && (
-              <div className="text-[12px] text-danger-700 mt-1 font-mono break-words">
+              <div className="text-sm text-danger-700 mt-1 font-mono break-words">
                 {log.err_name ? `${log.err_name}: ` : ''}{log.err_message}
               </div>
             )}
           </div>
           {(hasFields || hasStack) && (
-            <span className="text-[10.5px] text-ink-muted shrink-0 mt-1">
+            <span className="text-2xs text-ink-muted shrink-0 mt-1">
               {expanded ? 'hide' : 'expand'}
             </span>
           )}
@@ -208,16 +208,16 @@ function LogItem({
         <div className="mt-2 pl-7 space-y-2">
           {hasFields && (
             <div>
-              <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5">Fields</div>
-              <pre className="text-[11px] font-mono bg-surface-alt border border-border rounded px-3 py-2 overflow-x-auto whitespace-pre-wrap break-words">
+              <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-0.5">Fields</div>
+              <pre className="text-xs font-mono bg-surface-alt border border-border rounded px-3 py-2 overflow-x-auto whitespace-pre-wrap break-words">
                 {JSON.stringify(log.fields, null, 2)}
               </pre>
             </div>
           )}
           {hasStack && (
             <div>
-              <div className="text-[10px] uppercase tracking-wide font-semibold text-ink-muted mb-0.5">Stack</div>
-              <pre className="text-[11px] font-mono bg-surface-alt border border-border rounded px-3 py-2 overflow-x-auto whitespace-pre-wrap break-words">
+              <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-0.5">Stack</div>
+              <pre className="text-xs font-mono bg-surface-alt border border-border rounded px-3 py-2 overflow-x-auto whitespace-pre-wrap break-words">
                 {log.err_stack}
               </pre>
             </div>
@@ -236,7 +236,7 @@ function LevelBadge({ level }: { level: LogRow['level'] }) {
     error: 'bg-danger-50 text-danger-700 border-danger-200',
   };
   return (
-    <span className={`inline-flex items-center gap-1 h-5 px-1.5 rounded text-[10px] font-semibold uppercase tracking-wide border shrink-0 ${colours[level]}`}>
+    <span className={`inline-flex items-center gap-1 h-5 px-1.5 rounded text-2xs font-semibold uppercase tracking-wide border shrink-0 ${colours[level]}`}>
       {level === 'error' && <XCircleIcon size={10} />}
       {level}
     </span>
@@ -253,8 +253,8 @@ function Counter({
   };
   return (
     <div className={`rounded-lg border p-3 ${colours[tone]}`}>
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold opacity-80">{label}</div>
-      <div className="text-[22px] font-bold tabular-nums mt-0.5">{count}</div>
+      <div className="text-2xs uppercase tracking-wide font-semibold opacity-80">{label}</div>
+      <div className="text-xl font-bold tabular-nums mt-0.5">{count}</div>
     </div>
   );
 }
@@ -270,7 +270,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`h-7 px-3 rounded border text-[11.5px] font-medium hover:border-gray-400 transition-colors cursor-pointer ${colours[tone]}`}
+      className={`h-7 px-3 rounded border text-xs font-medium hover:border-gray-400 transition-colors cursor-pointer ${colours[tone]}`}
     >
       {label}
     </button>

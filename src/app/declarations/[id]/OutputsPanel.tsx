@@ -51,7 +51,7 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
 
   if (loading && !data) {
     return (
-      <div className="bg-surface border border-border rounded-lg p-4 mb-8 flex items-center gap-2 text-[12px] text-ink-muted">
+      <div className="bg-surface border border-border rounded-lg p-4 mb-8 flex items-center gap-2 text-sm text-ink-muted">
         <Spinner small /> Computing outputs…
       </div>
     );
@@ -59,7 +59,7 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
 
   if (error) {
     return (
-      <div className="bg-surface border border-red-200 rounded-lg p-4 mb-8 text-[12px] text-red-700">
+      <div className="bg-surface border border-red-200 rounded-lg p-4 mb-8 text-sm text-red-700">
         Error computing outputs: {error}
       </div>
     );
@@ -83,8 +83,8 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
     <div className="bg-surface border border-border rounded-lg mb-8 overflow-hidden">
       <div className="px-4 py-3 border-b border-border bg-surface-alt flex items-center justify-between">
         <div>
-          <h3 className="text-[13px] font-semibold text-ink">Outputs</h3>
-          <div className="text-[11px] text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
+          <h3 className="text-sm font-semibold text-ink">Outputs</h3>
+          <div className="text-xs text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
             <span>{data.ecdf.regime === 'simplified' ? 'Simplified return' : 'Ordinary return'}</span>
             <span className="text-ink-faint">·</span>
             <span>{data.ecdf.year} {data.ecdf.period}</span>
@@ -94,7 +94,7 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
               <>
                 <span className="text-ink-faint">·</span>
                 <span
-                  className="inline-flex items-center gap-1 text-[10px] font-mono bg-surface-alt text-ink-soft px-1.5 py-0.5 rounded border border-border"
+                  className="inline-flex items-center gap-1 text-2xs font-mono bg-surface-alt text-ink-soft px-1.5 py-0.5 rounded border border-border"
                   title={`${data.cost.calls} Anthropic API call${data.cost.calls === 1 ? '' : 's'} for this declaration`}
                 >
                   €{data.cost.eur.toFixed(data.cost.eur < 1 ? 4 : 2)} API
@@ -106,39 +106,39 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
         <div className="flex items-center gap-2">
           <button
             onClick={download('excel')}
-            className="h-8 px-3 rounded bg-brand-500 text-white text-[11px] font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <DownloadIcon /> Excel
           </button>
           <button
             onClick={download('pdf')}
-            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <DownloadIcon /> Front page PDF
           </button>
           <button
             onClick={download('xml')}
-            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <DownloadIcon /> eCDF XML
           </button>
           <button
             onClick={download('ecsl?format=xlsx')}
-            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
             title="EC Sales List (état récapitulatif) — only meaningful if the entity supplies B2B services to EU customers"
           >
             <DownloadIcon /> ECSL
           </button>
           <button
             onClick={() => setEmailOpen(true)}
-            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
+            className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Draft email
           </button>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="h-8 px-3 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer"
+            className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer"
           >
             {expanded ? 'Hide boxes' : 'All boxes'}
           </button>
@@ -169,49 +169,49 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
         {/* Payment instructions */}
         {data.payment ? (
           <div className="mb-4">
-            <h4 className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-2">Payment instructions</h4>
+            <h4 className="text-xs uppercase tracking-wide font-semibold text-ink-muted mb-2">Payment instructions</h4>
             <div className="bg-surface-alt border border-border rounded-md p-3">
               <div className="flex items-center justify-between gap-3 mb-2">
-                <div className="font-mono text-[13px] font-semibold text-ink tracking-tight break-all">
+                <div className="font-mono text-sm font-semibold text-ink tracking-tight break-all">
                   {data.payment.reference}
                 </div>
                 <button
                   onClick={copyReference}
-                  className="shrink-0 h-7 px-2.5 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1"
+                  className="shrink-0 h-7 px-2.5 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1"
                 >
                   {copiedRef ? '✓ Copied' : 'Copy reference'}
                 </button>
               </div>
-              <div className="grid grid-cols-3 gap-4 text-[11.5px]">
+              <div className="grid grid-cols-3 gap-4 text-xs">
                 <div>
-                  <div className="text-ink-muted uppercase tracking-wide text-[10px] font-semibold">Beneficiary</div>
+                  <div className="text-ink-muted uppercase tracking-wide text-2xs font-semibold">Beneficiary</div>
                   <div className="text-ink font-medium mt-0.5">{data.payment.beneficiary}</div>
                 </div>
                 <div>
-                  <div className="text-ink-muted uppercase tracking-wide text-[10px] font-semibold">IBAN</div>
+                  <div className="text-ink-muted uppercase tracking-wide text-2xs font-semibold">IBAN</div>
                   <div className="text-ink font-mono mt-0.5">{data.payment.iban}</div>
                 </div>
                 <div>
-                  <div className="text-ink-muted uppercase tracking-wide text-[10px] font-semibold">BIC</div>
+                  <div className="text-ink-muted uppercase tracking-wide text-2xs font-semibold">BIC</div>
                   <div className="text-ink font-mono mt-0.5">{data.payment.bic}</div>
                 </div>
               </div>
             </div>
           </div>
         ) : data.payment_error ? (
-          <div className="mb-4 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          <div className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
             Payment reference unavailable — {data.payment_error}. Add the matricule on the Entity page.
           </div>
         ) : null}
 
         {/* Warnings */}
         {data.ecdf.warnings.length > 0 && (
-          <div className="mb-4 text-[11.5px] text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
+          <div className="mb-4 text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2">
             {data.ecdf.warnings.map((w, i) => <div key={i}>⚠ {w}</div>)}
           </div>
         )}
         {data.ecdf.manual_boxes_pending.length > 0 && (
-          <div className="mb-4 text-[11.5px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+          <div className="mb-4 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
             Manual input required for box{data.ecdf.manual_boxes_pending.length === 1 ? '' : 'es'}{' '}
             {data.ecdf.manual_boxes_pending.join(', ')} (ordinary-regime pro-rata).
           </div>
@@ -222,17 +222,17 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
           <div className="space-y-4 mt-4">
             {sections.map(section => (
               <div key={section}>
-                <h4 className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Section {section}</h4>
+                <h4 className="text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1.5">Section {section}</h4>
                 <div className="border border-border rounded-md overflow-hidden">
-                  <table className="w-full text-[12px]">
+                  <table className="w-full text-sm">
                     <tbody>
                       {boxesBySection[section]!.map((b, i) => (
                         <tr key={b.box} className={`border-b border-divider last:border-0 ${i % 2 === 1 ? 'bg-surface-alt/60' : ''}`}>
                           <td className="px-3 py-1.5 font-mono text-ink-muted w-14">{b.box}</td>
                           <td className="px-3 py-1.5 text-ink-soft">
                             {b.label}
-                            {b.manual && <span className="ml-2 text-[10px] text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 uppercase tracking-wide font-semibold">manual</span>}
-                            {b.formula && <span className="ml-2 text-[10px] text-ink-faint font-mono">= {b.formula}</span>}
+                            {b.manual && <span className="ml-2 text-2xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 uppercase tracking-wide font-semibold">manual</span>}
+                            {b.formula && <span className="ml-2 text-2xs text-ink-faint font-mono">= {b.formula}</span>}
                           </td>
                           <td className="px-3 py-1.5 text-right font-mono tabular-nums text-ink w-32">
                             {fmtEUR(b.value)}

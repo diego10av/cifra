@@ -210,7 +210,7 @@ export default function DedupePage() {
 
   return (
     <div>
-      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink mb-2">
+      <Link href="/tax-ops/settings" className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink mb-2">
         <ArrowLeftIcon size={12} /> Back to settings
       </Link>
 
@@ -221,7 +221,7 @@ export default function DedupePage() {
 
       <div className="rounded-md border border-border bg-surface px-4 py-3 mb-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <label className="inline-flex items-center gap-2 text-[12.5px]">
+          <label className="inline-flex items-center gap-2 text-sm">
             <span className="text-ink-muted">Similarity threshold:</span>
             <input
               type="range"
@@ -238,7 +238,7 @@ export default function DedupePage() {
             type="button"
             onClick={() => void load()}
             disabled={loading}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt disabled:opacity-50"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border hover:bg-surface-alt disabled:opacity-50"
           >
             <RefreshCwIcon size={12} /> Re-scan
           </button>
@@ -246,7 +246,7 @@ export default function DedupePage() {
             <button
               type="button"
               onClick={restoreIgnored}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border hover:bg-surface-alt"
             >
               Restore {ignored.size} skipped
             </button>
@@ -255,17 +255,17 @@ export default function DedupePage() {
             <button
               type="button"
               onClick={() => setBulkOpen(true)}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md bg-brand-50 border border-brand-300 text-brand-700 hover:bg-brand-100"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md bg-brand-50 border border-brand-300 text-brand-700 hover:bg-brand-100"
               title="Merge all clusters whose members are identical after normalisation (confidence 100%)"
             >
               <ZapIcon size={12} /> Auto-merge exact matches ({exactClusters.length})
             </button>
           )}
-          <div className="ml-auto text-[11.5px] text-ink-muted">
+          <div className="ml-auto text-xs text-ink-muted">
             {data && `${data.total_entities_scanned} entities scanned · ${visibleClusters.length} cluster${visibleClusters.length === 1 ? '' : 's'}`}
           </div>
         </div>
-        <p className="mt-2 text-[11.5px] text-ink-soft">
+        <p className="mt-2 text-xs text-ink-soft">
           Lower threshold → more clusters but more false positives. Default 0.85 catches
           punctuation + short legal-suffix variations (&quot;SCA;&quot; vs &quot;S.C.A.&quot;). Drop to 0.75
           to catch bigger spelling variations.
@@ -290,17 +290,17 @@ export default function DedupePage() {
           return (
             <div key={key} className="rounded-md border border-border bg-surface">
               <div className="px-4 py-2 border-b border-border bg-surface-alt/50 flex items-center gap-2">
-                <span className="text-[12px] text-ink font-medium">
+                <span className="text-sm text-ink font-medium">
                   {cluster.members.length} duplicates
                 </span>
-                <span className="text-[11px] text-ink-muted">
+                <span className="text-xs text-ink-muted">
                   confidence <span className="tabular-nums">{(cluster.confidence * 100).toFixed(0)}%</span>
                 </span>
                 <div className="ml-auto flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => skipCluster(cluster)}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] rounded border border-border text-ink-muted hover:text-ink hover:bg-surface-alt"
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded border border-border text-ink-muted hover:text-ink hover:bg-surface-alt"
                     title="Hide this cluster — it will reappear if you clear 'skipped'."
                   >
                     <XIcon size={11} /> Skip
@@ -309,13 +309,13 @@ export default function DedupePage() {
                     type="button"
                     disabled={!canonicalId || isMerging}
                     onClick={() => void mergeCluster(cluster)}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
                   >
                     <MergeIcon size={12} /> {isMerging ? 'Merging…' : 'Merge group'}
                   </button>
                 </div>
               </div>
-              <table className="w-full text-[12.5px]">
+              <table className="w-full text-sm">
                 <thead className="text-ink-muted bg-surface-alt/30">
                   <tr className="text-left">
                     <th className="px-3 py-1.5 font-medium w-8"></th>
@@ -350,7 +350,7 @@ export default function DedupePage() {
                         </Link>
                       </td>
                       <td className="px-3 py-1.5 text-ink-soft">{m.client_group_name ?? '—'}</td>
-                      <td className="px-3 py-1.5 font-mono text-ink-muted text-[11.5px]">{m.vat_number ?? '—'}</td>
+                      <td className="px-3 py-1.5 font-mono text-ink-muted text-xs">{m.vat_number ?? '—'}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{m.obligations_count}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums">{m.filings_count}</td>
                       <td className="px-3 py-1.5 text-right tabular-nums text-ink-muted">{m.latest_filing_year ?? '—'}</td>
@@ -369,7 +369,7 @@ export default function DedupePage() {
           <div className="relative bg-surface border border-border rounded-lg shadow-xl max-w-2xl w-full p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2">
               <ZapIcon size={14} className="text-brand-500" />
-              <h2 className="text-[14px] font-semibold text-ink flex-1">Auto-merge exact matches</h2>
+              <h2 className="text-base font-semibold text-ink flex-1">Auto-merge exact matches</h2>
               <button
                 type="button"
                 onClick={() => setBulkOpen(false)}
@@ -379,14 +379,14 @@ export default function DedupePage() {
                 <XIcon size={14} />
               </button>
             </div>
-            <p className="text-[12px] text-ink-muted">
+            <p className="text-sm text-ink-muted">
               These {exactClusters.length} cluster{exactClusters.length === 1 ? '' : 's'} have members whose normalised names are
               identical — legal-suffix and punctuation variants of the same entity. The canonical
               pick defaults to the entity with the most filings history. You can review the list
               below; Apply merges everything at once.
             </p>
             <div className="max-h-[360px] overflow-auto border border-border rounded">
-              <table className="w-full text-[11.5px]">
+              <table className="w-full text-xs">
                 <thead className="bg-surface-alt text-ink-muted sticky top-0">
                   <tr className="text-left">
                     <th className="px-2 py-1 font-medium">Canonical (kept)</th>
@@ -412,7 +412,7 @@ export default function DedupePage() {
               </table>
             </div>
             {bulkProgress && (
-              <div className="text-[11.5px] text-ink">
+              <div className="text-xs text-ink">
                 Merging {bulkProgress.done} / {bulkProgress.total}{bulkProgress.failed > 0 ? ` · ${bulkProgress.failed} failed` : ''}…
               </div>
             )}
@@ -420,7 +420,7 @@ export default function DedupePage() {
               <button
                 type="button"
                 onClick={() => setBulkOpen(false)}
-                className="px-3 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+                className="px-3 py-1 text-sm rounded-md border border-border hover:bg-surface-alt"
               >
                 Cancel
               </button>
@@ -428,7 +428,7 @@ export default function DedupePage() {
                 type="button"
                 onClick={() => void runBulkMerge()}
                 disabled={!!bulkProgress}
-                className="inline-flex items-center gap-1 px-3 py-1 text-[12px] rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
+                className="inline-flex items-center gap-1 px-3 py-1 text-sm rounded-md bg-brand-500 hover:bg-brand-600 text-white disabled:opacity-50"
               >
                 <ZapIcon size={11} /> {bulkProgress ? 'Merging…' : `Apply ${exactClusters.length} merge${exactClusters.length === 1 ? '' : 's'}`}
               </button>

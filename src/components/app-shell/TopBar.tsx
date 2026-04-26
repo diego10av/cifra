@@ -83,7 +83,7 @@ function AskCifraButton({ onClick, active }: { onClick?: () => void; active: boo
       aria-label="Open cifra assistant"
       title="Ask cifra (AI assistant)"
       className={[
-        'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-[12px] font-medium',
+        'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-sm font-medium',
         'transition-colors duration-150',
         active
           ? 'bg-brand-50 text-brand-700 border border-brand-100'

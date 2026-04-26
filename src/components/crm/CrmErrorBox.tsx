@@ -19,7 +19,7 @@ export function CrmErrorBox({
   return (
     <div
       className={`border border-danger-300 bg-danger-50 rounded-md flex items-start gap-3 ${
-        compact ? 'p-2.5 text-[11.5px]' : 'p-3 text-[12.5px]'
+        compact ? 'p-2.5 text-xs' : 'p-3 text-sm'
       }`}
       role="alert"
     >
@@ -31,7 +31,7 @@ export function CrmErrorBox({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-danger-400 text-[11.5px] font-semibold text-danger-800 hover:bg-danger-100"
+          className="shrink-0 inline-flex items-center gap-1 h-7 px-2.5 rounded-md border border-danger-400 text-xs font-semibold text-danger-800 hover:bg-danger-100"
         >
           <RefreshCwIcon size={11} />
           Retry

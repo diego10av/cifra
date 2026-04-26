@@ -92,12 +92,12 @@ function SettingsCard({
     }`}>
       <Icon size={18} className="shrink-0 mt-0.5 text-ink-soft" />
       <div className="flex-1 min-w-0">
-        <div className="text-[13px] font-semibold text-ink flex items-center gap-1.5">
+        <div className="text-sm font-semibold text-ink flex items-center gap-1.5">
           {title}
           {!disabled && <ChevronRightIcon size={12} className="text-ink-faint" />}
-          {disabled && <span className="text-[10.5px] font-normal text-ink-muted px-1.5 py-0.5 bg-surface-alt rounded">Soon</span>}
+          {disabled && <span className="text-2xs font-normal text-ink-muted px-1.5 py-0.5 bg-surface-alt rounded">Soon</span>}
         </div>
-        <p className="text-[12px] text-ink-muted mt-1">{description}</p>
+        <p className="text-sm text-ink-muted mt-1">{description}</p>
       </div>
     </div>
   );

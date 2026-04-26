@@ -173,7 +173,7 @@ function EntitiesContent() {
             action={
               <Link
                 href="/clients/new"
-                className="h-9 px-4 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
+                className="h-9 px-4 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
               >
                 <PlusIcon size={13} /> Create first client
               </Link>
@@ -191,7 +191,7 @@ function EntitiesContent() {
               value={list.q}
               onChange={(e) => list.setQ(e.target.value)}
               placeholder="Search name, client, VAT, matricule"
-              className="w-full h-8 pl-8 pr-3 text-[12.5px] border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full h-8 pl-8 pr-3 text-sm border border-border-strong rounded-md bg-surface"
             />
           </div>
           <FilterChip active={list.filter === 'all'}        onClick={() => list.setFilter('all')}        label={`All (${entities.length})`} />
@@ -228,7 +228,7 @@ function EntitiesContent() {
       {/* List */}
       {filtered.length > 0 && (
         <Card className="overflow-hidden">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt border-b border-divider text-ink-muted">
               <tr>
                 <SortableTh active={list.sort === 'client'} dir={list.dir} onClick={() => list.toggleSort('client')}>Client</SortableTh>
@@ -268,7 +268,7 @@ function EntitiesContent() {
                       <Badge tone={entity.regime === 'simplified' ? 'info' : 'violet'}>{entity.regime}</Badge>
                     </td>
                     <td className="px-4 py-3 text-ink-soft capitalize">{entity.frequency}</td>
-                    <td className="px-4 py-3 text-ink-soft font-mono text-[11.5px]">
+                    <td className="px-4 py-3 text-ink-soft font-mono text-xs">
                       {entity.vat_number || <span className="text-ink-faint">—</span>}
                     </td>
                     <td className="px-4 py-3">
@@ -317,7 +317,7 @@ function EntitiesContent() {
 // ───────────────────────────── subcomponents ─────────────────────────────
 
 function Th({ children }: { children?: React.ReactNode }) {
-  return <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">{children}</th>;
+  return <th className="px-4 py-2.5 text-left font-medium text-2xs uppercase tracking-[0.06em]">{children}</th>;
 }
 
 function SortableTh({
@@ -329,7 +329,7 @@ function SortableTh({
   onClick: () => void;
 }) {
   return (
-    <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">
+    <th className="px-4 py-2.5 text-left font-medium text-2xs uppercase tracking-[0.06em]">
       <button
         onClick={onClick}
         className={`inline-flex items-center gap-1 ${active ? 'text-ink' : 'text-ink-muted hover:text-ink'}`}
@@ -362,7 +362,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[12.5px] font-medium transition-all ${cls}`}
+      className={`inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-sm font-medium transition-all ${cls}`}
     >
       {label}
     </button>

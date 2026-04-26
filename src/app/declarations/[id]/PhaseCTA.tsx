@@ -73,7 +73,7 @@ export function PhaseCTA(p: PhaseCTAProps) {
       : p.status === 'classifying' ? 'Classifying lines with rules…'
       : 'Processing…';
     return (
-      <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-violet-200 bg-violet-50 text-violet-800 text-[13px] font-medium">
+      <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-violet-200 bg-violet-50 text-violet-800 text-sm font-medium">
         <Loader2Icon size={14} className="animate-spin" />
         {label}
       </div>
@@ -134,7 +134,7 @@ export function PhaseCTA(p: PhaseCTAProps) {
     if (p.viewerIsSubmitter) {
       return (
         <CTAGroup onReopen={p.onReopen} reopenLabel="Recall submission">
-          <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-[13px] font-medium">
+          <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-sm font-medium">
             <SendIcon size={14} />
             Submitted — awaiting partner review
           </div>
@@ -181,7 +181,7 @@ export function PhaseCTA(p: PhaseCTAProps) {
   if (p.status === 'paid') {
     return (
       <CTAGroup onReopen={p.onReopen} reopenLabel="Un-file &amp; reopen">
-        <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-900 text-[13px] font-medium">
+        <div className="inline-flex items-center gap-2 h-9 px-4 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-900 text-sm font-medium">
           <CheckCircle2Icon size={14} />
           Cycle complete
         </div>
@@ -212,7 +212,7 @@ function CTAGroup({
       {children}
       <button
         onClick={onReopen}
-        className="inline-flex items-center gap-1 h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 text-[13px] font-medium transition-colors"
+        className="inline-flex items-center gap-1 h-9 px-3 rounded-md text-slate-600 hover:bg-slate-100 text-sm font-medium transition-colors"
         title="Reopen this declaration — status returns to Review and lines become editable."
       >
         <ArrowLeftIcon size={14} />
@@ -280,12 +280,12 @@ function PrimaryButton({
       onClick={onClick}
       disabled={disabled}
       title={tooltip}
-      className="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-brand-500 text-white text-[13px] font-semibold hover:bg-brand-600 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+      className="inline-flex items-center gap-2 h-9 px-4 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {icon}
       <span className="flex flex-col items-start leading-tight">
         <span>{children}</span>
-        {subtitle && <span className="text-[10.5px] opacity-90 font-normal">{subtitle}</span>}
+        {subtitle && <span className="text-2xs opacity-90 font-normal">{subtitle}</span>}
       </span>
     </button>
   );

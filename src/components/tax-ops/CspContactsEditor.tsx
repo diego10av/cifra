@@ -46,12 +46,12 @@ export function CspContactsEditor({
   if (local.length === 0) {
     return (
       <div className="flex items-center gap-2">
-        <span className="text-[12px] text-ink-muted italic">
+        <span className="text-sm text-ink-muted italic">
           {fallbackLabel ?? 'No contacts set'}
         </span>
         <button
           onClick={add}
-          className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] border border-border rounded-md hover:bg-surface-alt"
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-border rounded-md hover:bg-surface-alt"
         >
           <PlusIcon size={11} /> Add
         </button>
@@ -67,19 +67,19 @@ export function CspContactsEditor({
             value={c.name}
             onChange={e => update(i, { name: e.target.value })}
             placeholder="Name"
-            className="flex-1 min-w-0 px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+            className="flex-1 min-w-0 px-2 py-1 text-sm border border-border rounded-md bg-surface"
           />
           <input
             value={c.email ?? ''}
             onChange={e => update(i, { email: e.target.value })}
             placeholder="email@example.com"
-            className="flex-[1.5] min-w-0 px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+            className="flex-[1.5] min-w-0 px-2 py-1 text-sm border border-border rounded-md bg-surface"
           />
           <input
             value={c.role ?? ''}
             onChange={e => update(i, { role: e.target.value })}
             placeholder="Role"
-            className="w-[110px] px-2 py-1 text-[12px] border border-border rounded-md bg-surface"
+            className="w-[110px] px-2 py-1 text-sm border border-border rounded-md bg-surface"
           />
           <button
             onClick={() => remove(i)}
@@ -92,7 +92,7 @@ export function CspContactsEditor({
       ))}
       <button
         onClick={add}
-        className="inline-flex items-center gap-1 px-2 py-1 text-[11.5px] text-ink-muted hover:text-ink"
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs text-ink-muted hover:text-ink"
       >
         <PlusIcon size={11} /> Add contact
       </button>

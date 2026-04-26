@@ -146,7 +146,7 @@ export function InboxButton() {
         {badge > 0 && (
           <span
             className={[
-              'absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full text-[9.5px] font-bold',
+              'absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full text-2xs font-bold',
               'inline-flex items-center justify-center tabular-nums',
               counts && counts.critical > 0
                 ? 'bg-danger-500 text-white'
@@ -190,8 +190,8 @@ function InboxDropdown({
       {/* Header */}
       <div className="px-4 py-3 border-b border-divider flex items-center justify-between bg-surface-alt/40">
         <div>
-          <h3 className="text-[13px] font-semibold text-ink">Inbox</h3>
-          <div className="text-[11px] text-ink-muted mt-0.5">
+          <h3 className="text-sm font-semibold text-ink">Inbox</h3>
+          <div className="text-xs text-ink-muted mt-0.5">
             {counts && counts.total > 0
               ? `${actionItems.length} to action${infoItems.length > 0 ? ` · ${infoItems.length} info` : ''}`
               : 'Items that need your attention'}
@@ -202,7 +202,7 @@ function InboxDropdown({
       {/* Body */}
       <div className="max-h-[520px] overflow-y-auto">
         {isLoading ? (
-          <div className="p-6 text-center text-[12px] text-ink-muted">Loading…</div>
+          <div className="p-6 text-center text-sm text-ink-muted">Loading…</div>
         ) : !hasActions && infoItems.length === 0 ? (
           <EmptyState />
         ) : (
@@ -220,7 +220,7 @@ function InboxDropdown({
             {infoItems.length > 0 && (
               <>
                 {hasActions && (
-                  <div className="px-4 py-2 bg-surface-alt/60 text-[10px] uppercase tracking-wide font-semibold text-ink-muted border-t border-b border-divider">
+                  <div className="px-4 py-2 bg-surface-alt/60 text-2xs uppercase tracking-wide font-semibold text-ink-muted border-t border-b border-divider">
                     Admin / setup
                   </div>
                 )}
@@ -253,10 +253,10 @@ function InboxRow({ item, onClick }: { item: InboxItem; onClick: () => void }) {
           <Icon size={13} />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[12.5px] font-medium text-ink leading-snug">
+          <div className="text-sm font-medium text-ink leading-snug">
             {item.title}
           </div>
-          <div className="text-[11.5px] text-ink-muted mt-0.5 leading-snug">
+          <div className="text-xs text-ink-muted mt-0.5 leading-snug">
             {item.description}
           </div>
         </div>
@@ -273,7 +273,7 @@ function SeverityChip({ severity }: { severity: Severity }) {
     info:     { label: 'Info',    cls: 'bg-surface-alt text-ink-soft border-border' },
   }[severity];
   return (
-    <span className={`text-[9.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${config.cls}`}>
+    <span className={`text-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded border shrink-0 ${config.cls}`}>
       {config.label}
     </span>
   );
@@ -285,8 +285,8 @@ function EmptyState() {
       <div className="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-600 inline-flex items-center justify-center mb-3">
         <CheckCircle2Icon size={20} />
       </div>
-      <div className="text-[13px] font-medium text-ink">Inbox is clear</div>
-      <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-[300px] mx-auto leading-relaxed">
+      <div className="text-sm font-medium text-ink">Inbox is clear</div>
+      <div className="text-xs text-ink-muted mt-1.5 max-w-[300px] mx-auto leading-relaxed">
         Nothing needs your attention right now. New urgent items show up
         here automatically — feel free to get on with the day.
       </div>

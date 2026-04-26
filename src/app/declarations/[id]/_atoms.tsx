@@ -13,7 +13,7 @@ export function Stat({
 }: { label: string; value: string | number; color?: string; small?: boolean }) {
   return (
     <div>
-      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
+      <div className="text-2xs text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
       <div className={`font-semibold mt-1 tabular-nums ${color || 'text-ink'} ${small ? 'text-sm' : 'text-lg'}`}>
         {value}
       </div>
@@ -26,8 +26,8 @@ export function SummaryStat({
 }: { label: string; value: string; color?: string; bold?: boolean }) {
   return (
     <div>
-      <div className="text-[11px] text-ink-muted">{label}</div>
-      <div className={`tabular-nums mt-0.5 ${bold ? 'font-bold text-[15px]' : 'font-semibold text-[13px]'} ${color || 'text-ink'}`}>
+      <div className="text-xs text-ink-muted">{label}</div>
+      <div className={`tabular-nums mt-0.5 ${bold ? 'font-bold text-base' : 'font-semibold text-sm'} ${color || 'text-ink'}`}>
         {value}
       </div>
     </div>
@@ -39,8 +39,8 @@ export function KeyBox({
 }: { label: string; value: string | number; color?: string; bold?: boolean }) {
   return (
     <div>
-      <div className="text-[10px] text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
-      <div className={`tabular-nums mt-1 ${bold ? 'font-bold text-[16px]' : 'font-semibold text-[14px]'} ${color || 'text-ink'}`}>
+      <div className="text-2xs text-ink-muted uppercase tracking-wide font-semibold">{label}</div>
+      <div className={`tabular-nums mt-1 ${bold ? 'font-bold text-base' : 'font-semibold text-base'} ${color || 'text-ink'}`}>
         {value}
       </div>
     </div>
@@ -51,7 +51,7 @@ export function SectionHeader({
   title, count, inline,
 }: { title: string; count: number; inline?: boolean }) {
   return (
-    <h3 className={`text-[13px] font-semibold text-ink ${inline ? '' : 'mb-2'}`}>
+    <h3 className={`text-sm font-semibold text-ink ${inline ? '' : 'mb-2'}`}>
       {title} <span className="text-ink-faint font-normal ml-1">({count})</span>
     </h3>
   );
@@ -59,7 +59,7 @@ export function SectionHeader({
 
 export function EmptyBlock({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-surface border border-border rounded-lg p-6 text-center text-[12px] text-ink-faint">
+    <div className="bg-surface border border-border rounded-lg p-6 text-center text-sm text-ink-faint">
       {children}
     </div>
   );

@@ -122,24 +122,24 @@ export function VatLetterUpload({
   const statusPanels = (
     <>
       {error && (
-        <div className="mt-2 text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-1.5 inline-flex items-center gap-1.5">
+        <div className="mt-2 text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-1.5 inline-flex items-center gap-1.5">
           <AlertTriangleIcon size={11} /> {error}
         </div>
       )}
 
       {preview && warnings.length === 0 && (
-        <div className="mt-2 text-[11.5px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-1.5">
+        <div className="mt-2 text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-1.5">
           Filled {countFilled(preview)} field{countFilled(preview) === 1 ? '' : 's'} from the letter.
           Review before saving — the reviewer is the final authority.
         </div>
       )}
 
       {warnings.length > 0 && (
-        <div className="mt-2 text-[11.5px] text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">
+        <div className="mt-2 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">
           <div className="font-semibold inline-flex items-center gap-1.5">
             <AlertTriangleIcon size={11} /> {warnings.length} field{warnings.length === 1 ? '' : 's'} couldn&apos;t be read
           </div>
-          <ul className="mt-1 ml-4 list-disc text-[10.5px]">
+          <ul className="mt-1 ml-4 list-disc text-2xs">
             {warnings.map((w, i) => <li key={i}>{w}</li>)}
           </ul>
         </div>
@@ -158,7 +158,7 @@ export function VatLetterUpload({
           disabled={busy}
           className={[
             'inline-flex items-center gap-2 rounded-md font-medium transition-colors',
-            'h-8 px-3 text-[12px] border border-border-strong bg-surface text-ink-soft hover:text-ink hover:bg-surface-alt',
+            'h-8 px-3 text-sm border border-border-strong bg-surface text-ink-soft hover:text-ink hover:bg-surface-alt',
             busy ? 'opacity-60 cursor-not-allowed' : '',
           ].join(' ')}
         >
@@ -224,11 +224,11 @@ export function VatLetterUpload({
             ? <Loader2Icon size={16} className="animate-spin" />
             : <UploadCloudIcon size={18} />}
         </div>
-        <div className="text-[13px] font-medium text-brand-800">
+        <div className="text-sm font-medium text-brand-800">
           {busy ? 'Reading letter…' : idleLabel}
         </div>
         {!busy && (
-          <div className="text-[11px] text-ink-muted">
+          <div className="text-xs text-ink-muted">
             <SparklesIcon size={11} className="inline-block mr-1 align-text-top" />
             PDF or image · auto-fills name, VAT no., matricule, RCS, regime, frequency, address
           </div>

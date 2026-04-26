@@ -68,7 +68,7 @@ export function MeetingBriefButton({
     <>
       <button
         onClick={open_and_generate}
-        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-brand-300 bg-brand-50 text-[12.5px] font-medium text-brand-700 hover:bg-brand-100"
+        className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-brand-300 bg-brand-50 text-sm font-medium text-brand-700 hover:bg-brand-100"
         title="AI-generated 1-page meeting prep brief"
       >
         <SparklesIcon size={13} />
@@ -83,11 +83,11 @@ export function MeetingBriefButton({
           footer={
             brief ? (
               <div className="flex items-center gap-2 justify-end">
-                <button onClick={copyToClipboard} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] text-ink-soft hover:bg-surface-alt">
+                <button onClick={copyToClipboard} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-sm text-ink-soft hover:bg-surface-alt">
                   <CopyIcon size={12} />
                   Copy
                 </button>
-                <button onClick={download} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-[12.5px] text-ink-soft hover:bg-surface-alt">
+                <button onClick={download} className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-border bg-white text-sm text-ink-soft hover:bg-surface-alt">
                   <DownloadIcon size={12} />
                   Download .md
                 </button>
@@ -97,12 +97,12 @@ export function MeetingBriefButton({
           }
         >
           {loading && (
-            <div className="text-[12px] text-ink-muted italic py-8 text-center">
+            <div className="text-sm text-ink-muted italic py-8 text-center">
               Opus 4.7 is reading the file. Typically 10-20 seconds…
             </div>
           )}
           {brief && (
-            <div className="text-[12.5px] leading-relaxed text-ink whitespace-pre-wrap font-[ui-sans-serif]">{brief}</div>
+            <div className="text-sm leading-relaxed text-ink whitespace-pre-wrap font-[ui-sans-serif]">{brief}</div>
           )}
         </Modal>
       )}

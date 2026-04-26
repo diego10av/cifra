@@ -542,7 +542,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
 
         {/* Error bar */}
         {error && (
-          <div className="px-4 py-2 bg-danger-50 border-t border-danger-200 text-[12px] text-danger-700">
+          <div className="px-4 py-2 bg-danger-50 border-t border-danger-200 text-sm text-danger-700">
             {error}
           </div>
         )}
@@ -559,7 +559,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
                 onKeyDown={handleKeyDown}
                 rows={2}
                 placeholder="Ask about Lux VAT, this declaration, a provider…"
-                className="flex-1 resize-none text-[13px] rounded-md border border-border-strong bg-surface px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 placeholder:text-ink-faint"
+                className="flex-1 resize-none text-sm rounded-md border border-border-strong bg-surface px-3 py-2 placeholder:text-ink-faint"
                 disabled={sending || askingOpus}
               />
               <button
@@ -573,7 +573,7 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
               </button>
             </div>
           )}
-          <div className="mt-1.5 text-[10.5px] text-ink-faint">
+          <div className="mt-1.5 text-2xs text-ink-faint">
             Default answers use Haiku. Press <span className="font-medium">Ask Opus</span> on an
             answer for deeper reasoning (costs more).
           </div>
@@ -623,11 +623,11 @@ function Header({
             </div>
           )}
           <div className="min-w-0">
-            <div className="text-[13px] font-semibold text-ink leading-tight">
+            <div className="text-sm font-semibold text-ink leading-tight">
               {showHistory ? 'Conversations' : 'Ask cifra'}
             </div>
             {!showHistory && contextSummary && (
-              <div className="text-[11px] text-ink-muted leading-tight truncate">{contextSummary} · in focus</div>
+              <div className="text-xs text-ink-muted leading-tight truncate">{contextSummary} · in focus</div>
             )}
           </div>
         </div>
@@ -665,7 +665,7 @@ function Header({
       {/* Quota bar — hidden when showing history to keep the panel quiet */}
       {!showHistory && budget && budget.cap_eur !== null && (
         <div className="px-4 pb-3">
-          <div className="flex items-center justify-between text-[10.5px] text-ink-muted mb-1">
+          <div className="flex items-center justify-between text-2xs text-ink-muted mb-1">
             <span>{spentLabel} used this month</span>
             <span>of {capLabel}</span>
           </div>
@@ -698,7 +698,7 @@ function HistoryPanel({
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[12px] text-ink-muted gap-2">
+      <div className="flex-1 flex items-center justify-center text-sm text-ink-muted gap-2">
         <Loader2Icon size={14} className="animate-spin" /> Loading conversation…
       </div>
     );
@@ -710,8 +710,8 @@ function HistoryPanel({
         <div className="w-10 h-10 rounded-lg bg-surface-alt text-ink-muted inline-flex items-center justify-center mb-3">
           <HistoryIcon size={16} />
         </div>
-        <div className="text-[13px] font-medium text-ink">No saved conversations</div>
-        <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-[260px] leading-relaxed">
+        <div className="text-sm font-medium text-ink">No saved conversations</div>
+        <div className="text-xs text-ink-muted mt-1.5 max-w-[260px] leading-relaxed">
           Ask something to start a new conversation. Once you send a
           message, it&rsquo;s saved here and you can come back to it anytime.
         </div>
@@ -747,8 +747,8 @@ function HistoryPanel({
                     onClick={() => onPick(t.id)}
                     className="flex-1 text-left min-w-0"
                   >
-                    <div className="text-[13px] font-medium text-ink truncate">{t.title || 'Untitled'}</div>
-                    <div className="text-[11px] text-ink-muted mt-0.5 flex items-center gap-2">
+                    <div className="text-sm font-medium text-ink truncate">{t.title || 'Untitled'}</div>
+                    <div className="text-xs text-ink-muted mt-0.5 flex items-center gap-2">
                       <span>{niceDate}</span>
                       {t.total_cost_eur > 0 && (
                         <>
@@ -831,7 +831,7 @@ function InlineTitleEditor({
         }}
         onBlur={commit}
         maxLength={200}
-        className="flex-1 bg-surface border border-brand-300 rounded px-2 py-1 text-[13px] text-ink focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="flex-1 bg-surface border border-brand-300 rounded px-2 py-1 text-sm text-ink"
       />
       <button
         onClick={commit}
@@ -851,8 +851,8 @@ function EmptyState() {
       <div className="w-10 h-10 mx-auto rounded-lg bg-brand-50 text-brand-700 inline-flex items-center justify-center mb-3">
         <MessageSquareIcon size={18} />
       </div>
-      <div className="text-[13px] font-medium text-ink">How can I help?</div>
-      <div className="text-[11.5px] text-ink-muted mt-1.5 max-w-[260px] mx-auto leading-relaxed">
+      <div className="text-sm font-medium text-ink">How can I help?</div>
+      <div className="text-xs text-ink-muted mt-1.5 max-w-[260px] mx-auto leading-relaxed">
         I can answer Lux VAT questions, explain classification rules, and look up the current
         declaration or client. Cite me with a legal reference and I&rsquo;ll explain it.
       </div>
@@ -867,7 +867,7 @@ function EmptyState() {
 
 function SuggestionChip({ text }: { text: string }) {
   return (
-    <div className="text-[11.5px] text-ink-soft bg-surface-alt/60 rounded px-2.5 py-1.5 italic">
+    <div className="text-xs text-ink-soft bg-surface-alt/60 rounded px-2.5 py-1.5 italic">
       &ldquo;{text}&rdquo;
     </div>
   );
@@ -889,7 +889,7 @@ function MessageBubble({
     <div className={isUser ? 'flex justify-end' : 'flex justify-start'}>
       <div
         className={[
-          'max-w-[85%] rounded-lg px-3 py-2 text-[13px] leading-relaxed',
+          'max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed',
           isUser
             ? 'bg-brand-500 text-white whitespace-pre-wrap'
             : 'bg-surface-alt text-ink border border-border',
@@ -897,7 +897,7 @@ function MessageBubble({
       >
         {isUser ? message.content : renderAssistantContent(message.content)}
         {message.role === 'assistant' && (
-          <div className="mt-2 flex items-center justify-between gap-2 text-[10.5px] text-ink-muted">
+          <div className="mt-2 flex items-center justify-between gap-2 text-2xs text-ink-muted">
             <div className="flex items-center gap-2">
               <span>{modelBadge(message.model)}</span>
               {typeof message.cost_eur === 'number' && (
@@ -910,7 +910,7 @@ function MessageBubble({
             {onAskOpus && isLast && !askingOpus && (
               <button
                 onClick={onAskOpus}
-                className="inline-flex items-center gap-1 text-[11px] font-medium text-brand-700 hover:text-brand-800"
+                className="inline-flex items-center gap-1 text-xs font-medium text-brand-700 hover:text-brand-800"
                 title="Re-ask this question on Opus (costs more)"
               >
                 <SparklesIcon size={11} /> Ask Opus
@@ -967,7 +967,7 @@ function renderInlineNode(node: InlineNode, i: number): React.ReactNode {
       return (
         <code
           key={i}
-          className="bg-surface-alt text-ink font-mono text-[11.5px] px-1 py-0.5 rounded"
+          className="bg-surface-alt text-ink font-mono text-xs px-1 py-0.5 rounded"
         >
           {node.text}
         </code>
@@ -976,7 +976,7 @@ function renderInlineNode(node: InlineNode, i: number): React.ReactNode {
       return (
         <span
           key={i}
-          className="inline-block bg-brand-50 text-brand-700 rounded px-1.5 py-0.5 text-[11px] font-mono mx-0.5 align-baseline"
+          className="inline-block bg-brand-50 text-brand-700 rounded px-1.5 py-0.5 text-xs font-mono mx-0.5 align-baseline"
         >
           {node.text}
         </span>
@@ -995,7 +995,7 @@ function modelBadge(model?: string): string {
 function TypingIndicator({ model }: { model: string }) {
   return (
     <div className="flex justify-start">
-      <div className="bg-surface-alt text-ink-muted border border-border rounded-lg px-3 py-2 text-[12px] flex items-center gap-2">
+      <div className="bg-surface-alt text-ink-muted border border-border rounded-lg px-3 py-2 text-sm flex items-center gap-2">
         <Loader2Icon size={12} className="animate-spin" />
         <span>{model} is thinking…</span>
       </div>
@@ -1005,9 +1005,9 @@ function TypingIndicator({ model }: { model: string }) {
 
 function QuotaReachedBanner() {
   return (
-    <div className="bg-warning-50 border border-warning-200 rounded px-3 py-2.5 text-[12px] text-warning-800">
+    <div className="bg-warning-50 border border-warning-200 rounded px-3 py-2.5 text-sm text-warning-800">
       <div className="font-medium mb-0.5">Monthly AI quota reached</div>
-      <div className="text-[11.5px]">
+      <div className="text-xs">
         Your chat resumes on the 1st of next month, or ask your admin to raise the cap in{' '}
         <a href="/settings/users" className="underline">Users &amp; AI caps</a>.
       </div>

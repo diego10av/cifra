@@ -31,7 +31,7 @@ export function ForecastWidget() {
   if (error) return <CrmErrorBox message={error} onRetry={refetch} compact />;
   if (!data || isLoading) {
     return (
-      <div className="border border-border rounded-lg bg-white p-4 min-h-[110px] text-[12px] text-ink-muted italic flex items-center justify-center">
+      <div className="border border-border rounded-lg bg-white p-4 min-h-[110px] text-sm text-ink-muted italic flex items-center justify-center">
         Computing weighted pipeline…
       </div>
     );
@@ -50,7 +50,7 @@ export function ForecastWidget() {
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-2">
           <TargetIcon size={13} className="text-brand-600" />
-          <span className="text-[11px] uppercase tracking-wide font-semibold text-ink-muted">
+          <span className="text-xs uppercase tracking-wide font-semibold text-ink-muted">
             Weighted pipeline · {data.quarter_label}
           </span>
         </div>
@@ -58,17 +58,17 @@ export function ForecastWidget() {
       </div>
       {hasOpps ? (
         <>
-          <div className="text-[22px] font-semibold tabular-nums text-ink">
+          <div className="text-xl font-semibold tabular-nums text-ink">
             {formatEur(data.weighted_total_eur)}
           </div>
-          <div className="text-[11.5px] text-ink-muted mt-0.5">
+          <div className="text-xs text-ink-muted mt-0.5">
             across {data.opportunity_count} open opportunit{data.opportunity_count === 1 ? 'y' : 'ies'}
           </div>
         </>
       ) : (
         <>
-          <div className="text-[14px] text-ink-muted italic">Nothing closing this quarter yet.</div>
-          <div className="text-[11.5px] text-ink-muted mt-0.5">Add close dates to open opps so they surface here.</div>
+          <div className="text-base text-ink-muted italic">Nothing closing this quarter yet.</div>
+          <div className="text-xs text-ink-muted mt-0.5">Add close dates to open opps so they surface here.</div>
         </>
       )}
     </Link>

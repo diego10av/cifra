@@ -117,7 +117,7 @@ export default function TaxonomiesPage() {
 
   return (
     <div className="max-w-[820px]">
-      <div className="text-[11.5px] text-ink-muted mb-2">
+      <div className="text-xs text-ink-muted mb-2">
         <Link href="/crm/settings" className="hover:underline">← Settings</Link>
       </div>
       <PageHeader
@@ -132,7 +132,7 @@ export default function TaxonomiesPage() {
             <button
               key={k.value}
               onClick={() => { setSelectedKind(k.value); setEditingId(null); }}
-              className={`w-full text-left px-3 py-2 rounded-md text-[12.5px] ${
+              className={`w-full text-left px-3 py-2 rounded-md text-sm ${
                 selectedKind === k.value
                   ? 'bg-brand-50 border border-brand-200 text-brand-800 font-semibold'
                   : 'text-ink-soft hover:bg-surface-alt'
@@ -147,11 +147,11 @@ export default function TaxonomiesPage() {
         <div>
           <div className="flex items-center justify-between mb-2">
             <div>
-              <h2 className="text-[14px] font-semibold text-ink">{kindMeta.label}</h2>
-              <p className="text-[11.5px] text-ink-muted">{kindMeta.help}</p>
+              <h2 className="text-base font-semibold text-ink">{kindMeta.label}</h2>
+              <p className="text-xs text-ink-muted">{kindMeta.help}</p>
             </div>
             <div className="flex items-center gap-2">
-              <label className="inline-flex items-center gap-1.5 text-[11.5px] text-ink-soft">
+              <label className="inline-flex items-center gap-1.5 text-xs text-ink-soft">
                 <input
                   type="checkbox"
                   checked={showArchived}
@@ -169,11 +169,11 @@ export default function TaxonomiesPage() {
           {error && <div className="mb-2"><CrmErrorBox message={error} onRetry={load} compact /></div>}
 
           <div className="border border-border rounded-md bg-white overflow-hidden">
-            <table className="w-full text-[12px]">
+            <table className="w-full text-sm">
               <thead className="bg-surface-alt/50 text-ink-muted">
                 <tr>
                   <th className="text-left px-3 py-1.5 font-medium">Label</th>
-                  <th className="text-left px-3 py-1.5 font-medium font-mono text-[11px]">value</th>
+                  <th className="text-left px-3 py-1.5 font-medium font-mono text-xs">value</th>
                   <th className="text-left px-3 py-1.5 font-medium">Type</th>
                   <th className="text-left px-3 py-1.5 font-medium">Status</th>
                   <th className="px-3 py-1.5 w-[140px]"></th>
@@ -199,7 +199,7 @@ export default function TaxonomiesPage() {
                             if (e.key === 'Escape') setEditingId(null);
                           }}
                           autoFocus
-                          className="h-7 px-2 text-[12px] border border-brand-300 rounded w-full"
+                          className="h-7 px-2 text-sm border border-brand-300 rounded w-full"
                         />
                       ) : (
                         <button
@@ -212,17 +212,17 @@ export default function TaxonomiesPage() {
                         </button>
                       )}
                     </td>
-                    <td className="px-3 py-2 font-mono text-[11px] text-ink-muted">{r.value}</td>
-                    <td className="px-3 py-2 text-[11px] text-ink-muted">
+                    <td className="px-3 py-2 font-mono text-xs text-ink-muted">{r.value}</td>
+                    <td className="px-3 py-2 text-xs text-ink-muted">
                       {r.is_system ? 'System' : 'Custom'}
                     </td>
-                    <td className="px-3 py-2 text-[11px] text-ink-muted">
+                    <td className="px-3 py-2 text-xs text-ink-muted">
                       {r.archived ? 'Archived' : 'Active'}
                     </td>
                     <td className="px-3 py-2 text-right">
                       <button
                         onClick={() => toggleArchive(r)}
-                        className="text-ink-muted hover:text-ink inline-flex items-center gap-1 text-[11px] mr-2"
+                        className="text-ink-muted hover:text-ink inline-flex items-center gap-1 text-xs mr-2"
                         title={r.archived ? 'Unarchive' : 'Archive'}
                       >
                         {r.archived ? <EyeIcon size={11} /> : <EyeOffIcon size={11} />}
@@ -231,7 +231,7 @@ export default function TaxonomiesPage() {
                       {!r.is_system && (
                         <button
                           onClick={() => remove(r)}
-                          className="text-danger-600 hover:text-danger-800 inline-flex items-center gap-1 text-[11px]"
+                          className="text-danger-600 hover:text-danger-800 inline-flex items-center gap-1 text-xs"
                           title="Delete permanently"
                         >
                           <Trash2Icon size={11} />
@@ -284,29 +284,29 @@ function AddForm({
 
   return (
     <div className="mt-3 border border-brand-200 bg-brand-50/30 rounded-md p-3">
-      <div className="text-[12px] font-semibold mb-2">New {kindLabel.toLowerCase().replace(/s$/, '')}</div>
+      <div className="text-sm font-semibold mb-2">New {kindLabel.toLowerCase().replace(/s$/, '')}</div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <div>
-          <label className="block text-[10.5px] uppercase text-ink-muted mb-0.5">Label</label>
+          <label className="block text-2xs uppercase text-ink-muted mb-0.5">Label</label>
           <input
             value={label}
             onChange={e => handleLabelChange(e.target.value)}
             placeholder="What the user sees"
-            className="w-full h-8 px-2 text-[12.5px] border border-border rounded"
+            className="w-full h-8 px-2 text-sm border border-border rounded"
           />
         </div>
         <div>
-          <label className="block text-[10.5px] uppercase text-ink-muted mb-0.5">Value (slug)</label>
+          <label className="block text-2xs uppercase text-ink-muted mb-0.5">Value (slug)</label>
           <input
             value={value}
             onChange={e => setValue(e.target.value.replace(/[^a-zA-Z0-9_-]/g, '_'))}
             placeholder="stored_in_db"
-            className="w-full h-8 px-2 text-[12.5px] border border-border rounded font-mono"
+            className="w-full h-8 px-2 text-sm border border-border rounded font-mono"
           />
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-2">
-        <button onClick={onCancel} disabled={saving} className="h-7 px-2.5 rounded border border-border text-[11.5px] text-ink-soft hover:bg-white">
+        <button onClick={onCancel} disabled={saving} className="h-7 px-2.5 rounded border border-border text-xs text-ink-soft hover:bg-white">
           Cancel
         </button>
         <Button variant="primary" size="sm" onClick={submit} loading={saving} icon={<CheckIcon size={12} />}>

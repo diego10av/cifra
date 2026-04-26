@@ -225,10 +225,10 @@ export function ExcelImportModal({
               <FileSpreadsheetIcon size={14} />
             </div>
             <div>
-              <h3 id="xl-title" className="text-[14px] font-semibold text-ink leading-tight">
+              <h3 id="xl-title" className="text-base font-semibold text-ink leading-tight">
                 Import invoices from Excel
               </h3>
-              <p className="text-[11px] text-ink-muted mt-0.5 leading-tight">
+              <p className="text-xs text-ink-muted mt-0.5 leading-tight">
                 {phase === 'pick'       && 'Upload the client\u2019s xlsx or csv — cifra will map the columns.'}
                 {phase === 'previewing' && 'Reading the file…'}
                 {phase === 'review'     && preview?.source.filename}
@@ -249,7 +249,7 @@ export function ExcelImportModal({
             <PickPhase onPick={handlePick} inputRef={fileRef} />
           )}
           {phase === 'previewing' && (
-            <div className="py-16 text-center text-[13px] text-ink-muted">
+            <div className="py-16 text-center text-sm text-ink-muted">
               <Loader2Icon className="inline-block animate-spin mr-2" size={16} />
               Parsing the spreadsheet and asking cifra to map the columns…
             </div>
@@ -266,7 +266,7 @@ export function ExcelImportModal({
             />
           )}
           {phase === 'importing' && (
-            <div className="py-16 text-center text-[13px] text-ink-muted">
+            <div className="py-16 text-center text-sm text-ink-muted">
               <Loader2Icon className="inline-block animate-spin mr-2" size={16} />
               Importing {validRows.length} invoice{validRows.length === 1 ? '' : 's'}…
             </div>
@@ -276,22 +276,22 @@ export function ExcelImportModal({
               <div className="w-14 h-14 mx-auto rounded-full bg-emerald-50 text-emerald-600 inline-flex items-center justify-center mb-4">
                 <CheckIcon size={26} />
               </div>
-              <div className="text-[16px] font-semibold text-ink">
+              <div className="text-base font-semibold text-ink">
                 {finalResult.imported} invoice{finalResult.imported === 1 ? '' : 's'} imported
               </div>
               {finalResult.errors > 0 && (
-                <div className="text-[12.5px] text-warning-800 mt-2">
+                <div className="text-sm text-warning-800 mt-2">
                   {finalResult.errors} row{finalResult.errors === 1 ? '' : 's'} skipped — missing required fields.
                 </div>
               )}
-              <div className="text-[11.5px] text-ink-muted mt-3 max-w-md mx-auto leading-relaxed">
+              <div className="text-xs text-ink-muted mt-3 max-w-md mx-auto leading-relaxed">
                 They&rsquo;re now in the declaration as regular invoices. Run the classifier to apply LTVA/CJEU treatments.
               </div>
             </div>
           )}
 
           {error && (
-            <div className="mt-3 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
+            <div className="mt-3 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2 flex items-start gap-2">
               <AlertTriangleIcon size={13} className="mt-0.5 shrink-0" />
               {error}
             </div>
@@ -301,19 +301,19 @@ export function ExcelImportModal({
         {/* Footer */}
         {phase === 'review' && (
           <div className="px-5 py-3 border-t border-border bg-surface-alt flex items-center justify-between gap-3 shrink-0">
-            <div className="text-[11.5px] text-ink-muted">
+            <div className="text-xs text-ink-muted">
               {validRows.length} valid · {skippedRows > 0 ? `${skippedRows} skipped · ` : ''}
               mapping source: <span className="font-medium">{preview?.source.mapping_source === 'ai' ? 'cifra AI' : 'heuristic'}</span>
             </div>
             <div className="flex gap-2">
               <button onClick={handleClose}
-                      className="h-9 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt">
+                      className="h-9 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt">
                 Cancel
               </button>
               <button
                 onClick={handleImport}
                 disabled={validRows.length === 0 || missingRequired.length > 0}
-                className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+                className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
               >
                 <CheckIcon size={13} /> Import {validRows.length} invoice{validRows.length === 1 ? '' : 's'}
               </button>
@@ -323,7 +323,7 @@ export function ExcelImportModal({
         {phase === 'done' && (
           <div className="px-5 py-3 border-t border-border bg-surface-alt flex justify-end shrink-0">
             <button onClick={handleClose}
-                    className="h-9 px-4 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600">
+                    className="h-9 px-4 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600">
               Done
             </button>
           </div>
@@ -357,11 +357,11 @@ function PickPhase({
       <div className="w-14 h-14 mx-auto rounded-full bg-brand-50 text-brand-700 inline-flex items-center justify-center mb-3">
         <UploadIcon size={22} />
       </div>
-      <div className="text-[14px] font-semibold text-ink">Drop a spreadsheet here</div>
-      <div className="text-[12px] text-ink-muted mt-1 max-w-md mx-auto">
-        Accepts <code className="text-[11.5px] bg-surface-alt px-1 rounded">.xlsx</code>, <code className="text-[11.5px] bg-surface-alt px-1 rounded">.xlsm</code>, or <code className="text-[11.5px] bg-surface-alt px-1 rounded">.csv</code>. cifra detects column headers automatically (<SparklesIcon className="inline-block -mt-0.5" size={11} /> powered by Claude) and shows a preview before importing.
+      <div className="text-base font-semibold text-ink">Drop a spreadsheet here</div>
+      <div className="text-sm text-ink-muted mt-1 max-w-md mx-auto">
+        Accepts <code className="text-xs bg-surface-alt px-1 rounded">.xlsx</code>, <code className="text-xs bg-surface-alt px-1 rounded">.xlsm</code>, or <code className="text-xs bg-surface-alt px-1 rounded">.csv</code>. cifra detects column headers automatically (<SparklesIcon className="inline-block -mt-0.5" size={11} /> powered by Claude) and shows a preview before importing.
       </div>
-      <div className="text-[11px] text-ink-faint mt-3">
+      <div className="text-xs text-ink-faint mt-3">
         Max 8 MB · max 500 rows
       </div>
     </div>
@@ -382,7 +382,7 @@ function ReviewPhase({
   return (
     <div className="space-y-5">
       {/* Source banner */}
-      <div className="flex items-center gap-3 text-[12px] text-ink-muted bg-surface-alt rounded px-3 py-2">
+      <div className="flex items-center gap-3 text-sm text-ink-muted bg-surface-alt rounded px-3 py-2">
         <FileSpreadsheetIcon size={13} />
         <span className="font-medium text-ink">{preview.source.filename}</span>
         <span className="text-ink-faint">·</span>
@@ -400,7 +400,7 @@ function ReviewPhase({
       {preview.warnings.length > 0 && (
         <div className="space-y-1">
           {preview.warnings.map((w, i) => (
-            <div key={i} className="text-[11.5px] text-warning-800 bg-warning-50 border border-warning-200 rounded px-3 py-1.5 flex items-start gap-2">
+            <div key={i} className="text-xs text-warning-800 bg-warning-50 border border-warning-200 rounded px-3 py-1.5 flex items-start gap-2">
               <AlertTriangleIcon size={12} className="mt-0.5 shrink-0" />
               {w}
             </div>
@@ -410,10 +410,10 @@ function ReviewPhase({
 
       {/* Mapping editor */}
       <div>
-        <h4 className="text-[12px] font-semibold text-ink mb-2 uppercase tracking-wide">Column mapping</h4>
+        <h4 className="text-sm font-semibold text-ink mb-2 uppercase tracking-wide">Column mapping</h4>
         <div className="grid grid-cols-2 gap-x-6 gap-y-2">
           {CANONICAL_FIELDS.map(field => (
-            <label key={field} className="flex items-center gap-2 text-[12px]">
+            <label key={field} className="flex items-center gap-2 text-sm">
               <span className={`w-32 shrink-0 ${REQUIRED_FIELDS.includes(field) ? 'font-semibold' : 'text-ink-soft'}`}>
                 {FIELD_LABEL[field]}
                 {REQUIRED_FIELDS.includes(field) && <span className="text-danger-600 ml-0.5">*</span>}
@@ -422,7 +422,7 @@ function ReviewPhase({
                 value={mapping[field] ?? ''}
                 onChange={(e) => setMapping({ ...mapping, [field]: e.target.value || null })}
                 className={[
-                  'flex-1 h-8 px-2 text-[12px] border rounded bg-surface',
+                  'flex-1 h-8 px-2 text-sm border rounded bg-surface',
                   !mapping[field] && REQUIRED_FIELDS.includes(field) ? 'border-danger-300' : 'border-border-strong',
                 ].join(' ')}
               >
@@ -435,7 +435,7 @@ function ReviewPhase({
           ))}
         </div>
         {missingRequired.length > 0 && (
-          <div className="mt-2 text-[11.5px] text-danger-700">
+          <div className="mt-2 text-xs text-danger-700">
             Required fields not mapped: <strong>{missingRequired.map(f => FIELD_LABEL[f]).join(', ')}</strong>
           </div>
         )}
@@ -443,12 +443,12 @@ function ReviewPhase({
 
       {/* Preview rows */}
       <div>
-        <h4 className="text-[12px] font-semibold text-ink mb-2 uppercase tracking-wide">
+        <h4 className="text-sm font-semibold text-ink mb-2 uppercase tracking-wide">
           Preview ({validCount} valid{skippedCount > 0 ? `, ${skippedCount} skipped` : ''})
         </h4>
         <div className="border border-border rounded overflow-hidden">
           <div className="max-h-[280px] overflow-y-auto">
-            <table className="w-full text-[11.5px]">
+            <table className="w-full text-xs">
               <thead className="bg-surface-alt sticky top-0">
                 <tr>
                   <th className="px-2 py-1.5 text-left font-semibold text-ink-muted w-8">#</th>
@@ -494,7 +494,7 @@ function ReviewPhase({
           </div>
         </div>
         {rows.length > 30 && (
-          <div className="mt-1.5 text-[10.5px] text-ink-muted">
+          <div className="mt-1.5 text-2xs text-ink-muted">
             Showing first 30 of {rows.length} rows. The full set will be imported.
           </div>
         )}

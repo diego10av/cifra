@@ -89,10 +89,10 @@ export function AttachmentsModal({
               <PaperclipIcon size={14} />
             </div>
             <div>
-              <h3 id="att-title" className="text-[14px] font-semibold text-ink leading-tight">
+              <h3 id="att-title" className="text-base font-semibold text-ink leading-tight">
                 Supporting documents
               </h3>
-              <p className="text-[11px] text-ink-muted mt-0.5 leading-tight">
+              <p className="text-xs text-ink-muted mt-0.5 leading-tight">
                 {invoiceLabel} · Attach contracts or advisor notes that justify a VAT treatment. These go into the audit PDF.
               </p>
             </div>
@@ -106,7 +106,7 @@ export function AttachmentsModal({
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {error && (
-            <div className="text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+            <div className="text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
               {error}
             </div>
           )}
@@ -120,12 +120,12 @@ export function AttachmentsModal({
           />
 
           {items === null ? (
-            <div className="text-center text-[12px] text-ink-muted py-6">
+            <div className="text-center text-sm text-ink-muted py-6">
               <Loader2Icon className="inline-block animate-spin mr-2" size={14} />
               Loading…
             </div>
           ) : items.length === 0 ? (
-            <div className="text-center text-[12px] text-ink-muted py-4 border border-dashed border-border rounded">
+            <div className="text-center text-sm text-ink-muted py-4 border border-dashed border-border rounded">
               No supporting documents attached yet.
             </div>
           ) : (
@@ -146,11 +146,11 @@ export function AttachmentsModal({
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-border bg-surface-alt flex items-center justify-between shrink-0 gap-3">
-          <div className="text-[10.5px] text-ink-faint">
+          <div className="text-2xs text-ink-faint">
             Attachments are stored privately and included in the declaration&rsquo;s audit PDF.
           </div>
           <button onClick={onClose}
-                  className="h-9 px-3 rounded border border-border-strong text-[12px] font-medium text-ink-soft hover:bg-surface-alt">
+                  className="h-9 px-3 rounded border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt">
             Close
           </button>
         </div>
@@ -208,15 +208,15 @@ function UploadForm({
     <div className="bg-surface-alt/50 border border-border rounded-lg p-3">
       <div className="flex items-center gap-2 mb-2">
         <UploadIcon size={13} className="text-brand-600" />
-        <span className="text-[12px] font-semibold text-ink">Attach new document</span>
+        <span className="text-sm font-semibold text-ink">Attach new document</span>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-2">
-        <label className="text-[11px] text-ink-soft">
+        <label className="text-xs text-ink-soft">
           <span className="block uppercase tracking-wide font-semibold text-ink-muted mb-1">Kind</span>
           <select
             value={kind}
             onChange={(e) => setKind(e.target.value as Kind)}
-            className="w-full h-8 px-2 text-[12px] border border-border-strong rounded bg-surface"
+            className="w-full h-8 px-2 text-sm border border-border-strong rounded bg-surface"
           >
             <option value="contract">Contract</option>
             <option value="engagement_letter">Engagement letter</option>
@@ -224,24 +224,24 @@ function UploadForm({
             <option value="other">Other</option>
           </select>
         </label>
-        <label className="text-[11px] text-ink-soft">
+        <label className="text-xs text-ink-soft">
           <span className="block uppercase tracking-wide font-semibold text-ink-muted mb-1">Legal basis (optional)</span>
           <input
             type="text" value={legalBasis}
             onChange={(e) => setLegalBasis(e.target.value)}
             placeholder="e.g. Art. 44§1 d LTVA"
-            className="w-full h-8 px-2 text-[12px] border border-border-strong rounded bg-surface"
+            className="w-full h-8 px-2 text-sm border border-border-strong rounded bg-surface"
           />
         </label>
       </div>
       <label className="block mb-2">
-        <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Note (optional)</span>
+        <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Note (optional)</span>
         <textarea
           value={userNote}
           onChange={(e) => setUserNote(e.target.value)}
           rows={2}
           placeholder="Why is this document relevant? What does it establish about the VAT treatment?"
-          className="w-full px-2 py-1.5 text-[12px] border border-border-strong rounded bg-surface resize-none"
+          className="w-full px-2 py-1.5 text-sm border border-border-strong rounded bg-surface resize-none"
         />
       </label>
       <div className="flex justify-end">
@@ -252,7 +252,7 @@ function UploadForm({
         <button
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          className="h-9 px-3 rounded bg-brand-500 text-white text-[12px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+          className="h-9 px-3 rounded bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
         >
           {uploading
             ? (<><Loader2Icon size={13} className="animate-spin" /> Uploading…</>)
@@ -350,30 +350,30 @@ function AttachmentRow({
           <div className="flex items-center gap-2 flex-wrap">
             <button
               onClick={download}
-              className="text-[12.5px] font-medium text-ink hover:text-brand-700 hover:underline inline-flex items-center gap-1 truncate max-w-full"
+              className="text-sm font-medium text-ink hover:text-brand-700 hover:underline inline-flex items-center gap-1 truncate max-w-full"
             >
               {att.filename} <ExternalLinkIcon size={11} className="shrink-0" />
             </button>
-            <span className="text-[9.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-alt text-ink-soft">
+            <span className="text-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-surface-alt text-ink-soft">
               {kindLabel}
             </span>
             {att.ai_analyzed_at && (
-              <span className="text-[9.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200 inline-flex items-center gap-1">
+              <span className="text-2xs font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 border border-brand-200 inline-flex items-center gap-1">
                 <SparklesIcon size={9} /> analysed
               </span>
             )}
           </div>
           {att.legal_basis && (
-            <div className="mt-1 text-[11px] text-ink-soft">
-              <span className="text-ink-muted">Legal basis:</span> <code className="text-[11px] bg-surface-alt px-1 rounded">{att.legal_basis}</code>
+            <div className="mt-1 text-xs text-ink-soft">
+              <span className="text-ink-muted">Legal basis:</span> <code className="text-xs bg-surface-alt px-1 rounded">{att.legal_basis}</code>
             </div>
           )}
           {att.user_note && (
-            <div className="mt-1 text-[11.5px] text-ink-soft italic">&ldquo;{att.user_note}&rdquo;</div>
+            <div className="mt-1 text-xs text-ink-soft italic">&ldquo;{att.user_note}&rdquo;</div>
           )}
           {att.ai_summary && (
-            <div className="mt-2 text-[11.5px] text-ink bg-surface-alt/60 border-l-2 border-brand-400 pl-3 py-1.5 rounded-r">
-              <span className="text-[9.5px] uppercase font-semibold tracking-wider text-brand-700">cifra AI summary</span>
+            <div className="mt-2 text-xs text-ink bg-surface-alt/60 border-l-2 border-brand-400 pl-3 py-1.5 rounded-r">
+              <span className="text-2xs uppercase font-semibold tracking-wider text-brand-700">cifra AI summary</span>
               <div className="mt-0.5">{att.ai_summary}</div>
             </div>
           )}
@@ -383,7 +383,7 @@ function AttachmentRow({
             <button
               onClick={analyze}
               disabled={analyzing}
-              className="h-7 px-2 rounded text-[11px] font-medium bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200 disabled:opacity-50 inline-flex items-center gap-1"
+              className="h-7 px-2 rounded text-xs font-medium bg-brand-50 text-brand-700 hover:bg-brand-100 border border-brand-200 disabled:opacity-50 inline-flex items-center gap-1"
               title="Ask cifra to analyse this document"
             >
               {analyzing
@@ -393,7 +393,7 @@ function AttachmentRow({
           )}
           <button
             onClick={() => setEditing(!editing)}
-            className="h-7 px-2 rounded text-[11px] font-medium text-ink-soft hover:bg-surface-alt"
+            className="h-7 px-2 rounded text-xs font-medium text-ink-soft hover:bg-surface-alt"
             title="Edit note"
           >
             Edit
@@ -401,7 +401,7 @@ function AttachmentRow({
           {(att.ai_analysis || att.ai_citations?.length) && (
             <button
               onClick={() => setExpanded(!expanded)}
-              className="h-7 px-2 rounded text-[11px] font-medium text-ink-soft hover:bg-surface-alt"
+              className="h-7 px-2 rounded text-xs font-medium text-ink-soft hover:bg-surface-alt"
               title="Show / hide full analysis"
             >
               {expanded ? 'Hide' : 'Details'}
@@ -421,35 +421,35 @@ function AttachmentRow({
       {editing && (
         <div className="px-3 py-3 border-t border-divider bg-surface-alt/40 space-y-2">
           <div className="grid grid-cols-2 gap-2">
-            <label className="text-[11px]">
+            <label className="text-xs">
               <span className="block uppercase tracking-wide font-semibold text-ink-muted mb-1">Kind</span>
               <select value={kind} onChange={e => setKind(e.target.value as Kind)}
-                      className="w-full h-8 px-2 text-[12px] border border-border-strong rounded bg-surface">
+                      className="w-full h-8 px-2 text-sm border border-border-strong rounded bg-surface">
                 <option value="contract">Contract</option>
                 <option value="engagement_letter">Engagement letter</option>
                 <option value="advisory_email">Advisor email</option>
                 <option value="other">Other</option>
               </select>
             </label>
-            <label className="text-[11px]">
+            <label className="text-xs">
               <span className="block uppercase tracking-wide font-semibold text-ink-muted mb-1">Legal basis</span>
               <input value={basis} onChange={e => setBasis(e.target.value)}
                      placeholder="e.g. Art. 44§1 d LTVA"
-                     className="w-full h-8 px-2 text-[12px] border border-border-strong rounded bg-surface" />
+                     className="w-full h-8 px-2 text-sm border border-border-strong rounded bg-surface" />
             </label>
           </div>
           <label className="block">
-            <span className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">Note</span>
+            <span className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">Note</span>
             <textarea value={note} onChange={e => setNote(e.target.value)} rows={2}
-                      className="w-full px-2 py-1.5 text-[12px] border border-border-strong rounded bg-surface resize-none" />
+                      className="w-full px-2 py-1.5 text-sm border border-border-strong rounded bg-surface resize-none" />
           </label>
           <div className="flex justify-end gap-2">
             <button onClick={() => setEditing(false)}
-                    className="h-8 px-3 rounded border border-border-strong text-[11.5px] font-medium text-ink-soft hover:bg-surface-alt">
+                    className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt">
               Cancel
             </button>
             <button onClick={save}
-                    className="h-8 px-3 rounded bg-brand-500 text-white text-[11.5px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5">
+                    className="h-8 px-3 rounded bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5">
               <CheckIcon size={12} /> Save
             </button>
           </div>
@@ -460,34 +460,34 @@ function AttachmentRow({
       {expanded && (att.ai_analysis || (att.ai_citations && att.ai_citations.length > 0)) && (
         <div className="px-3 py-3 border-t border-divider bg-brand-50/20 space-y-3">
           {att.ai_suggested_treatment && (
-            <div className="flex items-center gap-2 text-[12px]">
+            <div className="flex items-center gap-2 text-sm">
               <ShieldCheckIcon size={12} className="text-brand-700" />
               <span className="text-ink-soft">cifra suggests treatment:</span>
-              <code className="px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 font-mono text-[11px] border border-brand-200 font-semibold">
+              <code className="px-1.5 py-0.5 rounded bg-brand-50 text-brand-700 font-mono text-xs border border-brand-200 font-semibold">
                 {att.ai_suggested_treatment}
               </code>
-              <span className="text-[10.5px] text-ink-faint">(you decide)</span>
+              <span className="text-2xs text-ink-faint">(you decide)</span>
             </div>
           )}
           {att.ai_analysis && (
-            <div className="text-[11.5px] text-ink leading-relaxed whitespace-pre-wrap">
+            <div className="text-xs text-ink leading-relaxed whitespace-pre-wrap">
               {att.ai_analysis}
             </div>
           )}
           {att.ai_citations && att.ai_citations.length > 0 && (
             <div>
-              <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted mb-1.5 flex items-center gap-1">
+              <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-1.5 flex items-center gap-1">
                 <BookOpenIcon size={10} /> Legal citations
               </div>
               <ul className="space-y-1.5">
                 {att.ai_citations.map((c, i) => (
-                  <li key={i} className="text-[11.5px] bg-surface border border-border rounded px-2 py-1.5">
-                    <code className="text-[10.5px] font-mono bg-surface-alt px-1 py-0.5 rounded text-ink font-semibold">
+                  <li key={i} className="text-xs bg-surface border border-border rounded px-2 py-1.5">
+                    <code className="text-2xs font-mono bg-surface-alt px-1 py-0.5 rounded text-ink font-semibold">
                       {c.legal_id}
                     </code>
                     {c.reason && <span className="ml-2 text-ink-soft">{c.reason}</span>}
                     {c.quote && (
-                      <div className="mt-1 italic text-ink-soft text-[11px] pl-3 border-l-2 border-brand-300">
+                      <div className="mt-1 italic text-ink-soft text-xs pl-3 border-l-2 border-brand-300">
                         &ldquo;{c.quote}&rdquo;
                       </div>
                     )}
@@ -497,21 +497,21 @@ function AttachmentRow({
             </div>
           )}
           {att.ai_analyzed_at && (
-            <div className="text-[10px] text-ink-faint">
+            <div className="text-2xs text-ink-faint">
               Analysed {new Date(att.ai_analyzed_at).toLocaleString('en-GB')} · model: <code>{att.ai_model}</code>
             </div>
           )}
         </div>
       )}
       {analyzing && !expanded && (
-        <div className="px-3 py-2 border-t border-divider bg-brand-50/20 text-[11.5px] text-ink-muted flex items-center gap-2">
+        <div className="px-3 py-2 border-t border-divider bg-brand-50/20 text-xs text-ink-muted flex items-center gap-2">
           <Loader2Icon size={12} className="animate-spin" />
           cifra is reading the document and matching citations…
         </div>
       )}
       {/* Warn users on classifier-only entities why the Analyse button is absent */}
       {!att.ai_analyzed_at && aiModeEntity === 'classifier_only' && (
-        <div className="px-3 py-2 border-t border-divider bg-warning-50/40 text-[11px] text-warning-800 flex items-center gap-1.5">
+        <div className="px-3 py-2 border-t border-divider bg-warning-50/40 text-xs text-warning-800 flex items-center gap-1.5">
           <AlertTriangleIcon size={11} />
           Entity is in classifier-only mode — AI analysis of attachments is disabled. Add your analysis manually in the note.
         </div>

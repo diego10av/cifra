@@ -134,7 +134,7 @@ export function CrmFormModal({
           <button
             onClick={onClose}
             disabled={saving}
-            className="h-8 px-3 rounded-md border border-border text-[12.5px] text-ink-soft hover:bg-surface-alt disabled:opacity-40"
+            className="h-8 px-3 rounded-md border border-border text-sm text-ink-soft hover:bg-surface-alt disabled:opacity-40"
           >
             Cancel
           </button>
@@ -180,7 +180,7 @@ function FieldRenderer({
   const full = field.type === 'textarea' || field.type === 'tags' || field.type === 'multiselect';
   return (
     <div className={full ? 'md:col-span-2' : ''}>
-      <label className="block text-[11px] uppercase tracking-wide font-semibold text-ink-muted mb-1">
+      <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
         {field.label}
         {field.required && <span className="text-danger-600 ml-0.5">*</span>}
       </label>
@@ -191,8 +191,8 @@ function FieldRenderer({
           onChange={e => onChange(e.target.value)}
           placeholder={field.placeholder}
           maxLength={field.maxLength}
-          className={`w-full h-9 px-2.5 text-[13px] border rounded-md focus:outline-none focus:ring-1 ${
-            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border focus:border-brand-500 focus:ring-brand-500'
+          className={`w-full h-9 px-2.5 text-sm border rounded-md ${
+            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border'
           }`}
         />
       ) : field.type === 'textarea' ? (
@@ -201,8 +201,8 @@ function FieldRenderer({
           onChange={e => onChange(e.target.value)}
           placeholder={field.placeholder}
           rows={4}
-          className={`w-full px-2.5 py-2 text-[13px] border rounded-md focus:outline-none focus:ring-1 resize-y ${
-            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border focus:border-brand-500 focus:ring-brand-500'
+          className={`w-full px-2.5 py-2 text-sm border rounded-md resize-y ${
+            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border'
           }`}
         />
       ) : field.type === 'number' ? (
@@ -211,8 +211,8 @@ function FieldRenderer({
           value={(value as number | string) ?? ''}
           onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}
           placeholder={field.placeholder}
-          className={`w-full h-9 px-2.5 text-[13px] border rounded-md focus:outline-none focus:ring-1 tabular-nums ${
-            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border focus:border-brand-500 focus:ring-brand-500'
+          className={`w-full h-9 px-2.5 text-sm border rounded-md tabular-nums ${
+            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border'
           }`}
         />
       ) : field.type === 'date' ? (
@@ -220,12 +220,12 @@ function FieldRenderer({
           type="date"
           value={(value as string) ?? ''}
           onChange={e => onChange(e.target.value || null)}
-          className={`w-full h-9 px-2.5 text-[13px] border rounded-md focus:outline-none focus:ring-1 ${
-            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border focus:border-brand-500 focus:ring-brand-500'
+          className={`w-full h-9 px-2.5 text-sm border rounded-md ${
+            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border'
           }`}
         />
       ) : field.type === 'checkbox' ? (
-        <label className="inline-flex items-center gap-2 h-9 text-[13px]">
+        <label className="inline-flex items-center gap-2 h-9 text-sm">
           <input
             type="checkbox"
             checked={!!value}
@@ -238,8 +238,8 @@ function FieldRenderer({
         <select
           value={(value as string) ?? ''}
           onChange={e => onChange(e.target.value || null)}
-          className={`w-full h-9 px-2.5 text-[13px] border rounded-md focus:outline-none focus:ring-1 bg-white ${
-            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border focus:border-brand-500 focus:ring-brand-500'
+          className={`w-full h-9 px-2.5 text-sm border rounded-md bg-white ${
+            error ? 'border-danger-400 focus:ring-danger-400' : 'border-border'
           }`}
         >
           <option value="">—</option>
@@ -262,9 +262,9 @@ function FieldRenderer({
         />
       ) : null}
       {field.help && !error && (
-        <p className="mt-1 text-[10.5px] text-ink-muted">{field.help}</p>
+        <p className="mt-1 text-2xs text-ink-muted">{field.help}</p>
       )}
-      {error && <p className="mt-1 text-[10.5px] text-danger-700">{error}</p>}
+      {error && <p className="mt-1 text-2xs text-danger-700">{error}</p>}
     </div>
   );
 }
@@ -283,7 +283,7 @@ function MultiSelectField({
   };
   return (
     <div>
-      {placeholder && <p className="text-[10.5px] text-ink-muted mb-1">{placeholder}</p>}
+      {placeholder && <p className="text-2xs text-ink-muted mb-1">{placeholder}</p>}
       <div className="flex flex-wrap gap-1.5">
         {options.map(o => {
           const on = value.includes(o.value);
@@ -292,7 +292,7 @@ function MultiSelectField({
               type="button"
               key={o.value}
               onClick={() => toggle(o.value)}
-              className={`h-7 px-2.5 rounded-md text-[11.5px] border transition-colors ${
+              className={`h-7 px-2.5 rounded-md text-xs border transition-colors ${
                 on
                   ? 'bg-brand-500 text-white border-brand-500'
                   : 'bg-white text-ink-soft border-border hover:border-brand-400'
@@ -325,7 +325,7 @@ function TagsField({
   return (
     <div className="w-full px-2 py-1.5 border border-border rounded-md flex flex-wrap gap-1.5 items-center min-h-9">
       {value.map(t => (
-        <span key={t} className="inline-flex items-center gap-1 text-[11px] bg-brand-50 text-brand-700 border border-brand-200 rounded px-1.5 py-0.5">
+        <span key={t} className="inline-flex items-center gap-1 text-xs bg-brand-50 text-brand-700 border border-brand-200 rounded px-1.5 py-0.5">
           {t}
           <button type="button" onClick={() => remove(t)} className="hover:text-brand-900">×</button>
         </span>
@@ -343,7 +343,7 @@ function TagsField({
         }}
         onBlur={() => { if (draft.trim()) addTag(draft); }}
         placeholder={value.length === 0 ? placeholder : ''}
-        className="flex-1 min-w-[120px] text-[13px] focus:outline-none"
+        className="flex-1 min-w-[120px] text-sm"
       />
     </div>
   );

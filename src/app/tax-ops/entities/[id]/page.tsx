@@ -178,7 +178,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
               save({ legal_name: editName.trim() }, 'Legal name saved');
             }
           }}
-          className="w-full text-base font-semibold text-ink bg-transparent border-0 p-0 focus:ring-0 focus:outline-none focus:bg-surface-alt/60 px-1 rounded"
+          className="w-full text-base font-semibold text-ink bg-transparent border-0 p-0 focus:ring-0 focus:bg-surface-alt/60 px-1 rounded"
         />
         <div className="text-sm text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
           {data.entity.group_name && data.entity.group_id && (
