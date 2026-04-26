@@ -1,23 +1,19 @@
 'use client';
 
 // ════════════════════════════════════════════════════════════════════════
-// LiquidationChip — stint 43.D15
+// LiquidationChip — stint 43.D15, simplified in 44.F4
 //
-// Small inline-editable chip rendered next to the entity name when the
-// entity has a liquidation_date set. Click → popover with date picker +
-// "Mark today" + "Clear" actions. PATCH hits /api/tax-ops/entities/[id].
+// Tiny SIGNAL chip — only visible on entities that have a liquidation_date
+// set. Renders amber when in-progress, gray-faint when past. Click →
+// popover with date picker + "Mark today" + "Clear" actions. PATCH hits
+// /api/tax-ops/entities/[id].
 //
-// Three visual states:
-//   - liquidation_date in the future or current year → amber chip
-//     "Liquidating · DD-MM"
-//   - liquidation_date strictly in the past → gray-faint chip
-//     "Liquidated · YYYY-MM-DD"
-//   - liquidation_date null → "Set liquidation" muted ghost button
-//     (shown via a separate prop on consumer side; the chip itself
-//     renders only when a date is set, by design)
-//
-// Diego: "lo de liquidated está enterrado en detalles" — this surfaces
-// it where he actually looks (next to the entity name in the sticky col).
+// Stint 44.F4: removed the ghost "+ liquidate" button. SETTING the date
+// for the first time now lives in EntityActionsMenu (the kebab `⋯` next
+// to the entity name) — the matrix used to render dashed ghost buttons
+// on every active entity, which Diego rightly called "demasiado evidente"
+// because most entities live 10+ years before liquidating. The chip is
+// still the source of truth for editing once a date exists.
 // ════════════════════════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect } from 'react';
@@ -33,13 +29,10 @@ interface Props {
   liquidationDate: string | null;
   /** Called after a successful PATCH so the matrix refetches. */
   onChanged: () => void;
-  /** When true, even a null date renders a small "+ liquidate" ghost
-   *  button. Default: only render the chip when a date is set. */
-  alwaysVisible?: boolean;
 }
 
 export function LiquidationChip({
-  entityId, entityName, liquidationDate, onChanged, alwaysVisible,
+  entityId, entityName, liquidationDate, onChanged,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<string>(liquidationDate ?? '');
@@ -83,23 +76,18 @@ export function LiquidationChip({
     }
   }
 
-  // Visual state
+  // Stint 44.F4 — chip is signal-only. No ghost mode; setting the date
+  // for the first time happens in EntityActionsMenu.
+  if (!liquidationDate) return null;
+
   const today = new Date().toISOString().slice(0, 10);
-  const isPast = liquidationDate !== null && liquidationDate < today;
-  const chipClass = liquidationDate
-    ? isPast
-      ? 'bg-surface-alt text-ink-faint border border-border'
-      : 'bg-amber-100 text-amber-800 border border-amber-300'
-    : 'bg-transparent text-ink-faint border border-dashed border-border hover:bg-amber-50 hover:text-amber-700 hover:border-amber-300';
-
-  const chipLabel = liquidationDate
-    ? (isPast ? `Liquidated · ${liquidationDate}` : `Liquidating · ${liquidationDate.slice(5)}`)
-    : '+ liquidate';
-
-  // When no date is set and we're not in alwaysVisible mode, render
-  // nothing — the consumer can choose to show the "+ liquidate" button
-  // in a row-action slot if they want.
-  if (!liquidationDate && !alwaysVisible) return null;
+  const isPast = liquidationDate < today;
+  const chipClass = isPast
+    ? 'bg-surface-alt text-ink-faint border border-border'
+    : 'bg-amber-100 text-amber-800 border border-amber-300';
+  const chipLabel = isPast
+    ? `Liquidated · ${liquidationDate}`
+    : `Liquidating · ${liquidationDate.slice(5)}`;
 
   return (
     <span ref={wrapperRef} className="relative inline-block ml-1.5">
@@ -112,11 +100,7 @@ export function LiquidationChip({
           chipClass,
           'disabled:opacity-50',
         ].join(' ')}
-        title={
-          liquidationDate
-            ? `Liquidation date: ${liquidationDate} · click to change`
-            : 'Set liquidation date'
-        }
+        title={`Liquidation date: ${liquidationDate} · click to change`}
       >
         {chipLabel}
       </button>

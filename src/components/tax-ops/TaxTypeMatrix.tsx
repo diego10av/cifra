@@ -23,6 +23,7 @@ import { FilingStatusBadge, filingStatusLabel } from './FilingStatusBadge';
 import { InlineStatusCell } from './inline-editors';
 import { familyChipClasses } from './familyColors';
 import { LiquidationChip, isFinalReturnPeriod } from './LiquidationChip';
+import { EntityActionsMenu } from './EntityActionsMenu';
 
 export interface MatrixCell {
   filing_id: string;
@@ -476,14 +477,25 @@ function RowRender({
           >
             {entity.legal_name}
           </Link>
+          {/* Stint 44.F4 — kebab `⋯` is the SETTING surface (low-frequency
+              actions like "mark liquidating"); LiquidationChip is the
+              SIGNAL chip (only visible when an entity actually has a
+              liquidation_date set). Both share the same opt-in flag. */}
           {liquidationVisuals && (
-            <LiquidationChip
-              entityId={entity.id}
-              entityName={entity.legal_name}
-              liquidationDate={entity.liquidation_date ?? null}
-              onChanged={onLiquidationChanged ?? (() => {})}
-              alwaysVisible={!entity.liquidation_date}
-            />
+            <>
+              <EntityActionsMenu
+                entityId={entity.id}
+                entityName={entity.legal_name}
+                liquidationDate={entity.liquidation_date ?? null}
+                onChanged={onLiquidationChanged ?? (() => {})}
+              />
+              <LiquidationChip
+                entityId={entity.id}
+                entityName={entity.legal_name}
+                liquidationDate={entity.liquidation_date ?? null}
+                onChanged={onLiquidationChanged ?? (() => {})}
+              />
+            </>
           )}
         </div>
       </td>
