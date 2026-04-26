@@ -191,10 +191,10 @@ export default function EntitiesListPage() {
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Search by legal name or VAT number…"
-            className="pl-7 pr-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface w-[280px]"
+            className="pl-7 pr-2 py-1.5 text-sm border border-border rounded-md bg-surface w-[280px]"
           />
         </div>
-        <label className="inline-flex items-center gap-1.5 text-[12.5px] cursor-pointer">
+        <label className="inline-flex items-center gap-1.5 text-sm cursor-pointer">
           <input
             type="checkbox"
             checked={includeArchived}
@@ -206,7 +206,7 @@ export default function EntitiesListPage() {
           <button
             type="button"
             onClick={selected.size === rows.length ? clearSelection : selectAllVisible}
-            className="ml-auto text-[11.5px] text-ink-muted hover:text-ink underline"
+            className="ml-auto text-xs text-ink-muted hover:text-ink underline"
           >
             {selected.size === rows.length ? 'Clear selection' : `Select all (${rows.length})`}
           </button>
@@ -216,13 +216,13 @@ export default function EntitiesListPage() {
       {/* Bulk-action toolbar — sticky banner when any rows selected */}
       {selected.size > 0 && (
         <div className="sticky top-0 z-30 mb-3 rounded-md border border-brand-300 bg-brand-50 px-3 py-2 flex items-center gap-2 flex-wrap">
-          <span className="text-[12.5px] text-ink font-medium">
+          <span className="text-sm text-ink font-medium">
             {selected.size} {selected.size === 1 ? 'entity' : 'entities'} selected
           </span>
           <button
             type="button"
             onClick={() => setOpenAction({ kind: 'change_family' })}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border bg-surface hover:bg-surface-alt"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border bg-surface hover:bg-surface-alt"
           >
             <FoldersIcon size={12} /> Change family…
           </button>
@@ -230,7 +230,7 @@ export default function EntitiesListPage() {
             <button
               type="button"
               onClick={() => setOpenAction({ kind: 'archive' })}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border bg-surface hover:bg-danger-50 hover:text-danger-700"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border bg-surface hover:bg-danger-50 hover:text-danger-700"
             >
               <ArchiveIcon size={12} /> Archive…
             </button>
@@ -239,7 +239,7 @@ export default function EntitiesListPage() {
             <button
               type="button"
               onClick={() => setOpenAction({ kind: 'reactivate' })}
-              className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border bg-surface hover:bg-green-50 hover:text-green-700"
+              className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border bg-surface hover:bg-green-50 hover:text-green-700"
             >
               <ArchiveRestoreIcon size={12} /> Reactivate…
             </button>
@@ -289,12 +289,12 @@ export default function EntitiesListPage() {
                     className="flex-1 flex items-center gap-1 text-left hover:text-brand-700"
                   >
                     {isCollapsed ? <ChevronRightIcon size={13} /> : <ChevronDownIcon size={13} />}
-                    <span className="font-semibold text-[12.5px] text-ink">{groupName}</span>
-                    <span className="text-[11.5px] text-ink-muted">({items.length})</span>
+                    <span className="font-semibold text-sm text-ink">{groupName}</span>
+                    <span className="text-xs text-ink-muted">({items.length})</span>
                   </button>
                 </div>
                 {!isCollapsed && (
-                  <table className="w-full text-[12.5px]">
+                  <table className="w-full text-sm">
                     <thead className="bg-surface-alt/30 text-ink-muted">
                       <tr className="text-left">
                         <th className="px-2 py-1.5 w-[28px]"></th>
@@ -315,7 +315,7 @@ export default function EntitiesListPage() {
                           <tr
                             key={e.id}
                             className={[
-                              'border-t border-border hover:bg-surface-alt/40',
+                              'border-t border-border hover:bg-surface-alt/50',
                               isSelected ? 'bg-brand-50/50' : '',
                               !e.is_active ? 'opacity-60' : '',
                             ].join(' ')}
@@ -334,7 +334,7 @@ export default function EntitiesListPage() {
                                 {e.legal_name}
                               </Link>
                               {!e.is_active && (
-                                <span className="ml-2 inline-flex items-center px-1 py-0 rounded-full text-[9.5px] bg-surface-alt text-ink-muted">
+                                <span className="ml-2 inline-flex items-center px-1 py-0 rounded-full text-2xs bg-surface-alt text-ink-muted">
                                   {e.liquidation_date ? `Liquidated ${e.liquidation_date}` : 'Inactive'}
                                 </span>
                               )}
@@ -413,13 +413,13 @@ function ChangeFamilyModal({
   const [pick, setPick] = useState<string>('');  // '' = no choice yet
   return (
     <ModalShell onClose={onClose} title={`Change family for ${count} entit${count === 1 ? 'y' : 'ies'}`}>
-      <p className="text-[12px] text-ink-muted mb-2">
+      <p className="text-sm text-ink-muted mb-2">
         Move all selected entities into the same family — or unassign them.
       </p>
       <select
         value={pick}
         onChange={(e) => setPick(e.target.value)}
-        className="w-full px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface mb-3"
+        className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-surface mb-3"
       >
         <option value="">— pick a family —</option>
         <option value="__unassign__">— Unassign (no family)</option>
@@ -448,18 +448,18 @@ function ArchiveModal({
   const [date, setDate] = useState<string>(today);
   return (
     <ModalShell onClose={onClose} title={`Archive ${count} entit${count === 1 ? 'y' : 'ies'}`}>
-      <p className="text-[12px] text-ink-muted mb-2">
+      <p className="text-sm text-ink-muted mb-2">
         They&apos;ll stop appearing in matrices for years AFTER the liquidation date.
         Their existing filings stay intact and remain visible.
       </p>
-      <label className="block text-[11px] font-medium text-ink-muted mb-1">
+      <label className="block text-xs font-medium text-ink-muted mb-1">
         Liquidation / de-registration date (optional)
       </label>
       <input
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
-        className="w-full px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface tabular-nums mb-3"
+        className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-surface tabular-nums mb-3"
       />
       <ModalButtons
         onClose={onClose}
@@ -481,7 +481,7 @@ function ConfirmModal({
 }) {
   return (
     <ModalShell onClose={onClose} title={title}>
-      <p className="text-[12px] text-ink-muted mb-3">{body}</p>
+      <p className="text-sm text-ink-muted mb-3">{body}</p>
       <ModalButtons onClose={onClose} confirmLabel={confirmLabel} onConfirm={onApply} />
     </ModalShell>
   );
@@ -507,7 +507,7 @@ function ModalShell({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 mb-2">
-          <h2 className="text-[14px] font-semibold text-ink flex-1">{title}</h2>
+          <h2 className="text-base font-semibold text-ink flex-1">{title}</h2>
           <button type="button" onClick={onClose} aria-label="Close" className="text-ink-muted hover:text-ink p-1">
             <XIcon size={14} />
           </button>
@@ -532,7 +532,7 @@ function ModalButtons({
       <button
         type="button"
         onClick={onClose}
-        className="px-3 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+        className="px-3 py-1 text-sm rounded-md border border-border hover:bg-surface-alt"
       >
         Cancel
       </button>
@@ -543,7 +543,7 @@ function ModalButtons({
           setBusy(true);
           try { await onConfirm(); } finally { setBusy(false); }
         }}
-        className="px-3 py-1 text-[12px] rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+        className="px-3 py-1 text-sm rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
       >
         {busy ? 'Applying…' : confirmLabel}
       </button>

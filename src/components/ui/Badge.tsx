@@ -1,5 +1,14 @@
 import type { ReactNode } from 'react';
 
+/**
+ * Badge — uppercase status / category chip.
+ *
+ * Stint 45.F1.5: dropped the 12 hex literals (`border-[#E1D3F7]` etc.)
+ * that were silently bypassing the design-token system. Semantic tones
+ * (info/success/warning/danger) now use the same border/bg pair as the
+ * rest of the codebase. Custom tones (violet/teal/amber/indigo/fuchsia/
+ * sky) ride on Tailwind 4's built-in palette — no per-shade hex needed.
+ */
 type Tone =
   | 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'danger'
   | 'violet'  | 'teal'  | 'amber' | 'indigo' | 'fuchsia' | 'sky';
@@ -9,21 +18,23 @@ type Size = 'xs' | 'sm';
 const TONE: Record<Tone, string> = {
   neutral: 'bg-surface-alt text-ink-soft border-border',
   brand:   'bg-brand-50 text-brand-700 border-brand-200',
-  info:    'bg-info-50 text-info-700 border-[#C9DBF5]',
-  success: 'bg-success-50 text-success-700 border-[#B7E7D2]',
-  warning: 'bg-warning-50 text-warning-700 border-[#F3D98C]',
-  danger:  'bg-danger-50 text-danger-700 border-[#F4B9B7]',
-  violet:  'bg-[#F3EEFD] text-[#6A39B5] border-[#E1D3F7]',
-  teal:    'bg-[#E3F7F3] text-[#146B5B] border-[#B5E4D8]',
-  amber:   'bg-[#FEF3CC] text-[#8A5B00] border-[#F6DC8C]',
-  indigo:  'bg-[#EBEFFE] text-[#3949AB] border-[#C9D3F8]',
-  fuchsia: 'bg-[#FCEBF5] text-[#9C2A7B] border-[#F4C1E0]',
-  sky:     'bg-[#E6F3FB] text-[#0E6CA8] border-[#B9DCF2]',
+  info:    'bg-info-50 text-info-700 border-info-50',
+  success: 'bg-success-50 text-success-700 border-success-50',
+  warning: 'bg-warning-50 text-warning-700 border-warning-50',
+  danger:  'bg-danger-50 text-danger-700 border-danger-50',
+  // Custom tones use Tailwind 4's stock palette (no extra tokens needed).
+  // Border at -200 / bg at -100 / text at -700 keeps the pattern uniform.
+  violet:  'bg-violet-100 text-violet-700 border-violet-200',
+  teal:    'bg-teal-100 text-teal-700 border-teal-200',
+  amber:   'bg-amber-100 text-amber-800 border-amber-200',
+  indigo:  'bg-indigo-100 text-indigo-700 border-indigo-200',
+  fuchsia: 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200',
+  sky:     'bg-sky-100 text-sky-700 border-sky-200',
 };
 
 const SIZE: Record<Size, string> = {
-  xs: 'text-[10px] px-1.5 py-0.5 rounded-[4px] gap-1',
-  sm: 'text-[11px] px-2 py-0.5 rounded-[5px] gap-1',
+  xs: 'text-2xs px-1.5 py-0.5 rounded-sm gap-1',
+  sm: 'text-xs px-2 py-0.5 rounded gap-1',
 };
 
 export function Badge({

@@ -21,7 +21,7 @@ export function ListFooter({
   onPageSize: (size: number) => void;
 }) {
   return (
-    <div className="border-t border-divider px-4 py-2.5 flex items-center justify-between text-[11.5px] text-ink-muted bg-surface-alt/40">
+    <div className="border-t border-divider px-4 py-2.5 flex items-center justify-between text-xs text-ink-muted bg-surface-alt/40">
       <span>
         <span className="font-semibold tabular-nums text-ink">{total === 0 ? 0 : start + 1}</span>
         {' – '}

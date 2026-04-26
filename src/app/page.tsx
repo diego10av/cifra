@@ -30,6 +30,8 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSkeleton } from '@/components/ui/Skeleton';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 import { NewDeclarationModal } from '@/components/declaration/NewDeclarationModal';
 
 // Local-storage key for the "first-time seed offer" dismiss state.
@@ -170,7 +172,7 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-[1200px]">
+    <PageContainer width="wide">
       {/* ── Onboarding banner (first-time only, dismissible) ──────── */}
       {isFirstTime && (
         <div className="mb-6 rounded-xl border border-brand-200 bg-gradient-to-br from-brand-50 via-surface to-surface p-5 relative">
@@ -186,16 +188,16 @@ export default function Home() {
               <WandIcon size={18} />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-[15px] font-semibold text-ink">
+              <h2 className="text-base font-semibold text-ink">
                 Welcome to cifra. Start with a demo, or jump straight in.
               </h2>
-              <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+              <p className="text-sm text-ink-soft mt-1 leading-relaxed">
                 No clients yet. Load a one-click demo dataset (1 client, 1
                 entity, 1 declaration in review with 4 classified invoices) to
                 explore the product — or create your first real client from scratch.
               </p>
               {seedError && (
-                <div className="mt-2 text-[11.5px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-1.5">
+                <div className="mt-2 text-xs text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-1.5">
                   {seedError}
                 </div>
               )}
@@ -203,7 +205,7 @@ export default function Home() {
                 <button
                   onClick={handleSeedDemo}
                   disabled={seeding}
-                  className="h-9 px-3.5 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
+                  className="h-9 px-3.5 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 disabled:opacity-50 inline-flex items-center gap-1.5"
                 >
                   {seeding
                     ? (<><Loader2Icon size={13} className="animate-spin" /> Creating demo…</>)
@@ -211,13 +213,13 @@ export default function Home() {
                 </button>
                 <Link
                   href="/clients/new"
-                  className="h-9 px-3.5 rounded-md border border-border-strong text-[12.5px] font-semibold text-ink hover:bg-surface-alt inline-flex items-center gap-1.5"
+                  className="h-9 px-3.5 rounded-md border border-border-strong text-sm font-semibold text-ink hover:bg-surface-alt inline-flex items-center gap-1.5"
                 >
                   <PlusIcon size={13} /> Create my first client
                 </Link>
                 <button
                   onClick={handleDismissOnboarding}
-                  className="h-9 px-3 text-[12px] text-ink-soft hover:text-ink"
+                  className="h-9 px-3 text-sm text-ink-soft hover:text-ink"
                 >
                   Skip for now
                 </button>
@@ -228,18 +230,16 @@ export default function Home() {
       )}
 
       {/* ── Hero greeting + quick actions ───────────────────────────── */}
-      <header className="mb-6">
-        <h1 className="text-[28px] font-bold text-ink tracking-tight leading-none" style={{ letterSpacing: '-0.02em' }}>
-          {greeting}
-        </h1>
-        <p className="text-[14px] text-ink-muted mt-2">
-          {summarySentence({
-            inReviewCount: inReview.length,
-            overdueCount: overdue.length,
-            aedUrgentCount: aedUrgent.length,
-          })}
-        </p>
-
+      <PageHeader
+        variant="hero"
+        title={greeting}
+        subtitle={summarySentence({
+          inReviewCount: inReview.length,
+          overdueCount: overdue.length,
+          aedUrgentCount: aedUrgent.length,
+        })}
+      />
+      <div className="-mt-6 mb-8">
         {/* Quick actions — Linear-style command-first hierarchy.
             Prominent command-palette pill + two concrete CTAs in a
             secondary row. Design intent: the "Today's focus" banner
@@ -252,13 +252,13 @@ export default function Home() {
               // Trigger the same ⌘K the SearchBar listens for.
               window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
             }}
-            className="group inline-flex items-center gap-2 h-9 pl-3 pr-2.5 rounded-md bg-ink text-white text-[12.5px] font-medium hover:bg-ink-soft transition-colors"
+            className="group inline-flex items-center gap-2 h-9 pl-3 pr-2.5 rounded-md bg-ink text-white text-sm font-medium hover:bg-ink-soft transition-colors"
             title="Open command palette — search + actions"
           >
             Search or run a command
-            <kbd className="ml-1 inline-flex items-center h-5 px-1.5 rounded bg-white/15 font-mono text-[10.5px] text-white/90 border border-white/20">⌘K</kbd>
+            <kbd className="ml-1 inline-flex items-center h-5 px-1.5 rounded bg-white/15 font-mono text-2xs text-white/90 border border-white/20">⌘K</kbd>
           </button>
-          <span className="text-ink-faint text-[11px] px-1">·</span>
+          <span className="text-ink-faint text-xs px-1">·</span>
           <Link href="/clients/new">
             <Button variant="secondary" size="md" icon={<PlusIcon size={14} />}>
               New client
@@ -280,7 +280,7 @@ export default function Home() {
               aed"), from the entity detail page AED tab, and from
               any urgent-AED item in the Inbox. */}
         </div>
-      </header>
+      </div>
 
       <NewDeclarationModal open={newDeclOpen} onClose={() => setNewDeclOpen(false)} />
 
@@ -346,7 +346,7 @@ export default function Home() {
             title="Upcoming deadlines"
             subtitle="Next 5 filings by due date"
             right={
-              <Link href="/deadlines" className="text-[12px] font-medium text-brand-600 hover:text-brand-700 inline-flex items-center gap-1">
+              <Link href="/deadlines" className="text-sm font-medium text-brand-600 hover:text-brand-700 inline-flex items-center gap-1">
                 See all <ArrowRightIcon size={12} />
               </Link>
             }
@@ -365,10 +365,10 @@ export default function Home() {
                     <li key={`${d.entity_id}-${idx}`} className="py-3 first:pt-0 last:pb-0 flex items-center gap-3">
                       <BucketIcon bucket={d.bucket} isOverdue={d.is_overdue} />
                       <div className="min-w-0 flex-1">
-                        <div className="text-[13px] font-medium text-ink truncate">
+                        <div className="text-sm font-medium text-ink truncate">
                           {entity?.name ?? d.entity_name ?? 'Entity'}
                         </div>
-                        <div className="text-[11.5px] text-ink-muted mt-0.5">
+                        <div className="text-xs text-ink-muted mt-0.5">
                           {entity?.client_name && <>{entity.client_name} · </>}
                           {formatDate(d.due_date)}
                         </div>
@@ -378,7 +378,7 @@ export default function Home() {
                       </div>
                       <Link
                         href={d.declaration_id ? `/declarations/${d.declaration_id}` : `/entities/${d.entity_id}`}
-                        className="shrink-0 text-[11.5px] font-medium text-brand-600 hover:text-brand-700"
+                        className="shrink-0 text-xs font-medium text-brand-600 hover:text-brand-700"
                       >
                         Open →
                       </Link>
@@ -402,17 +402,17 @@ export default function Home() {
               <div className="text-[34px] font-bold text-ink tabular-nums leading-none tracking-tight">
                 {filedThisMonth}
               </div>
-              <div className="text-[12px] text-ink-muted">declarations filed</div>
+              <div className="text-sm text-ink-muted">declarations filed</div>
             </div>
             {filedThisMonth === 0 ? (
-              <p className="text-[11.5px] text-ink-muted mt-3 leading-relaxed">
+              <p className="text-xs text-ink-muted mt-3 leading-relaxed">
                 Nothing filed yet this month. If you have declarations
                 ready, they&apos;ll show up in the In-review card above.
               </p>
             ) : (
               <Link
                 href="/declarations?status=filed"
-                className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-brand-600 hover:text-brand-700"
+                className="inline-flex items-center gap-1 mt-3 text-sm font-medium text-brand-600 hover:text-brand-700"
               >
                 See filed list <ArrowRightIcon size={12} />
               </Link>
@@ -425,10 +425,10 @@ export default function Home() {
       <section>
         <div className="flex items-end justify-between mb-3">
           <div>
-            <h2 className="text-[16px] font-semibold text-ink tracking-tight">Your portfolio</h2>
-            <p className="text-[12px] text-ink-muted mt-0.5">Every client entity you manage, sorted by next deadline.</p>
+            <h2 className="text-base font-semibold text-ink tracking-tight">Your portfolio</h2>
+            <p className="text-sm text-ink-muted mt-0.5">Every client entity you manage, sorted by next deadline.</p>
           </div>
-          <Link href="/clients" className="text-[12px] font-medium text-brand-600 hover:text-brand-700 inline-flex items-center gap-1">
+          <Link href="/clients" className="text-sm font-medium text-brand-600 hover:text-brand-700 inline-flex items-center gap-1">
             Manage clients <ArrowRightIcon size={12} />
           </Link>
         </div>
@@ -448,7 +448,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-xs">
-            <table className="w-full text-[12.5px]">
+            <table className="w-full text-sm">
               <thead className="bg-surface-alt border-b border-divider text-ink-muted">
                 <tr>
                   <Th>Client · Entity</Th>
@@ -463,12 +463,12 @@ export default function Home() {
                 {buildPortfolioRows(entities, declarations, deadlines).map(({ entity: e, decl, deadline }) => (
                   <tr
                     key={e.id}
-                    className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150"
+                    className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150"
                   >
                     <td className="px-4 py-3">
                       <Link href={`/entities/${e.id}`} className="group">
                         <div className="font-medium text-ink group-hover:text-brand-600 transition-colors">{e.name}</div>
-                        {e.client_name && <div className="text-[11px] text-ink-muted mt-0.5">{e.client_name}</div>}
+                        {e.client_name && <div className="text-xs text-ink-muted mt-0.5">{e.client_name}</div>}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-ink-soft capitalize">{e.regime} · {e.frequency}</td>
@@ -483,11 +483,11 @@ export default function Home() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       {decl ? (
-                        <Link href={`/declarations/${decl.id}`} className="text-brand-600 hover:text-brand-700 text-[11.5px] font-medium">
+                        <Link href={`/declarations/${decl.id}`} className="text-brand-600 hover:text-brand-700 text-xs font-medium">
                           Open
                         </Link>
                       ) : (
-                        <Link href={`/declarations?entity_id=${e.id}`} className="text-brand-600 hover:text-brand-700 text-[11.5px] font-medium">
+                        <Link href={`/declarations?entity_id=${e.id}`} className="text-brand-600 hover:text-brand-700 text-xs font-medium">
                           Start
                         </Link>
                       )}
@@ -499,7 +499,7 @@ export default function Home() {
           </div>
         )}
       </section>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -541,12 +541,12 @@ function PriorityCard({
             {icon}
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[11px] uppercase tracking-[0.06em] font-semibold text-ink-muted">{title}</div>
-            <div className="text-[28px] font-bold text-ink tabular-nums leading-none mt-1.5 tracking-tight" style={{ letterSpacing: '-0.02em' }}>
+            <div className="text-xs uppercase tracking-[0.06em] font-semibold text-ink-muted">{title}</div>
+            <div className="text-3xl font-bold text-ink tabular-nums leading-none mt-1.5 tracking-tight" style={{ letterSpacing: '-0.02em' }}>
               {count}
             </div>
-            <div className="text-[12px] text-ink-soft mt-2">{detail}</div>
-            <div className="text-[12px] text-brand-600 font-medium mt-3 inline-flex items-center gap-1 group-hover:gap-1.5 transition-all">
+            <div className="text-sm text-ink-soft mt-2">{detail}</div>
+            <div className="text-sm text-brand-600 font-medium mt-3 inline-flex items-center gap-1 group-hover:gap-1.5 transition-all">
               {cta} <ArrowRightIcon size={12} />
             </div>
           </div>
@@ -566,8 +566,8 @@ function SectionCard({
     <div className="bg-surface border border-border rounded-xl shadow-xs overflow-hidden">
       <div className={`px-4 ${compact ? 'py-2.5' : 'py-3'} border-b border-divider flex items-center justify-between`}>
         <div className="min-w-0">
-          <h3 className="text-[13px] font-semibold text-ink tracking-tight">{title}</h3>
-          {subtitle && <p className="text-[11px] text-ink-muted mt-0.5">{subtitle}</p>}
+          <h3 className="text-sm font-semibold text-ink tracking-tight">{title}</h3>
+          {subtitle && <p className="text-xs text-ink-muted mt-0.5">{subtitle}</p>}
         </div>
         {right}
       </div>
@@ -618,7 +618,7 @@ function StatusPill({ status }: { status: string }) {
 
 function Th({ children, align = 'left' }: { children?: React.ReactNode; align?: 'left' | 'right' }) {
   return (
-    <th className={`px-4 py-2.5 font-medium text-[10.5px] uppercase tracking-[0.06em] ${align === 'right' ? 'text-right' : 'text-left'}`}>
+    <th className={`px-4 py-2.5 font-medium text-2xs uppercase tracking-[0.06em] ${align === 'right' ? 'text-right' : 'text-left'}`}>
       {children}
     </th>
   );
@@ -744,14 +744,14 @@ function BudgetWarningBanner({ budget }: { budget: BudgetStatus }) {
   return (
     <div className={`mb-6 rounded-xl border ${tone.border} ${tone.bg} p-4 md:p-5`}>
       <div className="flex items-start gap-4">
-        <div className={`shrink-0 inline-flex items-center justify-center h-8 px-2.5 rounded-md text-[10.5px] font-semibold tracking-wide uppercase ${tone.pill}`}>
+        <div className={`shrink-0 inline-flex items-center justify-center h-8 px-2.5 rounded-md text-2xs font-semibold tracking-wide uppercase ${tone.pill}`}>
           Anthropic budget
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-[14.5px] font-semibold text-ink leading-tight">
+          <h3 className="text-base font-semibold text-ink leading-tight">
             AI spend at {pct}% of €{budget.limit_eur.toFixed(0)} monthly cap — {verb}.
           </h3>
-          <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+          <p className="text-sm text-ink-soft mt-1 leading-relaxed">
             €{budget.month_spend_eur.toFixed(2)} used · €{budget.remaining_eur.toFixed(2)} remaining.
             {pct >= 100
               ? ' Extract / validate / chat endpoints are blocked until next month or you raise the cap.'
@@ -765,7 +765,7 @@ function BudgetWarningBanner({ budget }: { budget: BudgetStatus }) {
         </div>
         <Link
           href="/metrics"
-          className="shrink-0 h-8 px-3.5 rounded-md bg-ink text-white text-[12px] font-semibold hover:bg-ink-soft inline-flex items-center gap-1.5"
+          className="shrink-0 h-8 px-3.5 rounded-md bg-ink text-white text-sm font-semibold hover:bg-ink-soft inline-flex items-center gap-1.5"
         >
           Open metrics
           <ArrowRightIcon size={12} />
@@ -791,20 +791,20 @@ function TodaysFocusBanner({ focus }: { focus: Focus }) {
   return (
     <div className={`mb-6 rounded-xl border p-4 md:p-5 ${style}`}>
       <div className="flex items-start gap-4">
-        <div className={`shrink-0 inline-flex items-center justify-center h-8 px-2.5 rounded-md text-[10.5px] font-semibold tracking-wide uppercase ${badge}`}>
+        <div className={`shrink-0 inline-flex items-center justify-center h-8 px-2.5 rounded-md text-2xs font-semibold tracking-wide uppercase ${badge}`}>
           Today's focus
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-[14.5px] font-semibold text-ink leading-tight">
+          <h3 className="text-base font-semibold text-ink leading-tight">
             {focus.title}
           </h3>
-          <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
+          <p className="text-sm text-ink-soft mt-1 leading-relaxed">
             {focus.detail}
           </p>
         </div>
         <Link
           href={focus.href}
-          className="shrink-0 h-8 px-3.5 rounded-md bg-ink text-white text-[12px] font-semibold hover:bg-ink-soft inline-flex items-center gap-1.5"
+          className="shrink-0 h-8 px-3.5 rounded-md bg-ink text-white text-sm font-semibold hover:bg-ink-soft inline-flex items-center gap-1.5"
         >
           {focus.cta}
           <ArrowRightIcon size={12} />

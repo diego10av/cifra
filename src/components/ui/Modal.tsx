@@ -110,12 +110,12 @@ export function Modal({
           <div className="flex items-start justify-between gap-3 px-5 py-4 border-b border-divider shrink-0">
             <div className="flex-1 min-w-0">
               {title && (
-                <h2 id={titleId} className="text-[15px] font-semibold text-ink leading-snug">
+                <h2 id={titleId} className="text-base font-semibold text-ink leading-snug">
                   {title}
                 </h2>
               )}
               {subtitle && (
-                <div className="text-[12px] text-ink-muted mt-0.5 leading-relaxed">
+                <div className="text-sm text-ink-muted mt-0.5 leading-relaxed">
                   {subtitle}
                 </div>
               )}
@@ -183,7 +183,7 @@ export function ConfirmModal({
           <button
             onClick={onClose}
             disabled={busy}
-            className="h-9 px-3.5 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-muted hover:text-ink disabled:opacity-50"
+            className="h-9 px-3.5 rounded-md border border-border-strong text-sm font-medium text-ink-muted hover:text-ink disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -191,7 +191,7 @@ export function ConfirmModal({
             onClick={onConfirm}
             disabled={busy}
             className={[
-              'h-9 px-3.5 rounded-md text-white text-[12.5px] font-semibold disabled:opacity-50',
+              'h-9 px-3.5 rounded-md text-white text-sm font-semibold disabled:opacity-50',
               tone === 'danger'
                 ? 'bg-danger-600 hover:bg-danger-700'
                 : 'bg-brand-500 hover:bg-brand-600',
@@ -203,7 +203,7 @@ export function ConfirmModal({
       }
     >
       {description && (
-        <div className="text-[13px] text-ink-soft leading-relaxed whitespace-pre-wrap">
+        <div className="text-sm text-ink-soft leading-relaxed whitespace-pre-wrap">
           {description}
         </div>
       )}

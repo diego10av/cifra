@@ -437,10 +437,10 @@ function RowRender({
   const tinted = liquidationVisuals && !!entity.liquidation_date;
   const trClass = tinted
     ? 'border-b border-border/70 bg-amber-50/40 hover:bg-amber-50/70'
-    : 'border-b border-border/70 hover:bg-surface-alt/40';
+    : 'border-b border-border/70 hover:bg-surface-alt/50';
   const stickyBgClass = tinted
     ? 'bg-amber-50/60 hover:bg-amber-50/80'
-    : 'bg-surface hover:bg-surface-alt/40';
+    : 'bg-surface hover:bg-surface-alt/50';
 
   return (
     <tr className={trClass}>

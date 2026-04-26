@@ -3,7 +3,7 @@
 import { forwardRef, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react';
 
 const BASE =
-  'w-full bg-surface border border-border rounded-md px-3 py-1.5 text-[12.5px] text-ink ' +
+  'w-full bg-surface border border-border rounded-md px-3 py-1.5 text-sm text-ink ' +
   'placeholder:text-ink-faint ' +
   'transition-colors duration-150 ' +
   'hover:border-border-strong ' +
@@ -34,7 +34,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
 
 export function Label({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <label className={`block text-[11px] uppercase tracking-[0.04em] font-semibold text-ink-muted mb-1.5 ${className}`}>
+    <label className={`block text-xs uppercase tracking-[0.04em] font-semibold text-ink-muted mb-1.5 ${className}`}>
       {children}
     </label>
   );
@@ -49,7 +49,7 @@ export function Field({
     <div className={className}>
       {label && <Label>{label}</Label>}
       {children}
-      {hint && <p className="text-[11px] text-ink-muted mt-1">{hint}</p>}
+      {hint && <p className="text-xs text-ink-muted mt-1">{hint}</p>}
     </div>
   );
 }

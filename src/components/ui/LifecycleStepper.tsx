@@ -85,7 +85,7 @@ export function LifecycleStepper({
     <div className="w-full">
       {/* Mobile compact: just step N of total + progress bar */}
       <div className="md:hidden">
-        <div className="flex items-center justify-between text-[11.5px] mb-2">
+        <div className="flex items-center justify-between text-xs mb-2">
           <span className="text-ink-muted">Step {activeIdx + 1} of {steps.length}</span>
           <span className="font-semibold text-brand-600">{currentLabel}</span>
         </div>
@@ -140,13 +140,13 @@ export function LifecycleStepper({
 
               {/* Step circle */}
               <div
-                className={`relative w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold tabular-nums z-10 transition-all duration-200 ${circleClasses} ${clickable ? 'group-hover:ring-2 group-hover:ring-success-300' : ''}`}
+                className={`relative w-6 h-6 rounded-full flex items-center justify-center text-2xs font-bold tabular-nums z-10 transition-all duration-200 ${circleClasses} ${clickable ? 'group-hover:ring-2 group-hover:ring-success-300' : ''}`}
               >
                 {isDone ? <CheckIcon size={11} strokeWidth={3} /> : i + 1}
               </div>
 
               {/* Step label */}
-              <span className={`mt-1.5 text-[10.5px] tracking-tight text-center ${labelClasses} ${clickable ? 'group-hover:text-success-700' : ''}`}>
+              <span className={`mt-1.5 text-2xs tracking-tight text-center ${labelClasses} ${clickable ? 'group-hover:text-success-700' : ''}`}>
                 {step.short}
               </span>
             </>

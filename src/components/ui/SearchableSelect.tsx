@@ -136,7 +136,7 @@ export function SearchableSelect({
         disabled={disabled}
         onClick={() => !disabled && setOpen(o => !o)}
         className={[
-          'inline-flex items-center justify-between gap-1 px-2 py-1 text-[12.5px] border border-border rounded-md bg-surface min-w-[120px] hover:bg-surface-alt disabled:opacity-50',
+          'inline-flex items-center justify-between gap-1 px-2 py-1 text-sm border border-border rounded-md bg-surface min-w-[120px] hover:bg-surface-alt disabled:opacity-50',
           triggerClassName ?? '',
         ].join(' ')}
       >
@@ -156,7 +156,7 @@ export function SearchableSelect({
               onKeyDown={handleKey}
               placeholder="Search…"
               aria-label={`${ariaLabel ?? 'Search'} (search)`}
-              className="w-full px-2 py-1 text-[12.5px] border border-border rounded bg-surface focus:outline-none focus:ring-2 focus:ring-brand-300"
+              className="w-full px-2 py-1 text-sm border border-border rounded bg-surface focus:outline-none focus:ring-2 focus:ring-brand-300"
             />
           </div>
           <ul
@@ -166,7 +166,7 @@ export function SearchableSelect({
             className="max-h-[280px] overflow-auto py-0.5"
           >
             {filtered.length === 0 ? (
-              <li className="px-2.5 py-1.5 text-[12px] text-ink-faint italic">No matches</li>
+              <li className="px-2.5 py-1.5 text-sm text-ink-faint italic">No matches</li>
             ) : filtered.map((opt, i) => (
               <li
                 key={opt.value}
@@ -175,7 +175,7 @@ export function SearchableSelect({
                 onMouseEnter={() => setHighlight(i)}
                 onClick={() => commit(opt)}
                 className={[
-                  'px-2.5 py-1 text-[12.5px] cursor-pointer truncate',
+                  'px-2.5 py-1 text-sm cursor-pointer truncate',
                   i === highlight ? 'bg-brand-50' : '',
                   opt.value === value ? 'font-medium' : '',
                   opt.className ?? '',

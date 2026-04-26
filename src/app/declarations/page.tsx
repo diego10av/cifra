@@ -149,7 +149,7 @@ function DeclarationsContent() {
           <>
             Declarations
             {entityId && selectedEntity && (
-              <span className="text-[16px] text-ink-muted font-normal ml-3">for {selectedEntity.name}</span>
+              <span className="text-base text-ink-muted font-normal ml-3">for {selectedEntity.name}</span>
             )}
           </>
         }
@@ -196,7 +196,7 @@ function DeclarationsContent() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search by entity / year / period"
-              className="w-full h-9 pl-9 pr-3 rounded-md border border-border bg-surface text-[13px] placeholder:text-ink-muted focus:border-brand-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20"
+              className="w-full h-9 pl-9 pr-3 rounded-md border border-border bg-surface text-sm placeholder:text-ink-muted focus:border-brand-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/20"
             />
           </div>
         </div>
@@ -234,7 +234,7 @@ function DeclarationsContent() {
         </Card>
       ) : (
         <Card className="overflow-hidden">
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="bg-surface-alt border-b border-divider text-ink-muted">
               <tr>
                 <SortableTh active={sortKey === 'entity'} dir={sortDir} onClick={() => toggleSort('entity')}>Entity</SortableTh>
@@ -246,7 +246,7 @@ function DeclarationsContent() {
             </thead>
             <tbody>
               {visible.map(d => (
-                <tr key={d.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/60 transition-colors duration-150">
+                <tr key={d.id} className="border-b border-divider last:border-0 hover:bg-surface-alt/50 transition-colors duration-150">
                   <td className="px-4 py-3">
                     <Link href={`/declarations/${d.id}`} className="group">
                       <span className="font-medium text-ink group-hover:text-brand-600 transition-colors">{d.entity_name}</span>
@@ -254,9 +254,9 @@ function DeclarationsContent() {
                   </td>
                   <td className="px-4 py-3 text-ink-soft tabular-nums">{d.year} · {d.period}</td>
                   <td className="px-4 py-3"><StatusPill status={d.status} /></td>
-                  <td className="px-4 py-3 text-ink-muted text-[11.5px]">{new Date(d.created_at).toLocaleDateString('en-GB')}</td>
+                  <td className="px-4 py-3 text-ink-muted text-xs">{new Date(d.created_at).toLocaleDateString('en-GB')}</td>
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/declarations/${d.id}`} className="inline-flex items-center text-brand-600 hover:text-brand-700 text-[11.5px] font-medium transition-colors gap-1">
+                    <Link href={`/declarations/${d.id}`} className="inline-flex items-center text-brand-600 hover:text-brand-700 text-xs font-medium transition-colors gap-1">
                       Open <ArrowRightIcon size={12} />
                     </Link>
                   </td>
@@ -265,7 +265,7 @@ function DeclarationsContent() {
             </tbody>
           </table>
           {/* Pagination footer */}
-          <div className="border-t border-divider px-4 py-2.5 flex items-center justify-between text-[11.5px] text-ink-muted bg-surface-alt/40">
+          <div className="border-t border-divider px-4 py-2.5 flex items-center justify-between text-xs text-ink-muted bg-surface-alt/40">
             <span>
               <span className="font-semibold tabular-nums text-ink">{pageStart + 1}</span>
               {' – '}
@@ -304,7 +304,7 @@ function DeclarationsContent() {
 }
 
 function Th({ children }: { children?: React.ReactNode }) {
-  return <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">{children}</th>;
+  return <th className="px-4 py-2.5 text-left font-medium text-2xs uppercase tracking-[0.06em]">{children}</th>;
 }
 
 function SortableTh({
@@ -316,7 +316,7 @@ function SortableTh({
   onClick: () => void;
 }) {
   return (
-    <th className="px-4 py-2.5 text-left font-medium text-[10.5px] uppercase tracking-[0.06em]">
+    <th className="px-4 py-2.5 text-left font-medium text-2xs uppercase tracking-[0.06em]">
       <button
         onClick={onClick}
         className={`inline-flex items-center gap-1 ${active ? 'text-ink' : 'text-ink-muted hover:text-ink'}`}
@@ -354,7 +354,7 @@ function FilterChip({
     <button
       onClick={onClick}
       className={[
-        'inline-flex items-center h-8 px-3 rounded-md text-[12.5px] font-medium transition-all',
+        'inline-flex items-center h-8 px-3 rounded-md text-sm font-medium transition-all',
         active
           ? 'bg-brand-500 text-white shadow-xs'
           : 'bg-surface border border-border text-ink-soft hover:bg-surface-alt',

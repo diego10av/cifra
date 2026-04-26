@@ -78,6 +78,39 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
+
+  /* ── Type scale (stint 45.F1.1) ───────────────
+   *  Replaces 47 files of ad-hoc `text-[Xpx]`. Pixel values match
+   *  the pre-existing density (this codebase reads at 12.5px body)
+   *  rather than Tailwind's stock 14px. Half-pixel sizes
+   *  (10.5/11.5) collapse into the nearest tier — consistency
+   *  beats sub-pixel artisan-ship.
+   *
+   *    text-2xs  10px    captions, table-header uppercase, dense chips
+   *    text-xs   11px    small chips, badges, footer text, secondary metadata
+   *    text-sm   12.5px  body, table cells, inline editors (canonical)
+   *    text-base 14px    CTAs, form labels, drawer titles
+   *    text-lg   18px    h3 section headings
+   *    text-xl   22px    h2 page subheadings
+   *    text-2xl  26px    h1 standard page title
+   *    text-3xl  32px    h1 home dashboard hero (rare; reserved for landing)
+   */
+  --type-2xs:  10px;
+  --type-xs:   11px;
+  --type-sm:   12.5px;
+  --type-base: 14px;
+  --type-lg:   18px;
+  --type-xl:   22px;
+  --type-2xl:  26px;
+  --type-3xl:  32px;
+  --type-2xs--line:  14px;
+  --type-xs--line:   16px;
+  --type-sm--line:   18px;
+  --type-base--line: 20px;
+  --type-lg--line:   24px;
+  --type-xl--line:   28px;
+  --type-2xl--line:  32px;
+  --type-3xl--line:  40px;
 }
 
 /* ── Tailwind v4 theme bindings ──────────────── */
@@ -115,6 +148,25 @@
   --color-info-50:     var(--color-info-50);
   --color-info-500:    var(--color-info-500);
   --color-info-700:    var(--color-info-700);
+
+  /* Stint 45.F1.1 — type scale exposed as Tailwind text-{tier} utilities.
+   *  Tailwind 4 syntax: `--text-{name}` + `--text-{name}--line-height`. */
+  --text-2xs:  var(--type-2xs);
+  --text-xs:   var(--type-xs);
+  --text-sm:   var(--type-sm);
+  --text-base: var(--type-base);
+  --text-lg:   var(--type-lg);
+  --text-xl:   var(--type-xl);
+  --text-2xl:  var(--type-2xl);
+  --text-3xl:  var(--type-3xl);
+  --text-2xs--line-height:  var(--type-2xs--line);
+  --text-xs--line-height:   var(--type-xs--line);
+  --text-sm--line-height:   var(--type-sm--line);
+  --text-base--line-height: var(--type-base--line);
+  --text-lg--line-height:   var(--type-lg--line);
+  --text-xl--line-height:   var(--type-xl--line);
+  --text-2xl--line-height:  var(--type-2xl--line);
+  --text-3xl--line-height:  var(--type-3xl--line);
 }
 
 /* ── Base ────────────────────────────────────── */

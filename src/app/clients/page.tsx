@@ -18,6 +18,9 @@ import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useListState, paginate } from '@/lib/use-list-state';
 import { ListFooter } from '@/components/ui/ListFooter';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
+import { Button } from '@/components/ui/Button';
 
 interface Entity {
   id: string;
@@ -129,23 +132,21 @@ function ClientsContent() {
   const page = paginate(sorted, list.page, list.pageSize);
 
   return (
-    <div>
-      {/* Header */}
-      <div className="mb-5 flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[20px] font-semibold tracking-tight">Clients</h1>
-          <p className="text-[12.5px] text-ink-muted mt-1 max-w-xl">
-            Each client owns one or more Luxembourg entities. Add a client
-            first, then hang entities off it.
-          </p>
-        </div>
-        <button
-          onClick={() => router.push('/clients/new')}
-          className="h-9 px-3.5 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 transition-colors inline-flex items-center gap-1.5 shrink-0"
-        >
-          <PlusIcon size={14} /> New client
-        </button>
-      </div>
+    <PageContainer width="medium">
+      <PageHeader
+        title="Clients"
+        subtitle="Each client owns one or more Luxembourg entities. Add a client first, then hang entities off it."
+        actions={
+          <Button
+            variant="primary"
+            size="md"
+            icon={<PlusIcon size={14} />}
+            onClick={() => router.push('/clients/new')}
+          >
+            New client
+          </Button>
+        }
+      />
 
       {/* Schema-missing banner */}
       {schemaMissing && (
@@ -154,9 +155,9 @@ function ClientsContent() {
             <AlertTriangleIcon size={16} />
           </div>
           <div>
-            <h3 className="text-[14px] font-semibold text-ink">Migration not applied</h3>
-            <p className="text-[12.5px] text-ink-soft mt-1 leading-relaxed">
-              Apply <code className="text-[11.5px] bg-surface-alt px-1 py-0.5 rounded">migrations/005_clients_and_approvers.sql</code> in
+            <h3 className="text-base font-semibold text-ink">Migration not applied</h3>
+            <p className="text-sm text-ink-soft mt-1 leading-relaxed">
+              Apply <code className="text-xs bg-surface-alt px-1 py-0.5 rounded">migrations/005_clients_and_approvers.sql</code> in
               Supabase SQL Editor to enable the Clients model. Existing
               entities will be auto-grouped by their current client name.
             </p>
@@ -165,7 +166,7 @@ function ClientsContent() {
       )}
 
       {error && !schemaMissing && (
-        <div className="mb-4 text-[12px] text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
+        <div className="mb-4 text-sm text-danger-700 bg-danger-50 border border-danger-200 rounded px-3 py-2">
           {error}
         </div>
       )}
@@ -201,7 +202,7 @@ function ClientsContent() {
               value={list.q}
               onChange={(e) => list.setQ(e.target.value)}
               placeholder="Search clients"
-              className="w-full h-8 pl-8 pr-3 text-[12.5px] border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="w-full h-8 pl-8 pr-3 text-sm border border-border-strong rounded-md bg-surface focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </div>
           <KindChip label="All"       active={list.filter === 'all'}        onClick={() => list.setFilter('all')} />
@@ -211,7 +212,7 @@ function ClientsContent() {
 
           {/* Sort dropdown — client page uses cards not tables, so no
               sortable headers. Dropdown is the equivalent. */}
-          <div className="ml-auto flex items-center gap-1.5 text-[11.5px] text-ink-muted">
+          <div className="ml-auto flex items-center gap-1.5 text-xs text-ink-muted">
             Sort
             <select
               value={`${list.sort}:${list.dir}`}
@@ -220,7 +221,7 @@ function ClientsContent() {
                 if (s !== list.sort) list.toggleSort(s);
                 if (d !== list.dir) list.toggleSort(s);
               }}
-              className="h-8 px-2 border border-border-strong rounded text-[11.5px] text-ink bg-surface"
+              className="h-8 px-2 border border-border-strong rounded text-xs text-ink bg-surface"
             >
               <option value="name:asc">Name A→Z</option>
               <option value="name:desc">Name Z→A</option>
@@ -243,7 +244,7 @@ function ClientsContent() {
             action={
               <button
                 onClick={() => { list.setQ(''); list.setFilter('all'); }}
-                className="h-9 px-4 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-soft hover:text-ink hover:bg-surface-alt"
+                className="h-9 px-4 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:text-ink hover:bg-surface-alt"
               >
                 Clear filters
               </button>
@@ -261,7 +262,7 @@ function ClientsContent() {
             action={
               <button
                 onClick={() => router.push('/clients/new')}
-                className="h-9 px-4 rounded-md bg-brand-500 text-white text-[12.5px] font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
+                className="h-9 px-4 rounded-md bg-brand-500 text-white text-sm font-semibold hover:bg-brand-600 inline-flex items-center gap-1.5"
               >
                 <PlusIcon size={14} /> Create first client
               </button>
@@ -291,7 +292,7 @@ function ClientsContent() {
           />
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }
 
@@ -323,7 +324,7 @@ function ClientCard({ client }: { client: Client }) {
       className="bg-surface border border-border rounded-lg overflow-hidden"
       data-has-pending={client.pending_registration_count > 0 ? '1' : '0'}
     >
-      <button onClick={toggle} className="w-full text-left px-4 py-3 hover:bg-surface-alt/40 transition-colors">
+      <button onClick={toggle} className="w-full text-left px-4 py-3 hover:bg-surface-alt/50 transition-colors">
         <div className="flex items-center gap-3">
           <ChevronRightIcon
             size={14}
@@ -331,20 +332,20 @@ function ClientCard({ client }: { client: Client }) {
           />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[14px] font-semibold text-ink">{client.name}</span>
+              <span className="text-base font-semibold text-ink">{client.name}</span>
               <KindBadge kind={client.kind} />
               {client.vat_contact_country && (
-                <span className="text-[10px] font-mono text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
+                <span className="text-2xs font-mono text-ink-muted bg-surface-alt px-1.5 py-0.5 rounded">
                   {client.vat_contact_country}
                 </span>
               )}
               {client.pending_registration_count > 0 && (
-                <span className="text-[10px] font-semibold text-warning-700 bg-warning-50 border border-warning-200 rounded px-1.5 py-0.5">
+                <span className="text-2xs font-semibold text-warning-700 bg-warning-50 border border-warning-200 rounded px-1.5 py-0.5">
                   {client.pending_registration_count} pending reg.
                 </span>
               )}
             </div>
-            <div className="text-[11.5px] text-ink-muted mt-0.5">
+            <div className="text-xs text-ink-muted mt-0.5">
               {client.entity_count} {client.entity_count === 1 ? 'entity' : 'entities'}
               {client.vat_contact_name && (
                 <>
@@ -358,7 +359,7 @@ function ClientCard({ client }: { client: Client }) {
           <Link
             href={`/clients/${client.id}`}
             onClick={(e) => e.stopPropagation()}
-            className="text-[11.5px] font-medium text-brand-600 hover:text-brand-800 hover:underline shrink-0"
+            className="text-xs font-medium text-brand-600 hover:text-brand-800 hover:underline shrink-0"
           >
             Profile →
           </Link>
@@ -368,13 +369,13 @@ function ClientCard({ client }: { client: Client }) {
       {expanded && (
         <div className="border-t border-divider">
           {entities === null ? (
-            <div className="px-4 py-3 text-[11.5px] text-ink-muted">Loading entities…</div>
+            <div className="px-4 py-3 text-xs text-ink-muted">Loading entities…</div>
           ) : entities.length === 0 ? (
             <div className="px-4 py-4 text-center">
-              <div className="text-[12px] text-ink-muted mb-2">No entities under this client yet</div>
+              <div className="text-sm text-ink-muted mb-2">No entities under this client yet</div>
               <Link
                 href={`/clients/${client.id}`}
-                className="text-[11.5px] font-medium text-brand-600 hover:underline"
+                className="text-xs font-medium text-brand-600 hover:underline"
               >
                 Add an entity →
               </Link>
@@ -385,12 +386,12 @@ function ClientCard({ client }: { client: Client }) {
                 <li key={e.id}>
                   <Link
                     href={`/entities/${e.id}`}
-                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-alt/40 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-alt/50 transition-colors"
                   >
                     <VatStatusDot status={e.vat_status} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-[13px] font-medium text-ink truncate">{e.name}</div>
-                      <div className="text-[11px] text-ink-muted mt-0.5">
+                      <div className="text-sm font-medium text-ink truncate">{e.name}</div>
+                      <div className="text-xs text-ink-muted mt-0.5">
                         {e.vat_number || '(no VAT)'} · {e.regime} / {e.frequency}
                         {e.legal_form && <> · {e.legal_form}</>}
                       </div>
@@ -414,7 +415,7 @@ function KindBadge({ kind }: { kind: Client['kind'] }) {
     other:      { label: 'Other',      colour: 'bg-surface-alt text-ink-soft border-border' },
   }[kind];
   return (
-    <span className={`text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border ${config.colour}`}>
+    <span className={`text-2xs font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded border ${config.colour}`}>
       {config.label}
     </span>
   );
@@ -437,7 +438,7 @@ function KindChip({
     <button
       onClick={onClick}
       className={[
-        'h-8 px-3 rounded-md text-[11.5px] font-medium border transition-colors',
+        'h-8 px-3 rounded-md text-xs font-medium border transition-colors',
         active
           ? 'bg-brand-50 text-brand-700 border-brand-200'
           : 'bg-surface text-ink-soft border-border hover:bg-surface-alt',
@@ -466,9 +467,9 @@ function Kpi({
   const Wrapper = onClick ? 'button' : 'div';
   return (
     <Wrapper onClick={onClick} className={`${base} ${colours} ${onClick ? 'hover:border-border-strong cursor-pointer' : ''}`}>
-      <div className="text-[10.5px] uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
-      <div className="text-[20px] font-bold tabular-nums text-ink mt-0.5">{value}</div>
-      {hint && <div className="text-[10.5px] text-ink-muted mt-1">{hint}</div>}
+      <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">{label}</div>
+      <div className="text-lg font-bold tabular-nums text-ink mt-0.5">{value}</div>
+      {hint && <div className="text-2xs text-ink-muted mt-1">{hint}</div>}
     </Wrapper>
   );
 }

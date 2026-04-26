@@ -640,10 +640,10 @@ export default function DeclarationDetailPage() {
           {/* ─── Page header ─── */}
           <header className="flex flex-wrap items-start justify-between gap-4 mb-5">
             <div className="min-w-0">
-              <h1 className="text-[24px] font-bold text-ink tracking-tight leading-tight" style={{ letterSpacing: '-0.02em' }}>
+              <h1 className="text-xl font-bold text-ink tracking-tight leading-tight" style={{ letterSpacing: '-0.02em' }}>
                 {data.entity_name}
               </h1>
-              <div className="flex items-center gap-2 mt-1.5 text-[12.5px] text-ink-muted flex-wrap">
+              <div className="flex items-center gap-2 mt-1.5 text-sm text-ink-muted flex-wrap">
                 <span className="font-medium text-ink-soft">{data.year} {data.period}</span>
                 <span className="text-ink-faint">·</span>
                 <span className="capitalize">{data.regime}</span>
@@ -697,7 +697,7 @@ export default function DeclarationDetailPage() {
                 <button
                   onClick={handleFillFx}
                   disabled={fillingFx}
-                  className="h-8 px-3 rounded-md border border-border text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:border-border-strong transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
+                  className="h-8 px-3 rounded-md border border-border text-sm font-medium text-ink-soft hover:bg-surface-alt hover:border-border-strong transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
                   title="Fetch ECB reference rates for non-EUR invoices"
                 >
                   {fillingFx ? <Spinner small /> : <RefreshCwIcon size={13} />}
@@ -708,7 +708,7 @@ export default function DeclarationDetailPage() {
                 <button
                   onClick={handleClassify}
                   disabled={classifying}
-                  className="h-8 px-3 rounded-md border border-border text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:border-border-strong transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
+                  className="h-8 px-3 rounded-md border border-border text-sm font-medium text-ink-soft hover:bg-surface-alt hover:border-border-strong transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
                 >
                   {classifying ? <Spinner small /> : <RefreshCwIcon size={13} />}
                   {classifying ? 'Classifying…' : 'Re-run rules'}
@@ -717,7 +717,7 @@ export default function DeclarationDetailPage() {
               {activeLines.length > 0 && (
                 <button
                   onClick={() => setValidatorOpen(v => !v)}
-                  className={`h-8 px-3 rounded-md border text-[12.5px] font-medium transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 ${
+                  className={`h-8 px-3 rounded-md border text-sm font-medium transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 ${
                     validatorOpen
                       ? 'border-brand-500 bg-brand-50 text-brand-700'
                       : 'border-border text-ink-soft hover:bg-brand-50 hover:border-brand-300 hover:text-brand-700'
@@ -736,7 +736,7 @@ export default function DeclarationDetailPage() {
               {activeLines.length > 0 && (
                 <button
                   onClick={() => setSanityOpen(v => !v)}
-                  className={`h-8 px-3 rounded-md border text-[12.5px] font-medium transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 ${
+                  className={`h-8 px-3 rounded-md border text-sm font-medium transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5 ${
                     sanityOpen
                       ? 'border-violet-500 bg-violet-50 text-violet-700'
                       : 'border-border text-ink-soft hover:bg-violet-50 hover:border-violet-300 hover:text-violet-700'
@@ -751,7 +751,7 @@ export default function DeclarationDetailPage() {
                 <button
                   onClick={() => setShareOpen(true)}
                   disabled={unclassified > 0 || flagged > 0}
-                  className="h-8 px-3 rounded-md border border-border-strong text-[12.5px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
+                  className="h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
                   title={unclassified > 0 || flagged > 0 ? 'Resolve all issues before sharing for client approval' : 'Share a signed link with the fund manager for approval'}
                 >
                   <ShareIcon size={13} />
@@ -762,7 +762,7 @@ export default function DeclarationDetailPage() {
                 <button
                   onClick={() => handleStatusChange('approved')}
                   disabled={unclassified > 0 || flagged > 0}
-                  className="h-8 px-4 rounded-md bg-success-500 text-white text-[12.5px] font-semibold hover:bg-success-700 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
+                  className="h-8 px-4 rounded-md bg-success-500 text-white text-sm font-semibold hover:bg-success-700 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
                   title={unclassified > 0 || flagged > 0 ? `Cannot approve: ${unclassified} unclassified, ${flagged} unacknowledged flags` : 'Approve'}
                 >
                   <CheckCircle2Icon size={13} />
@@ -781,7 +781,7 @@ export default function DeclarationDetailPage() {
                     );
                     if (ok) handleStatusChange('review');
                   }}
-                  className="h-8 px-3 rounded-md border border-warning-500/40 text-[12.5px] font-medium text-warning-700 hover:bg-warning-50 transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5"
+                  className="h-8 px-3 rounded-md border border-warning-500/40 text-sm font-medium text-warning-700 hover:bg-warning-50 transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5"
                   title="Reopens the declaration for editing. Requires confirmation."
                 >
                   <RotateCcwIcon size={13} />
@@ -803,7 +803,7 @@ export default function DeclarationDetailPage() {
                     );
                     if (ok) handleStatusChange('review');
                   }}
-                  className="h-8 px-3 rounded-md border border-danger-300 text-[12.5px] font-medium text-danger-700 hover:bg-danger-50 transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5"
+                  className="h-8 px-3 rounded-md border border-danger-300 text-sm font-medium text-danger-700 hover:bg-danger-50 transition-all duration-150 cursor-pointer inline-flex items-center gap-1.5"
                   title="Reopen a filed or paid declaration — requires explicit confirmation."
                 >
                   <RotateCcwIcon size={13} />
@@ -815,7 +815,7 @@ export default function DeclarationDetailPage() {
                   is already approved / filed / paid. */}
               <button
                 onClick={() => setDeleteOpen(true)}
-                className="h-8 px-3 rounded-md border border-danger-200 text-[12.5px] font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-400 transition-all duration-150 inline-flex items-center gap-1.5"
+                className="h-8 px-3 rounded-md border border-danger-200 text-sm font-medium text-ink-muted hover:bg-danger-50 hover:text-danger-700 hover:border-danger-400 transition-all duration-150 inline-flex items-center gap-1.5"
                 title="Delete this declaration"
               >
                 <Trash2Icon size={13} />
@@ -871,7 +871,7 @@ export default function DeclarationDetailPage() {
           <ProrataPanel declarationId={id} entityId={data.entity_id} />
 
           {precedentToast && (
-            <div className="mb-4 px-3 py-2 rounded-md border border-success-500/30 bg-success-50 text-success-700 text-[12px] flex items-center gap-2 animate-fadeIn">
+            <div className="mb-4 px-3 py-2 rounded-md border border-success-500/30 bg-success-50 text-success-700 text-sm flex items-center gap-2 animate-fadeIn">
               <CheckCircle2Icon size={14} />
               {precedentToast}
             </div>
@@ -928,7 +928,7 @@ export default function DeclarationDetailPage() {
               {/* Invoice upload — primary, full width */}
               <div
                 className={`border-2 border-dashed rounded-lg p-5 text-center cursor-pointer transition-all duration-150 ${
-                  dragOver ? 'border-[#1a1a2e] bg-blue-50' : 'border-border-strong bg-surface hover:border-gray-400 hover:bg-surface-alt'
+                  dragOver ? 'border-brand-700 bg-info-50' : 'border-border-strong bg-surface hover:border-border-strong hover:bg-surface-alt'
                 }`}
                 onClick={() => fileInput.current?.click()}
                 onDragOver={e => { e.preventDefault(); setDragOver(true); }}
@@ -937,11 +937,11 @@ export default function DeclarationDetailPage() {
               >
                 <input ref={fileInput} type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.docx,.doc"
                   className="hidden" onChange={e => e.target.files && handleUpload(e.target.files)} />
-                <div className="text-[11px] text-ink-faint uppercase tracking-wide font-semibold mb-1">Invoices</div>
-                <div className="text-[13px] text-ink-soft">
+                <div className="text-xs text-ink-faint uppercase tracking-wide font-semibold mb-1">Invoices</div>
+                <div className="text-sm text-ink-soft">
                   {uploading ? 'Uploading…' : 'Drop PDFs here or click to browse'}
                 </div>
-                <div className="mt-1 text-[10.5px] text-ink-muted">
+                <div className="mt-1 text-2xs text-ink-muted">
                   PDF · PNG · JPG · DOCX — cifra extracts the fields and classifies each line.
                 </div>
               </div>
@@ -949,7 +949,7 @@ export default function DeclarationDetailPage() {
               {/* More upload options — collapsed by default to keep the
                   primary invoice zone prominent. */}
               <details className="mt-3 group">
-                <summary className="cursor-pointer inline-flex items-center gap-1.5 text-[11.5px] text-ink-muted hover:text-ink select-none">
+                <summary className="cursor-pointer inline-flex items-center gap-1.5 text-xs text-ink-muted hover:text-ink select-none">
                   <span className="inline-block transition-transform group-open:rotate-90">▸</span>
                   More upload options — Excel, prior-year precedents
                 </summary>
@@ -959,8 +959,8 @@ export default function DeclarationDetailPage() {
                     className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-all duration-150 border-border-strong bg-surface hover:border-brand-400 hover:bg-surface-alt"
                     onClick={() => setExcelImportOpen(true)}
                   >
-                    <div className="text-[11px] text-ink-faint uppercase tracking-wide font-semibold mb-1">Client Excel</div>
-                    <div className="text-[12px] text-ink-soft">
+                    <div className="text-xs text-ink-faint uppercase tracking-wide font-semibold mb-1">Client Excel</div>
+                    <div className="text-sm text-ink-soft">
                       Client sent a spreadsheet instead of PDFs? Import it with AI mapping.
                     </div>
                   </div>
@@ -972,12 +972,12 @@ export default function DeclarationDetailPage() {
                   >
                     <input ref={precedentInput} type="file" accept=".xlsx,.xls"
                       className="hidden" onChange={e => e.target.files && handlePrecedentUpload(e.target.files)} />
-                    <div className="text-[11px] text-ink-faint uppercase tracking-wide font-semibold mb-1">Prior-year appendix</div>
-                    <div className="text-[12px] text-ink-soft">
+                    <div className="text-xs text-ink-faint uppercase tracking-wide font-semibold mb-1">Prior-year appendix</div>
+                    <div className="text-sm text-ink-soft">
                       {uploadingPrecedents ? 'Parsing Excel…' : 'Upload .xlsx to seed precedents'}
                     </div>
                     {precedentToast && (
-                      <div className="mt-2 text-[11px] text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">{precedentToast}</div>
+                      <div className="mt-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">{precedentToast}</div>
                     )}
                   </div>
                 </div>
@@ -989,12 +989,12 @@ export default function DeclarationDetailPage() {
           {activeTab === 'documents' && pendingDocs.length > 0 && (
             <div className="bg-surface border border-border rounded-lg mb-4 overflow-hidden">
               <div className="px-4 py-2.5 border-b border-border flex items-center justify-between bg-surface-alt">
-                <h3 className="text-[13px] font-semibold text-ink">Documents ({pendingDocs.length})</h3>
+                <h3 className="text-sm font-semibold text-ink">Documents ({pendingDocs.length})</h3>
                 {pendingDocs.some(d => d.status === 'uploaded' || d.status === 'error') && (
                   <button
                     onClick={handleExtract}
                     disabled={extracting}
-                    className="h-7 px-3 rounded bg-brand-500 text-white text-[11px] font-semibold hover:bg-brand-600 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
+                    className="h-7 px-3 rounded bg-brand-500 text-white text-xs font-semibold hover:bg-brand-600 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1.5"
                   >
                     {extracting && <Spinner small />}
                     {extracting ? 'Extracting…' : pendingDocs.some(d => d.status === 'error') ? 'Retry all errors' : 'Extract all'}
@@ -1061,7 +1061,7 @@ export default function DeclarationDetailPage() {
               <button
                 onClick={handleAddOutgoing}
                 disabled={pendingAction === 'add-outgoing'}
-                className="h-7 px-2.5 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="h-7 px-2.5 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 + Add outgoing invoice
               </button>
@@ -1097,7 +1097,7 @@ export default function DeclarationDetailPage() {
             <EmptyBlock>No excluded items.</EmptyBlock>
           ) : (
             <div className="bg-surface border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-[12px]">
+              <table className="w-full text-sm">
                 <thead className="bg-surface-alt text-ink-soft border-b border-border">
                   <tr>
                     <th className="px-3 py-2 text-left font-medium">Source</th>
@@ -1130,7 +1130,7 @@ export default function DeclarationDetailPage() {
                             <button
                               disabled={loading}
                               onClick={e => { e.stopPropagation(); handleIncludeAsInvoice(doc.id); }}
-                              className="text-[11px] font-medium text-blue-600 hover:underline disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
+                              className="text-xs font-medium text-blue-600 hover:underline disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center gap-1"
                             >
                               {loading && <Spinner small />}
                               Include as invoice
@@ -1175,7 +1175,7 @@ export default function DeclarationDetailPage() {
           {deletedLines.length > 0 && (
             <button
               onClick={() => setShowDeleted(!showDeleted)}
-              className="text-[11px] text-ink-faint hover:text-ink-soft mt-2 cursor-pointer transition-colors duration-150"
+              className="text-xs text-ink-faint hover:text-ink-soft mt-2 cursor-pointer transition-colors duration-150"
             >
               {showDeleted ? 'Hide' : 'Show'} full deleted-line history
             </button>
@@ -1184,8 +1184,8 @@ export default function DeclarationDetailPage() {
           {/* Summary */}
           {activeLines.length > 0 && (
             <div className="bg-surface border border-border rounded-xl p-4 mt-6 mb-4 shadow-xs">
-              <h3 className="text-[13px] font-semibold text-ink mb-3">Summary</h3>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-[13px]">
+              <h3 className="text-sm font-semibold text-ink mb-3">Summary</h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-sm">
                 <SummaryStat label="Lux VAT" value={`€${fmtEUR(totalLuxVat)}`} />
                 <SummaryStat label="Reverse Charge VAT" value={`€${fmtEUR(totalRC)}`} />
                 <SummaryStat label="IC Acq. VAT" value={`€${fmtEUR(icAcqVat)}`} />
@@ -1217,8 +1217,8 @@ export default function DeclarationDetailPage() {
                   <div className="w-12 h-12 rounded-full bg-brand-50 border border-brand-100 text-brand-500 inline-flex items-center justify-center mb-3">
                     <ClipboardCheckIcon size={20} />
                   </div>
-                  <h3 className="text-[14px] font-semibold text-ink">Filing locked until approval</h3>
-                  <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-md mx-auto">
+                  <h3 className="text-base font-semibold text-ink">Filing locked until approval</h3>
+                  <p className="text-sm text-ink-muted mt-1.5 max-w-md mx-auto">
                     Approve the declaration first (use the green Approve button above). After approval you can record the AED filing reference, upload the proof of filing and confirm payment from here.
                   </p>
                 </div>
@@ -1236,8 +1236,8 @@ export default function DeclarationDetailPage() {
                   <div className="w-12 h-12 rounded-full bg-brand-50 border border-brand-100 text-brand-500 inline-flex items-center justify-center mb-3">
                     <DownloadCloudIcon size={20} />
                   </div>
-                  <h3 className="text-[14px] font-semibold text-ink">No outputs yet</h3>
-                  <p className="text-[12.5px] text-ink-muted mt-1.5 max-w-md mx-auto">
+                  <h3 className="text-base font-semibold text-ink">No outputs yet</h3>
+                  <p className="text-sm text-ink-muted mt-1.5 max-w-md mx-auto">
                     The appendix Excel, front-page PDF, eCDF XML and client email become available once at least one invoice line has been classified. Start in Documents or Review.
                   </p>
                 </div>
@@ -1291,9 +1291,9 @@ export default function DeclarationDetailPage() {
             <div className="px-4 py-3 bg-violet-50 border-b border-violet-200 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <SparklesIcon size={14} className="text-violet-700" />
-                <h3 className="text-[13px] font-semibold text-violet-900">Pre-filing sanity check</h3>
+                <h3 className="text-sm font-semibold text-violet-900">Pre-filing sanity check</h3>
               </div>
-              <button onClick={() => setSanityOpen(false)} className="text-violet-600 hover:text-violet-900 text-[12px]">✕</button>
+              <button onClick={() => setSanityOpen(false)} className="text-violet-600 hover:text-violet-900 text-sm">✕</button>
             </div>
             <div className="p-4 space-y-3">
               <button
@@ -1313,7 +1313,7 @@ export default function DeclarationDetailPage() {
                   }
                 }}
                 disabled={sanityLoading}
-                className="w-full h-8 px-3 rounded bg-violet-600 text-white text-[12px] font-medium hover:bg-violet-700 transition-colors disabled:opacity-40 disabled:cursor-wait inline-flex items-center justify-center gap-1.5"
+                className="w-full h-8 px-3 rounded bg-violet-600 text-white text-sm font-medium hover:bg-violet-700 transition-colors disabled:opacity-40 disabled:cursor-wait inline-flex items-center justify-center gap-1.5"
               >
                 {sanityLoading ? <Spinner small /> : <SparklesIcon size={12} />}
                 {sanityLoading ? 'Analysing with Opus 4.7…' : sanityResult ? 'Re-run' : 'Run sanity check'}
@@ -1321,35 +1321,35 @@ export default function DeclarationDetailPage() {
 
               {sanityResult && (
                 <div>
-                  <div className="text-[11px] text-ink-muted mb-2 leading-snug">
+                  <div className="text-xs text-ink-muted mb-2 leading-snug">
                     Comparing against {sanityResult.prior_period
                       ? <>prior period <strong className="font-semibold text-ink">{sanityResult.prior_period}</strong></>
                       : <>no prior period (first declaration for this entity)</>}
                     . Overall: <strong className={`font-semibold ${sanityResult.overall === 'clean' ? 'text-emerald-700' : sanityResult.overall === 'significant_issues' ? 'text-red-700' : 'text-amber-700'}`}>{sanityResult.overall.replace('_', ' ')}</strong>.
                   </div>
                   {sanityResult.findings.length === 0 ? (
-                    <div className="text-[11.5px] text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
+                    <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-3 py-2">
                       No anomalies flagged. Opus 4.7 thinks the aggregate numbers look consistent with prior filings.
                     </div>
                   ) : (
                     <ul className="space-y-2">
                       {sanityResult.findings.map((f, i) => (
-                        <li key={i} className={`rounded border px-3 py-2 text-[11.5px] ${
+                        <li key={i} className={`rounded border px-3 py-2 text-xs ${
                           f.severity === 'critical' ? 'bg-red-50 border-red-300 text-red-900' :
                           f.severity === 'high' ? 'bg-orange-50 border-orange-300 text-orange-900' :
                           f.severity === 'medium' ? 'bg-amber-50 border-amber-200 text-amber-900' :
                           'bg-surface-alt border-border text-ink-soft'
                         }`}>
                           <div className="flex items-center gap-1.5 mb-1">
-                            <span className="uppercase text-[9.5px] font-semibold tracking-wide">{f.severity}</span>
-                            <span className="text-[9.5px] font-mono opacity-70">{f.category}</span>
+                            <span className="uppercase text-2xs font-semibold tracking-wide">{f.severity}</span>
+                            <span className="text-2xs font-mono opacity-70">{f.category}</span>
                             {f.boxes.length > 0 && (
-                              <span className="text-[9.5px] font-mono opacity-70">· box {f.boxes.join(', ')}</span>
+                              <span className="text-2xs font-mono opacity-70">· box {f.boxes.join(', ')}</span>
                             )}
                           </div>
                           <p className="leading-relaxed">{f.narrative}</p>
                           {f.suggested_check && (
-                            <p className="mt-1 text-[10.5px] opacity-80 italic">→ {f.suggested_check}</p>
+                            <p className="mt-1 text-2xs opacity-80 italic">→ {f.suggested_check}</p>
                           )}
                         </li>
                       ))}
@@ -1468,7 +1468,7 @@ function ReviewTable({
   return (
     <div className="bg-surface border border-border rounded-lg overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full text-[12px] border-collapse">
+        <table className="w-full text-sm border-collapse">
           <thead>
             <tr className="bg-surface-alt text-ink-soft border-b border-border">
               {selectable && (
@@ -1535,7 +1535,7 @@ function Th({ children, right, center, width }: { children?: React.ReactNode; ri
   return (
     <th
       style={width ? { width } : undefined}
-      className={`px-2 py-2 font-medium text-[11px] uppercase tracking-wide text-ink-muted ${right ? 'text-right' : center ? 'text-center' : 'text-left'} whitespace-nowrap`}
+      className={`px-2 py-2 font-medium text-xs uppercase tracking-wide text-ink-muted ${right ? 'text-right' : center ? 'text-center' : 'text-left'} whitespace-nowrap`}
     >
       {children}
     </th>
@@ -1681,7 +1681,7 @@ function TableRow({
       {/* Provider */}
       <td {...editCellProps()}>
         {isEditing && !isLocked ? (
-          <input autoFocus className="w-full border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <input autoFocus className="w-full border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             defaultValue={line.provider}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { provider: e.target.value })} />
@@ -1693,7 +1693,7 @@ function TableRow({
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input className="w-14 border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            <input className="w-14 border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               defaultValue={line.country}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { country: e.target.value })} />
@@ -1703,7 +1703,7 @@ function TableRow({
 
       <td {...editCellProps()} title={line.description}>
         {isEditing && !isLocked ? (
-          <input className="w-full border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <input className="w-full border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             defaultValue={line.description}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { description: e.target.value })} />
@@ -1715,7 +1715,7 @@ function TableRow({
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input type="date" className="border border-border-strong rounded px-1 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            <input type="date" className="border border-border-strong rounded px-1 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               defaultValue={line.invoice_date}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { invoice_date: e.target.value })} />
@@ -1726,7 +1726,7 @@ function TableRow({
       {!compact && (
         <td {...editCellProps()}>
           {isEditing && !isLocked ? (
-            <input className="w-20 border border-border-strong rounded px-1.5 py-0.5 text-[12px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            <input className="w-20 border border-border-strong rounded px-1.5 py-0.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               defaultValue={line.invoice_number}
               onClick={e => e.stopPropagation()}
               onBlur={e => onUpdate(line.id, { invoice_number: e.target.value })} />
@@ -1736,7 +1736,7 @@ function TableRow({
 
       <td {...editCellProps()} className="px-2 py-1.5 text-right font-mono cursor-pointer tabular-nums">
         {isEditing && !isLocked ? (
-          <input className="w-24 border border-border-strong rounded px-1.5 py-0.5 text-[12px] text-right focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          <input className="w-24 border border-border-strong rounded px-1.5 py-0.5 text-sm text-right focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             type="number" step="0.01" defaultValue={line.amount_eur}
             onClick={e => e.stopPropagation()}
             onBlur={e => onUpdate(line.id, { amount_eur: parseFloat(e.target.value) })} />
@@ -1763,7 +1763,7 @@ function TableRow({
       <td {...editCellProps()}>
         {isEditing && !isLocked ? (
           <select
-            className="border border-border-strong rounded px-1.5 py-0.5 text-[11px] focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="border border-border-strong rounded px-1.5 py-0.5 text-xs focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             value={line.treatment || ''}
             onClick={e => e.stopPropagation()}
             onChange={e => onUpdate(line.id, { treatment: e.target.value || null, treatment_source: 'manual' })}
@@ -1866,7 +1866,7 @@ function MoveDropdown({
             <button
               key={t.key}
               onClick={e => { e.stopPropagation(); setOpen(false); onMove(t.key); }}
-              className={`block w-full text-left px-3 py-1.5 text-[12px] transition-colors duration-150 cursor-pointer ${
+              className={`block w-full text-left px-3 py-1.5 text-sm transition-colors duration-150 cursor-pointer ${
                 t.danger ? 'text-red-600 hover:bg-red-50' : 'text-ink-soft hover:bg-surface-alt'
               }`}
             >
@@ -1902,7 +1902,7 @@ function BulkActionBar({
   const treatments = direction === 'incoming' ? INCOMING_TREATMENTS : OUTGOING_TREATMENTS;
 
   return (
-    <div className="sticky top-0 z-10 mb-2 bg-brand-500 text-white rounded-lg px-3 py-2 flex items-center gap-2 text-[12px] animate-fadeIn">
+    <div className="sticky top-0 z-10 mb-2 bg-brand-500 text-white rounded-lg px-3 py-2 flex items-center gap-2 text-sm animate-fadeIn">
       <span className="font-semibold">{count} selected</span>
       <span className="text-white/40 mx-1">·</span>
       {onOpenEdit && (
@@ -1939,7 +1939,7 @@ function BulkActionBar({
               <button
                 key={t}
                 onClick={() => { setTreatmentOpen(false); onAction('set_treatment', t); }}
-                className="block w-full text-left px-3 py-1.5 text-[11.5px] hover:bg-surface-alt cursor-pointer border-b border-divider last:border-0"
+                className="block w-full text-left px-3 py-1.5 text-xs hover:bg-surface-alt cursor-pointer border-b border-divider last:border-0"
               >
                 <span className="font-mono font-semibold mr-2">{t}</span>
                 <span className="text-ink-soft">{TREATMENT_CODES[t].label}</span>
@@ -2023,17 +2023,17 @@ function JobProgressBar({
       <div className="flex items-center justify-between mb-2 gap-3">
         <div className="flex items-center gap-2 min-w-0">
           {isRunning && <Spinner small />}
-          <span className="text-[12px] font-semibold text-ink">{label}</span>
+          <span className="text-sm font-semibold text-ink">{label}</span>
           {progress.current && isRunning && (
-            <span className="text-[11px] text-ink-muted truncate">· {progress.current}</span>
+            <span className="text-xs text-ink-muted truncate">· {progress.current}</span>
           )}
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          <span className="text-[11px] tabular-nums text-ink-soft">{pct}%</span>
+          <span className="text-xs tabular-nums text-ink-soft">{pct}%</span>
           {onCancel && (
             <button
               onClick={onCancel}
-              className="h-7 px-2.5 rounded border border-border-strong text-[11px] font-medium text-ink-soft hover:bg-surface hover:border-gray-400 cursor-pointer transition-all duration-150"
+              className="h-7 px-2.5 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface hover:border-gray-400 cursor-pointer transition-all duration-150"
             >
               Cancel
             </button>
@@ -2044,7 +2044,7 @@ function JobProgressBar({
         <div className={`h-full ${barColor} transition-all duration-300`} style={{ width: `${pct}%` }} />
       </div>
       {progress.message && !isRunning && (
-        <div className="mt-2 text-[11px] text-ink-soft">{progress.message}</div>
+        <div className="mt-2 text-xs text-ink-soft">{progress.message}</div>
       )}
     </div>
   );

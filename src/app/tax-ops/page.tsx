@@ -9,6 +9,8 @@ import {
 import { TaxOpsHomeWidgets } from '@/components/tax-ops/HomeWidgets';
 import { TasksDueWidget } from '@/components/tax-ops/TasksDueWidget';
 import { RolloverModal } from '@/components/tax-ops/RolloverModal';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { PageContainer } from '@/components/ui/PageContainer';
 
 // /tax-ops home — daily landing for compliance work.
 //
@@ -72,24 +74,30 @@ export default function TaxOpsHomePage() {
   const nextYear = new Date().getFullYear() + 1;
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-[18px] font-semibold text-ink">Tax-Ops</h1>
-          <p className="text-[12.5px] text-ink-muted mt-0.5">
+    <PageContainer width="wide">
+      <div className="space-y-4">
+      <PageHeader
+        title="Tax-Ops"
+        subtitle={
+          <>
             Pick a tax category below for its Excel-style matrix view. Sidebar
-            has every category + Entities + Tasks; use <kbd className="text-[10px] px-1 py-0.5 rounded bg-surface-alt border border-border">g t</kbd> to jump
-            here from anywhere, or <kbd className="text-[10px] px-1 py-0.5 rounded bg-surface-alt border border-border">⌘K</kbd> to search.
-          </p>
-        </div>
-        <button
-          onClick={() => setRolloverOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-medium rounded-md bg-brand-500 hover:bg-brand-600 text-white whitespace-nowrap"
-        >
-          <CalendarPlusIcon size={14} />
-          Open {nextYear}
-        </button>
-      </div>
+            has every category + Entities + Tasks; use{' '}
+            <kbd className="text-2xs px-1 py-0.5 rounded bg-surface-alt border border-border">g t</kbd>
+            {' '}to jump here from anywhere, or{' '}
+            <kbd className="text-2xs px-1 py-0.5 rounded bg-surface-alt border border-border">⌘K</kbd>
+            {' '}to search.
+          </>
+        }
+        actions={
+          <button
+            onClick={() => setRolloverOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md bg-brand-500 hover:bg-brand-600 text-white whitespace-nowrap"
+          >
+            <CalendarPlusIcon size={14} />
+            Open {nextYear}
+          </button>
+        }
+      />
 
       {/* Category grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
@@ -104,10 +112,10 @@ export default function TaxOpsHomePage() {
               <div className="flex items-start gap-2">
                 <Icon size={16} className="shrink-0 mt-0.5 text-ink-soft group-hover:text-brand-500 transition-colors" />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[12.5px] font-semibold text-ink truncate">
+                  <div className="text-sm font-semibold text-ink truncate">
                     {cat.title}
                   </div>
-                  <div className="text-[11px] text-ink-muted mt-0.5 line-clamp-2">
+                  <div className="text-xs text-ink-muted mt-0.5 line-clamp-2">
                     {cat.description}
                   </div>
                 </div>
@@ -126,6 +134,7 @@ export default function TaxOpsHomePage() {
         year={nextYear}
         onClose={() => setRolloverOpen(false)}
       />
-    </div>
+      </div>
+    </PageContainer>
   );
 }

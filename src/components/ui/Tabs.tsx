@@ -32,7 +32,7 @@ export function Tabs({
               aria-selected={isActive}
               onClick={() => onChange(tab.id)}
               className={[
-                'group inline-flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium transition-colors',
+                'group inline-flex items-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors',
                 'border-b-2 -mb-px whitespace-nowrap',
                 isActive
                   ? 'border-brand-500 text-ink'
@@ -49,7 +49,7 @@ export function Tabs({
                 <span
                   className={[
                     'tabular-nums inline-flex items-center justify-center',
-                    'min-w-[18px] h-[18px] px-1 rounded-full text-[10.5px] font-semibold border',
+                    'min-w-[18px] h-[18px] px-1 rounded-full text-2xs font-semibold border',
                     tab.badgeTone === 'warning'
                       ? 'bg-brand-50 text-brand-700 border-brand-100'
                       : tab.badgeTone === 'neutral'

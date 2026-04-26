@@ -19,8 +19,8 @@ export function CardHeader({
   return (
     <div className={`px-4 py-3 border-b border-divider flex items-center justify-between gap-3 ${className}`}>
       <div className="min-w-0">
-        <h3 className="text-[13px] font-semibold text-ink tracking-tight">{title}</h3>
-        {subtitle && <p className="text-[11.5px] text-ink-muted mt-0.5">{subtitle}</p>}
+        <h3 className="text-sm font-semibold text-ink tracking-tight">{title}</h3>
+        {subtitle && <p className="text-xs text-ink-muted mt-0.5">{subtitle}</p>}
       </div>
       {right && <div className="shrink-0">{right}</div>}
     </div>

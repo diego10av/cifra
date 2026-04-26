@@ -66,7 +66,7 @@ export function OverflowMenu({
                 href={it.href}
                 role="menuitem"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 px-3 py-1.5 text-[12.5px] text-ink-soft hover:bg-surface-alt hover:text-ink"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-ink-soft hover:bg-surface-alt hover:text-ink"
               >
                 {Icon && <Icon size={13} className="text-ink-muted" />}
                 {it.label}

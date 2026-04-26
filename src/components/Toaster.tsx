@@ -189,16 +189,23 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     return () => clearTimeout(t);
   }, []);
 
+  // Stint 45.F1.5 — palette pulled from design tokens (--color-success-*,
+  // --color-danger-*, --color-info-*) so the toast green matches the
+  // success badge green and the brand stays in sync if the palette shifts.
   const palette = toast.kind === 'success'
-    ? 'bg-white border-emerald-200 text-emerald-900'
+    ? 'bg-surface border-success-50 text-success-700'
     : toast.kind === 'error'
-      ? 'bg-white border-red-200 text-red-900'
-      : 'bg-white border-gray-200 text-gray-900';
-  const iconColor = toast.kind === 'success' ? 'text-emerald-600' : toast.kind === 'error' ? 'text-red-600' : 'text-gray-500';
+      ? 'bg-surface border-danger-50 text-danger-700'
+      : 'bg-surface border-info-50 text-ink';
+  const iconColor = toast.kind === 'success'
+    ? 'text-success-500'
+    : toast.kind === 'error'
+      ? 'text-danger-500'
+      : 'text-ink-muted';
 
   return (
     <div
-      className={`${palette} border rounded-lg shadow-lg px-3 py-2.5 text-[12px] flex items-start gap-2.5 transition-all duration-150`}
+      className={`${palette} border rounded-lg shadow-lg px-3 py-2.5 text-sm flex items-start gap-2.5 transition-all duration-150`}
       style={{
         opacity: entering ? 0 : 1,
         transform: entering ? 'translateY(6px)' : 'translateY(0)',
@@ -215,12 +222,12 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
         <div className="font-medium leading-snug flex items-center gap-1.5">
           <span>{toast.message}</span>
           {toast.count > 1 && (
-            <span className="inline-flex items-center justify-center h-[16px] min-w-[20px] px-1 text-[10px] font-bold tabular-nums bg-ink text-white rounded-full">
+            <span className="inline-flex items-center justify-center h-[16px] min-w-[20px] px-1 text-2xs font-bold tabular-nums bg-ink text-white rounded-full">
               ×{toast.count}
             </span>
           )}
         </div>
-        {toast.hint && <div className="text-[11px] text-gray-500 mt-0.5">{toast.hint}</div>}
+        {toast.hint && <div className="text-xs text-ink-muted mt-0.5">{toast.hint}</div>}
       </div>
       {toast.action && (
         <button
@@ -231,14 +238,14 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
             onDismiss();
             try { await toast.action!.onClick(); } catch { /* swallow */ }
           }}
-          className="shrink-0 h-7 px-2.5 text-[11.5px] font-semibold text-brand-700 hover:text-brand-900 border border-brand-300 rounded-md hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
+          className="shrink-0 h-7 px-2.5 text-xs font-semibold text-brand-700 hover:text-brand-900 border border-brand-300 rounded-md hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500"
         >
           {toast.action.label}
         </button>
       )}
       <button
         onClick={onDismiss}
-        className="shrink-0 text-gray-400 hover:text-gray-600 transition-colors cursor-pointer -mr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink rounded"
+        className="shrink-0 text-ink-faint hover:text-ink-muted transition-colors cursor-pointer -mr-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink rounded"
         aria-label="Dismiss notification"
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

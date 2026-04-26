@@ -9,7 +9,7 @@ export interface Crumb {
 
 export function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
   return (
-    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-[12px] mb-3">
+    <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm mb-3">
       {crumbs.map((c, i) => {
         const isLast = i === crumbs.length - 1;
         return (

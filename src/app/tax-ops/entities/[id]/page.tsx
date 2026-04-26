@@ -146,11 +146,11 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
             if (window.history.length > 1) router.back();
             else router.push('/tax-ops/entities');
           }}
-          className="inline-flex items-center gap-1 text-[12px] text-ink-muted hover:text-ink"
+          className="inline-flex items-center gap-1 text-sm text-ink-muted hover:text-ink"
         >
           <ArrowLeftIcon size={12} /> Back
         </button>
-        <nav aria-label="Breadcrumb" className="inline-flex items-center gap-1 text-[12px] text-ink-muted">
+        <nav aria-label="Breadcrumb" className="inline-flex items-center gap-1 text-sm text-ink-muted">
           <Link href="/tax-ops/families" className="hover:text-brand-700 hover:underline">Families</Link>
           <span aria-hidden="true" className="text-ink-faint">›</span>
           {data.entity.group_id ? (
@@ -178,9 +178,9 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
               save({ legal_name: editName.trim() }, 'Legal name saved');
             }
           }}
-          className="w-full text-[15px] font-semibold text-ink bg-transparent border-0 p-0 focus:ring-0 focus:outline-none focus:bg-surface-alt/60 px-1 rounded"
+          className="w-full text-base font-semibold text-ink bg-transparent border-0 p-0 focus:ring-0 focus:outline-none focus:bg-surface-alt/60 px-1 rounded"
         />
-        <div className="text-[12px] text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
+        <div className="text-sm text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
           {data.entity.group_name && data.entity.group_id && (
             <Link
               href={`/tax-ops/families/${data.entity.group_id}`}
@@ -192,9 +192,9 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
           )}
           {data.entity.group_name && !data.entity.group_id && <span>{data.entity.group_name}</span>}
           {data.entity.is_active ? (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-green-100 text-green-800">Active</span>
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-green-100 text-green-800">Active</span>
           ) : (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10.5px] bg-surface-alt text-ink-muted">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-surface-alt text-ink-muted">
               Inactive{data.entity.liquidation_date ? ` · liquidated ${data.entity.liquidation_date}` : ''}
             </span>
           )}
@@ -228,7 +228,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
                     },
                   );
                 }}
-                className="ml-2 text-[10.5px] text-ink-muted hover:text-danger-600 underline"
+                className="ml-2 text-2xs text-ink-muted hover:text-danger-600 underline"
               >
                 Archive (liquidated / VAT deregistered)
               </button>
@@ -251,13 +251,13 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
                   },
                 );
               }}
-              className="ml-2 text-[10.5px] text-ink-muted hover:text-brand-700 underline"
+              className="ml-2 text-2xs text-ink-muted hover:text-brand-700 underline"
             >
               Reactivate
             </button>
           )}
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-3 text-[12px]">
+        <div className="grid grid-cols-3 gap-3 mt-3 text-sm">
           <div>
             <div className="text-ink-muted">VAT number</div>
             <div className="font-mono">{data.entity.vat_number ?? '—'}</div>
@@ -275,8 +275,8 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
 
       {/* Tax status summary (stint 37.I) */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
-        <h3 className="text-[13px] font-semibold text-ink mb-2">Tax status summary</h3>
-        <p className="text-[11.5px] text-ink-muted mb-2">
+        <h3 className="text-sm font-semibold text-ink mb-2">Tax status summary</h3>
+        <p className="text-xs text-ink-muted mb-2">
           Latest filing status per tax type. Click any chip to open that filing.
         </p>
         <EntityTaxStatusPills filings={data.filings} />
@@ -284,8 +284,8 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
 
       {/* CSP defaults */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
-        <h3 className="text-[13px] font-semibold text-ink mb-2">CSP contacts (defaults)</h3>
-        <p className="text-[11.5px] text-ink-muted mb-2">
+        <h3 className="text-sm font-semibold text-ink mb-2">CSP contacts (defaults)</h3>
+        <p className="text-xs text-ink-muted mb-2">
           Default Corporate Service Provider contacts to chase for this entity&apos;s
           filings. Each filing can override with its own contacts.
         </p>
@@ -297,7 +297,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
         <div className="mt-2">
           <button
             onClick={() => save({ csp_contacts: cspContacts }, 'CSP contacts saved')}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-[12px] rounded-md border border-border hover:bg-surface-alt"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-sm rounded-md border border-border hover:bg-surface-alt"
           >
             Save contacts
           </button>
@@ -306,7 +306,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
 
       {/* Notes */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
-        <h3 className="text-[13px] font-semibold text-ink mb-2">Notes</h3>
+        <h3 className="text-sm font-semibold text-ink mb-2">Notes</h3>
         <textarea
           value={notes}
           onChange={e => setNotes(e.target.value)}
@@ -317,19 +317,19 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
           }}
           rows={4}
           placeholder="Internal notes about this entity."
-          className="w-full px-2 py-1.5 text-[12.5px] border border-border rounded-md bg-surface font-mono"
+          className="w-full px-2 py-1.5 text-sm border border-border rounded-md bg-surface font-mono"
         />
       </div>
 
       {/* Obligations */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
-        <h3 className="text-[13px] font-semibold text-ink mb-2">
-          Obligations <span className="text-[11.5px] font-normal text-ink-muted">({data.obligations.length})</span>
+        <h3 className="text-sm font-semibold text-ink mb-2">
+          Obligations <span className="text-xs font-normal text-ink-muted">({data.obligations.length})</span>
         </h3>
         {data.obligations.length === 0 ? (
-          <div className="text-[12px] text-ink-muted italic">No obligations recorded.</div>
+          <div className="text-sm text-ink-muted italic">No obligations recorded.</div>
         ) : (
-          <table className="w-full text-[12.5px]">
+          <table className="w-full text-sm">
             <thead className="text-ink-muted">
               <tr className="text-left">
                 <th className="py-1 font-medium">Tax type</th>
@@ -355,20 +355,20 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
       {/* Filings history — compact matrix (tax_type × years × periods) */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-[13px] font-semibold text-ink">
-            Filings history <span className="text-[11.5px] font-normal text-ink-muted">({data.filings.length})</span>
+          <h3 className="text-sm font-semibold text-ink">
+            Filings history <span className="text-xs font-normal text-ink-muted">({data.filings.length})</span>
           </h3>
-          <span className="text-[11px] text-ink-muted">Click a status badge to open that filing.</span>
+          <span className="text-xs text-ink-muted">Click a status badge to open that filing.</span>
         </div>
         <EntityFilingsMatrix filings={data.filings} years={years} />
       </div>
 
       {/* Activity timeline (stint 42.A) — chronological audit-log view */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
-        <h3 className="text-[13px] font-semibold text-ink mb-2">
+        <h3 className="text-sm font-semibold text-ink mb-2">
           Activity
         </h3>
-        <p className="text-[11.5px] text-ink-muted mb-3">
+        <p className="text-xs text-ink-muted mb-3">
           Status changes, family moves, contact edits, merges, archives — everything
           that happened to this entity, newest first.
         </p>
