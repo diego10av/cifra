@@ -6,8 +6,9 @@
 // Filtros: Mine · Overdue · Waiting · This week + search.
 // Inline edit en status, priority, assignee, due_date, follow_up_date.
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   SearchIcon, LayoutListIcon, LayoutGridIcon, PlusIcon, FilterXIcon,
   CalendarIcon, MessagesSquareIcon, ListIcon, Trash2Icon,
@@ -27,6 +28,10 @@ import { useToast } from '@/components/Toaster';
 // the row order respects the next pending action.
 import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { familyChipClasses } from '@/components/tax-ops/familyColors';
+import { TaskSavedViews } from '@/components/tax-ops/TaskSavedViews';
+import { TaskHoverPreview } from '@/components/tax-ops/TaskHoverPreview';
+import { TaskCalendar } from '@/components/tax-ops/TaskCalendar';
+import { TaskContextMenu, type ContextTask } from '@/components/tax-ops/TaskContextMenu';
 
 interface TaskFull extends TaskRow {
   description: string | null;
@@ -138,31 +143,65 @@ const QUICK_FILTERS: Array<{
   },
 ];
 
-type ViewMode = 'list' | 'board';
+type ViewMode = 'list' | 'board' | 'calendar';
 
 interface FamilyOption { id: string; name: string }
 
 export default function TasksListPage() {
-  const [view, setView] = useState<ViewMode>('list');
+  // Suspense boundary required by Next 16 useSearchParams under
+  // /app router when the consumer renders during SSR.
+  return (
+    <Suspense fallback={null}>
+      <TasksListContent />
+    </Suspense>
+  );
+}
+
+function TasksListContent() {
+  // Stint 57.D.1 — URL-persistent filters. State seeded from
+  // searchParams; every mutation calls router.replace so refresh +
+  // shareable deep links survive.
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [view, setView] = useState<ViewMode>(() => {
+    const v = searchParams.get('view');
+    return v === 'board' || v === 'calendar' ? v : 'list';
+  });
   const [rows, setRows] = useState<TaskFull[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [q, setQ] = useState('');
-  const [status, setStatus] = useState<string>('');
-  const [assignee, setAssignee] = useState<string>('');
-  const [preset, setPreset] = useState<string>('');
-  // Stint 51.A — family filter (Diego: "que se pudiese organizar también
-  //               igualmente por familias para ver bien todos los
-  //               distintos proyectos que están pendientes").
-  const [familyId, setFamilyId] = useState<string>('');
+  const [q, setQ] = useState(searchParams.get('q') ?? '');
+  const [status, setStatus] = useState<string>(searchParams.get('status') ?? '');
+  const [assignee, setAssignee] = useState<string>(searchParams.get('assignee') ?? '');
+  const [preset, setPreset] = useState<string>(searchParams.get('preset') ?? '');
+  // Stint 51.A — family filter.
+  const [familyId, setFamilyId] = useState<string>(searchParams.get('family_id') ?? '');
   const [families, setFamilies] = useState<FamilyOption[]>([]);
-  // Stint 55.A — sub-tasks tree expansion state. Map of parent task id
-  // → array of children, lazy-loaded the first time the user clicks a
-  // chevron. Cached so re-expand is instant.
+  // Stint 55.A — sub-tasks tree expansion (not URL-persisted; ephemeral).
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [childrenByParent, setChildrenByParent] = useState<Record<string, TaskFull[]>>({});
-  // Stint 56.D — bulk select state for the multi-select toolbar.
+  // Stint 56.D — bulk select (ephemeral).
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Stint 57.D.7 — context menu state.
+  const [contextMenu, setContextMenu] = useState<{ task: ContextTask; x: number; y: number } | null>(null);
   const toast = useToast();
+
+  // Stint 57.D.1 — sync state → URL. Skip the very first render
+  // (otherwise we'd overwrite the URL the user came in with).
+  const firstSync = useRef(true);
+  useEffect(() => {
+    if (firstSync.current) { firstSync.current = false; return; }
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (status) qs.set('status', status);
+    if (assignee) qs.set('assignee', assignee);
+    if (familyId) qs.set('family_id', familyId);
+    if (preset) qs.set('preset', preset);
+    if (view !== 'list') qs.set('view', view);
+    const s = qs.toString();
+    router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
+  }, [q, status, assignee, familyId, preset, view, router, pathname]);
 
   const load = useCallback(() => {
     const qs = new URLSearchParams();
@@ -195,6 +234,18 @@ export default function TasksListPage() {
     () => q !== '' || status !== '' || assignee !== '' || familyId !== '' || preset !== '',
     [q, status, assignee, familyId, preset],
   );
+
+  // Stint 57.D.2 — query string for saved-views capture (excludes
+  // ephemeral things like view/expand state).
+  const currentQuery = useMemo(() => {
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (status) qs.set('status', status);
+    if (assignee) qs.set('assignee', assignee);
+    if (familyId) qs.set('family_id', familyId);
+    if (preset) qs.set('preset', preset);
+    return qs.toString();
+  }, [q, status, assignee, familyId, preset]);
 
   function clearFilters() {
     setQ(''); setStatus(''); setAssignee(''); setFamilyId(''); setPreset('');
@@ -320,6 +371,12 @@ export default function TasksListPage() {
             >
               <LayoutGridIcon size={11} /> Board
             </button>
+            <button
+              onClick={() => setView('calendar')}
+              className={`inline-flex items-center gap-1 px-2 py-1 text-sm rounded ${view === 'calendar' ? 'bg-surface-alt text-ink' : 'text-ink-muted hover:text-ink'}`}
+            >
+              <CalendarIcon size={11} /> Calendar
+            </button>
           </div>
         }
       />
@@ -377,6 +434,7 @@ export default function TasksListPage() {
             <FilterXIcon size={12} /> Clear
           </button>
         )}
+        <TaskSavedViews currentQuery={currentQuery} />
         <div className="ml-auto flex items-center gap-2">
           <Link
             href="/tax-ops/tasks/templates"
@@ -497,6 +555,14 @@ export default function TasksListPage() {
               {flattenTree(rows).map(({ task: t, depth }) => (
                 <tr
                   key={t.id}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    setContextMenu({
+                      task: { id: t.id, title: t.title, status: t.status, is_starred: t.is_starred },
+                      x: e.clientX,
+                      y: e.clientY,
+                    });
+                  }}
                   className={[
                     'border-t border-border/70 align-top',
                     selected.has(t.id) ? 'bg-brand-50/40' : 'hover:bg-surface-alt/50',
@@ -569,13 +635,15 @@ export default function TasksListPage() {
                         <span className="shrink-0 w-3" aria-hidden="true" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <InlineTextCell
-                          value={t.title}
-                          onSave={async v => {
-                            await patchTask(t.id, { title: v ?? '' });
-                          }}
-                          placeholder="(empty)"
-                        />
+                        <TaskHoverPreview taskId={t.id}>
+                          <InlineTextCell
+                            value={t.title}
+                            onSave={async v => {
+                              await patchTask(t.id, { title: v ?? '' });
+                            }}
+                            placeholder="(empty)"
+                          />
+                        </TaskHoverPreview>
                       </div>
                       {/* Stint 56.A — sign-off progress chip. Hidden when 0/3
                           (no sign-offs yet) to avoid clutter. */}
@@ -718,8 +786,37 @@ export default function TasksListPage() {
             </tbody>
           </table>
         </div>
-      ) : (
+      ) : view === 'board' ? (
         <TaskBoard tasks={rows} onMove={moveTaskStatus} />
+      ) : (
+        <TaskCalendar
+          tasks={rows.map(t => ({
+            id: t.id,
+            title: t.title,
+            due_date: t.due_date,
+            status: t.status,
+            priority: t.priority,
+            is_starred: t.is_starred,
+          }))}
+        />
+      )}
+
+      {contextMenu && (
+        <TaskContextMenu
+          task={contextMenu.task}
+          x={contextMenu.x}
+          y={contextMenu.y}
+          onClose={() => setContextMenu(null)}
+          onMarkDone={(id) => patchTask(id, { status: 'done' }).catch(e => toast.error(String(e)))}
+          onToggleStar={(id, next) => patchTask(id, { is_starred: next }).catch(e => toast.error(String(e)))}
+          onSetPriority={(id, priority) => patchTask(id, { priority }).catch(e => toast.error(String(e)))}
+          onReassign={(id) => {
+            const v = window.prompt('New assignee (blank to clear):');
+            if (v === null) return;
+            patchTask(id, { assignee: v.trim() || null }).catch(e => toast.error(String(e)));
+          }}
+          onDelete={deleteTask}
+        />
       )}
     </div>
   );
