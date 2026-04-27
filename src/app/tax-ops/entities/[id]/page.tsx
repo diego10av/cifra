@@ -91,6 +91,16 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
   const [editName, setEditName] = useState<string>('');
   const [cspContacts, setCspContacts] = useState<CspContact[]>([]);
   const [notes, setNotes] = useState<string>('');
+  // Stint 59.C — visible save state. Diego: "no hay ningún botón para
+  // decir Save, pero sí que se guarda. ¿Es habitual?". Auto-save IS the
+  // state-of-art pattern for inline-edit pages (Linear/Notion/Asana
+  // never expose a Save button on field-level edits). What was missing
+  // was the *feedback* — a persistent indicator showing the last save
+  // time, plus a "Saving…" pulse during in-flight requests, plus a
+  // visible "Save failed" affordance when the network errors.
+  const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
   const toast = useToast();
 
   const load = useCallback(async () => {
@@ -115,6 +125,8 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
     msg: string,
     undoAction?: { label: string; onClick: () => void | Promise<void> },
   ) {
+    setSaving(true);
+    setSaveFailed(false);
     try {
       const res = await fetch(`/api/tax-ops/entities/${id}`, {
         method: 'PATCH',
@@ -127,9 +139,13 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
       } else {
         toast.success(msg);
       }
+      setLastSavedAt(new Date());
       await load();
     } catch (e) {
+      setSaveFailed(true);
       toast.error(`Save failed: ${String(e instanceof Error ? e.message : e)}`);
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -191,7 +207,11 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
 
       {/* Identity header — stint 48.U2.A: pencil icon makes the inline-edit
           affordance obvious. Diego: "no tengo manera de editar nada" — the
-          on-blur input always was editable, just not visually flagged. */}
+          on-blur input always was editable, just not visually flagged.
+          Stint 59.C — persistent save indicator next to the title (Notion
+          pattern). Closes Diego's "no hay ningún botón para decir Save,
+          pero sí que se guarda" — auto-save is correct, what was missing
+          was visible confirmation that it happened. */}
       <div className="rounded-md border border-border bg-surface px-4 py-3">
         <div className="flex items-center gap-1.5 group">
           <input
@@ -211,6 +231,7 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
             className="shrink-0 text-ink-faint opacity-0 group-hover:opacity-100 transition-opacity"
             aria-hidden="true"
           />
+          <SaveIndicator saving={saving} lastSavedAt={lastSavedAt} failed={saveFailed} />
         </div>
         <div className="text-sm text-ink-muted mt-0.5 flex items-center gap-2 flex-wrap">
           {data.entity.group_name && data.entity.group_id && (
@@ -457,4 +478,50 @@ export default function EntityDetailPage({ params }: { params: Promise<{ id: str
       </div>
     </div>
   );
+}
+
+// Stint 59.C — Notion-style persistent save indicator. Shows three
+// states next to the entity title:
+//   • Saving…           (in-flight PATCH)
+//   • Saved 17:34       (last successful save, sticky until next save
+//                        or page reload)
+//   • Save failed       (red dot, only when last attempt errored)
+// When idle (no save yet on this page-load) shows nothing — no need to
+// announce "saved 0 ago" before the user has done anything.
+function SaveIndicator({
+  saving, lastSavedAt, failed,
+}: {
+  saving: boolean;
+  lastSavedAt: Date | null;
+  failed: boolean;
+}) {
+  if (saving) {
+    return (
+      <span className="inline-flex items-center gap-1 text-2xs text-ink-muted shrink-0 ml-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" aria-hidden />
+        Saving…
+      </span>
+    );
+  }
+  if (failed) {
+    return (
+      <span className="inline-flex items-center gap-1 text-2xs text-danger-700 shrink-0 ml-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-danger-500" aria-hidden />
+        Save failed
+      </span>
+    );
+  }
+  if (lastSavedAt) {
+    const t = lastSavedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return (
+      <span
+        className="inline-flex items-center gap-1 text-2xs text-ink-faint shrink-0 ml-2"
+        title={`Last saved at ${lastSavedAt.toLocaleString()}`}
+      >
+        <span className="w-1.5 h-1.5 rounded-full bg-success-500" aria-hidden />
+        Saved {t}
+      </span>
+    );
+  }
+  return null;
 }
