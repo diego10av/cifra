@@ -135,7 +135,7 @@ export function DataTable<Row>({
       {caption && <div className="px-3 py-2 border-b border-border text-sm font-medium text-ink">{caption}</div>}
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
-          <thead className={['bg-surface-alt', stickyHeader ? 'sticky top-0 z-10' : ''].join(' ')}>
+          <thead className={['bg-surface-alt', stickyHeader ? 'sticky top-0 z-sticky' : ''].join(' ')}>
             <tr>
               {columns.map(c => (
                 <th

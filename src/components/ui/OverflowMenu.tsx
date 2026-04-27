@@ -56,7 +56,7 @@ export function OverflowMenu({
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-[34px] z-40 min-w-[180px] bg-white border border-border rounded-md shadow-lg py-1"
+          className="absolute right-0 top-[34px] z-drawer min-w-[180px] bg-white border border-border rounded-md shadow-lg py-1"
         >
           {items.map(it => {
             const Icon = it.icon;

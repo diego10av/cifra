@@ -52,7 +52,7 @@ function TopNav() {
   // single href="/login" works everywhere. Using <a> instead of Next's
   // <Link> because a subdomain jump bypasses client-side routing anyway.
   return (
-    <header className="sticky top-0 z-30 bg-[#FBFAF7]/75 backdrop-blur-md border-b border-[#EFEAE2]">
+    <header className="sticky top-0 z-popover bg-[#FBFAF7]/75 backdrop-blur-md border-b border-[#EFEAE2]">
       <Container className="flex items-center justify-between h-14">
         <Link href="/marketing" className="flex items-center" aria-label="cifra home">
           <CifraWordmark />

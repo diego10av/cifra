@@ -74,7 +74,7 @@ export function AttachmentsModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-modal bg-black/40 flex items-center justify-center p-4 animate-fadeIn"
       role="presentation" onClick={onClose}
     >
       <div

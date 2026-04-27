@@ -55,6 +55,14 @@ const RULES: Array<{ pattern: RegExp; rule: string; description: string }> = [
     rule: 'no-duplicate-focus-ring',
     description: 'globals.css owns the focus halo — drop the utility class',
   },
+  {
+    // Stint 48.B4 — z-index canonical tier. Use z-sticky / z-popover /
+    // z-drawer / z-modal / z-toast (tokens defined in globals.css).
+    // Allow z-0 (reset) and z-1 (single inline overlay).
+    pattern: /\bz-(?:[2-9]|[1-9][0-9]+|\[[0-9]+\])\b/g,
+    rule: 'no-bare-z-index',
+    description: 'Use z-{sticky|popover|drawer|modal|toast} tokens',
+  },
 ];
 
 // Files where we've documented a deliberate exception. Each entry

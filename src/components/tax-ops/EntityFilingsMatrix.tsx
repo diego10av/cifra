@@ -108,10 +108,10 @@ export function EntityFilingsMatrix({
   return (
     <div className="rounded-md border border-border overflow-auto">
       <table className="text-xs border-collapse">
-        <thead className="bg-surface-alt sticky top-0 z-10">
+        <thead className="bg-surface-alt sticky top-0 z-sticky">
           <tr>
             <th
-              className="sticky left-0 z-20 bg-surface-alt border-b border-r border-border px-2.5 py-1.5 font-medium text-left min-w-[180px]"
+              className="sticky left-0 z-sticky bg-surface-alt border-b border-r border-border px-2.5 py-1.5 font-medium text-left min-w-[180px]"
               rowSpan={2}
             >
               Tax type

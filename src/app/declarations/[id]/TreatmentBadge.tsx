@@ -61,7 +61,7 @@ export function TreatmentBadge({
       {open && (
         <span
           role="tooltip"
-          className="absolute z-30 left-0 top-full mt-1 min-w-[320px] max-w-[440px] bg-ink text-white text-xs leading-snug rounded-md shadow-lg p-3 pointer-events-none"
+          className="absolute z-popover left-0 top-full mt-1 min-w-[320px] max-w-[440px] bg-ink text-white text-xs leading-snug rounded-md shadow-lg p-3 pointer-events-none"
           onMouseEnter={() => setOpen(true)}
           onMouseLeave={() => setOpen(false)}
         >

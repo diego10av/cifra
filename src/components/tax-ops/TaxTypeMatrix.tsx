@@ -259,23 +259,29 @@ export function TaxTypeMatrix({
   // long) page. Diego: "no veo bien la barra horizontal porque me obliga
   // a hacer scroll al fondo de la página". The 220px subtract leaves room
   // for the page header + toolbar + a small breathing strip; tweakable.
+  // Stint 48.B2 — table uses border-separate + spacing-0 instead of
+  // border-collapse so position: sticky on <th>/<td> renders cleanly
+  // (border-collapse breaks the rendering of borders on sticky cells in
+  // every Chromium release we've tested). w-full → min-w-max so columns
+  // expand the table when they exceed the wrapper width, giving the
+  // sticky cells a horizontal scroll context to anchor against.
   return (
     <div
       className="rounded-md border border-border bg-surface overflow-auto relative"
       style={{ maxHeight: 'calc(100vh - 220px)' }}
     >
-      <table className="w-full text-sm border-collapse">
-        <thead className="bg-surface-alt sticky top-0 z-10">
+      <table className="min-w-full text-sm border-separate border-spacing-0">
+        <thead className="bg-surface-alt sticky top-0 z-sticky">
           <tr className="text-left text-ink-muted">
             {familyCol && (
               <th
-                className="sticky left-0 z-20 bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[170px] max-w-[170px]"
+                className="sticky left-0 z-sticky bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[170px] max-w-[170px]"
               >
                 {familyCol.label}
               </th>
             )}
             <th
-              className="sticky z-20 bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[220px]"
+              className="sticky z-sticky bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[220px]"
               style={{ left: `${entityStickyLeft}px` }}
             >
               {firstColLabel}
@@ -446,7 +452,7 @@ function RowRender({
     <tr className={trClass}>
       {familyCol && (
         <td className={[
-          'sticky left-0 z-10 border-r border-border px-2 py-1.5 min-w-[170px] max-w-[170px]',
+          'sticky left-0 z-sticky border-r border-border px-2 py-1.5 min-w-[170px] max-w-[170px]',
           stickyBgClass,
         ].join(' ')}>
           {familyCol.render
@@ -464,7 +470,7 @@ function RowRender({
       )}
       <td
         className={[
-          'sticky z-10 border-r border-border px-2.5 py-1.5 min-w-[220px] max-w-[320px]',
+          'sticky z-sticky border-r border-border px-2.5 py-1.5 min-w-[220px] max-w-[320px]',
           stickyBgClass,
         ].join(' ')}
         style={{ left: `${entityStickyLeft}px` }}

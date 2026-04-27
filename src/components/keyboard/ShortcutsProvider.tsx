@@ -112,7 +112,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
 
       {/* Subtle leader-key hint */}
       {pendingLeader === 'g' && (
-        <div className="fixed bottom-4 left-4 z-[95] bg-ink text-white rounded-md px-3 py-2 text-xs flex items-center gap-2 shadow-lg animate-fadeIn pointer-events-none">
+        <div className="fixed bottom-4 left-4 z-toast bg-ink text-white rounded-md px-3 py-2 text-xs flex items-center gap-2 shadow-lg animate-fadeIn pointer-events-none">
           <kbd className="font-mono bg-white/10 rounded px-1 py-0.5">g</kbd>
           <span>then</span>
           <kbd className="font-mono bg-white/10 rounded px-1 py-0.5">h</kbd>

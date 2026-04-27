@@ -110,7 +110,7 @@ export function Drawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end"
+      className="fixed inset-0 z-modal flex justify-end"
       onClick={dismissOnBackdropClick ? onClose : undefined}
     >
       {/* Backdrop */}
@@ -131,7 +131,7 @@ export function Drawer({
       >
         {/* Header */}
         {(title || subtitle || headerActions) && (
-          <div className="sticky top-0 bg-surface border-b border-border px-4 py-2.5 flex items-center gap-2 z-10">
+          <div className="sticky top-0 bg-surface border-b border-border px-4 py-2.5 flex items-center gap-2 z-sticky">
             <div className="flex-1 min-w-0">
               {title && (
                 <div id={titleId} className="text-sm font-semibold text-ink truncate">

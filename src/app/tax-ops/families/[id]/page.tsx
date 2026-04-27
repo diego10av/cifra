@@ -205,7 +205,7 @@ export default function FamilyDetailPage({ params }: { params: Promise<{ id: str
 
       {/* Bulk-copy toolbar (sticky when a source is picked) */}
       {source && (
-        <div className="sticky top-0 z-10 rounded-md border border-brand-300 bg-brand-50 px-4 py-2 flex items-center gap-3 flex-wrap">
+        <div className="sticky top-0 z-sticky rounded-md border border-brand-300 bg-brand-50 px-4 py-2 flex items-center gap-3 flex-wrap">
           <CopyIcon size={14} className="text-brand-700" />
           <div className="text-sm text-ink">
             Copy {source.csp_contacts.length} contact{source.csp_contacts.length === 1 ? '' : 's'} from <strong>{source.legal_name}</strong> to:

@@ -166,7 +166,7 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end"
+      className="fixed inset-0 z-modal flex justify-end"
       onClick={onClose}
     >
       {/* Backdrop */}
@@ -179,7 +179,7 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
         className="relative bg-surface border-l border-border w-[480px] max-w-[90vw] h-full overflow-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-surface border-b border-border px-4 py-2.5 flex items-center gap-2 z-10">
+        <div className="sticky top-0 bg-surface border-b border-border px-4 py-2.5 flex items-center gap-2 z-sticky">
           <div className="flex-1 min-w-0">
             {data ? (
               <>

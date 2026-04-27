@@ -512,7 +512,7 @@ function ContactsInlineEditor({
 
       {open && (
         <div
-          className="absolute top-full left-0 z-50 bg-surface border border-border rounded-md shadow-lg p-2 w-[320px] mt-1"
+          className="absolute top-full left-0 z-modal bg-surface border border-border rounded-md shadow-lg p-2 w-[320px] mt-1"
           onKeyDown={(e) => {
             if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
           }}
@@ -719,8 +719,10 @@ function FamilyInlineSelect({
     onChangedFamily();
   }
 
-  // Trigger button styled as the family chip — keeps Diego's at-a-glance
-  // colour differentiation while gaining a searchable popup on click.
+  // Stint 48.B3 — `bare` mode on SearchableSelect drops its default
+  // border/bg/min-width so the family chip's bg-{tone}-100 actually
+  // renders. Without bare, the SearchableSelect's `bg-surface` was
+  // winning over the chip color.
   const chip = entity.group_name
     ? familyChipClasses(entity.group_name)
     : 'bg-surface-alt text-ink-muted';
@@ -730,8 +732,9 @@ function FamilyInlineSelect({
       value={entity.group_id ?? ''}
       onChange={(v) => void handleChange(v)}
       ariaLabel="Change family"
+      bare
       triggerClassName={[
-        'border-transparent text-xs font-medium px-1.5 py-0.5 min-w-[120px] max-w-[170px]',
+        'text-xs font-medium px-1.5 py-0.5 max-w-[170px] truncate',
         chip,
       ].join(' ')}
     />

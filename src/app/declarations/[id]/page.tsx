@@ -1861,7 +1861,7 @@ function MoveDropdown({
         )}
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-md shadow-lg min-w-[210px] py-1 animate-fadeIn">
+        <div className="absolute right-0 top-full mt-1 z-sticky bg-surface border border-border rounded-md shadow-lg min-w-[210px] py-1 animate-fadeIn">
           {targets.map(t => (
             <button
               key={t.key}
@@ -1902,7 +1902,7 @@ function BulkActionBar({
   const treatments = direction === 'incoming' ? INCOMING_TREATMENTS : OUTGOING_TREATMENTS;
 
   return (
-    <div className="sticky top-0 z-10 mb-2 bg-brand-500 text-white rounded-lg px-3 py-2 flex items-center gap-2 text-sm animate-fadeIn">
+    <div className="sticky top-0 z-sticky mb-2 bg-brand-500 text-white rounded-lg px-3 py-2 flex items-center gap-2 text-sm animate-fadeIn">
       <span className="font-semibold">{count} selected</span>
       <span className="text-white/40 mx-1">·</span>
       {onOpenEdit && (
@@ -1934,7 +1934,7 @@ function BulkActionBar({
           Set treatment ▾
         </button>
         {treatmentOpen && (
-          <div className="absolute top-full left-0 mt-1 bg-surface text-ink border border-border rounded-md shadow-lg min-w-[240px] max-h-[300px] overflow-y-auto z-20">
+          <div className="absolute top-full left-0 mt-1 bg-surface text-ink border border-border rounded-md shadow-lg min-w-[240px] max-h-[300px] overflow-y-auto z-sticky">
             {treatments.map(t => (
               <button
                 key={t}

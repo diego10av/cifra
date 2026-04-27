@@ -79,7 +79,7 @@ export function FeedbackWidget() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-40 h-10 px-3 rounded-full bg-surface border border-border-strong shadow-md hover:shadow-lg hover:border-brand-400 transition-all inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-brand-700"
+        className="fixed bottom-5 right-5 z-drawer h-10 px-3 rounded-full bg-surface border border-border-strong shadow-md hover:shadow-lg hover:border-brand-400 transition-all inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-brand-700"
         aria-label="Report an issue or feedback (shortcut: ?)"
         title="Report an issue — press ? anywhere"
       >
@@ -208,7 +208,7 @@ function FeedbackModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-modal bg-black/40 flex items-center justify-center p-4 animate-fadeIn"
       role="presentation"
       onClick={onClose}
     >

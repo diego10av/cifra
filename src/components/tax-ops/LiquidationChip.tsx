@@ -106,7 +106,7 @@ export function LiquidationChip({
       </button>
       {open && (
         <div
-          className="absolute left-0 top-full mt-1 z-30 min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
+          className="absolute left-0 top-full mt-1 z-popover min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="text-xs font-medium text-ink">Liquidation date</div>

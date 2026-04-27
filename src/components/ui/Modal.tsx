@@ -88,7 +88,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center px-4 py-8"
+      className="fixed inset-0 z-modal flex items-center justify-center px-4 py-8"
       onMouseDown={e => {
         if (!dismissable) return;
         if (e.target === e.currentTarget) onClose();

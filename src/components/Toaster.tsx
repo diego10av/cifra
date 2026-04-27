@@ -165,7 +165,7 @@ function ToastRack({
 }) {
   return (
     <div
-      className="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 items-end max-w-[420px]"
+      className="fixed bottom-4 right-4 z-toast flex flex-col gap-2 items-end max-w-[420px]"
       role="region"
       aria-label="Notifications"
     >

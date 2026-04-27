@@ -215,7 +215,7 @@ export default function EntitiesListPage() {
 
       {/* Bulk-action toolbar — sticky banner when any rows selected */}
       {selected.size > 0 && (
-        <div className="sticky top-0 z-30 mb-3 rounded-md border border-brand-300 bg-brand-50 px-3 py-2 flex items-center gap-2 flex-wrap">
+        <div className="sticky top-0 z-popover mb-3 rounded-md border border-brand-300 bg-brand-50 px-3 py-2 flex items-center gap-2 flex-wrap">
           <span className="text-sm text-ink font-medium">
             {selected.size} {selected.size === 1 ? 'entity' : 'entities'} selected
           </span>
@@ -496,7 +496,7 @@ function ModalShell({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-modal flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div className="absolute inset-0 bg-black/30" />

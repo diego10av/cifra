@@ -404,7 +404,7 @@ export default function SearchBar() {
 
       {open && (
         <div
-          className="absolute left-0 top-full mt-2 w-[520px] bg-surface text-ink border border-border rounded-xl shadow-lg overflow-hidden z-50 animate-fadeInScale"
+          className="absolute left-0 top-full mt-2 w-[520px] bg-surface text-ink border border-border rounded-xl shadow-lg overflow-hidden z-modal animate-fadeInScale"
           role="dialog"
           aria-label="Command palette"
         >

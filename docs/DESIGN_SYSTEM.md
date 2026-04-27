@@ -104,6 +104,25 @@ matrix (then `space-y-3`).
 | `shadow-lg`     | Drawers, popover panels |
 | `shadow-focus`  | Focus halo (auto-applied via `globals.css`) |
 
+### 1.6 z-index tiers (stint 48.B4)
+
+The CANONICAL stack. Bare `z-{n}` literals are forbidden by the lint
+guard. Bigger numbers float above smaller ones — invariant.
+
+| Tailwind       | px  | Use |
+|----------------|-----|-----|
+| `z-sticky`     | 10  | Table sticky cells (header + first cols) |
+| `z-popover`    | 30  | Inline popovers, dropdowns, action menus |
+| `z-drawer`     | 40  | Right-side slide-in panels |
+| `z-modal`      | 50  | Centred dialogs (above drawers) |
+| `z-toast`      | 60  | Toast rack (above everything) |
+
+When in doubt, the rule of thumb: **floating UI elements that the
+user dismisses → popover; full-screen blocking UX → modal/drawer.**
+
+**Forbidden**: `z-10`, `z-20`, `z-30`, `z-50`, `z-[90]`, `z-[100]`
+literals. Use the tokens.
+
 ### 1.6 Focus
 
 `globals.css` owns the canonical halo. Every interactive element
@@ -242,6 +261,7 @@ A pre-commit / CI check will fail on:
 - `bg-\[#[0-9A-Fa-f]+\]` — same.
 - `hover:bg-surface-alt\/(?!50)` — divergent hover opacity.
 - Raw `focus:ring-1 focus:ring-brand-500` — duplicates the global halo.
+- `z-{n}` literals (stint 48.B4) — use `z-sticky/popover/drawer/modal/toast`.
 
 Run `npm run lint:design` locally to catch before push.
 

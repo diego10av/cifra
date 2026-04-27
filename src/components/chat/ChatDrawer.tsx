@@ -473,13 +473,13 @@ export function ChatDrawer({ open, onClose }: ChatDrawerProps) {
     <>
       {/* Backdrop on small screens */}
       <div
-        className="fixed inset-0 bg-ink/20 backdrop-blur-[2px] z-40 md:hidden"
+        className="fixed inset-0 bg-ink/20 backdrop-blur-[2px] z-drawer md:hidden"
         onClick={onClose}
         aria-hidden="true"
       />
       {/* Drawer */}
       <aside
-        className="fixed right-0 top-0 bottom-0 w-full md:w-[420px] bg-surface border-l border-divider z-50 flex flex-col shadow-xl"
+        className="fixed right-0 top-0 bottom-0 w-full md:w-[420px] bg-surface border-l border-divider z-modal flex flex-col shadow-xl"
         role="dialog"
         aria-label="cifra assistant"
       >

@@ -68,7 +68,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           Visible on Tab from page load. */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:px-3 focus:py-2 focus:bg-brand-500 focus:text-white focus:rounded focus:shadow-lg focus:text-sm focus:font-medium"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-toast focus:px-3 focus:py-2 focus:bg-brand-500 focus:text-white focus:rounded focus:shadow-lg focus:text-sm focus:font-medium"
       >
         Skip to main content
       </a>

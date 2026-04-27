@@ -71,7 +71,7 @@ export function BulkActionBar({
 
   return (
     <>
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-ink text-white rounded-lg shadow-xl px-3 py-2 flex items-center gap-2 text-sm">
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-drawer bg-ink text-white rounded-lg shadow-xl px-3 py-2 flex items-center gap-2 text-sm">
         <span className="font-semibold">
           {selectedIds.length} selected
         </span>
@@ -108,7 +108,7 @@ export function BulkActionBar({
       </div>
 
       {tagPromptOpen && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setTagPromptOpen(false)}>
+        <div className="fixed inset-0 bg-black/40 z-modal flex items-center justify-center p-4" onClick={() => setTagPromptOpen(false)}>
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-4" onClick={e => e.stopPropagation()}>
             <h3 className="text-base font-semibold mb-2">
               {tagOp === 'add_tag' ? 'Add tag' : 'Remove tag'} — {selectedIds.length} record{selectedIds.length === 1 ? '' : 's'}

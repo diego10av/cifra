@@ -459,7 +459,7 @@ function ApproverEditor({
               <span className="text-ink-faint text-2xs">{contactsOpen ? '▲' : '▼'}</span>
             </button>
             {contactsOpen && (
-              <div className="absolute z-10 mt-1 left-0 right-0 max-h-56 overflow-y-auto bg-surface border border-border-strong rounded-md shadow-lg">
+              <div className="absolute z-sticky mt-1 left-0 right-0 max-h-56 overflow-y-auto bg-surface border border-border-strong rounded-md shadow-lg">
                 {!contacts ? (
                   <div className="px-3 py-2 text-xs text-ink-muted">Loading…</div>
                 ) : contacts.length === 0 ? (

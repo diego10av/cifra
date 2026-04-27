@@ -27,7 +27,7 @@ export function TopBar({ badges, onOpenChat, chatOpen = false }: TopBarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 h-14 bg-surface/85 backdrop-blur-xl border-b border-divider">
+      <header className="sticky top-0 z-popover h-14 bg-surface/85 backdrop-blur-xl border-b border-divider">
         <div className="h-full px-4 md:px-6 flex items-center gap-3 md:gap-4">
           <button
             className="md:hidden w-8 h-8 inline-flex items-center justify-center rounded-md hover:bg-surface-alt text-ink-soft"
@@ -50,7 +50,7 @@ export function TopBar({ badges, onOpenChat, chatOpen = false }: TopBarProps) {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
+        <div className="md:hidden fixed inset-0 z-modal flex">
           <div
             className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}

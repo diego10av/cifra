@@ -117,7 +117,7 @@ export function Popover({
           ref={panelRef}
           role="dialog"
           className={[
-            'absolute z-30 bg-surface border border-border rounded-md shadow-lg overflow-hidden',
+            'absolute z-popover bg-surface border border-border rounded-md shadow-lg overflow-hidden',
             placeClass[placement],
             className,
           ].join(' ')}

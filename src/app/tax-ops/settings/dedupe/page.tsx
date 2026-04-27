@@ -364,7 +364,7 @@ export default function DedupePage() {
       </div>
 
       {bulkOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setBulkOpen(false)}>
+        <div className="fixed inset-0 z-modal flex items-center justify-center p-4" onClick={() => setBulkOpen(false)}>
           <div className="absolute inset-0 bg-black/30" />
           <div className="relative bg-surface border border-border rounded-lg shadow-xl max-w-2xl w-full p-4 space-y-3" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2">

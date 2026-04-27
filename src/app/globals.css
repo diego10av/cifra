@@ -201,6 +201,23 @@
   --spacing-stack-md: 1rem;
   --spacing-stack-lg: 1.5rem;
   --spacing-stack-xl: 2rem;
+
+  /* Stint 48.B4 — z-index canonical tiers. Stops the popover/modal/sticky
+   *  z-stacking chaos Diego saw ("things showing through behind").
+   *  Use Tailwind utilities `z-sticky`, `z-popover`, `z-drawer`,
+   *  `z-modal`, `z-toast` instead of bare `z-{n}` literals.
+   *
+   *    sticky:  10  — table sticky cells (header + first cols)
+   *    popover: 30  — inline popovers, dropdowns, action menus
+   *    drawer:  40  — right-side slide-in panels
+   *    modal:   50  — centred dialogs (above drawers)
+   *    toast:   60  — toast rack (above everything)
+   */
+  --z-sticky:  10;
+  --z-popover: 30;
+  --z-drawer:  40;
+  --z-modal:   50;
+  --z-toast:   60;
 }
 
 /* ── Base ────────────────────────────────────── */

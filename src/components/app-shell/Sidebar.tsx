@@ -298,17 +298,25 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
 
   const groups = filterForRole(buildGroups(badges, taxCategories), role);
 
-  // Match rule: exact "/" for Home; otherwise startsWith for nested routes
-  // (so /declarations/xyz still lights up the Declarations item).
-  const isActive = (href: string): boolean =>
-    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
+  // Stint 48.B1 — match rule has to know whether the item has children.
+  // For Home (`/`): only match exact. For LEAF items: match the route or
+  // any sub-route (so /declarations/xyz keeps lighting up Declarations).
+  // For PARENT items (those with children, e.g. Overview = /tax-ops):
+  // match exact only. Otherwise the parent's `startsWith(href + '/')`
+  // would also fire on /tax-ops/vat/quarterly, lighting up BOTH Overview
+  // and the actual leaf — Diego's bug report from 2026-04-27.
+  const isActive = (href: string, isLeaf: boolean): boolean => {
+    if (href === '/') return pathname === '/';
+    if (!isLeaf) return pathname === href;
+    return pathname === href || pathname.startsWith(href + '/');
+  };
 
   // Auto-expand a parent when its own route or one of its children is active,
   // so a deep-link to /tax-ops/vat/quarterly shows the tree opened.
   const isParentAutoExpanded = (item: NavItem): boolean => {
     if (!item.children) return false;
-    if (isActive(item.href)) return true;
-    return item.children.some(c => isActive(c.href));
+    if (pathname === item.href) return true;
+    return item.children.some(c => isActive(c.href, !c.children));
   };
 
   const isExpanded = (item: NavItem): boolean => {
@@ -336,21 +344,20 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
   };
 
   const renderItem = (item: NavItem, depth = 0): React.ReactNode => {
-    const active = isActive(item.href);
-    const Icon = item.icon;
     const hasChildren = !!(item.children && item.children.length > 0);
+    const active = isActive(item.href, !hasChildren);
+    const Icon = item.icon;
     const open = isExpanded(item);
     const iconSize = depth === 0 ? 16 : 13;
     return (
       <li key={item.href} className="relative">
-        {/* Stint 40.K — softened active rail: 2px gray instead of 3px
-            brand-pink. Diego's feedback: the pink was too aggressive
-            and appeared ugly on every click. Brand color reserved for
-            primary CTAs; active state uses the muted gray-400 rail + a
-            subtle surface-alt background on the link itself. */}
+        {/* Stint 48.U1 — back to brand-pink rail. Diego: "tendría más
+            sentido el color de cifra (rojo) que el gris". Reverts the
+            stint 40.K change. The rail is still 2px (not 3px) so it's
+            clearly the active marker without overwhelming. */}
         {active && (
           <span
-            className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-full bg-gray-400"
+            className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-full bg-brand-500"
             aria-hidden="true"
           />
         )}
@@ -413,7 +420,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
 
   return (
     <aside
-      className="hidden md:flex flex-col fixed top-0 left-0 bottom-0 w-[232px] bg-surface border-r border-divider z-40"
+      className="hidden md:flex flex-col fixed top-0 left-0 bottom-0 w-[232px] bg-surface border-r border-divider z-drawer"
       aria-label="Primary"
     >
       {/* Logo area */}

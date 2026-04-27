@@ -185,7 +185,7 @@ function InboxDropdown({
     <div
       role="menu"
       aria-label="Inbox"
-      className="absolute right-0 top-full mt-2 w-[440px] bg-surface border border-border rounded-xl shadow-xl overflow-hidden z-50 animate-fadeInScale"
+      className="absolute right-0 top-full mt-2 w-[440px] bg-surface border border-border rounded-xl shadow-xl overflow-hidden z-modal animate-fadeInScale"
     >
       {/* Header */}
       <div className="px-4 py-3 border-b border-divider flex items-center justify-between bg-surface-alt/40">

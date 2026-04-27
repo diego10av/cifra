@@ -263,7 +263,7 @@ export default function TasksListPage() {
       ) : view === 'list' ? (
         <div className="rounded-md border border-border bg-surface overflow-auto">
           <table className="w-full text-sm">
-            <thead className="bg-surface-alt text-ink-muted sticky top-0 z-10">
+            <thead className="bg-surface-alt text-ink-muted sticky top-0 z-sticky">
               <tr className="text-left">
                 <th className="px-2 py-1.5 font-medium w-[120px]">Family</th>
                 <th className="px-2 py-1.5 font-medium w-[150px]">Entity</th>

@@ -46,11 +46,19 @@ interface Props {
   ariaLabel?: string;
   /** When `true`, no popup, no events fire. Useful for read-only rows. */
   disabled?: boolean;
+  /**
+   * Stint 48.B3 — when true, the trigger button skips the default
+   * border / bg / min-width styling so `triggerClassName` is the sole
+   * styling source. Used by FamilyInlineSelect so the family chip's
+   * `bg-{tone}-100` actually shows (the default `bg-surface` was
+   * overriding it deterministically).
+   */
+  bare?: boolean;
 }
 
 export function SearchableSelect({
   options, value, onChange, placeholder = 'Select…',
-  triggerClassName, ariaLabel, disabled,
+  triggerClassName, ariaLabel, disabled, bare,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -136,7 +144,10 @@ export function SearchableSelect({
         disabled={disabled}
         onClick={() => !disabled && setOpen(o => !o)}
         className={[
-          'inline-flex items-center justify-between gap-1 px-2 py-1 text-sm border border-border rounded-md bg-surface min-w-[120px] hover:bg-surface-alt disabled:opacity-50',
+          'inline-flex items-center justify-between gap-1 px-2 py-1 text-sm rounded-md disabled:opacity-50',
+          // Default chrome — only when not in "bare" mode so the caller
+          // can fully control bg/border/width via triggerClassName.
+          bare ? '' : 'border border-border bg-surface min-w-[120px] hover:bg-surface-alt',
           triggerClassName ?? '',
         ].join(' ')}
       >
@@ -146,7 +157,7 @@ export function SearchableSelect({
         <ChevronDown size={12} className="shrink-0 text-ink-muted" />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 z-30 min-w-[200px] max-w-[320px] bg-surface border border-border rounded-md shadow-lg overflow-hidden">
+        <div className="absolute left-0 top-full mt-1 z-popover min-w-[200px] max-w-[320px] bg-surface border border-border rounded-md shadow-lg overflow-hidden">
           <div className="p-1.5 border-b border-border">
             <input
               ref={inputRef}

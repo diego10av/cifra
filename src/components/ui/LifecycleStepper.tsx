@@ -140,7 +140,7 @@ export function LifecycleStepper({
 
               {/* Step circle */}
               <div
-                className={`relative w-6 h-6 rounded-full flex items-center justify-center text-2xs font-bold tabular-nums z-10 transition-all duration-200 ${circleClasses} ${clickable ? 'group-hover:ring-2 group-hover:ring-success-300' : ''}`}
+                className={`relative w-6 h-6 rounded-full flex items-center justify-center text-2xs font-bold tabular-nums z-sticky transition-all duration-200 ${circleClasses} ${clickable ? 'group-hover:ring-2 group-hover:ring-success-300' : ''}`}
               >
                 {isDone ? <CheckIcon size={11} strokeWidth={3} /> : i + 1}
               </div>
