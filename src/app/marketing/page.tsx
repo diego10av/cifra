@@ -204,7 +204,13 @@ function ThreeModules() {
   );
 }
 
-// ─────────────────── Depth (stats + 4 cases) ───────────────────
+// ─────────────────── Depth (stats + AI multiplier + practitioners) ───────────────────
+//
+// Stint 60.D — Diego on case law: "lo del case law no me va mucho […] los
+// case law mehh ademas no son ni actuales." Replaced the 4-CJEU-case panel
+// with two compact sub-blocks: AI as multiplier (3 concrete ways AI
+// accelerates the existing work) + Built by practitioners (one-line
+// credibility statement, no Big-4 framing, no personal branding).
 
 function StatCell({ value, label }: { value: string; label: string }) {
   return (
@@ -217,15 +223,20 @@ function StatCell({ value, label }: { value: string; label: string }) {
   );
 }
 
-function CaseLi({ c, date, summary }: { c: string; date: string; summary: string }) {
+function AIBullet({ title, body }: { title: string; body: string }) {
   return (
-    <li className="flex items-start gap-2.5">
-      <span className="mt-1.5 inline-block w-1 h-1 rounded-full bg-brand-500 shrink-0" aria-hidden />
-      <span>
-        <span className="font-semibold text-ink">{c}</span>
-        <span className="text-ink-muted"> · {date}</span>
-        <br />
-        <span className="text-ink-soft text-sm">{summary}</span>
+    <li className="flex items-start gap-3">
+      <span
+        aria-hidden
+        className="mt-1.5 inline-block w-1.5 h-1.5 rounded-full bg-brand-500 shrink-0"
+      />
+      <span className="block">
+        <span className="block text-base font-semibold text-ink leading-snug">
+          {title}
+        </span>
+        <span className="block mt-1 text-sm leading-[1.55] text-ink-soft">
+          {body}
+        </span>
       </span>
     </li>
   );
@@ -258,33 +269,51 @@ function Depth() {
           </div>
         </div>
 
-        <div className="mt-14 rounded-xl border border-[#EFEAE2] bg-[#FBFAF7] px-6 md:px-10 py-8">
-          <div className="grid md:grid-cols-[auto_1fr] md:gap-10 items-start">
-            <div className="text-2xs tracking-[0.18em] uppercase font-semibold text-brand-700 md:mt-1.5 whitespace-nowrap">
-              Recent case-law cifra encodes
-            </div>
-            <ul className="mt-4 md:mt-0 grid md:grid-cols-2 gap-y-4 gap-x-10">
-              <CaseLi
-                c="CJEU C-288/22 TP"
-                date="2023-12-21"
-                summary="Natural-person directors are not taxable persons → no VAT on fees."
+        {/* Two sub-blocks: AI as multiplier + Built by practitioners. */}
+        <div className="mt-14 grid md:grid-cols-5 gap-6">
+          {/* Sub-block A — AI as multiplier */}
+          <div className="md:col-span-3 rounded-xl border border-[#EFEAE2] bg-[#FBFAF7] px-6 md:px-8 py-7">
+            <Eyebrow>How AI fits in</Eyebrow>
+            <h3 className="mt-3 text-xl font-semibold text-ink leading-snug tracking-tight">
+              AI never decides. It accelerates.
+            </h3>
+            <p className="mt-3 text-sm leading-[1.6] text-ink-soft">
+              cifra uses Anthropic Claude to remove three specific kinds
+              of friction from a filing day. Every output goes back to a
+              human; every override is logged.
+            </p>
+            <ul className="mt-5 space-y-4">
+              <AIBullet
+                title="Invoice OCR"
+                body="Extracts vendor, VAT number, and amount from PDFs in seconds. Replaces the copy-paste from invoice to spreadsheet that swallows the first hour of every quarter."
               />
-              <CaseLi
-                c="CJEU C-184/23 Finanzamt T II"
-                date="2024-07-11"
-                summary="Intra-VAT-group supplies are out of scope, definitively."
+              <AIBullet
+                title="Classification suggestion"
+                body="Claude proposes a treatment code with the LTVA article and CJEU case that supports it. The reviewer accepts it with a click — or overrides it, in which case the override is frozen in the audit log."
               />
-              <CaseLi
-                c="CJEU C-231/19 BlackRock"
-                date="2020-07-02"
-                summary="Fund-management exemption: services must be specific and essential."
-              />
-              <CaseLi
-                c="CJEU C-77/19 Kaplan"
-                date="2020-11-18"
-                summary="Cross-border cost-sharing does not qualify for Art. 44 §1 y."
+              <AIBullet
+                title="Validator second-opinion"
+                body="A second model reviews the full classified return before filing and flags critical / high / medium issues with citations. A second pair of eyes that never gets tired and never goes on holiday."
               />
             </ul>
+          </div>
+
+          {/* Sub-block B — Built by practitioners */}
+          <div className="md:col-span-2 rounded-xl border border-[#EFEAE2] bg-[#FBFAF7] px-6 md:px-8 py-7 flex flex-col">
+            <Eyebrow>Who builds cifra</Eyebrow>
+            <h3 className="mt-3 text-xl font-semibold text-ink leading-snug tracking-tight">
+              Built by practitioners, not consultants.
+            </h3>
+            <p className="mt-4 text-base leading-[1.6] text-ink-soft">
+              cifra is built by people who file these returns themselves.
+              Every feature comes from a real filing day, not a workshop
+              whiteboard.
+            </p>
+            <p className="mt-4 text-sm leading-[1.6] text-ink-muted">
+              That is why the LTVA citations are accurate, the deadlines
+              match what AED actually expects, and the sign-off cascade
+              looks like the way real engagements run.
+            </p>
           </div>
         </div>
       </Container>
