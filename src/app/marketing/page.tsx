@@ -1,11 +1,15 @@
-// Landing page — stint 60.B rebuild.
+// Landing page — stint 60.C rebuild.
 //
-// Positioning (Diego, 2026-04-27): "Operating system for recurring
-// compliance for private capital structures in Europe." Drop the Big-4
-// audience framing — irrelevant to Diego's actual reader (fund/structure
-// managers, AIFMs, GPs, family offices, the boutique services that
-// support them). No email contact anywhere — Diego doesn't want to be
-// reached. Sign-in is the only door.
+// Positioning (Diego, 2026-04-27): "The operating system for private
+// capital structures." Diego's evolution of his earlier framing —
+// "recurring compliance" was too narrow because it didn't cover the CRM
+// module (clients/entities/invoices), so the qualifier was dropped.
+// "Private capital structures" stays as the audience anchor.
+//
+// Drop the Big-4 audience framing — irrelevant to Diego's actual reader
+// (fund/structure managers, AIFMs, GPs, family offices, the boutique
+// services that support them). No email contact anywhere — Diego doesn't
+// want to be reached. Sign-in is the only door.
 //
 // Three modules surfaced (live today only — no pipeline, no roadmap):
 //   • Tax-Ops — every LU filing tracked: VAT (annual/quarterly/monthly),
@@ -79,20 +83,20 @@ function Hero() {
   return (
     <section className="pt-20 pb-16 md:pt-28 md:pb-20">
       <Container>
-        <div className="max-w-[860px]">
-          <Eyebrow>Recurring compliance · Private capital · Europe</Eyebrow>
+        <div className="max-w-[880px]">
+          <Eyebrow>Private capital · Europe</Eyebrow>
           <h1
             className="mt-5 text-[40px] md:text-[60px] leading-[1.04] tracking-[-0.025em] font-semibold text-ink"
           >
             The operating system for
             <br />
-            <span className="text-brand-500">recurring compliance.</span>
+            <span className="text-brand-500">private capital structures.</span>
           </h1>
-          <p className="mt-6 max-w-[660px] text-lg leading-[1.55] text-ink-soft">
-            Built for private capital structures in Europe. Starting
-            with every Luxembourg tax filing your firm owns —
+          <p className="mt-6 max-w-[680px] text-lg leading-[1.55] text-ink-soft">
+            Compliance, clients, entities, invoices — connected.
+            Starting with every Luxembourg tax filing your firm owns:
             VAT, corporate tax, subscription tax, withholding, BCL.
-            Deadlines, sign-off cascade, audit trail, in one workspace.
+            Deadlines, sign-off cascade, and audit trail, in one workspace.
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-5">
             <a
