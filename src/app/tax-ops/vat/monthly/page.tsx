@@ -126,6 +126,12 @@ export default function VatMonthlyPage() {
               groupName={group.name}
               taxType="vat_monthly"
               periodPattern="monthly"
+              // Stint 51.H — LTVA: an entity on monthly VAT is also
+              //              required to file the annual recapitulative.
+              //              Auto-create the annual obligation alongside.
+              additionalObligations={[
+                { tax_type: 'vat_annual', period_pattern: 'annual' },
+              ]}
               onCreated={refetch}
             />
           )}

@@ -590,6 +590,14 @@ Every doc in `docs/` is actively maintained. Read as needed:
 - **`docs/TESTING.md`** — 120-step manual test plan (partner-ready).
 - **`docs/legal-watch.md`** + `docs/legal-watch-triage.md` —
   legal-sources maintenance process.
+- **`docs/classification-research.md`** — substantive VAT
+  classification reference (independent directors, pro-rata, SPV…).
+  Cite when adding/modifying classification rules.
+- **`docs/ltva-procedural-rules.md`** — LTVA filing-cadence and
+  obligation-structure rules cifra must enforce. **Read before any
+  feature that creates or modifies VAT obligations.** Diego corrected
+  stint 51.G with one of these (periodic VAT implies annual
+  recapitulative); this doc exists so the correction never repeats.
 
 ---
 

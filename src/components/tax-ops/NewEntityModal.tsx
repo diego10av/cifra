@@ -117,13 +117,52 @@ export function NewEntityModal({ open, onClose, presetFamilyId, onCreated }: Pro
     }
   }, [open, presetFamilyId]);
 
+  // LTVA rule (Diego's correction, stint 51.H):
+  //
+  //   Any entity subject to monthly OR quarterly VAT MUST also file the
+  //   yearly recapitulative declaration ("déclaration annuelle"). And
+  //   the simplified annual return (régime simplifié, ≤ €112,000) is
+  //   mutually exclusive with annual + quarterly + monthly.
+  //
+  // Encoded directly in the toggle handler so the UI matches the law.
+
   function toggle(key: string) {
     setSelected(prev => {
       const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.has(key)) {
+        next.delete(key);
+        // Untick of annual while quarterly/monthly is on → cascade
+        // (you can't keep periodic VAT without the annual recapitulative).
+        if (key === 'vat_annual') {
+          next.delete('vat_quarterly');
+          next.delete('vat_monthly');
+        }
+      } else {
+        next.add(key);
+        if (key === 'vat_quarterly' || key === 'vat_monthly') {
+          // Periodic implies annual recapitulative.
+          next.add('vat_annual');
+          next.delete('vat_simplified_annual');
+        }
+        if (key === 'vat_annual') {
+          next.delete('vat_simplified_annual');
+        }
+        if (key === 'vat_simplified_annual') {
+          next.delete('vat_annual');
+          next.delete('vat_quarterly');
+          next.delete('vat_monthly');
+        }
+      }
       return next;
     });
   }
+
+  const annualLockedByPeriodic =
+    selected.has('vat_quarterly') || selected.has('vat_monthly');
+  const simplifiedDisabled =
+    selected.has('vat_annual') ||
+    selected.has('vat_quarterly') ||
+    selected.has('vat_monthly');
 
   async function submit() {
     const name = legalName.trim();
@@ -344,13 +383,41 @@ export function NewEntityModal({ open, onClose, presetFamilyId, onCreated }: Pro
           <div>
             <h4 className="text-xs font-semibold text-ink mb-1">VAT</h4>
             <p className="text-2xs text-ink-muted mb-1.5">
-              Tick every cadence the entity is subject to — multiple are allowed (régimen ordinario LU).
+              Quarterly or monthly automatically pulls in the annual
+              declaración recapitulativa (LTVA). Simplified annual is
+              the small-business régime — exclusive of the others.
             </p>
             <div className="grid grid-cols-2 gap-1">
-              {VAT_OBLIGATIONS.map(o => (
-                <Check key={o.key} ob={o} checked={selected.has(o.key)} onToggle={toggle} />
-              ))}
+              {VAT_OBLIGATIONS.map(o => {
+                const checked = selected.has(o.key);
+                const lockedReason =
+                  o.key === 'vat_annual' && annualLockedByPeriodic
+                    ? 'Required by LTVA: any entity on quarterly or monthly VAT must also file the annual recapitulative declaration.'
+                    : o.key === 'vat_simplified_annual' && simplifiedDisabled
+                      ? 'Simplified annual is the small-business regime; cannot coexist with annual / quarterly / monthly.'
+                      : null;
+                return (
+                  <Check
+                    key={o.key}
+                    ob={o}
+                    checked={checked}
+                    onToggle={toggle}
+                    disabled={!!lockedReason && (
+                      // Annual stays "disabled but checked" while periodic is on
+                      // (untick happens via the periodic checkbox).
+                      (o.key === 'vat_annual' && annualLockedByPeriodic)
+                      || (o.key === 'vat_simplified_annual' && simplifiedDisabled && !checked)
+                    )}
+                    title={lockedReason ?? undefined}
+                  />
+                );
+              })}
             </div>
+            {annualLockedByPeriodic && (
+              <p className="mt-1 text-2xs text-ink-faint italic">
+                Annual is required while quarterly or monthly is selected.
+              </p>
+            )}
           </div>
 
           <div>
@@ -418,13 +485,26 @@ export function NewEntityModal({ open, onClose, presetFamilyId, onCreated }: Pro
 }
 
 function Check({
-  ob, checked, onToggle,
-}: { ob: ObligationCheck; checked: boolean; onToggle: (key: string) => void }) {
+  ob, checked, onToggle, disabled, title,
+}: {
+  ob: ObligationCheck;
+  checked: boolean;
+  onToggle: (key: string) => void;
+  disabled?: boolean;
+  title?: string;
+}) {
   return (
-    <label className="inline-flex items-center gap-2 px-1 py-1 rounded hover:bg-surface-alt/50 cursor-pointer">
+    <label
+      className={[
+        'inline-flex items-center gap-2 px-1 py-1 rounded',
+        disabled ? 'cursor-not-allowed opacity-70' : 'hover:bg-surface-alt/50 cursor-pointer',
+      ].join(' ')}
+      title={title}
+    >
       <input
         type="checkbox"
         checked={checked}
+        disabled={disabled}
         onChange={() => onToggle(ob.key)}
       />
       <span className="text-sm text-ink">{ob.label}</span>

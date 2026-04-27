@@ -130,6 +130,12 @@ export default function VatQuarterlyPage() {
               groupName={group.name}
               taxType="vat_quarterly"
               periodPattern="quarterly"
+              // Stint 51.H — LTVA: an entity on quarterly VAT is also
+              //              required to file the annual recapitulative.
+              //              Auto-create the annual obligation alongside.
+              additionalObligations={[
+                { tax_type: 'vat_annual', period_pattern: 'annual' },
+              ]}
               onCreated={refetch}
             />
           )}
