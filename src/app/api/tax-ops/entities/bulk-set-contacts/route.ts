@@ -44,13 +44,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         throw new Error('one_or_more_entities_not_found');
       }
 
-      const contactsJson = JSON.stringify(contactSet);
+      // postgres-js auto-encodes JS arrays as jsonb when the cast is `::jsonb`
+      // (with `prepare: false`). Pre-stringifying with JSON.stringify would
+      // double-encode → jsonb-string instead of jsonb-array. See stint 50.B
+      // healing for the production incident this prevents.
       await execTx(
         client,
         `UPDATE tax_entities
            SET csp_contacts = $1::jsonb, updated_at = NOW()
           WHERE id = ANY($2::text[])`,
-        [contactsJson, entityIds],
+        [contactSet, entityIds],
       );
 
       await logAuditTx(client, {

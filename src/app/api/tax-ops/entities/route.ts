@@ -137,7 +137,37 @@ export async function POST(request: NextRequest) {
   if (!body.legal_name?.trim()) {
     return NextResponse.json({ error: 'legal_name_required' }, { status: 400 });
   }
+
+  // Stint 50.C — pre-check for duplicates against the same normalization rule
+  // used by the UNIQUE partial index `tax_entities_norm_unique` (migration
+  // 064). Returns 409 + the existing entity id so the frontend can offer
+  // "use existing" instead of surfacing a raw 500 from the constraint
+  // violation.
+  const existing = await query<{ id: string; legal_name: string }>(
+    `SELECT id, legal_name FROM tax_entities
+      WHERE is_active = TRUE
+        AND LOWER(REGEXP_REPLACE(legal_name, '[,.()]', '', 'g'))
+            = LOWER(REGEXP_REPLACE($1, '[,.()]', '', 'g'))
+        AND COALESCE(client_group_id, '__no_group__') = COALESCE($2, '__no_group__')
+      LIMIT 1`,
+    [body.legal_name.trim(), body.client_group_id ?? null],
+  );
+  if (existing[0]) {
+    return NextResponse.json(
+      {
+        error: 'entity_already_exists',
+        existing_entity_id: existing[0].id,
+        existing_legal_name: existing[0].legal_name,
+      },
+      { status: 409 },
+    );
+  }
+
   const id = generateId();
+  // postgres-js auto-encodes JS arrays as jsonb when the cast is `::jsonb`
+  // (with `prepare: false`). Pre-stringifying via JSON.stringify would double-
+  // encode → jsonb-string instead of jsonb-array. Bug discovered + healed in
+  // stint 50.B; this passes the array directly.
   await execute(
     `INSERT INTO tax_entities (id, legal_name, client_group_id, vat_number, matricule, rcs_number, notes, csp_contacts)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb)`,
@@ -148,7 +178,7 @@ export async function POST(request: NextRequest) {
       body.matricule ?? null,
       body.rcs_number ?? null,
       body.notes ?? null,
-      JSON.stringify(body.csp_contacts ?? []),
+      body.csp_contacts ?? [],
     ],
   );
   await logAudit({

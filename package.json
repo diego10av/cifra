@@ -14,7 +14,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:prod": "E2E_TARGET=prod playwright test",
     "seed:demo": "tsx --env-file=.env.local scripts/seed-demo.ts",
-    "seed:reset": "tsx --env-file=.env.local scripts/seed-demo.ts --reset"
+    "seed:reset": "tsx --env-file=.env.local scripts/seed-demo.ts --reset",
+    "dedup-entities": "tsx --env-file=.env.local scripts/dedup-entities.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.88.0",
