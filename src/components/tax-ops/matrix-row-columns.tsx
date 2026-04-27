@@ -907,3 +907,44 @@ export function nextDeadlineColumn(periodLabels: string[], toleranceDays = 0): M
     },
   };
 }
+
+/**
+ * Stint 59.A — display-only "Filed at" column. Walks periods newest →
+ * oldest and surfaces the filed_at of the most recently-filed period.
+ *
+ * Big4 audit-trail practice: filed_at is the date the return was actually
+ * deposited with AED, distinct from last_action_at (last touch in cifra).
+ * The PATCH endpoint defaults filed_at to today when status flips to
+ * 'filed' (idempotent), so this column mostly self-populates; Diego only
+ * has to override from the FilingEditDrawer when the deposit day differs
+ * from the day he updated cifra.
+ *
+ * Read-only on the matrix on purpose: with quarterly/monthly tax types
+ * there are 3-12 cells per row, so an inline edit would have to choose
+ * which cell to write — that's a footgun. Edits go through the per-cell
+ * drawer (pencil ✎) which is unambiguous.
+ */
+export function lastFiledAtColumn(periodLabels: string[]): MatrixColumn {
+  return {
+    key: 'filed_at',
+    label: 'Filed at',
+    widthClass: 'w-[100px]',
+    render: (e) => {
+      // Walk newest → oldest; return first non-null filed_at.
+      for (let i = periodLabels.length - 1; i >= 0; i--) {
+        const cell = e.cells[periodLabels[i]];
+        if (cell?.filed_at) {
+          return (
+            <span
+              className="text-xs text-ink-soft tabular-nums"
+              title={`${periodLabels[i]} · filed ${cell.filed_at}`}
+            >
+              {cell.filed_at.slice(5)}
+            </span>
+          );
+        }
+      }
+      return <span className="text-ink-faint italic text-xs">—</span>;
+    },
+  };
+}

@@ -14,7 +14,7 @@ import {
 } from '@/components/tax-ops/useMatrixData';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import {
-  partnerInChargeColumn, associatesWorkingColumn, lastActionColumn, contactsColumn, commentsColumn, priceColumn, familyColumn, nextDeadlineColumn,
+  partnerInChargeColumn, associatesWorkingColumn, lastActionColumn, contactsColumn, commentsColumn, priceColumn, familyColumn, nextDeadlineColumn, lastFiledAtColumn,
 } from '@/components/tax-ops/matrix-row-columns';
 import { MatrixToolbar } from '@/components/tax-ops/MatrixToolbar';
 import { AddEntityRow } from '@/components/tax-ops/AddEntityRow';
@@ -59,6 +59,10 @@ export default function SubscriptionTaxPage() {
     // matrix. Shows the next pending deadline per row (Loi 17 déc 2010
     // Art. 175 §3 — 20 days after quarter-end, strict).
     columns.push(nextDeadlineColumn(visiblePeriodLabels));
+    // Stint 59.A — display-only "Filed at" column. Self-populates via the
+    // PATCH endpoint default when status flips to filed; Diego edits via
+    // the FilingEditDrawer (pencil ✎) when the AED deposit day differs.
+    columns.push(lastFiledAtColumn(visiblePeriodLabels));
     columns.push(lastActionColumn(visiblePeriodLabels, refetch));
     columns.push(partnerInChargeColumn(visiblePeriodLabels, refetch));
     columns.push(associatesWorkingColumn(visiblePeriodLabels, refetch));

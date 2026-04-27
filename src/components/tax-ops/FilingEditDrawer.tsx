@@ -326,7 +326,10 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
                   className="w-full px-2 py-1 border border-border rounded bg-surface tabular-nums"
                 />
               </Field>
-              <Field label="Filed">
+              <Field
+                label="Filed"
+                hint="Defaults to today when status flips to Filed. Override if you filed in AED on a different day."
+              >
                 <input
                   type="date"
                   value={draft.filed_at ?? ''}
@@ -481,11 +484,20 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label, children, hint,
+}: {
+  label: string;
+  children: React.ReactNode;
+  hint?: string;
+}) {
   return (
     <label className="block">
       <span className="block text-xs font-medium text-ink-muted mb-1">{label}</span>
       {children}
+      {hint && (
+        <span className="block text-2xs text-ink-faint mt-1 leading-snug">{hint}</span>
+      )}
     </label>
   );
 }

@@ -150,6 +150,23 @@ export async function PATCH(
     body.last_action_at = new Date().toISOString().slice(0, 10);
   }
 
+  // Stint 59.A — auto-default filed_at when status transitions to 'filed'.
+  // Big4 practice: filed_at is the date the return was deposited with AED
+  // (separate from last_action_at, which records when cifra was last
+  // touched). When Diego flips status → filed and didn't explicitly set
+  // filed_at, default it to today; he can override later from the drawer
+  // for the lunes-vs-miércoles edge case (filed in AED Mon, updated in
+  // cifra Wed). Idempotent: only fills when there's no value yet on the row.
+  if (body.status === 'filed' && body.filed_at === undefined) {
+    const existing = await query<{ filed_at: string | null }>(
+      `SELECT filed_at::text AS filed_at FROM tax_filings WHERE id = $1`,
+      [id],
+    );
+    if (existing[0] && existing[0].filed_at === null) {
+      body.filed_at = new Date().toISOString().slice(0, 10);
+    }
+  }
+
   const { sql, values, changes } = buildUpdate(
     'tax_filings', ALLOWED_FIELDS, body, 'id', id, ['updated_at = NOW()'],
   );
