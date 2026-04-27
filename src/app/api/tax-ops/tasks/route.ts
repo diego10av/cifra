@@ -38,6 +38,9 @@ interface TaskListRow {
   comment_count: number;
   related_entity_name: string | null;
   related_filing_label: string | null;
+  // Stint 55.B — blocker fields
+  blocker_title: string | null;
+  blocker_status: string | null;
 }
 
 const VALID_STATUSES = ['queued', 'in_progress', 'waiting_on_external',
@@ -57,6 +60,9 @@ export async function GET(request: NextRequest) {
   const parentId = url.searchParams.get('parent');
   const q = url.searchParams.get('q')?.trim() ?? '';
   const onlyRoot = url.searchParams.get('only_root') === '1';
+  // Stint 55.B — "Ready to work on" filter: exclude tasks blocked by
+  // a dependency that hasn't been completed.
+  const onlyReady = url.searchParams.get('ready') === '1';
 
   const where: string[] = [];
   const params: unknown[] = [];
@@ -98,6 +104,12 @@ export async function GET(request: NextRequest) {
     where.push(`(t.title ILIKE $${pi} OR t.description ILIKE $${pi} OR $${pi} = ANY(t.tags))`);
     params.push(`%${q}%`); pi += 1;
   }
+  if (onlyReady) {
+    where.push(
+      `(t.depends_on_task_id IS NULL
+        OR (SELECT b.status FROM tax_ops_tasks b WHERE b.id = t.depends_on_task_id) = 'done')`,
+    );
+  }
 
   const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
@@ -133,7 +145,11 @@ export async function GET(request: NextRequest) {
                  THEN (SELECT ent.legal_name FROM tax_obligations o
                         JOIN tax_entities ent ON ent.id = o.entity_id
                         WHERE o.id = f.obligation_id) || ' · ' || f.period_label
-                 ELSE NULL END AS related_filing_label
+                 ELSE NULL END AS related_filing_label,
+            -- Stint 55.B — blocker info so the list page can render
+            -- "🔒 blocked by X" / "🔓 ready" indicators.
+            (SELECT b.title FROM tax_ops_tasks b WHERE b.id = t.depends_on_task_id) AS blocker_title,
+            (SELECT b.status FROM tax_ops_tasks b WHERE b.id = t.depends_on_task_id) AS blocker_status
        FROM tax_ops_tasks t
        LEFT JOIN tax_filings f ON f.id = t.related_filing_id
        ${whereSQL}

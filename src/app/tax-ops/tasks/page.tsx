@@ -11,6 +11,7 @@ import Link from 'next/link';
 import {
   SearchIcon, LayoutListIcon, LayoutGridIcon, PlusIcon, FilterXIcon,
   CalendarIcon, MessagesSquareIcon, ListIcon, Trash2Icon,
+  ChevronRightIcon, ChevronDownIcon, LockIcon, UnlockIcon,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
@@ -40,6 +41,9 @@ interface TaskFull extends TaskRow {
   waiting_on_kind: string | null;
   waiting_on_note: string | null;
   follow_up_date: string | null;
+  // Stint 55.B — blocker info for the 🔒/🔓 badge.
+  blocker_title: string | null;
+  blocker_status: string | null;
 }
 
 const STATUSES = [
@@ -108,6 +112,12 @@ const QUICK_FILTERS: Array<{
     },
   },
   {
+    key: 'ready',
+    label: 'Ready to work',
+    tooltip: 'Tasks not blocked by an unfinished dependency. Stint 55.B.',
+    apply: (p) => p.set('ready', '1'),
+  },
+  {
     key: 'thisweek',
     label: 'Due this week',
     tooltip: 'Open tasks with due_date in the next 7 days.',
@@ -132,6 +142,11 @@ export default function TasksListPage() {
   //               distintos proyectos que están pendientes").
   const [familyId, setFamilyId] = useState<string>('');
   const [families, setFamilies] = useState<FamilyOption[]>([]);
+  // Stint 55.A — sub-tasks tree expansion state. Map of parent task id
+  // → array of children, lazy-loaded the first time the user clicks a
+  // chevron. Cached so re-expand is instant.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [childrenByParent, setChildrenByParent] = useState<Record<string, TaskFull[]>>({});
   const toast = useToast();
 
   const load = useCallback(() => {
@@ -168,6 +183,50 @@ export default function TasksListPage() {
 
   function clearFilters() {
     setQ(''); setStatus(''); setAssignee(''); setFamilyId(''); setPreset('');
+  }
+
+  // Stint 55.A — fetch + cache children of a parent task on demand.
+  // Re-fetches on toggle so newly-added subtasks appear without a full
+  // page refresh.
+  async function loadChildren(parentId: string): Promise<TaskFull[]> {
+    const res = await fetch(`/api/tax-ops/tasks?parent=${encodeURIComponent(parentId)}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const body = await res.json() as { tasks: TaskFull[] };
+    return body.tasks;
+  }
+
+  async function toggleExpand(taskId: string) {
+    setExpanded(prev => {
+      const next = new Set(prev);
+      if (next.has(taskId)) next.delete(taskId); else next.add(taskId);
+      return next;
+    });
+    // Lazy-load on first expand; cache forever (until full reload).
+    if (!childrenByParent[taskId] && !expanded.has(taskId)) {
+      try {
+        const kids = await loadChildren(taskId);
+        setChildrenByParent(prev => ({ ...prev, [taskId]: kids }));
+      } catch (e) {
+        toast.error(`Could not load sub-tasks: ${String(e instanceof Error ? e.message : e)}`);
+      }
+    }
+  }
+
+  // Recursive flattener: takes the root rows + cached children and
+  // produces a flat list with `depth` so the table can render nested
+  // rows with indentation. Skips children that aren't loaded yet.
+  function flattenTree(roots: TaskFull[]): Array<{ task: TaskFull; depth: number }> {
+    const out: Array<{ task: TaskFull; depth: number }> = [];
+    function walk(t: TaskFull, depth: number) {
+      out.push({ task: t, depth });
+      if (expanded.has(t.id)) {
+        for (const child of childrenByParent[t.id] ?? []) {
+          walk(child, depth + 1);
+        }
+      }
+    }
+    for (const r of roots) walk(r, 0);
+    return out;
   }
 
   async function patchTask(taskId: string, patch: Record<string, unknown>): Promise<void> {
@@ -313,7 +372,7 @@ export default function TasksListPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(t => (
+              {flattenTree(rows).map(({ task: t, depth }) => (
                 <tr key={t.id} className="border-t border-border/70 hover:bg-surface-alt/50 align-top">
                   {/* Family — coloured chip linked to the family detail page.
                       No family / unattached → faint dash. Stint 53. */}
@@ -342,9 +401,26 @@ export default function TasksListPage() {
                     ) : <span className="text-ink-faint">—</span>}
                   </td>
                   {/* Title — inline-editable. Click on the link icon to open
-                      the detail page, but the text itself stays editable. */}
-                  <td className="px-2 py-1.5">
+                      the detail page, but the text itself stays editable.
+                      Stint 55.A — depth-indented + ▸/▾ chevron when the task
+                      has subtasks. Stint 55.B — 🔒 / 🔓 chip for blocker. */}
+                  <td className="px-2 py-1.5" style={{ paddingLeft: `${0.5 + depth * 1.25}rem` }}>
                     <div className="flex items-center gap-1">
+                      {t.subtask_total > 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => void toggleExpand(t.id)}
+                          aria-label={expanded.has(t.id) ? 'Collapse sub-tasks' : 'Expand sub-tasks'}
+                          className="shrink-0 text-ink-muted hover:text-ink"
+                          title={`${t.subtask_done}/${t.subtask_total} sub-tasks done`}
+                        >
+                          {expanded.has(t.id)
+                            ? <ChevronDownIcon size={12} />
+                            : <ChevronRightIcon size={12} />}
+                        </button>
+                      ) : (
+                        <span className="shrink-0 w-3" aria-hidden="true" />
+                      )}
                       <div className="flex-1 min-w-0">
                         <InlineTextCell
                           value={t.title}
@@ -354,6 +430,23 @@ export default function TasksListPage() {
                           placeholder="(empty)"
                         />
                       </div>
+                      {t.depends_on_task_id && t.blocker_status && (
+                        t.blocker_status === 'done' ? (
+                          <span
+                            className="shrink-0 inline-flex items-center gap-0.5 text-2xs text-success-700"
+                            title={`Blocker "${t.blocker_title ?? ''}" is done — ready to work on`}
+                          >
+                            <UnlockIcon size={10} /> ready
+                          </span>
+                        ) : (
+                          <span
+                            className="shrink-0 inline-flex items-center gap-0.5 text-2xs text-warning-700 truncate max-w-[120px]"
+                            title={`Blocked by "${t.blocker_title ?? ''}" (${t.blocker_status})`}
+                          >
+                            <LockIcon size={10} /> {t.blocker_title ?? 'blocker'}
+                          </span>
+                        )
+                      )}
                       <Link
                         href={`/tax-ops/tasks/${t.id}`}
                         className="shrink-0 text-ink-faint hover:text-brand-700 text-xs"

@@ -45,6 +45,9 @@ interface SubtaskRow {
   priority: string;
   due_date: string | null;
   assignee: string | null;
+  // Stint 55.A — only populated for the direct subtasks list (the
+  // blocker / blocked_by_us queries leave it undefined).
+  subtask_total?: number;
 }
 
 const ALLOWED = [
@@ -79,12 +82,15 @@ export async function GET(
       [id],
     ),
     query<SubtaskRow>(
-      `SELECT id, title, status, priority, due_date::text, assignee
-         FROM tax_ops_tasks
-        WHERE parent_task_id = $1
+      // Stint 55.A — surface subtask_total per child so the detail page
+      // can show a chevron and recursively expand the tree.
+      `SELECT t.id, t.title, t.status, t.priority, t.due_date::text, t.assignee,
+              (SELECT COUNT(*)::int FROM tax_ops_tasks gc WHERE gc.parent_task_id = t.id) AS subtask_total
+         FROM tax_ops_tasks t
+        WHERE t.parent_task_id = $1
         ORDER BY
-          CASE WHEN status = 'done' THEN 1 WHEN status = 'cancelled' THEN 2 ELSE 0 END,
-          priority, due_date ASC NULLS LAST, created_at`,
+          CASE WHEN t.status = 'done' THEN 1 WHEN t.status = 'cancelled' THEN 2 ELSE 0 END,
+          t.priority, t.due_date ASC NULLS LAST, t.created_at`,
       [id],
     ),
     query<SubtaskRow>(

@@ -14,7 +14,10 @@
 
 import { useEffect, useState, useCallback, use } from 'react';
 import Link from 'next/link';
-import { ArrowLeftIcon, PlusIcon, Trash2Icon, CheckIcon, SendIcon } from 'lucide-react';
+import {
+  ArrowLeftIcon, PlusIcon, Trash2Icon, CheckIcon, SendIcon,
+  ChevronRightIcon, ChevronDownIcon, ArrowUpIcon,
+} from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { DateBadge } from '@/components/crm/DateBadge';
@@ -22,6 +25,7 @@ import { useToast } from '@/components/Toaster';
 import {
   RecurrenceEditor, describeRecurrence, type RecurrenceRule,
 } from '@/components/tax-ops/RecurrenceEditor';
+import { SearchableSelect } from '@/components/ui/SearchableSelect';
 
 interface Task {
   id: string;
@@ -54,6 +58,8 @@ interface Subtask {
   priority: string;
   due_date: string | null;
   assignee: string | null;
+  // Stint 55.A — only populated for the direct subtasks list.
+  subtask_total?: number;
 }
 
 interface Comment {
@@ -332,7 +338,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             />
           </div>
 
-          {/* Subtasks */}
+          {/* Subtasks — Stint 55.A: recursive tree (3-4 levels realistic).
+              Each node can be expanded to load its own children lazily; a
+              "Promote" button moves a child up to root level. Drag-drop
+              between siblings is out of scope here (kept for stint 56). */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
             <h3 className="text-sm font-semibold text-ink mb-2">
               Subtasks
@@ -345,34 +354,26 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                 No subtasks yet. Break a big task into checklist items.
               </div>
             )}
-            {data.subtasks.map(sub => (
-              <div key={sub.id} className="flex items-center gap-2 py-1 border-b border-border/50 last:border-b-0 text-sm">
-                <input
-                  type="checkbox"
-                  checked={sub.status === 'done'}
-                  onChange={() => toggleSubtaskDone(sub)}
+            <div className="space-y-0">
+              {data.subtasks.map(sub => (
+                <SubtaskNode
+                  key={sub.id}
+                  task={sub}
+                  depth={0}
+                  onToggleDone={toggleSubtaskDone}
+                  onDelete={deleteSubtask}
+                  onPromote={async (subId) => {
+                    await fetch(`/api/tax-ops/tasks/${subId}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ parent_task_id: null }),
+                    });
+                    toast.success('Promoted to root task');
+                    load();
+                  }}
                 />
-                <Link
-                  href={`/tax-ops/tasks/${sub.id}`}
-                  className={`flex-1 ${sub.status === 'done' ? 'line-through text-ink-muted' : 'text-ink hover:text-brand-700'}`}
-                >
-                  {sub.title}
-                </Link>
-                {sub.due_date && (
-                  <span className="text-xs"><DateBadge value={sub.due_date} mode="urgency" /></span>
-                )}
-                {sub.assignee && (
-                  <span className="text-xs px-1 bg-surface-alt text-ink-soft rounded">{sub.assignee}</span>
-                )}
-                <button
-                  onClick={() => deleteSubtask(sub.id)}
-                  aria-label="Delete subtask"
-                  className="text-ink-muted hover:text-danger-600"
-                >
-                  <Trash2Icon size={11} />
-                </button>
-              </div>
-            ))}
+              ))}
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <input
                 value={subtaskDraft}
@@ -431,40 +432,16 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
         {/* Right column */}
         <div className="space-y-4">
-          {/* Dependencies */}
-          {(data.blocker || data.blocked_by_us.length > 0) && (
-            <div className="rounded-md border border-border bg-surface px-4 py-3 text-sm">
-              <h3 className="text-sm font-semibold text-ink mb-2">Dependencies</h3>
-              {data.blocker && (
-                <div className="mb-2">
-                  <div className="text-ink-muted mb-0.5">Blocked by</div>
-                  <Link
-                    href={`/tax-ops/tasks/${data.blocker.id}`}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-100 text-amber-800 hover:bg-amber-200 text-xs"
-                  >
-                    {data.blocker.title}
-                    {data.blocker.status === 'done' && <CheckIcon size={10} />}
-                  </Link>
-                </div>
-              )}
-              {data.blocked_by_us.length > 0 && (
-                <div>
-                  <div className="text-ink-muted mb-0.5">Blocking ({data.blocked_by_us.length})</div>
-                  <div className="space-y-1">
-                    {data.blocked_by_us.slice(0, 5).map(b => (
-                      <Link
-                        key={b.id}
-                        href={`/tax-ops/tasks/${b.id}`}
-                        className="block text-xs text-brand-700 hover:text-brand-800"
-                      >
-                        → {b.title}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          {/* Dependencies — Stint 55.B: editor for depends_on_task_id +
+              read-only blocker / blocking lists. The picker is loaded
+              lazily when the user clicks "+ Set blocker" so we don't
+              fetch the whole task list on every detail-page mount. */}
+          <DependenciesPanel
+            taskId={id}
+            currentBlocker={data.blocker}
+            blockedByUs={data.blocked_by_us}
+            onChanged={load}
+          />
 
           {/* Recurrence */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
@@ -514,6 +491,246 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─── Subtask tree node — stint 55.A ────────────────────────────────────
+//
+// Renders a single subtask row + its expansion children recursively. The
+// children list is lazy-loaded the first time the user hits the chevron
+// (cached locally afterwards). Indentation is `depth * 1rem` so 3-4
+// levels of nesting still read cleanly. Diego asked for a "tree" so the
+// tasks module starts feeling like a project-management surface; this
+// is the cheapest possible shape that delivers the affordance without
+// rebuilding the entire list as a virtualized tree component.
+
+interface SubtaskNodeProps {
+  task: Subtask;
+  depth: number;
+  onToggleDone: (sub: Subtask) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
+  onPromote: (id: string) => void | Promise<void>;
+}
+
+function SubtaskNode({ task, depth, onToggleDone, onDelete, onPromote }: SubtaskNodeProps) {
+  const [expanded, setExpanded] = useState(false);
+  const [children, setChildren] = useState<Subtask[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const hasChildren = (task.subtask_total ?? 0) > 0;
+
+  async function toggle() {
+    if (!hasChildren) return;
+    if (!expanded && children === null) {
+      setLoading(true);
+      try {
+        const r = await fetch(`/api/tax-ops/tasks?parent=${encodeURIComponent(task.id)}`);
+        if (r.ok) {
+          const body = await r.json() as { tasks: Subtask[] };
+          setChildren(body.tasks ?? []);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    setExpanded(v => !v);
+  }
+
+  return (
+    <div className="border-b border-border/50 last:border-b-0">
+      <div
+        className="flex items-center gap-2 py-1 text-sm"
+        style={{ paddingLeft: `${depth * 1}rem` }}
+      >
+        {hasChildren ? (
+          <button
+            type="button"
+            onClick={() => void toggle()}
+            aria-label={expanded ? 'Collapse' : 'Expand'}
+            className="shrink-0 text-ink-muted hover:text-ink"
+            title={`${task.subtask_total} sub-task${task.subtask_total === 1 ? '' : 's'}`}
+          >
+            {expanded ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
+          </button>
+        ) : (
+          <span className="shrink-0 w-3" aria-hidden="true" />
+        )}
+        <input
+          type="checkbox"
+          checked={task.status === 'done'}
+          onChange={() => void onToggleDone(task)}
+        />
+        <Link
+          href={`/tax-ops/tasks/${task.id}`}
+          className={`flex-1 truncate ${task.status === 'done' ? 'line-through text-ink-muted' : 'text-ink hover:text-brand-700'}`}
+        >
+          {task.title}
+        </Link>
+        {task.due_date && (
+          <span className="text-xs"><DateBadge value={task.due_date} mode="urgency" /></span>
+        )}
+        {task.assignee && (
+          <span className="text-xs px-1 bg-surface-alt text-ink-soft rounded">{task.assignee}</span>
+        )}
+        {depth > 0 && (
+          <button
+            type="button"
+            onClick={() => void onPromote(task.id)}
+            aria-label="Promote to root task"
+            title="Promote — make this a root-level task"
+            className="text-ink-muted hover:text-brand-700"
+          >
+            <ArrowUpIcon size={11} />
+          </button>
+        )}
+        <button
+          onClick={() => void onDelete(task.id)}
+          aria-label="Delete subtask"
+          className="text-ink-muted hover:text-danger-600"
+        >
+          <Trash2Icon size={11} />
+        </button>
+      </div>
+      {expanded && (
+        <div>
+          {loading && <div className="text-2xs text-ink-faint italic px-4 py-1">Loading…</div>}
+          {!loading && children && children.length === 0 && (
+            <div className="text-2xs text-ink-faint italic px-4 py-1">No deeper sub-tasks.</div>
+          )}
+          {!loading && children?.map(child => (
+            <SubtaskNode
+              key={child.id}
+              task={child}
+              depth={depth + 1}
+              onToggleDone={onToggleDone}
+              onDelete={onDelete}
+              onPromote={onPromote}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// ─── Dependencies panel — stint 55.B ──────────────────────────────────
+//
+// Renders the blocker (with edit + clear) and the list of tasks blocked
+// by this one. The picker is lazy: the dropdown of candidates only
+// fetches /api/tax-ops/tasks once it's opened.
+
+interface DependenciesPanelProps {
+  taskId: string;
+  currentBlocker: Subtask | null;
+  blockedByUs: Subtask[];
+  onChanged: () => void;
+}
+
+function DependenciesPanel({ taskId, currentBlocker, blockedByUs, onChanged }: DependenciesPanelProps) {
+  const [editing, setEditing] = useState(false);
+  const [candidates, setCandidates] = useState<Subtask[] | null>(null);
+  const [picked, setPicked] = useState<string>('');
+
+  async function loadCandidates() {
+    const r = await fetch('/api/tax-ops/tasks?status=queued&status=in_progress&status=waiting_on_external&status=waiting_on_internal');
+    if (!r.ok) return;
+    const body = await r.json() as { tasks: Subtask[] };
+    // Exclude this task itself.
+    setCandidates((body.tasks ?? []).filter(t => t.id !== taskId));
+  }
+
+  async function setBlocker(blockerId: string | null) {
+    await fetch(`/api/tax-ops/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ depends_on_task_id: blockerId }),
+    });
+    setEditing(false);
+    setPicked('');
+    onChanged();
+  }
+
+  return (
+    <div className="rounded-md border border-border bg-surface px-4 py-3 text-sm">
+      <h3 className="text-sm font-semibold text-ink mb-2">Dependencies</h3>
+      <div className="mb-2">
+        <div className="text-ink-muted mb-0.5">Blocked by</div>
+        {currentBlocker ? (
+          <div className="flex items-center gap-1">
+            <Link
+              href={`/tax-ops/tasks/${currentBlocker.id}`}
+              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs ${
+                currentBlocker.status === 'done'
+                  ? 'bg-success-50 text-success-800 hover:bg-success-100'
+                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+              }`}
+            >
+              {currentBlocker.title}
+              {currentBlocker.status === 'done' && <CheckIcon size={10} />}
+            </Link>
+            <button
+              type="button"
+              onClick={() => void setBlocker(null)}
+              className="text-2xs text-ink-muted hover:text-danger-700 px-1"
+              title="Remove blocker"
+            >
+              clear
+            </button>
+          </div>
+        ) : editing ? (
+          <div className="flex items-center gap-1">
+            <SearchableSelect
+              options={(candidates ?? []).map(c => ({ value: c.id, label: c.title }))}
+              value={picked}
+              onChange={setPicked}
+              placeholder={candidates === null ? 'Loading…' : 'Pick a task…'}
+              ariaLabel="Pick blocker task"
+              triggerClassName="min-w-[200px]"
+            />
+            <button
+              type="button"
+              onClick={() => picked && void setBlocker(picked)}
+              disabled={!picked}
+              className="px-2 py-0.5 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+            >
+              Set
+            </button>
+            <button
+              type="button"
+              onClick={() => { setEditing(false); setPicked(''); }}
+              className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => { setEditing(true); if (candidates === null) void loadCandidates(); }}
+            className="text-xs text-ink-muted hover:text-brand-700"
+          >
+            + Set blocker
+          </button>
+        )}
+      </div>
+
+      {blockedByUs.length > 0 && (
+        <div>
+          <div className="text-ink-muted mb-0.5">Blocking ({blockedByUs.length})</div>
+          <div className="space-y-1">
+            {blockedByUs.slice(0, 5).map(b => (
+              <Link
+                key={b.id}
+                href={`/tax-ops/tasks/${b.id}`}
+                className="block text-xs text-brand-700 hover:text-brand-800"
+              >
+                → {b.title}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
