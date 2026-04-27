@@ -5,7 +5,8 @@
 // everywhere. Keeps per-page code tight + avoids drift when we tweak
 // UX later.
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { MatrixColumn, MatrixEntity, MatrixCell } from './TaxTypeMatrix';
 import { InlineTagsCell, InlineTextCell, InlineDateCell, InlinePriceCell } from './inline-editors';
 import { DeadlineWithTolerance } from './DeadlineWithTolerance';
@@ -472,6 +473,55 @@ function ContactsInlineEditor({
   const [draft, setDraft] = useState<CspContact[]>(value);
   const [busy, setBusy] = useState(false);
 
+  // Stint 54 — portal the popover to <body> with position: fixed so it
+  // never gets clipped or visually trapped underneath the matrix's
+  // sticky cells / sticky header / next row. Mirrors the pattern that
+  // SearchableSelect uses since stint 49.B2. Solves the "transparenta
+  // lo de add contact al scroll down" bug.
+  const triggerRef = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  const recompute = () => {
+    const r = triggerRef.current?.getBoundingClientRect();
+    if (!r) return;
+    setPos({ top: r.bottom + 4, left: r.left });
+  };
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    recompute();
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onScrollOrResize = () => recompute();
+    window.addEventListener('scroll', onScrollOrResize, true);
+    window.addEventListener('resize', onScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true);
+      window.removeEventListener('resize', onScrollOrResize);
+    };
+  }, [open]);
+
+  // Click-outside dismiss.
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node | null;
+      if (!t) return;
+      if (triggerRef.current?.contains(t)) return;
+      // Allow clicks inside the popover (which lives outside the
+      // trigger via portal). Tag it via data-popover-id matching.
+      const popover = document.querySelector('[data-contacts-popover="open"]');
+      if (popover && popover.contains(t)) return;
+      setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
   async function save() {
     if (busy) return;
     setBusy(true);
@@ -485,10 +535,8 @@ function ContactsInlineEditor({
     }
   }
 
-  // Everything lives inside a relative wrapper so the absolute
-  // popover anchors to this cell (and doesn't leak to the viewport).
   return (
-    <span className="relative inline-block max-w-full">
+    <span ref={triggerRef} className="inline-block max-w-full">
       {value.length === 0 ? (
         <button
           type="button"
@@ -520,9 +568,11 @@ function ContactsInlineEditor({
         </button>
       )}
 
-      {open && (
+      {mounted && open && pos && createPortal(
         <div
-          className="absolute top-full left-0 z-modal bg-surface border border-border rounded-md shadow-lg p-2 w-[320px] mt-1"
+          data-contacts-popover="open"
+          className="z-modal bg-surface border border-border rounded-md shadow-lg p-2 w-[320px]"
+          style={{ position: 'fixed', top: pos.top, left: pos.left }}
           onKeyDown={(e) => {
             if (e.key === 'Escape') { e.preventDefault(); setOpen(false); }
           }}
@@ -550,7 +600,8 @@ function ContactsInlineEditor({
               {busy ? 'Saving…' : 'Save'}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </span>
   );

@@ -18,7 +18,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDownIcon, ChevronRightIcon, PencilIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, PencilIcon, GripVerticalIcon } from 'lucide-react';
 import { FilingStatusBadge, filingStatusLabel } from './FilingStatusBadge';
 import { InlineStatusCell } from './inline-editors';
 import { familyChipClasses, buildFamilyColorMap } from './familyColors';
@@ -364,13 +364,16 @@ export function TaxTypeMatrix({
           <tr className="text-left text-ink-muted">
             {familyCol && (
               <th
-                className="sticky left-0 z-sticky bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[170px] max-w-[170px]"
+                // Stint 54 — z-[20] so the Family header always wins
+                // over both the body sticky cells (z-[15]) and the
+                // generic header row (z-sticky:10).
+                className="sticky left-0 z-[20] bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[170px] max-w-[170px]"
               >
                 {familyCol.label}
               </th>
             )}
             <th
-              className="sticky z-sticky bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[220px]"
+              className="sticky z-[20] bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[220px]"
               style={{ left: `${entityStickyLeft}px` }}
             >
               {firstColLabel}
@@ -468,7 +471,12 @@ function GroupBlock({
         <tr>
           <td
             colSpan={totalCols}
-            className="sticky left-0 bg-surface-alt/70 border-b border-border px-2.5 py-1 font-semibold text-xs text-ink"
+            // Stint 54 — was bg-surface-alt/70 (translucent). When the
+            // user scrolls, the rows underneath show through and the
+            // group header looks "transparent". Switched to fully
+            // opaque bg-surface-alt + z-[15] so it stays solid against
+            // both vertical and horizontal scroll.
+            className="sticky left-0 z-[15] bg-surface-alt border-b border-border px-2.5 py-1 font-semibold text-xs text-ink"
           >
             {/* Stint 40.P — group header has two affordances: chevron
                 toggles collapse, name links to family overview. */}
@@ -518,10 +526,14 @@ function GroupBlock({
         />
       ))}
       {!isCollapsed && groupFooter && (
-        <tr className="border-b border-border/70 bg-surface-alt/20">
+        <tr className="border-b border-border/70 bg-surface-alt">
           <td
             colSpan={totalCols}
-            className="sticky left-0 bg-surface-alt/20 border-r border-border"
+            // Stint 54 — was bg-surface-alt/20 (mostly transparent),
+            // which made the "+ New entity" / "Add existing" row
+            // look ghosted while scrolling. Solid bg + z-[15] now
+            // matches the group header above.
+            className="sticky left-0 z-[15] bg-surface-alt border-r border-border"
           >
             {groupFooter({ name: group.name, groupId })}
           </td>
@@ -580,28 +592,48 @@ function RowRender({
     >
       {familyCol && (
         <td className={[
-          'sticky left-0 z-sticky border-r border-border px-2 py-1.5 min-w-[170px] max-w-[170px]',
+          // Stint 54 — bumped to z-[15] (above the z-sticky:10 header)
+          // so when the user scrolls horizontally the Family column
+          // never gets visually overlapped by the period cells passing
+          // beneath. The bg class below keeps it opaque.
+          'sticky left-0 z-[15] border-r border-border px-2 py-1.5 min-w-[170px] max-w-[170px]',
           stickyBgClass,
           draggable ? 'cursor-grab active:cursor-grabbing' : '',
         ].join(' ')}
-        title={draggable ? 'Drag to reorder within this family' : undefined}
+        title={draggable ? 'Drag the ≡ handle to reorder within this family' : undefined}
         >
-          {familyCol.render
-            ? familyCol.render(entity)
-            : (entity.group_name
-                ? <span className={[
-                    'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium truncate max-w-[150px]',
-                    familyChipClasses(entity.group_name),
-                  ].join(' ')} title={entity.group_name}>
-                    {entity.group_name}
-                  </span>
-                : <span className="text-ink-faint italic text-xs">—</span>)
-          }
+          <div className="flex items-center gap-1 min-w-0">
+            {/* Stint 54 — visible drag handle so Diego knows the row
+                can be reordered (was hidden behind a cursor change
+                only). Only rendered when reorder is enabled. */}
+            {draggable && (
+              <GripVerticalIcon
+                size={11}
+                className="shrink-0 text-ink-faint group-hover:text-ink-muted"
+                aria-hidden="true"
+              />
+            )}
+            <div className="flex-1 min-w-0">
+              {familyCol.render
+                ? familyCol.render(entity)
+                : (entity.group_name
+                    ? <span className={[
+                        'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium truncate max-w-[150px]',
+                        familyChipClasses(entity.group_name),
+                      ].join(' ')} title={entity.group_name}>
+                        {entity.group_name}
+                      </span>
+                    : <span className="text-ink-faint italic text-xs">—</span>)
+              }
+            </div>
+          </div>
         </td>
       )}
       <td
         className={[
-          'sticky z-sticky border-r border-border px-2.5 py-1.5 min-w-[220px] max-w-[320px]',
+          // Stint 54 — same z-[15] as Family so both stay above the
+          // body cells during horizontal scroll.
+          'sticky z-[15] border-r border-border px-2.5 py-1.5 min-w-[220px] max-w-[320px]',
           stickyBgClass,
         ].join(' ')}
         style={{ left: `${entityStickyLeft}px` }}
