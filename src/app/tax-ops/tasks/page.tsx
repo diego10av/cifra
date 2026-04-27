@@ -221,7 +221,13 @@ function TasksListContent() {
   }
   const showKind     = extraColsVisible.has('kind');
   const showWaiting  = extraColsVisible.has('waiting');
-  const showFollowUp = extraColsVisible.has('followup');
+  // Stint 58.fix — Follow-up promoted out of the gear menu and made
+  // always-visible. Diego: "no crees que puede ser util que aparezca
+  // tambien aqui follow up antes de la columna de due. […] sino veo
+  // la fecha tengo que confiar 100x100 en que me va a saltar la
+  // notificacion." The top tools (Linear, Asana, Things, Height)
+  // never hide action-triggering dates behind a toggle. Kind +
+  // Waiting on stay opt-in; they're metadata, not action triggers.
   const toast = useToast();
 
   // Stint 57.D.1 — sync state → URL. Skip the very first render
@@ -496,7 +502,6 @@ function TasksListContent() {
               {[
                 { key: 'kind', label: 'Kind' },
                 { key: 'waiting', label: 'Waiting on' },
-                { key: 'followup', label: 'Follow-up date' },
               ].map(({ key, label }) => (
                 <label key={key} className="flex items-center gap-2 px-1 py-0.5 cursor-pointer hover:bg-surface-alt rounded">
                   <input
@@ -508,8 +513,8 @@ function TasksListContent() {
                 </label>
               ))}
               <div className="mt-2 text-2xs text-ink-faint italic leading-snug">
-                Default columns (Client, Title, Status, Assignee, Due,
-                Priority) are always shown.
+                Default columns (Client, Title, Status, Assignee,
+                Follow-up, Due, Priority) are always shown.
               </div>
             </div>
           )}
@@ -624,8 +629,11 @@ function TasksListContent() {
                 {showKind     && <th className="px-2 py-1.5 font-medium w-[120px]">Kind</th>}
                 <th className="px-2 py-1.5 font-medium w-[120px]">Status</th>
                 {showWaiting  && <th className="px-2 py-1.5 font-medium w-[150px]">Waiting on</th>}
-                {showFollowUp && <th className="px-2 py-1.5 font-medium w-[110px]">Follow-up</th>}
                 <th className="px-2 py-1.5 font-medium w-[100px]">Assignee</th>
+                {/* Stint 58.fix — Follow-up always visible, sits right
+                    before Due so the two action-triggering dates read
+                    side-by-side. */}
+                <th className="px-2 py-1.5 font-medium w-[110px]">Follow-up</th>
                 <th className="px-2 py-1.5 font-medium w-[110px]">Due</th>
                 <th className="px-2 py-1.5 font-medium w-[90px]">Priority</th>
                 <th className="px-2 py-1.5 w-[30px]"></th>
@@ -834,21 +842,21 @@ function TasksListContent() {
                       )}
                     </td>
                   )}
-                  {/* Follow-up — gear-toggle column. */}
-                  {showFollowUp && (
-                    <td className="px-2 py-1.5">
-                      <InlineDateCell
-                        value={t.follow_up_date}
-                        onSave={async v => { await patchTask(t.id, { follow_up_date: v }); }}
-                      />
-                    </td>
-                  )}
                   {/* Assignee — inline editable text. */}
                   <td className="px-2 py-1.5 text-xs">
                     <InlineTextCell
                       value={t.assignee}
                       onSave={async v => { await patchTask(t.id, { assignee: v }); }}
                       placeholder="—"
+                    />
+                  </td>
+                  {/* Follow-up — Stint 58.fix: always visible, immediately
+                      before Due. Same overdue/today highlighting that
+                      InlineDateCell already provides. */}
+                  <td className="px-2 py-1.5">
+                    <InlineDateCell
+                      value={t.follow_up_date}
+                      onSave={async v => { await patchTask(t.id, { follow_up_date: v }); }}
                     />
                   </td>
                   {/* Due — inline editable date. */}
