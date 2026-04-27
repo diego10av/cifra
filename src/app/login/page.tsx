@@ -44,7 +44,7 @@ export default function LoginPage() {
         <p className="text-sm text-ink-muted mt-1 mb-6">
           Luxembourg tax &amp; compliance, in one workspace.
           <br />
-          <span className="text-ink-faint">AI reads, humans review. Starting with VAT.</span>
+          <span className="text-ink-faint">AI reads, humans review.</span>
         </p>
         <form onSubmit={handleSubmit} className="space-y-3">
           {error && (
@@ -63,6 +63,14 @@ export default function LoginPage() {
             Sign in
           </Button>
         </form>
+        <div className="mt-6 pt-4 border-t border-border text-center">
+          <a
+            href="https://cifracompliance.com"
+            className="text-2xs text-ink-faint hover:text-ink-muted transition-colors"
+          >
+            ← cifracompliance.com
+          </a>
+        </div>
       </div>
     </div>
   );
