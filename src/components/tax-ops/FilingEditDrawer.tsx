@@ -48,6 +48,9 @@ interface FilingDetail {
   last_info_request_sent_at: string | null;
   invoice_price_eur: string | null;
   invoice_price_note: string | null;
+  // Stint 52 — separate ICS / EC Sales List price.
+  invoice_price_ics_eur: string | null;
+  invoice_price_ics_note: string | null;
 }
 
 interface Props {
@@ -114,6 +117,7 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
       'amount_due', 'amount_paid', 'paid_at',
       'csp_contacts', 'comments', 'internal_matter_code',
       'last_info_request_sent_at', 'invoice_price_eur', 'invoice_price_note',
+      'invoice_price_ics_eur', 'invoice_price_ics_note',
     ];
     for (const k of keys) {
       const a = JSON.stringify(draft[k] ?? null);
@@ -383,9 +387,11 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
               </Field>
             </div>
 
-            {/* Invoice price */}
+            {/* Invoice price — stint 52 split into Per Return + Per ICS for VAT.
+                Both fields are always editable here (the matrices decide which
+                one to surface as a column based on tax_type). */}
             <div className="grid grid-cols-3 gap-3">
-              <Field label="Invoice price (€)">
+              <Field label="Price per return (€)">
                 <input
                   type="number"
                   step="1"
@@ -395,13 +401,37 @@ export function FilingEditDrawer({ filingId, onClose, onSaved }: Props) {
                 />
               </Field>
               <div className="col-span-2">
-                <Field label="Invoice price note">
+                <Field label="Note (return)">
                   <input
                     type="text"
                     value={draft.invoice_price_note ?? ''}
                     onChange={(e) => setDraft({ ...draft, invoice_price_note: e.target.value || null })}
                     className="w-full px-2 py-1 border border-border rounded bg-surface"
                     placeholder="+5% office expenses +VAT if applicable"
+                  />
+                </Field>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Price per ICS (€)">
+                <input
+                  type="number"
+                  step="1"
+                  value={draft.invoice_price_ics_eur ?? ''}
+                  onChange={(e) => setDraft({ ...draft, invoice_price_ics_eur: e.target.value || null })}
+                  className="w-full px-2 py-1 border border-border rounded bg-surface tabular-nums"
+                  title="Intra-Community Supply of Services (Liste récapitulative). Leave blank if no ICS prepared for this filing."
+                />
+              </Field>
+              <div className="col-span-2">
+                <Field label="Note (ICS)">
+                  <input
+                    type="text"
+                    value={draft.invoice_price_ics_note ?? ''}
+                    onChange={(e) => setDraft({ ...draft, invoice_price_ics_note: e.target.value || null })}
+                    className="w-full px-2 py-1 border border-border rounded bg-surface"
+                    placeholder="ICS-specific scope or billing note"
                   />
                 </Field>
               </div>

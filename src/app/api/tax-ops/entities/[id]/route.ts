@@ -61,13 +61,27 @@ export async function GET(
       [id],
     ),
     query<EntityObligation>(
+      // Stint 52 — exclude nwt_annual from the entity detail's
+      // "Obligations" list and "All tax obligations" chips. The NWT
+      // review obligation still exists in DB (and is what powers the
+      // NWT review column on /tax-ops/cit), but Diego doesn't want
+      // it cluttering the entity detail anymore: stint 37.D folded
+      // NWT review as a column of CIT, so as a standalone obligation
+      // line it's just noise. The CIT page queries it via a separate
+      // matrix call filtered by service_kind='review' — unaffected.
       `SELECT id, tax_type, period_pattern, is_active, default_assignee, notes
          FROM tax_obligations
         WHERE entity_id = $1
+          AND tax_type != 'nwt_annual'
         ORDER BY tax_type, period_pattern`,
       [id],
     ),
     query<EntityFiling>(
+      // Stint 52 — same NWT exclusion as the obligations query above:
+      // "borralo de todos los sitios". The CIT page (where the NWT
+      // review actually lives as a column) reads its own filings via
+      // the matrix endpoint, not this one — so the column there is
+      // unaffected.
       `SELECT f.id, f.obligation_id, o.tax_type,
               f.period_year, f.period_label,
               f.deadline_date::text, f.status, f.assigned_to,
@@ -75,6 +89,7 @@ export async function GET(
          FROM tax_filings f
          JOIN tax_obligations o ON o.id = f.obligation_id
         WHERE o.entity_id = $1
+          AND o.tax_type != 'nwt_annual'
         ORDER BY f.period_year DESC, o.tax_type, f.period_label`,
       [id],
     ),

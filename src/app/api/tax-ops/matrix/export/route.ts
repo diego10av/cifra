@@ -79,6 +79,9 @@ interface FilingRow {
   /** Stint 40.O — invoice price + note. */
   invoice_price_eur: string | null;
   invoice_price_note: string | null;
+  /** Stint 52 — separate ICS / EC Sales List price + note. */
+  invoice_price_ics_eur: string | null;
+  invoice_price_ics_note: string | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -146,7 +149,9 @@ export async function GET(request: NextRequest) {
               last_info_request_sent_at::text AS last_info_request_sent_at,
               last_action_at::text AS last_action_at,
               invoice_price_eur::text AS invoice_price_eur,
-              invoice_price_note
+              invoice_price_note,
+              invoice_price_ics_eur::text AS invoice_price_ics_eur,
+              invoice_price_ics_note
          FROM tax_filings
         WHERE obligation_id = ANY($1::text[])
           AND period_label = ANY($2::text[])`,
@@ -166,16 +171,21 @@ export async function GET(request: NextRequest) {
 
   // Header — stint 43.D11 splits "Prepared with" into "Partner in charge"
   // + "Associates working", and stint 43.D6 renames "Last chased" → "Last
-  // action". Preserve column count for downstream consumers? No — the
-  // export is human-facing, no automated pipelines read it.
+  // action". Stint 52 — VAT exports also include the per-ICS price
+  // companion columns; non-VAT exports keep a single price pair.
+  const isVatExport = tax_type?.startsWith('vat_') ?? false;
   const header: string[] = ['Group', 'Entity'];
   for (const label of periodLabels) header.push(shortPeriodLabel(label));
   header.push('Partner in charge');
   header.push('Associates working');
   header.push('Last action');
   header.push('Comments');
-  header.push('Price (€)');
-  header.push('Price note');
+  header.push(isVatExport ? 'Price per return (€)' : 'Price (€)');
+  header.push(isVatExport ? 'Note (return)' : 'Price note');
+  if (isVatExport) {
+    header.push('Price per ICS (€)');
+    header.push('Note (ICS)');
+  }
   ws.addRow(header);
   ws.getRow(1).font = { bold: true };
   ws.getRow(1).alignment = { vertical: 'middle' };
@@ -196,6 +206,8 @@ export async function GET(request: NextRequest) {
     const actionDates: string[] = [];
     let invoicePrice: number | null = null;
     let invoicePriceNote: string | null = null;
+    let invoiceIcsPrice: number | null = null;
+    let invoiceIcsNote: string | null = null;
     for (const c of cells) {
       // Prefer the new partner_in_charge field; fall back to legacy
       // prepared_with so old rows still show something useful.
@@ -210,6 +222,11 @@ export async function GET(request: NextRequest) {
         if (Number.isFinite(n)) invoicePrice = n;
       }
       if (!invoicePriceNote && c.invoice_price_note) invoicePriceNote = c.invoice_price_note;
+      if (invoiceIcsPrice === null && c.invoice_price_ics_eur) {
+        const n = Number(c.invoice_price_ics_eur);
+        if (Number.isFinite(n)) invoiceIcsPrice = n;
+      }
+      if (!invoiceIcsNote && c.invoice_price_ics_note) invoiceIcsNote = c.invoice_price_ics_note;
     }
     const latestAction = actionDates.length === 0 ? '' : actionDates.sort().slice(-1)[0]!;
     row.push(Array.from(partnerSet).join(', '));
@@ -218,6 +235,10 @@ export async function GET(request: NextRequest) {
     row.push(comment ?? '');
     row.push(invoicePrice ?? '');
     row.push(invoicePriceNote ?? '');
+    if (isVatExport) {
+      row.push(invoiceIcsPrice ?? '');
+      row.push(invoiceIcsNote ?? '');
+    }
     ws.addRow(row);
   }
 

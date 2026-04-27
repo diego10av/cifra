@@ -569,7 +569,10 @@ function ContactsInlineEditor({
 export function priceColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
   return {
     key: 'invoice_price',
-    label: 'Price',
+    // Stint 52 — was "Price". Renamed to "Price Per Return" so it can
+    // sit next to the new icsPriceColumn ("Price Per ICS") on VAT
+    // matrices without ambiguity. The DB column + key stay the same.
+    label: 'Price Per Return',
     widthClass: 'w-[140px]',
     alignRight: true,
     render: (e) => {
@@ -589,6 +592,45 @@ export function priceColumn(periodLabels: string[], refetch: () => void): Matrix
             await patchAllFilings(allFilingIds, {
               invoice_price_eur: priceEur,
               invoice_price_note: note,
+            });
+            refetch();
+          }}
+        />
+      );
+    },
+  };
+}
+
+/**
+ * Stint 52 — companion column to priceColumn, surfaced only on VAT
+ * matrices. ICS = Intra-Community Supply of Services (Liste
+ * récapitulative / EC Sales List). cifra charges this as a separate
+ * deliverable from the VAT return itself, so the prices are tracked
+ * in parallel columns. Same per-filing storage + row-propagation
+ * pattern as priceColumn — single edit syncs across Q1-Q4.
+ */
+export function icsPriceColumn(periodLabels: string[], refetch: () => void): MatrixColumn {
+  return {
+    key: 'invoice_price_ics',
+    label: 'Price Per ICS',
+    widthClass: 'w-[140px]',
+    alignRight: true,
+    render: (e) => {
+      const allFilingIds = periodLabels
+        .map(l => e.cells[l]?.filing_id)
+        .filter((x): x is string => !!x);
+      const first = periodLabels
+        .map(l => e.cells[l])
+        .find((c): c is MatrixCell => !!c) ?? null;
+      return (
+        <InlinePriceCell
+          priceEur={first?.invoice_price_ics_eur ?? null}
+          note={first?.invoice_price_ics_note ?? null}
+          disabled={allFilingIds.length === 0}
+          onSave={async ({ priceEur, note }) => {
+            await patchAllFilings(allFilingIds, {
+              invoice_price_ics_eur: priceEur,
+              invoice_price_ics_note: note,
             });
             refetch();
           }}
