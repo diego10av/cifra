@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { SearchIcon, PlusIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { SearchIcon, PlusIcon, ExternalLinkIcon, MailIcon, Trash2Icon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,7 +12,7 @@ import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { BulkActionBar } from '@/components/crm/BulkActionBar';
 import { ExportButton } from '@/components/crm/ExportButton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
-import { DateBadge } from '@/components/crm/DateBadge';
+import { CrmContextMenu, type CrmContextAction } from '@/components/crm/CrmContextMenu';
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { CONTACT_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
@@ -61,7 +62,10 @@ export default function ContactsPage() {
   const [lifecycle, setLifecycle] = useState<string>('');
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Stint 63.C — right-click context menu state.
+  const [contextMenu, setContextMenu] = useState<{ contact: Contact; x: number; y: number } | null>(null);
   const toast = useToast();
+  const router = useRouter();
 
   const toggleOne = (id: string) => setSelected(prev => {
     const n = new Set(prev);
@@ -94,6 +98,19 @@ export default function ContactsPage() {
     }
     toast.success('Contact created');
     await load();
+  }
+
+  // Stint 63.C — soft-delete invoked from the context menu.
+  async function archiveContact(id: string, name: string) {
+    if (!confirm(`Archive "${name}"? Soft delete; restore from /crm/trash.`)) return;
+    try {
+      const res = await fetch(`/api/crm/contacts/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success('Contact archived');
+      await load();
+    } catch (e) {
+      toast.error(`Archive failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
   }
 
   // Stint 63.A — inline-edit helper, mirror of patchCompany. Writes one
@@ -193,7 +210,17 @@ export default function ContactsPage() {
                 // (the only writable column on the server).
                 const engDisplay = r.engagement_override ?? r.engagement_level;
                 return (
-                  <tr key={r.id} className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}>
+                  <tr
+                    key={r.id}
+                    onContextMenu={(e) => {
+                      const tgt = e.target as HTMLElement;
+                      const tag = tgt.tagName?.toLowerCase();
+                      if (tag === 'input' || tag === 'textarea' || tgt.isContentEditable) return;
+                      e.preventDefault();
+                      setContextMenu({ contact: r, x: e.clientX, y: e.clientY });
+                    }}
+                    className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}
+                  >
                     <td className="px-3 py-2">
                       <input
                         type="checkbox"
@@ -292,6 +319,42 @@ export default function ContactsPage() {
         onClear={clearSelection}
         onDone={() => { clearSelection(); load(); }}
       />
+
+      {/* Stint 63.C — right-click context menu. */}
+      {contextMenu && (() => {
+        const c = contextMenu.contact;
+        const actions: CrmContextAction[] = [
+          {
+            label: 'Open detail',
+            icon: ExternalLinkIcon,
+            onClick: () => router.push(`/crm/contacts/${c.id}`),
+          },
+          {
+            label: c.email ? 'Email this contact' : 'No email on file',
+            icon: MailIcon,
+            disabled: !c.email,
+            onClick: () => {
+              if (c.email) window.location.href = `mailto:${c.email}`;
+            },
+          },
+          {
+            label: 'Archive',
+            icon: Trash2Icon,
+            danger: true,
+            separatorBefore: true,
+            onClick: () => archiveContact(c.id, c.full_name),
+          },
+        ];
+        return (
+          <CrmContextMenu
+            title={c.full_name}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            actions={actions}
+            onClose={() => setContextMenu(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

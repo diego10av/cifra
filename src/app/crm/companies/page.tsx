@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
-import { SearchIcon, PlusIcon } from 'lucide-react';
+import { SearchIcon, PlusIcon, ExternalLinkIcon, Trash2Icon, TargetIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,8 +11,11 @@ import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { BulkActionBar } from '@/components/crm/BulkActionBar';
 import { ExportButton } from '@/components/crm/ExportButton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
+import { CompanyHoverPreview } from '@/components/crm/CompanyHoverPreview';
+import { CrmContextMenu, type CrmContextAction } from '@/components/crm/CrmContextMenu';
 import { COMPANY_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
+import { useRouter } from 'next/navigation';
 // Stint 63.A — port Tax-Ops inline-edit primitives. Same components,
 // different endpoint. Closes Diego's "todo debería ser editable" — the
 // table cells become live edit widgets without leaving the list view.
@@ -53,7 +56,11 @@ export default function CompaniesPage() {
   const [classFilter, setClassFilter] = useState<string>('');
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Stint 63.C — context menu state. Lifted to page level so a single
+  // CrmContextMenu instance is shared across all rows.
+  const [contextMenu, setContextMenu] = useState<{ company: Company; x: number; y: number } | null>(null);
   const toast = useToast();
+  const router = useRouter();
 
   const toggleOne = (id: string) => setSelected(prev => {
     const n = new Set(prev);
@@ -93,6 +100,19 @@ export default function CompaniesPage() {
     }
     toast.success('Company created');
     await load();
+  }
+
+  // Stint 63.C — soft-delete helper invoked by the context menu.
+  async function archiveCompany(id: string, name: string) {
+    if (!confirm(`Archive "${name}"? This soft-deletes; you can restore from /crm/trash.`)) return;
+    try {
+      const res = await fetch(`/api/crm/companies/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success('Company archived');
+      await load();
+    } catch (e) {
+      toast.error(`Archive failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
   }
 
   // Stint 63.A — inline-edit helper. Each editable cell calls this with
@@ -210,7 +230,20 @@ export default function CompaniesPage() {
             </thead>
             <tbody>
               {rows.map(r => (
-                <tr key={r.id} className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}>
+                <tr
+                  key={r.id}
+                  onContextMenu={(e) => {
+                    // Stint 63.C — let the browser handle right-click
+                    // when the target is an editable cell so paste / spell
+                    // check stay accessible. Otherwise open our menu.
+                    const tgt = e.target as HTMLElement;
+                    const tag = tgt.tagName?.toLowerCase();
+                    if (tag === 'input' || tag === 'textarea' || tgt.isContentEditable) return;
+                    e.preventDefault();
+                    setContextMenu({ company: r, x: e.clientX, y: e.clientY });
+                  }}
+                  className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}
+                >
                   <td className="px-3 py-2">
                     <input
                       type="checkbox"
@@ -219,13 +252,15 @@ export default function CompaniesPage() {
                       className="h-4 w-4 accent-brand-500 cursor-pointer"
                     />
                   </td>
-                  {/* Company name — kept as Link to detail page (the list
-                      isn't the place to rename a company; that's a heavy
-                      action that warrants the detail context). */}
+                  {/* Company name — wrapped in CompanyHoverPreview (400ms
+                      hover delay → popover with counts/tags). Link still
+                      navigates to detail. */}
                   <td className="px-3 py-2">
-                    <Link href={`/crm/companies/${r.id}`} className="font-medium text-brand-700 hover:underline">
-                      {r.company_name}
-                    </Link>
+                    <CompanyHoverPreview companyId={r.id}>
+                      <Link href={`/crm/companies/${r.id}`} className="font-medium text-brand-700 hover:underline">
+                        {r.company_name}
+                      </Link>
+                    </CompanyHoverPreview>
                     {r.entity_id && (
                       <span className="ml-2 text-2xs uppercase tracking-wide text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1 py-0.5">
                         Tax entity linked
@@ -307,6 +342,41 @@ export default function CompaniesPage() {
         onClear={clearSelection}
         onDone={() => { clearSelection(); load(); }}
       />
+
+      {/* Stint 63.C — right-click context menu. Single instance per
+          page lifted to here; rows hand it the company + cursor coords
+          via setContextMenu(). */}
+      {contextMenu && (() => {
+        const c = contextMenu.company;
+        const actions: CrmContextAction[] = [
+          {
+            label: 'Open detail',
+            icon: ExternalLinkIcon,
+            onClick: () => router.push(`/crm/companies/${c.id}`),
+          },
+          {
+            label: 'New opportunity for this company',
+            icon: TargetIcon,
+            onClick: () => router.push(`/crm/opportunities?company_id=${c.id}`),
+          },
+          {
+            label: 'Archive',
+            icon: Trash2Icon,
+            danger: true,
+            separatorBefore: true,
+            onClick: () => archiveCompany(c.id, c.company_name),
+          },
+        ];
+        return (
+          <CrmContextMenu
+            title={c.company_name}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            actions={actions}
+            onClose={() => setContextMenu(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
