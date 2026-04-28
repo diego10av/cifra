@@ -207,7 +207,10 @@ export default function BillingPage() {
       </div>
 
       {view === 'dashboard' ? (
-        <BillingDashboard year={Number(year || new Date().getFullYear())} />
+        // Stint 64.I — pass null when "All years" selected so the
+        // dashboard renders all-time KPIs + an annual-trend chart
+        // instead of silently falling back to the current year.
+        <BillingDashboard year={year ? Number(year) : null} />
       ) : data.invoices.length === 0 ? (
         (() => {
           const filtersActive = q !== '' || status !== '' || (year !== '' && year !== String(thisYear));

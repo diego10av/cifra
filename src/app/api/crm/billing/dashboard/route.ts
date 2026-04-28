@@ -2,57 +2,101 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 
 // GET /api/crm/billing/dashboard?year=2025
+//
 // Returns aggregated data powering the annual billing dashboard charts:
 // top-10 clients, practice area split, monthly trend, aging buckets,
 // YoY comparison vs previous year.
+//
+// Stint 64.I — Diego: "el dashboard no funciona para cuando das a
+// todos los años." Right call. The previous code defaulted to
+// current year on `?year=` (empty), so the page silently fell back
+// without the user noticing. Now an empty/missing year is a real
+// "all years" mode:
+//   • KPIs aggregate across every year on file.
+//   • Top clients ranked lifetime.
+//   • Practice split aggregated lifetime.
+//   • The monthly-trend card is replaced by an annual-trend card
+//     (one bar per year) — the API ships `yearly` instead of
+//     `monthly` in this mode.
+//   • YoY card is hidden (no meaningful baseline when comparing
+//     against itself).
+//   • Aging is unchanged — it's an "as of today" snapshot of
+//     outstanding receivables, year-independent by construction.
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
-  const year = Number(url.searchParams.get('year') ?? new Date().getFullYear());
-  const prevYear = year - 1;
+  const yearParam = url.searchParams.get('year');
+  // Empty / missing / "0" / "all" → all-years mode.
+  const allYears = !yearParam || yearParam === '' || yearParam === '0' || yearParam.toLowerCase() === 'all';
+  const year = allYears ? null : Number(yearParam);
+  if (!allYears && !Number.isFinite(year)) {
+    return NextResponse.json({ error: 'invalid_year' }, { status: 400 });
+  }
+  const prevYear = allYears ? null : (year as number) - 1;
 
-  const [kpis, topClients, monthly, practiceSplit, aging, prevKpis] = await Promise.all([
+  // Build the WHERE clause once so each query stays consistent.
+  // For per-year queries we use a parameter; for all-years we drop
+  // the filter entirely (TRUE).
+  const yearClause = allYears
+    ? { sql: 'TRUE', params: [] as unknown[] }
+    : { sql: 'EXTRACT(YEAR FROM issue_date) = $1', params: [year] };
+
+  const yearClauseB = allYears
+    ? { sql: 'TRUE', params: [] as unknown[] }
+    : { sql: 'EXTRACT(YEAR FROM b.issue_date) = $1', params: [year] };
+
+  const [kpis, topClients, monthly, yearly, practiceSplit, aging, prevKpis] = await Promise.all([
+    // ── KPIs ──────────────────────────────────────────────────────
     query<{ total_incl_vat: string; total_paid: string; total_outstanding: string; invoice_count: string }>(
       `SELECT COALESCE(SUM(amount_incl_vat), 0)::text AS total_incl_vat,
               COALESCE(SUM(amount_paid), 0)::text     AS total_paid,
               COALESCE(SUM(outstanding), 0)::text     AS total_outstanding,
               COUNT(*)::text                           AS invoice_count
          FROM crm_billing_invoices
-        WHERE EXTRACT(YEAR FROM issue_date) = $1`,
-      [year],
+        WHERE ${yearClause.sql}`,
+      yearClause.params,
     ),
+
+    // ── Top 10 clients ────────────────────────────────────────────
     query<{ company_name: string; total: string; invoice_count: string }>(
       `SELECT c.company_name, SUM(b.amount_incl_vat)::text AS total, COUNT(*)::text AS invoice_count
          FROM crm_billing_invoices b
          JOIN crm_companies c ON c.id = b.company_id
-        WHERE EXTRACT(YEAR FROM b.issue_date) = $1
+        WHERE ${yearClauseB.sql}
         GROUP BY c.company_name
         ORDER BY SUM(b.amount_incl_vat) DESC
         LIMIT 10`,
-      [year],
+      yearClauseB.params,
     ),
-    query<{ month: number; total: string }>(
-      `SELECT EXTRACT(MONTH FROM issue_date)::int AS month,
-              COALESCE(SUM(amount_incl_vat), 0)::text AS total
-         FROM crm_billing_invoices
-        WHERE EXTRACT(YEAR FROM issue_date) = $1
-        GROUP BY EXTRACT(MONTH FROM issue_date)
-        ORDER BY month`,
-      [year],
-    ),
-    // Practice split comes via matter. Invoices without a matter are
-    // classified as 'unassigned'. When a matter has N practice areas,
-    // the invoice revenue is split EQUALLY (1/N) across them — so the
-    // sum across all buckets equals total invoiced, no double-counting.
-    //
-    // Implementation: LATERAL-coalesce the array to a 1-element fallback,
-    // then divide by cardinality per row. A matter with ['tax','m_a']
-    // contributes 50% to each; a matter with no practice areas (or
-    // no matter) contributes 100% to 'unassigned'.
-    //
-    // (Stint 34 follow-up idea: support per-matter custom weights via a
-    //  new practice_area_weights JSONB column — today we assume equal
-    //  split, which is the sane default for a PE firm's cross-practice
-    //  matters. Diego confirmed 2026-04-24.)
+
+    // ── Monthly (only when a specific year is selected) ───────────
+    allYears ? Promise.resolve([] as Array<{ month: number; total: string }>) :
+      query<{ month: number; total: string }>(
+        `SELECT EXTRACT(MONTH FROM issue_date)::int AS month,
+                COALESCE(SUM(amount_incl_vat), 0)::text AS total
+           FROM crm_billing_invoices
+          WHERE EXTRACT(YEAR FROM issue_date) = $1
+          GROUP BY EXTRACT(MONTH FROM issue_date)
+          ORDER BY month`,
+        [year],
+      ),
+
+    // ── Yearly (only in all-years mode) ───────────────────────────
+    !allYears ? Promise.resolve([] as Array<{ year: number; total: string }>) :
+      query<{ year: number; total: string }>(
+        `SELECT EXTRACT(YEAR FROM issue_date)::int AS year,
+                COALESCE(SUM(amount_incl_vat), 0)::text AS total
+           FROM crm_billing_invoices
+          WHERE issue_date IS NOT NULL
+          GROUP BY EXTRACT(YEAR FROM issue_date)
+          ORDER BY year`,
+      ),
+
+    // ── Practice split ────────────────────────────────────────────
+    // When a matter has N practice areas, the invoice revenue is
+    // split EQUALLY (1/N) across them — sum across buckets equals
+    // total invoiced, no double-counting. Invoices without a matter
+    // bucket as 'unassigned'. (Diego confirmed equal-split default
+    // 2026-04-24; per-matter weights deferred.)
     query<{ practice: string; total: string }>(
       `SELECT practice, SUM(share)::text AS total
          FROM (
@@ -66,12 +110,14 @@ export async function GET(request: NextRequest) {
                       ARRAY['unassigned']::text[]
                     ) AS arr
                   ) areas
-            WHERE EXTRACT(YEAR FROM b.issue_date) = $1
+            WHERE ${yearClauseB.sql}
          ) t
         GROUP BY practice
         ORDER BY SUM(share) DESC`,
-      [year],
+      yearClauseB.params,
     ),
+
+    // ── Aging — always year-independent ───────────────────────────
     query<{ bucket: string; total: string; count: string }>(
       `WITH buckets AS (
          SELECT CASE
@@ -91,22 +137,27 @@ export async function GET(request: NextRequest) {
         GROUP BY bucket`,
       [],
     ),
-    query<{ total_incl_vat: string }>(
-      `SELECT COALESCE(SUM(amount_incl_vat), 0)::text AS total_incl_vat
-         FROM crm_billing_invoices
-        WHERE EXTRACT(YEAR FROM issue_date) = $1`,
-      [prevYear],
-    ),
+
+    // ── Previous-year KPIs for YoY (only when a specific year) ────
+    allYears ? Promise.resolve([] as Array<{ total_incl_vat: string }>) :
+      query<{ total_incl_vat: string }>(
+        `SELECT COALESCE(SUM(amount_incl_vat), 0)::text AS total_incl_vat
+           FROM crm_billing_invoices
+          WHERE EXTRACT(YEAR FROM issue_date) = $1`,
+        [prevYear],
+      ),
   ]);
 
   return NextResponse.json({
-    year,
+    year: allYears ? 'all' : year,
     prev_year: prevYear,
+    all_years: allYears,
     kpis: kpis[0] ?? null,
-    prev_kpis: prevKpis[0] ?? null,
+    prev_kpis: allYears ? null : (prevKpis[0] ?? null),
     top_clients: topClients,
-    monthly,  // sparse — fill missing months client-side
+    monthly,        // [] when allYears=true
+    yearly,         // [] when allYears=false
     practice_split: practiceSplit,
-    aging,    // bucket counts
+    aging,
   });
 }

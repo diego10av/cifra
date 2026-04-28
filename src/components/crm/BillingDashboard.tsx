@@ -12,12 +12,19 @@ import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { formatEur } from '@/lib/crm-types';
 
 interface DashboardData {
-  year: number;
-  prev_year: number;
+  // Stint 64.I — when `all_years=true` the API ships:
+  //   year: 'all', prev_year: null, prev_kpis: null,
+  //   monthly: [], yearly: [{year, total}, …]
+  // When a specific year is selected, monthly is populated and
+  // yearly is empty. The component branches on `all_years`.
+  year: number | 'all';
+  prev_year: number | null;
+  all_years: boolean;
   kpis: { total_incl_vat: string; total_paid: string; total_outstanding: string; invoice_count: string } | null;
   prev_kpis: { total_incl_vat: string } | null;
   top_clients: Array<{ company_name: string; total: string; invoice_count: string }>;
   monthly: Array<{ month: number; total: string }>;
+  yearly:  Array<{ year:  number; total: string }>;
   practice_split: Array<{ practice: string; total: string }>;
   aging: Array<{ bucket: string; total: string; count: string }>;
 }
@@ -41,12 +48,18 @@ const AGING_TONES: Record<string, string> = {
   no_due: '#d1d5db',        // grey
 };
 
-export function BillingDashboard({ year }: { year: number }) {
-  const { data, error, isLoading, refetch } = useCrmFetch<DashboardData>(`/api/crm/billing/dashboard?year=${year}`);
+export function BillingDashboard({ year }: { year: number | null }) {
+  // year === null → "All years" mode (API treats empty year-param as all-years).
+  const url = year === null
+    ? '/api/crm/billing/dashboard'
+    : `/api/crm/billing/dashboard?year=${year}`;
+  const { data, error, isLoading, refetch } = useCrmFetch<DashboardData>(url);
 
   if (isLoading && !data) return <div className="text-sm text-ink-muted italic px-3 py-4">Loading dashboard…</div>;
   if (error) return <CrmErrorBox message={error} onRetry={refetch} />;
-  if (!data) return <div className="text-sm text-ink-muted italic px-3 py-4">No data for {year}.</div>;
+  if (!data) return <div className="text-sm text-ink-muted italic px-3 py-4">No data{year === null ? '' : ` for ${year}`}.</div>;
+
+  const periodLabel = data.all_years ? 'all years' : String(data.year);
 
   const current = Number(data.kpis?.total_incl_vat ?? 0);
   const prev = Number(data.prev_kpis?.total_incl_vat ?? 0);
@@ -54,8 +67,9 @@ export function BillingDashboard({ year }: { year: number }) {
 
   return (
     <div className="space-y-5">
-      {/* YoY banner */}
-      {prev > 0 && (
+      {/* YoY banner — only when a specific year is selected and a
+          previous-year baseline exists. Hidden in all-years mode. */}
+      {!data.all_years && prev > 0 && (
         <div className="bg-brand-50 border border-brand-200 rounded-md px-3 py-2 flex items-center gap-4 text-sm">
           <span><strong>{data.year}:</strong> {formatEur(current)}</span>
           <span className="text-ink-muted">vs {data.prev_year}: {formatEur(prev)}</span>
@@ -67,9 +81,17 @@ export function BillingDashboard({ year }: { year: number }) {
         </div>
       )}
 
+      {/* All-years summary banner */}
+      {data.all_years && current > 0 && (
+        <div className="bg-surface-alt border border-border rounded-md px-3 py-2 flex items-center gap-4 text-sm">
+          <span><strong>All years:</strong> {formatEur(current)}</span>
+          <span className="text-ink-muted">across {data.kpis?.invoice_count ?? '0'} invoices · {data.yearly.length} year{data.yearly.length === 1 ? '' : 's'} on file</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Top 10 clients */}
-        <ChartCard title={`Top 10 clients — ${data.year}`}>
+        <ChartCard title={`Top 10 clients — ${periodLabel}`}>
           {data.top_clients.length === 0 ? (
             <Empty />
           ) : (
@@ -95,12 +117,24 @@ export function BillingDashboard({ year }: { year: number }) {
           )}
         </ChartCard>
 
-        {/* Monthly trend */}
-        <ChartCard title={`Monthly invoicing — ${data.year}`}>
-          <MonthlyLine
-            months={data.monthly.map(m => ({ month: m.month, total: Number(m.total) }))}
-          />
-        </ChartCard>
+        {/* Trend — monthly when a specific year, yearly across all years */}
+        {data.all_years ? (
+          <ChartCard title="Annual invoicing">
+            {data.yearly.length === 0 ? (
+              <Empty />
+            ) : (
+              <YearlyBars
+                years={data.yearly.map(y => ({ year: y.year, total: Number(y.total) }))}
+              />
+            )}
+          </ChartCard>
+        ) : (
+          <ChartCard title={`Monthly invoicing — ${data.year}`}>
+            <MonthlyLine
+              months={data.monthly.map(m => ({ month: m.month, total: Number(m.total) }))}
+            />
+          </ChartCard>
+        )}
 
         {/* Aging */}
         <ChartCard title="Aging — outstanding by bucket (all years)">
@@ -250,6 +284,58 @@ function MonthlyLine({ months }: { months: Array<{ month: number; total: number 
       </text>
     </svg>
   );
+}
+
+// ── Yearly bars (all-years mode replaces the monthly trend) ──────────
+//
+// Stint 64.I — when "All years" is selected we don't have months to
+// trend across; we have years. One vertical bar per year, with the
+// total invoiced (incl. VAT) labelled above. Year labels along the
+// bottom. Same brand colour as the monthly chart for visual continuity.
+function YearlyBars({ years }: { years: Array<{ year: number; total: number }> }) {
+  if (years.length === 0) return null;
+  const max = Math.max(...years.map(y => y.total), 1);
+  const w = 400, h = 140, padL = 30, padB = 22, padT = 18;
+  const innerW = w - padL - 8;
+  const innerH = h - padB - padT;
+  const barW = Math.min(48, (innerW / years.length) * 0.7);
+  const gap = (innerW - barW * years.length) / Math.max(1, years.length);
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-auto">
+      {/* y-axis grid */}
+      {[0, 0.5, 1].map(f => {
+        const y = padT + innerH - f * innerH;
+        return <line key={f} x1={padL} x2={w - 8} y1={y} y2={y} stroke="#e5e7eb" strokeWidth="0.5" />;
+      })}
+      {years.map((y, i) => {
+        const x = padL + gap / 2 + i * (barW + gap);
+        const barH = max > 0 ? (y.total / max) * innerH : 0;
+        const yTop = padT + innerH - barH;
+        return (
+          <g key={y.year}>
+            <rect x={x} y={yTop} width={barW} height={barH} fill="#6366f1" rx="2" />
+            <text x={x + barW / 2} y={yTop - 3} textAnchor="middle" fontSize="9" fill="#374151">
+              {compactEur(y.total)}
+            </text>
+            <text x={x + barW / 2} y={h - 6} textAnchor="middle" fontSize="9" fill="#6b7280">
+              {y.year}
+            </text>
+          </g>
+        );
+      })}
+      <text x="4" y={padT + 4} fontSize="9" fill="#6b7280">{formatEur(max)}</text>
+    </svg>
+  );
+}
+
+// Compact € formatter for chart labels — avoids "1 234 567,00 €"
+// crashing into adjacent bars at 400px. e.g. 1234567 → "1.2M €",
+// 12345 → "12k €". Used only for in-chart annotations; tables and
+// KPIs keep the full accounting format from formatEur().
+function compactEur(n: number): string {
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M €`;
+  if (Math.abs(n) >= 1_000)     return `${(n / 1_000).toFixed(0)}k €`;
+  return `${n.toFixed(0)} €`;
 }
 
 // ── Aging bars with color-coded tones ─────────────────────────────────
