@@ -11,6 +11,8 @@ import { useToast } from '@/components/Toaster';
 import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { RecordHistory } from '@/components/crm/RecordHistory';
 import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
+// Stint 63.M — inline-edit primitives on the detail Cards.
+import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import {
   LABELS_STAGE, LABELS_ACTIVITY_TYPE, formatEur, formatDate,
   type ActivityType,
@@ -53,6 +55,32 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
       toast.success(`Updated ${body.changed.length} field${body.changed.length === 1 ? '' : 's'}`);
     } else toast.info('No changes to save');
     await load();
+  }
+
+  // Stint 63.M — single-field PUT for the inline Cards.
+  // Numeric fields get coerced; everything else passes through.
+  async function patchField(field: string, value: unknown) {
+    let coerced = value;
+    if ((field === 'estimated_value_eur' || field === 'probability_pct')
+        && typeof value === 'string') {
+      const trimmed = value.trim().replace(/[,€%]/g, '');
+      if (trimmed === '') coerced = null;
+      else {
+        const n = Number(trimmed);
+        coerced = Number.isFinite(n) ? n : null;
+      }
+    }
+    try {
+      const res = await fetch(`/api/crm/opportunities/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: coerced }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await load();
+    } catch (e) {
+      toast.error(`Save failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
   }
 
   async function handleDelete() {
@@ -128,10 +156,28 @@ export default function OpportunityDetailPage({ params }: { params: Promise<{ id
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
-        <Card title="Estimated value">{formatEur(o.estimated_value_eur as number)}</Card>
-        <Card title="Probability">{o.probability_pct !== null && o.probability_pct !== undefined ? `${o.probability_pct}%` : '—'}</Card>
+        <Card title="Estimated value">
+          <InlineTextCell
+            value={o.estimated_value_eur !== null && o.estimated_value_eur !== undefined ? formatEur(o.estimated_value_eur as number) : null}
+            onSave={async v => { await patchField('estimated_value_eur', v); }}
+            placeholder="—"
+          />
+        </Card>
+        <Card title="Probability">
+          <InlineTextCell
+            value={o.probability_pct !== null && o.probability_pct !== undefined ? `${o.probability_pct}%` : null}
+            onSave={async v => { await patchField('probability_pct', v); }}
+            placeholder="—"
+          />
+        </Card>
         <Card title="Weighted value">{formatEur((o as Record<string, number | null>).weighted_value_eur)}</Card>
-        <Card title="Close date">{formatDate(o.estimated_close_date as string)}</Card>
+        <Card title="Close date">
+          <InlineDateCell
+            value={o.estimated_close_date as string | null}
+            onSave={async v => { await patchField('estimated_close_date', v); }}
+            mode="neutral"
+          />
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">

@@ -13,8 +13,12 @@ import { RecordHistory } from '@/components/crm/RecordHistory';
 import { MeetingBriefButton } from '@/components/crm/MeetingBriefButton';
 import { DraftEmailButton } from '@/components/crm/DraftEmailButton';
 import { CONTACT_FIELDS } from '@/components/crm/schemas';
+// Stint 63.M — inline-edit primitives on contact detail Cards.
+import { InlineDateCell } from '@/components/tax-ops/inline-editors';
+import { ChipSelect } from '@/components/tax-ops/ChipSelect';
 import {
   LABELS_LIFECYCLE, LABELS_ENGAGEMENT, LABELS_ACTIVITY_TYPE,
+  ENGAGEMENT_LEVELS,
   formatDate, type ActivityType,
 } from '@/lib/crm-types';
 
@@ -58,6 +62,21 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
       toast.info('No changes to save');
     }
     await load();
+  }
+
+  // Stint 63.M — single-field PUT for inline-editable Cards.
+  async function patchField(field: string, value: unknown) {
+    try {
+      const res = await fetch(`/api/crm/contacts/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await load();
+    } catch (e) {
+      toast.error(`Save failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
   }
 
   async function handleDelete() {
@@ -151,37 +170,65 @@ export default function ContactDetailPage({ params }: { params: Promise<{ id: st
       />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
+        {/* Email/Phone/LinkedIn stay as click-to-action links —
+            inline-editing them would break the mailto/tel/external link
+            UX. Edit them via the modal. */}
         <Card title="Email">{c.email ? <a href={`mailto:${c.email}`} className="text-brand-700 hover:underline">{String(c.email)}</a> : '—'}</Card>
         <Card title="Phone">{c.phone ? <a href={`tel:${c.phone}`} className="hover:underline">{String(c.phone)}</a> : '—'}</Card>
         <Card title="LinkedIn">{c.linkedin_url ? <a href={String(c.linkedin_url)} target="_blank" rel="noopener noreferrer" className="text-brand-700 hover:underline">Profile →</a> : '—'}</Card>
-        <Card title="Engagement">{eng ? LABELS_ENGAGEMENT[eng as keyof typeof LABELS_ENGAGEMENT] : '—'}</Card>
+        {/* Engagement override — inline-editable. */}
+        <Card title="Engagement">
+          <ChipSelect
+            value={String(c.engagement_override ?? '')}
+            options={[
+              { value: '', label: '— auto —', tone: 'bg-surface-alt text-ink-faint' },
+              ...ENGAGEMENT_LEVELS.map(v => ({
+                value: v,
+                label: LABELS_ENGAGEMENT[v],
+              })),
+            ]}
+            onChange={next => { void patchField('engagement_override', next || null); }}
+            ariaLabel="Engagement override"
+          />
+        </Card>
       </div>
 
-      {(c.next_follow_up || c.birthday || c.client_anniversary) && (
-        <div className="mb-5 p-3 border border-border rounded-md bg-white">
-          <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-2">Important dates</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-            {c.next_follow_up && (
-              <div>
-                <div className="text-2xs uppercase text-ink-muted mb-0.5">📞 Next follow-up</div>
-                <div className="tabular-nums">{formatDate(String(c.next_follow_up))}</div>
-              </div>
-            )}
+      {/* Important dates — always visible now (was only shown when at
+          least one was set; making them inline-editable means Diego
+          needs the slots visible to fill them in). */}
+      <div className="mb-5 p-3 border border-border rounded-md bg-white">
+        <div className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mb-2">Important dates</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+          <div>
+            <div className="text-2xs uppercase text-ink-muted mb-0.5">📞 Next follow-up</div>
+            <InlineDateCell
+              value={c.next_follow_up as string | null}
+              onSave={async v => { await patchField('next_follow_up', v); }}
+            />
+          </div>
+          <div>
+            <div className="text-2xs uppercase text-ink-muted mb-0.5">🎂 Birthday</div>
+            <InlineDateCell
+              value={c.birthday as string | null}
+              onSave={async v => { await patchField('birthday', v); }}
+              mode="neutral"
+            />
             {c.birthday && (
-              <div>
-                <div className="text-2xs uppercase text-ink-muted mb-0.5">🎂 Birthday</div>
-                <div className="tabular-nums">{formatBirthday(String(c.birthday))}</div>
-              </div>
-            )}
-            {c.client_anniversary && (
-              <div>
-                <div className="text-2xs uppercase text-ink-muted mb-0.5">🥂 Relationship since</div>
-                <div className="tabular-nums">{formatDate(String(c.client_anniversary))}</div>
+              <div className="text-2xs text-ink-faint mt-0.5">
+                Display: {formatBirthday(String(c.birthday))}
               </div>
             )}
           </div>
+          <div>
+            <div className="text-2xs uppercase text-ink-muted mb-0.5">🥂 Relationship since</div>
+            <InlineDateCell
+              value={c.client_anniversary as string | null}
+              onSave={async v => { await patchField('client_anniversary', v); }}
+              mode="neutral"
+            />
+          </div>
         </div>
-      )}
+      </div>
 
       {c.notes && (
         <div className="mb-5 p-3 bg-surface-alt border border-border rounded text-sm whitespace-pre-wrap">{String(c.notes)}</div>

@@ -16,6 +16,8 @@ import { MatterDisbursements } from '@/components/crm/MatterDisbursements';
 import { MatterDocsClosing } from '@/components/crm/MatterDocsClosing';
 import { ApplyTemplateButton } from '@/components/crm/ApplyTemplateButton';
 import { MATTER_FIELDS } from '@/components/crm/schemas';
+// Stint 63.M — inline-edit primitives on matter detail Cards.
+import { InlineDateCell } from '@/components/tax-ops/inline-editors';
 import {
   LABELS_MATTER_STATUS, LABELS_ACTIVITY_TYPE, LABELS_INVOICE_STATUS,
   formatEur, formatDate, type ActivityType,
@@ -59,6 +61,21 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
       toast.success(`Updated ${body.changed.length} field${body.changed.length === 1 ? '' : 's'}`);
     } else toast.info('No changes to save');
     await load();
+  }
+
+  // Stint 63.M — single-field PUT for inline-editable Cards.
+  async function patchField(field: string, value: unknown) {
+    try {
+      const res = await fetch(`/api/crm/matters/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await load();
+    } catch (e) {
+      toast.error(`Save failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
   }
 
   async function handleDelete() {
@@ -168,7 +185,13 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
         <Card title="Total billed">{formatEur(totalBilled)}</Card>
         <Card title="Outstanding">{formatEur(totalOutstanding)}</Card>
         <Card title="Total hours">{totalHours.toFixed(1)}h</Card>
-        <Card title="Opened">{formatDate(m.opening_date as string)}</Card>
+        <Card title="Opened">
+          <InlineDateCell
+            value={m.opening_date as string | null}
+            onSave={async v => { await patchField('opening_date', v); }}
+            mode="neutral"
+          />
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
