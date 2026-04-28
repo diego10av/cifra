@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { SearchIcon, PlusIcon } from 'lucide-react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { SearchIcon, PlusIcon, ExternalLinkIcon, BuildingIcon, Trash2Icon, CheckIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -12,6 +13,10 @@ import { BulkActionBar } from '@/components/crm/BulkActionBar';
 import { ExportButton } from '@/components/crm/ExportButton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { DateBadge } from '@/components/crm/DateBadge';
+// Stint 63.G/H/I — port the patterns to matters.
+import { CrmContextMenu, type CrmContextAction } from '@/components/crm/CrmContextMenu';
+import { CrmSavedViews } from '@/components/crm/CrmSavedViews';
+import { BulkEditDrawer, type BulkEditField } from '@/components/crm/BulkEditDrawer';
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { MATTER_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
@@ -49,13 +54,47 @@ interface Matter {
 }
 
 export default function MattersPage() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <MattersPageContent />
+    </Suspense>
+  );
+}
+
+function MattersPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [rows, setRows] = useState<Matter[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [q, setQ] = useState('');
-  const [status, setStatus] = useState<string>('');
+  const [q, setQ] = useState(searchParams.get('q') ?? '');
+  const [status, setStatus] = useState<string>(searchParams.get('status') ?? '');
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Stint 63.I — context menu state.
+  const [contextMenu, setContextMenu] = useState<{ matter: Matter; x: number; y: number } | null>(null);
+  // Stint 63.H — bulk-edit drawer state.
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const toast = useToast();
+
+  // Stint 63.G — URL filter sync.
+  const firstSync = useRef(true);
+  useEffect(() => {
+    if (firstSync.current) { firstSync.current = false; return; }
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (status) qs.set('status', status);
+    const s = qs.toString();
+    router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
+  }, [q, status, router, pathname]);
+
+  const currentQuery = useMemo(() => {
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (status) qs.set('status', status);
+    return qs.toString();
+  }, [q, status]);
 
   const toggleOne = (id: string) => setSelected(prev => {
     const n = new Set(prev);
@@ -88,6 +127,19 @@ export default function MattersPage() {
     }
     toast.success('Matter created');
     await load();
+  }
+
+  // Stint 63.I — soft-delete (archive) helper for context menu.
+  async function archiveMatter(id: string, ref: string) {
+    if (!confirm(`Archive "${ref}"? Soft delete; restore from /crm/trash.`)) return;
+    try {
+      const res = await fetch(`/api/crm/matters/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success('Matter archived');
+      await load();
+    } catch (e) {
+      toast.error(`Archive failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
   }
 
   // Stint 63.A.2 — inline-edit helper for matter rows.
@@ -156,6 +208,11 @@ export default function MattersPage() {
           <option value="">All statuses</option>
           {MATTER_STATUSES.map(s => <option key={s} value={s}>{LABELS_MATTER_STATUS[s]}</option>)}
         </select>
+        <CrmSavedViews
+          currentQuery={currentQuery}
+          storageKey="cifra.crm.matters.savedViews.v1"
+          defaultLabel="All matters"
+        />
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="matters" />
           <span className="text-xs text-ink-muted">{rows.length} matters</span>
@@ -207,7 +264,17 @@ export default function MattersPage() {
             </thead>
             <tbody>
               {rows.map(r => (
-                <tr key={r.id} className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}>
+                <tr
+                  key={r.id}
+                  onContextMenu={(e) => {
+                    const tgt = e.target as HTMLElement;
+                    const tag = tgt.tagName?.toLowerCase();
+                    if (tag === 'input' || tag === 'textarea' || tgt.isContentEditable) return;
+                    e.preventDefault();
+                    setContextMenu({ matter: r, x: e.clientX, y: e.clientY });
+                  }}
+                  className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}
+                >
                   <td className="px-3 py-2">
                     <input
                       type="checkbox"
@@ -290,7 +357,72 @@ export default function MattersPage() {
         selectedIds={Array.from(selected)}
         onClear={clearSelection}
         onDone={() => { clearSelection(); load(); }}
+        onEditFields={() => setBulkEditOpen(true)}
       />
+
+      {/* Stint 63.H — bulk-edit drawer. */}
+      <BulkEditDrawer
+        open={bulkEditOpen}
+        onClose={() => setBulkEditOpen(false)}
+        recordType="matter"
+        selectedIds={Array.from(selected)}
+        endpoint="/api/crm/matters/bulk-update"
+        fields={[
+          {
+            key: 'status',
+            label: 'Status',
+            type: 'select',
+            options: MATTER_STATUSES.map(s => ({ value: s, label: LABELS_MATTER_STATUS[s] })),
+          },
+          { key: 'fee_type', label: 'Fee type', type: 'text', placeholder: 'hourly / fixed / retainer' },
+        ] satisfies BulkEditField[]}
+        onApplied={() => { clearSelection(); load(); }}
+      />
+
+      {/* Stint 63.I — right-click context menu. */}
+      {contextMenu && (() => {
+        const m = contextMenu.matter;
+        const actions: CrmContextAction[] = [
+          {
+            label: 'Open detail',
+            icon: ExternalLinkIcon,
+            onClick: () => router.push(`/crm/matters/${m.id}`),
+          },
+          {
+            label: m.client_id ? 'Open client company' : 'No client linked',
+            icon: BuildingIcon,
+            disabled: !m.client_id,
+            onClick: () => { if (m.client_id) router.push(`/crm/companies/${m.client_id}`); },
+          },
+          {
+            label: m.conflict_check_done ? 'Conflict check ✓' : 'Mark conflict-check done',
+            icon: CheckIcon,
+            disabled: m.conflict_check_done,
+            onClick: () => { void patchMatter(m.id, 'conflict_check_done', true); },
+          },
+          {
+            label: 'Mark as closed',
+            disabled: m.status === 'closed' || m.status === 'archived',
+            onClick: () => { void patchMatter(m.id, 'status', 'closed'); },
+          },
+          {
+            label: 'Archive',
+            icon: Trash2Icon,
+            danger: true,
+            separatorBefore: true,
+            onClick: () => archiveMatter(m.id, m.matter_reference),
+          },
+        ];
+        return (
+          <CrmContextMenu
+            title={m.matter_reference}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            actions={actions}
+            onClose={() => setContextMenu(null)}
+          />
+        );
+      })()}
     </div>
   );
 }

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
 import Link from 'next/link';
-import { SearchIcon, PlusIcon } from 'lucide-react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { SearchIcon, PlusIcon, ExternalLinkIcon, BuildingIcon, Trash2Icon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -13,6 +14,10 @@ import { PipelineKanban } from '@/components/crm/PipelineKanban';
 import { ExportButton } from '@/components/crm/ExportButton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { DateBadge } from '@/components/crm/DateBadge';
+// Stint 63.G/H/I — port the patterns to opportunities.
+import { CrmContextMenu, type CrmContextAction } from '@/components/crm/CrmContextMenu';
+import { CrmSavedViews } from '@/components/crm/CrmSavedViews';
+import { BulkEditDrawer, type BulkEditField } from '@/components/crm/BulkEditDrawer';
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
@@ -55,14 +60,66 @@ interface Opportunity {
 }
 
 export default function OpportunitiesPage() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <OpportunitiesPageContent />
+    </Suspense>
+  );
+}
+
+function OpportunitiesPageContent() {
+  // Stint 63.G — URL-persistent filters (q, stage, view).
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [rows, setRows] = useState<Opportunity[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [q, setQ] = useState('');
-  const [stage, setStage] = useState<string>('');
+  const [q, setQ] = useState(searchParams.get('q') ?? '');
+  const [stage, setStage] = useState<string>(searchParams.get('stage') ?? '');
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [view, setView] = useState<'list' | 'kanban'>('list');
+  const [view, setView] = useState<'list' | 'kanban'>(
+    searchParams.get('view') === 'kanban' ? 'kanban' : 'list'
+  );
+  // Stint 63.I — context menu state.
+  const [contextMenu, setContextMenu] = useState<{ opp: Opportunity; x: number; y: number } | null>(null);
+  // Stint 63.H — bulk-edit drawer state.
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const toast = useToast();
+
+  // Stint 63.G — sync filter state → URL. View change is treated as
+  // navigation (push) so Back returns to the previous view; pure
+  // filters use replace so Back exits the page (mirror of stint 59.D).
+  const firstSync = useRef(true);
+  const prevView = useRef(view);
+  useEffect(() => {
+    if (firstSync.current) {
+      firstSync.current = false;
+      prevView.current = view;
+      return;
+    }
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (stage) qs.set('stage', stage);
+    if (view !== 'list') qs.set('view', view);
+    const url = qs.toString() ? `${pathname}?${qs}` : pathname;
+    if (view !== prevView.current) {
+      router.push(url, { scroll: false });
+      prevView.current = view;
+    } else {
+      router.replace(url, { scroll: false });
+    }
+  }, [q, stage, view, router, pathname]);
+
+  // currentQuery for CrmSavedViews — excludes the view toggle (saved
+  // views capture filters, not which layout you happen to be in).
+  const currentQuery = useMemo(() => {
+    const qs = new URLSearchParams();
+    if (q) qs.set('q', q);
+    if (stage) qs.set('stage', stage);
+    return qs.toString();
+  }, [q, stage]);
 
   const toggleOne = (id: string) => setSelected(prev => {
     const n = new Set(prev);
@@ -82,6 +139,19 @@ export default function OpportunitiesPage() {
   }, [q, stage]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Stint 63.I — soft-delete invoked from context menu.
+  async function archiveOpportunity(id: string, name: string) {
+    if (!confirm(`Archive "${name}"? Soft delete; restore from /crm/trash.`)) return;
+    try {
+      const res = await fetch(`/api/crm/opportunities/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      toast.success('Opportunity archived');
+      await load();
+    } catch (e) {
+      toast.error(`Archive failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
+  }
 
   async function handleStageChange(id: string, newStage: string) {
     const res = await fetch(`/api/crm/opportunities/${id}`, {
@@ -208,6 +278,11 @@ export default function OpportunitiesPage() {
             {OPPORTUNITY_STAGES.map(s => <option key={s} value={s}>{LABELS_STAGE[s]}</option>)}
           </select>
         )}
+        <CrmSavedViews
+          currentQuery={currentQuery}
+          storageKey="cifra.crm.opportunities.savedViews.v1"
+          defaultLabel="All opportunities"
+        />
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="opportunities" />
           <span className="text-xs text-ink-muted">{rows.length} opportunities</span>
@@ -260,7 +335,17 @@ export default function OpportunitiesPage() {
             </thead>
             <tbody>
               {rows.map(r => (
-                <tr key={r.id} className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}>
+                <tr
+                  key={r.id}
+                  onContextMenu={(e) => {
+                    const tgt = e.target as HTMLElement;
+                    const tag = tgt.tagName?.toLowerCase();
+                    if (tag === 'input' || tag === 'textarea' || tgt.isContentEditable) return;
+                    e.preventDefault();
+                    setContextMenu({ opp: r, x: e.clientX, y: e.clientY });
+                  }}
+                  className={`border-t border-border hover:bg-surface-alt/50 ${selected.has(r.id) ? 'bg-brand-50/40' : ''}`}
+                >
                   <td className="px-3 py-2">
                     <input
                       type="checkbox"
@@ -344,7 +429,73 @@ export default function OpportunitiesPage() {
         selectedIds={Array.from(selected)}
         onClear={clearSelection}
         onDone={() => { clearSelection(); load(); }}
+        onEditFields={() => setBulkEditOpen(true)}
       />
+
+      {/* Stint 63.H — bulk-edit drawer. */}
+      <BulkEditDrawer
+        open={bulkEditOpen}
+        onClose={() => setBulkEditOpen(false)}
+        recordType="opportunity"
+        selectedIds={Array.from(selected)}
+        endpoint="/api/crm/opportunities/bulk-update"
+        fields={[
+          {
+            key: 'stage',
+            label: 'Stage',
+            type: 'select',
+            options: OPPORTUNITY_STAGES.map(s => ({ value: s, label: LABELS_STAGE[s] })),
+          },
+          { key: 'bd_lawyer', label: 'BD lawyer', type: 'text', placeholder: 'e.g. Diego' },
+          { key: 'source', label: 'Source', type: 'text', placeholder: 'e.g. Referral, LinkedIn' },
+          { key: 'next_action_due', label: 'Next action due (YYYY-MM-DD)', type: 'text', placeholder: '2026-05-15' },
+        ] satisfies BulkEditField[]}
+        onApplied={() => { clearSelection(); load(); }}
+      />
+
+      {/* Stint 63.I — right-click context menu. */}
+      {contextMenu && (() => {
+        const o = contextMenu.opp;
+        const actions: CrmContextAction[] = [
+          {
+            label: 'Open detail',
+            icon: ExternalLinkIcon,
+            onClick: () => router.push(`/crm/opportunities/${o.id}`),
+          },
+          {
+            label: o.company_id ? 'Open company' : 'No company linked',
+            icon: BuildingIcon,
+            disabled: !o.company_id,
+            onClick: () => { if (o.company_id) router.push(`/crm/companies/${o.company_id}`); },
+          },
+          {
+            label: 'Mark as won',
+            disabled: o.stage === 'won' || o.stage === 'lost',
+            onClick: () => { void handleStageChange(o.id, 'won'); },
+          },
+          {
+            label: 'Mark as lost',
+            disabled: o.stage === 'won' || o.stage === 'lost',
+            onClick: () => { void handleStageChange(o.id, 'lost'); },
+          },
+          {
+            label: 'Archive',
+            icon: Trash2Icon,
+            danger: true,
+            separatorBefore: true,
+            onClick: () => archiveOpportunity(o.id, o.name),
+          },
+        ];
+        return (
+          <CrmContextMenu
+            title={o.name}
+            x={contextMenu.x}
+            y={contextMenu.y}
+            actions={actions}
+            onClose={() => setContextMenu(null)}
+          />
+        );
+      })()}
     </div>
   );
 }
