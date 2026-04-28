@@ -139,6 +139,12 @@ export const LABELS_TASK_PRIORITY: Record<TaskPriority, string> = {
   low:    '⬇ Low',
 };
 
+// Stint 64.G follow-up — Diego: "no hay decimales en billing, me parece
+// raro." Right call. Accounting/billing convention is ALWAYS two
+// decimals (Stripe, HubSpot, Xero, QuickBooks, Salesforce all default
+// to 2). Trailing .00 communicates "exact, not rounded" — it's not
+// noise. The DB stores numeric(14,2); we just weren't displaying the
+// cents.
 export function formatEur(n: number | string | null | undefined): string {
   if (n === null || n === undefined) return '—';
   const num = typeof n === 'string' ? parseFloat(n) : n;
@@ -146,8 +152,8 @@ export function formatEur(n: number | string | null | undefined): string {
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(num);
 }
 

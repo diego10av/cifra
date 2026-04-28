@@ -683,7 +683,7 @@ export const INVOICE_FIELDS: FieldSchema[] = [
     label: 'Amount (excl. VAT)',
     type: 'number',
     required: true,
-    placeholder: '5000',
+    placeholder: '5000.00',
   },
   {
     name: 'vat_rate',

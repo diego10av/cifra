@@ -276,6 +276,13 @@ function FieldRenderer({
       ) : field.type === 'number' ? (
         <input
           type="number"
+          // step="any" — accept arbitrary decimals (cents on amounts,
+          // fractional VAT rates). Without it, browsers default to
+          // step=1 and the spinner only increments by whole units;
+          // typed decimals still work but the UI suggests integers
+          // only. Stint 64.G follow-up after Diego asked about the
+          // missing decimals on billing.
+          step="any"
           value={(value as number | string) ?? ''}
           onChange={e => onChange(e.target.value === '' ? null : Number(e.target.value))}
           placeholder={field.placeholder}
