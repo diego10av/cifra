@@ -199,7 +199,7 @@ export function AddEntityRow({
   if (mode === 'button') {
     // Stint 51.F — Diego: "no entiendo por qué ahora no puedo añadir
     // una nueva entidad". The action existed but the label "Add entity
-    // to AVALLON" read as "associate" rather than "create". Rephrased
+    // to <FAMILY>" read as "associate" rather than "create". Rephrased
     // to explicit "+ New entity" so creating is unmistakable; "Add
     // existing" stays as the second option for when the entity already
     // lives in another family.

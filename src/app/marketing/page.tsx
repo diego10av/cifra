@@ -135,16 +135,26 @@ function Hero() {
 
 // Stint 64.B — visual mock of the Tax-Ops matrix, rendered as live HTML
 // (no image assets). Gives the landing a Factorial/Stripe-style visual
-// anchor without requiring real screenshots. Data is purely illustrative.
+// anchor without requiring real screenshots.
+//
+// CRITICAL — NEVER use real client / family / entity names from cifra's
+// production data here. The landing is publicly reachable (even if
+// noindex/nofollow + AUTH_PASSWORD-gated app), so leaking a client name
+// is a confidentiality breach. Diego's instruction (stint 64.D, post-
+// review): "no pongas nunca información de clientes en la landing
+// page a no ser que yo te diga que hay confirmación por su parte
+// para eso ser el caso." — All names below are DELIBERATELY GENERIC
+// fictional placeholders (Acme / Delta / Riverside / Harbour) with no
+// connection to any cifra client. If you ever change this mock, keep
+// the same constraint.
 function ProductMockup() {
-  // 6 rows of fake data — 3 families, varied statuses + deadlines.
   const rows: Array<{ family: string; tone: string; entity: string; status: string; statusTone: string; deadline: string; deadlineTone: string; partner: string }> = [
-    { family: 'AVALLON',   tone: 'bg-blue-100 text-blue-800',     entity: 'Avallon Holdings SARL',     status: 'Filed',          statusTone: 'bg-success-50 text-success-800',  deadline: '2026-04-30', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
-    { family: 'AVALLON',   tone: 'bg-blue-100 text-blue-800',     entity: 'Avallon MBO Fund III SCA',  status: 'Working',        statusTone: 'bg-amber-50 text-amber-800',      deadline: '2026-12-31', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
-    { family: 'PENINSULA', tone: 'bg-emerald-100 text-emerald-800', entity: 'PE1 SARL',                  status: 'Draft sent',     statusTone: 'bg-info-50 text-info-800',         deadline: '2026-12-31', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
-    { family: 'PENINSULA', tone: 'bg-emerald-100 text-emerald-800', entity: 'MBB Luxembourg SCSp',       status: 'Awaiting info',  statusTone: 'bg-amber-50 text-amber-800',      deadline: 'Today',      deadlineTone: 'text-danger-700 font-semibold', partner: 'Diego' },
-    { family: 'INVENIO',   tone: 'bg-purple-100 text-purple-800', entity: 'Invenio Partners II SCSp',  status: 'Client approved',statusTone: 'bg-info-50 text-info-800',         deadline: '2026-12-31', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
-    { family: 'MILL REEF', tone: 'bg-amber-100 text-amber-800',   entity: 'Mill Reef Capital SARL',    status: 'Filed',          statusTone: 'bg-success-50 text-success-800',  deadline: '2026-04-15', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
+    { family: 'ACME',      tone: 'bg-blue-100 text-blue-800',       entity: 'Acme Holdings SARL',         status: 'Filed',          statusTone: 'bg-success-50 text-success-800', deadline: '2026-04-30', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
+    { family: 'ACME',      tone: 'bg-blue-100 text-blue-800',       entity: 'Acme Sub I SCA',             status: 'Working',        statusTone: 'bg-amber-50 text-amber-800',     deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
+    { family: 'DELTA',     tone: 'bg-emerald-100 text-emerald-800', entity: 'Delta Fund I SCSp',          status: 'Draft sent',     statusTone: 'bg-info-50 text-info-800',       deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
+    { family: 'DELTA',     tone: 'bg-emerald-100 text-emerald-800', entity: 'Delta Co-Invest SCSp',       status: 'Awaiting info',  statusTone: 'bg-amber-50 text-amber-800',     deadline: 'Today',      deadlineTone: 'text-danger-700 font-semibold', partner: 'Sample' },
+    { family: 'RIVERSIDE', tone: 'bg-purple-100 text-purple-800',   entity: 'Riverside Partners II SCSp', status: 'Client approved',statusTone: 'bg-info-50 text-info-800',       deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
+    { family: 'HARBOUR',   tone: 'bg-amber-100 text-amber-800',     entity: 'Harbour Capital SARL',       status: 'Filed',          statusTone: 'bg-success-50 text-success-800', deadline: '2026-04-15', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
   ];
   return (
     <div className="mt-12 md:mt-16 mx-auto max-w-[960px]">

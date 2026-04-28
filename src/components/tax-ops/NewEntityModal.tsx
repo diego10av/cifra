@@ -73,7 +73,7 @@ interface Props {
   onClose: () => void;
   /** Pre-fill the family selector when the modal is opened from a
    *  context that already knows the family (e.g. opened from inside
-   *  an Avallon matrix). */
+   *  a specific family's matrix view). */
   presetFamilyId?: string | null;
   /** Called after a successful create with the new entity id. The
    *  caller decides whether to navigate, refetch a list, etc. */
