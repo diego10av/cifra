@@ -149,12 +149,12 @@ function Hero() {
 // the same constraint.
 function ProductMockup() {
   const rows: Array<{ family: string; tone: string; entity: string; status: string; statusTone: string; deadline: string; deadlineTone: string; partner: string }> = [
-    { family: 'ACME',      tone: 'bg-blue-100 text-blue-800',       entity: 'Acme Holdings SARL',         status: 'Filed',          statusTone: 'bg-success-50 text-success-800', deadline: '2026-04-30', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
-    { family: 'ACME',      tone: 'bg-blue-100 text-blue-800',       entity: 'Acme Sub I SCA',             status: 'Working',        statusTone: 'bg-amber-50 text-amber-800',     deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
-    { family: 'DELTA',     tone: 'bg-emerald-100 text-emerald-800', entity: 'Delta Fund I SCSp',          status: 'Draft sent',     statusTone: 'bg-info-50 text-info-800',       deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
-    { family: 'DELTA',     tone: 'bg-emerald-100 text-emerald-800', entity: 'Delta Co-Invest SCSp',       status: 'Awaiting info',  statusTone: 'bg-amber-50 text-amber-800',     deadline: 'Today',      deadlineTone: 'text-danger-700 font-semibold', partner: 'Sample' },
-    { family: 'RIVERSIDE', tone: 'bg-purple-100 text-purple-800',   entity: 'Riverside Partners II SCSp', status: 'Client approved',statusTone: 'bg-info-50 text-info-800',       deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
-    { family: 'HARBOUR',   tone: 'bg-amber-100 text-amber-800',     entity: 'Harbour Capital SARL',       status: 'Filed',          statusTone: 'bg-success-50 text-success-800', deadline: '2026-04-15', deadlineTone: 'text-ink-soft',                 partner: 'Sample' },
+    { family: 'ACME',      tone: 'bg-blue-100 text-blue-800',       entity: 'Acme Holdings SARL',         status: 'Filed',          statusTone: 'bg-success-50 text-success-800', deadline: '2026-04-30', deadlineTone: 'text-ink-soft',                 partner: 'Arturo' },
+    { family: 'ACME',      tone: 'bg-blue-100 text-blue-800',       entity: 'Acme Sub I SCA',             status: 'Working',        statusTone: 'bg-amber-50 text-amber-800',     deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Arturo' },
+    { family: 'DELTA',     tone: 'bg-emerald-100 text-emerald-800', entity: 'Delta Fund I SCSp',          status: 'Draft sent',     statusTone: 'bg-info-50 text-info-800',       deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Arturo' },
+    { family: 'DELTA',     tone: 'bg-emerald-100 text-emerald-800', entity: 'Delta Co-Invest SCSp',       status: 'Awaiting info',  statusTone: 'bg-amber-50 text-amber-800',     deadline: 'Today',      deadlineTone: 'text-danger-700 font-semibold', partner: 'Arturo' },
+    { family: 'RIVERSIDE', tone: 'bg-purple-100 text-purple-800',   entity: 'Riverside Partners II SCSp', status: 'Client approved',statusTone: 'bg-info-50 text-info-800',       deadline: '2026-12-31', deadlineTone: 'text-ink-soft',                 partner: 'Arturo' },
+    { family: 'HARBOUR',   tone: 'bg-amber-100 text-amber-800',     entity: 'Harbour Capital SARL',       status: 'Filed',          statusTone: 'bg-success-50 text-success-800', deadline: '2026-04-15', deadlineTone: 'text-ink-soft',                 partner: 'Arturo' },
   ];
   return (
     <div className="mt-12 md:mt-16 mx-auto max-w-[960px]">
@@ -368,7 +368,7 @@ function Depth() {
           <div className="md:col-span-7">
             <dl className="grid grid-cols-2 gap-px bg-[#EFEAE2] rounded-xl overflow-hidden border border-[#EFEAE2]">
               <StatCell value="32+" label="classification rules · each citing LTVA + CJEU + circular" />
-              <StatCell value="60+" label="legal sources tracked, with review dates" />
+              <StatCell value="100+" label="legal sources tracked, with review dates" />
               <StatCell value="700+" label="regression tests · run on every commit" />
               <StatCell value="10 yr" label="retention-ready audit trail · AED-defensible" />
             </dl>
