@@ -55,6 +55,11 @@ export default function TasksPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('');
   const [priority, setPriority] = useState<string>('');
+  // Stint 64.C — "Due window" preset filter. Answers Diego's daily
+  // question: "qué llevo retrasado / qué hago hoy / qué viene esta
+  // semana?". Filter is applied client-side over the loaded rows.
+  type DueWindow = '' | 'overdue' | 'today' | 'this_week' | 'next_week' | 'none';
+  const [dueWindow, setDueWindow] = useState<DueWindow>('');
   const [newOpen, setNewOpen] = useState(false);
   const toast = useToast();
 
@@ -117,6 +122,33 @@ export default function TasksPage() {
 
   if (rows === null) return <PageSkeleton />;
 
+  // Stint 64.C — Due window filter computed client-side. Returns
+  // a predicate over a row that respects today (LOCAL date, not UTC,
+  // so a Monday morning in CET still shows Mondays as "today" even if
+  // the deploy is in UTC).
+  const todayStr = new Date().toISOString().slice(0, 10);
+  function isInDueWindow(r: Task): boolean {
+    if (!dueWindow) return true;
+    if (dueWindow === 'none') return r.due_date === null;
+    if (!r.due_date) return false;
+    if (dueWindow === 'overdue') {
+      return r.due_date < todayStr
+        && r.status !== 'done' && r.status !== 'cancelled';
+    }
+    if (dueWindow === 'today') {
+      return r.due_date === todayStr;
+    }
+    // this_week / next_week — compute calendar windows from today.
+    const today = new Date(todayStr + 'T00:00:00');
+    const due = new Date(r.due_date + 'T00:00:00');
+    const days = Math.floor((due.getTime() - today.getTime()) / 86400000);
+    if (dueWindow === 'this_week')  return days >= 0 && days <= 6;
+    if (dueWindow === 'next_week')  return days >= 7 && days <= 13;
+    return true;
+  }
+
+  const filteredRows = rows.filter(isInDueWindow);
+
   const overdue = rows.filter(r => r.due_date && new Date(r.due_date) < new Date() && r.status !== 'done' && r.status !== 'cancelled').length;
   const dueToday = rows.filter(r => r.due_date === new Date().toISOString().slice(0, 10)).length;
 
@@ -153,14 +185,31 @@ export default function TasksPage() {
           <option value="">All priorities</option>
           {TASK_PRIORITIES.map(p => <option key={p} value={p}>{LABELS_TASK_PRIORITY[p]}</option>)}
         </select>
+        {/* Stint 64.C — Due window preset. The most accionable filter
+            in the CRM: "what do I do today / this week / what's late?". */}
+        <label className="inline-flex items-center gap-1.5 text-sm">
+          <span className="text-ink-muted">Due:</span>
+          <select
+            value={dueWindow}
+            onChange={e => setDueWindow(e.target.value as DueWindow)}
+            className="px-2 py-1.5 text-sm border border-border rounded-md bg-white"
+          >
+            <option value="">All</option>
+            <option value="overdue">Overdue</option>
+            <option value="today">Today</option>
+            <option value="this_week">This week</option>
+            <option value="next_week">Next week</option>
+            <option value="none">No due date</option>
+          </select>
+        </label>
         <div className="ml-auto">
           <ExportButton entity="tasks" />
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {filteredRows.length === 0 ? (
         (() => {
-          const filtersActive = status !== '' || priority !== '';
+          const filtersActive = status !== '' || priority !== '' || dueWindow !== '';
           return (
             <EmptyState
               illustration="inbox"
@@ -191,7 +240,7 @@ export default function TasksPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(r => {
+              {filteredRows.map(r => {
                 const isDone = r.status === 'done';
                 return (
                   <tr key={r.id} className={`border-t border-border hover:bg-surface-alt/50 ${isDone ? 'opacity-60' : ''}`}>

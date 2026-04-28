@@ -78,6 +78,11 @@ function OpportunitiesPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState(searchParams.get('q') ?? '');
   const [stage, setStage] = useState<string>(searchParams.get('stage') ?? '');
+  // Stint 64.C — BD lawyer filter. Answers Diego's question "qué deals
+  // lleva quién?" when there's >1 person on the team. Filter is
+  // populated dynamically from the rows present in data (never offers
+  // empty options).
+  const [bdLawyerFilter, setBdLawyerFilter] = useState<string>(searchParams.get('bd_lawyer') ?? '');
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [view, setView] = useState<'list' | 'kanban'>(
@@ -103,6 +108,7 @@ function OpportunitiesPageContent() {
     const qs = new URLSearchParams();
     if (q) qs.set('q', q);
     if (stage) qs.set('stage', stage);
+    if (bdLawyerFilter) qs.set('bd_lawyer', bdLawyerFilter);
     if (view !== 'list') qs.set('view', view);
     const url = qs.toString() ? `${pathname}?${qs}` : pathname;
     if (view !== prevView.current) {
@@ -111,7 +117,19 @@ function OpportunitiesPageContent() {
     } else {
       router.replace(url, { scroll: false });
     }
-  }, [q, stage, view, router, pathname]);
+  }, [q, stage, bdLawyerFilter, view, router, pathname]);
+
+  // Stint 64.C — bdLawyer dropdown options come from the actual data,
+  // sorted, no empties. Same pattern as `countriesInData` in companies
+  // (HubSpot principle: never offer filter options that filter to zero).
+  const bdLawyersInData = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows ?? []) {
+      const v = (r as Opportunity & { bd_lawyer?: string | null }).bd_lawyer;
+      if (v) set.add(v);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
 
   // currentQuery for CrmSavedViews — excludes the view toggle (saved
   // views capture filters, not which layout you happen to be in).
@@ -119,8 +137,19 @@ function OpportunitiesPageContent() {
     const qs = new URLSearchParams();
     if (q) qs.set('q', q);
     if (stage) qs.set('stage', stage);
+    if (bdLawyerFilter) qs.set('bd_lawyer', bdLawyerFilter);
     return qs.toString();
-  }, [q, stage]);
+  }, [q, stage, bdLawyerFilter]);
+
+  // Stint 64.C — apply bd_lawyer filter client-side (API returns the
+  // full set scoped to q + stage; bd_lawyer is cheap to filter locally).
+  const filteredRows = useMemo(() => {
+    if (!rows) return null;
+    if (!bdLawyerFilter) return rows;
+    return rows.filter(r =>
+      (r as Opportunity & { bd_lawyer?: string | null }).bd_lawyer === bdLawyerFilter
+    );
+  }, [rows, bdLawyerFilter]);
 
   const toggleOne = (id: string) => setSelected(prev => {
     const n = new Set(prev);
@@ -279,6 +308,16 @@ function OpportunitiesPageContent() {
             {OPPORTUNITY_STAGES.map(s => <option key={s} value={s}>{LABELS_STAGE[s]}</option>)}
           </select>
         )}
+        {/* Stint 64.C — BD lawyer filter. Only shown when there's
+            actual data to filter on (avoid an empty dropdown). */}
+        {view === 'list' && bdLawyersInData.length > 0 && (
+          <select value={bdLawyerFilter} onChange={e => setBdLawyerFilter(e.target.value)}
+            className="px-2 py-1.5 text-sm border border-border rounded-md bg-white"
+            aria-label="Filter by BD lawyer">
+            <option value="">All BD lawyers</option>
+            {bdLawyersInData.map(name => <option key={name} value={name}>{name}</option>)}
+          </select>
+        )}
         <CrmSavedViews
           currentQuery={currentQuery}
           storageKey="cifra.crm.opportunities.savedViews.v1"
@@ -286,13 +325,16 @@ function OpportunitiesPageContent() {
         />
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="opportunities" />
-          <span className="text-xs text-ink-muted">{rows.length} opportunities</span>
+          <span className="text-xs text-ink-muted">
+            {(filteredRows ?? rows).length}
+            {filteredRows && filteredRows.length !== rows.length ? ` of ${rows.length}` : ''} opportunities
+          </span>
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {(filteredRows ?? rows).length === 0 ? (
         (() => {
-          const filtersActive = q !== '' || stage !== '';
+          const filtersActive = q !== '' || stage !== '' || bdLawyerFilter !== '';
           return (
             <EmptyState
               illustration="reports"
@@ -318,8 +360,8 @@ function OpportunitiesPageContent() {
                 <th className="px-3 py-2 w-8">
                   <input
                     type="checkbox"
-                    checked={selected.size > 0 && selected.size === rows.length}
-                    ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < rows.length; }}
+                    checked={selected.size > 0 && selected.size === (filteredRows?.length ?? rows.length)}
+                    ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < (filteredRows?.length ?? rows.length); }}
                     onChange={e => toggleAll(e.target.checked)}
                     className="h-4 w-4 accent-brand-500 cursor-pointer"
                   />
@@ -335,7 +377,7 @@ function OpportunitiesPageContent() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(r => (
+              {(filteredRows ?? rows).map(r => (
                 <tr
                   key={r.id}
                   onContextMenu={(e) => {
