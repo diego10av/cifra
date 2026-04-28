@@ -15,6 +15,9 @@ import {
   useMatrixData, applyStatusChange, useClientGroups, filterEntities,
   makeReorderHandler,
 } from '@/components/tax-ops/useMatrixData';
+import {
+  cellNeedsFollowUp, PROVISION_WAITING_STATES, FILING_WAITING_STATES,
+} from '@/components/tax-ops/follow-up';
 import { yearOptions } from '@/components/tax-ops/yearOptions';
 import {
   partnerInChargeColumn, associatesWorkingColumn, lastActionColumn, contactsColumn, commentsColumn,
@@ -36,6 +39,7 @@ export default function CitPage() {
   const [partnerFilter, setPartnerFilter] = useState('all');
   const [associateFilter, setAssociateFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState(''); // Stint 64
+  const [needsFollowUp, setNeedsFollowUp] = useState(false); // Stint 64.L
   const [editingFilingId, setEditingFilingId] = useState<string | null>(null);
   const toast = useToast();
   const { groups, refetch: refetchGroups } = useClientGroups();
@@ -148,7 +152,30 @@ export default function CitPage() {
 
   const periodLabel = String(year);
   const tolerance = current.data?.admin_tolerance_days ?? 0;
-  const filtered = filterEntities({
+
+  // Stint 64.L Layer 2 — set of entity_ids that have at least one
+  // stuck cell (amber or red follow-up chip). Computed across NWT
+  // Review + CIT Provision + NWT Provision because that's where the
+  // chip currently fires. The CIT main filing isn't included yet —
+  // when Diego asks we'll add the chip there too.
+  const stuckEntityIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const e of nwt.data?.entities ?? []) {
+      const c = getCell(e, periodLabel);
+      if (cellNeedsFollowUp(c?.status, c?.last_action_at, FILING_WAITING_STATES)) ids.add(e.id);
+    }
+    for (const e of citProvision.data?.entities ?? []) {
+      const c = getCell(e, periodLabel);
+      if (cellNeedsFollowUp(c?.status, c?.last_action_at, PROVISION_WAITING_STATES)) ids.add(e.id);
+    }
+    for (const e of nwtProvision.data?.entities ?? []) {
+      const c = getCell(e, periodLabel);
+      if (cellNeedsFollowUp(c?.status, c?.last_action_at, PROVISION_WAITING_STATES)) ids.add(e.id);
+    }
+    return ids;
+  }, [nwt.data, citProvision.data, nwtProvision.data, periodLabel]);
+
+  let filtered = filterEntities({
     entities: current.data?.entities ?? [],
     status: statusFilter,
     partner: partnerFilter,
@@ -156,6 +183,9 @@ export default function CitPage() {
     periodLabels: [periodLabel],
     query: searchQuery,
   });
+  if (needsFollowUp) {
+    filtered = filtered.filter(e => stuckEntityIds.has(e.id));
+  }
   const columns: MatrixColumn[] = [
     familyColumn({
       groups,
@@ -422,6 +452,9 @@ export default function CitPage() {
         entitiesForFilters={current.data?.entities ?? []}
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
+        needsFollowUp={needsFollowUp}
+        onNeedsFollowUpChange={setNeedsFollowUp}
+        needsFollowUpCount={stuckEntityIds.size}
       />
 
       {current.error && <CrmErrorBox message={current.error} onRetry={refetchAll} />}

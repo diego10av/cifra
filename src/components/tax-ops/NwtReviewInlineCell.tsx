@@ -24,24 +24,13 @@ import Link from 'next/link';
 import {
   FilingStatusBadge, filingStatusLabel, FILING_STATUSES,
 } from './FilingStatusBadge';
-import { followUpSignal } from './follow-up';
+import { followUpSignal, FILING_WAITING_STATES } from './follow-up';
 import { FollowUpChip } from './FollowUpChip';
 
-// Stint 64.K — states where we're waiting on the client (not on
-// Diego). After these sit > 7 days without a status change the
-// follow-up chip nudges Diego.
-//   info_to_request               — we haven't asked the client yet
-//   info_requested                — we asked, they owe a response
-//   draft_sent                    — review delivered, awaiting approval
-//   awaiting_client_clarification — explicit wait state
-// NOT counted: working / partially_approved / client_approved (Diego's
-//   queue or progressing internally) and filed (terminal).
-const NWT_WAITING_STATES = new Set([
-  'info_to_request',
-  'info_requested',
-  'draft_sent',
-  'awaiting_client_clarification',
-]);
+// Stint 64.K + 64.L — the "waiting on client" state set lives in
+// `follow-up.ts` so the toolbar's "Needs follow-up" toggle uses
+// exactly the same semantics as the chip. NWT Review uses the
+// generic filing_status enum, so it imports FILING_WAITING_STATES.
 
 interface NwtCellData {
   obligation_id: string | null;
@@ -123,7 +112,7 @@ export function NwtReviewInlineCell({
   // State B or C: has obligation, with or without filing
   const statusValue = cell.status ?? 'info_to_request';
   const signal = followUpSignal(
-    NWT_WAITING_STATES.has(statusValue),
+    FILING_WAITING_STATES.has(statusValue),
     cell.last_action_at,
   );
   const tooltip = [

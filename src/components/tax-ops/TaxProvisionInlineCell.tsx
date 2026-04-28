@@ -43,7 +43,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { followUpSignal } from './follow-up';
+import { followUpSignal, PROVISION_WAITING_STATES } from './follow-up';
 import { FollowUpChip } from './FollowUpChip';
 
 interface ProvisionCellData {
@@ -109,14 +109,15 @@ const PROVISION_STATUSES = [
 ];
 
 // Stint 64.K — states where we're waiting on the client (not on
-// Diego). The follow-up chip turns amber/red after these sit too
-// long without a status change.
+// Diego) live in `follow-up.ts` (PROVISION_WAITING_STATES). The
+// follow-up chip turns amber/red after these sit too long without
+// a status change. Imported above; redeclared here only as a
+// reminder of which states they are:
 //   awaiting_fs       — client owes us the draft FS
 //   sent              — we delivered the provision, client owes
 //                       confirmation or comments
 // NOT counted: fs_received (Diego's queue), working (Diego's queue),
 //   comments_received (Diego's queue), finalized (terminal).
-const PROVISION_WAITING_STATES = new Set(['awaiting_fs', 'sent']);
 
 function provisionStatusLabel(s: string): string {
   return PROVISION_STATUS_META[s]?.label ?? s.replace(/_/g, ' ');

@@ -58,3 +58,34 @@ export function followUpSignal(
     message: `${days} days stuck waiting on the client. Likely dropped — follow up urgently.`,
   };
 }
+
+// Stint 64.L Layer 2 — "Needs follow-up" filter helpers.
+//
+// These run at the entity (row) level rather than the cell level: a
+// row "needs follow-up" if ANY tracked cell on it has been waiting on
+// the client for ≥ 7 days. Used by the toolbar toggle on /tax-ops/cit
+// to filter the matrix down to rows where Diego should chase someone.
+
+/** Returns true when a single cell triggers an amber-or-red chip. */
+export function cellNeedsFollowUp(
+  status: string | null | undefined,
+  lastActionAt: string | null | undefined,
+  waitingStates: Set<string>,
+): boolean {
+  if (!status || !lastActionAt) return false;
+  if (!waitingStates.has(status)) return false;
+  const sig = followUpSignal(true, lastActionAt);
+  return sig.tone !== 'none';
+}
+
+/** Provision-specific waiting states. Mirrors TaxProvisionInlineCell. */
+export const PROVISION_WAITING_STATES = new Set(['awaiting_fs', 'sent']);
+
+/** NWT-review / generic-filing waiting states. Mirrors NwtReviewInlineCell.
+ *  Reused for any cell that uses the global filing_status enum. */
+export const FILING_WAITING_STATES = new Set([
+  'info_to_request',
+  'info_requested',
+  'draft_sent',
+  'awaiting_client_clarification',
+]);

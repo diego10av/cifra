@@ -84,6 +84,17 @@ interface Props {
    * filters.
    */
   extraFiltersAfterYear?: React.ReactNode;
+  /**
+   * Stint 64.L — "Needs follow-up" toggle. When wired (both props set)
+   * the toolbar renders a chip-style button next to the filters.
+   * Pages compute `needsFollowUpCount` from their own data (which cells
+   * count as stuck depends on which columns are tracked) and decide what
+   * `needsFollowUp = true` means in their own filterEntities call.
+   * Render-only here — the parent owns the logic.
+   */
+  needsFollowUp?: boolean;
+  onNeedsFollowUpChange?: (next: boolean) => void;
+  needsFollowUpCount?: number;
 }
 
 export function MatrixToolbar({
@@ -98,6 +109,7 @@ export function MatrixToolbar({
   periodOptions, periodFilter, onPeriodFilterChange, periodLabel = 'Period',
   searchQuery, onSearchQueryChange,
   extraFiltersAfterYear,
+  needsFollowUp, onNeedsFollowUpChange, needsFollowUpCount,
 }: Props) {
   const [busy, setBusy] = useState(false);
   // Stint 51.G — global "+ New entity" CTA on every matrix toolbar so
@@ -265,15 +277,43 @@ export function MatrixToolbar({
           />
         </label>
       )}
+      {/* Stint 64.L — "Needs follow-up" toggle. Diego: "como hacer
+          seguimiento del estado sin que se me pase nada". Pressing
+          this filters the matrix to entities with at least one stuck
+          cell (amber or red chip) on any tracked column. Hidden when
+          the parent doesn't wire the props (other matrices that don't
+          have follow-up tracking yet). */}
+      {onNeedsFollowUpChange && (
+        <button
+          type="button"
+          onClick={() => onNeedsFollowUpChange(!needsFollowUp)}
+          aria-pressed={!!needsFollowUp}
+          className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium border transition-colors ${
+            needsFollowUp
+              ? 'bg-amber-100 text-amber-900 border-amber-300 hover:bg-amber-100/80'
+              : 'bg-surface text-ink-soft border-border hover:bg-surface-alt/50'
+          }`}
+          title={needsFollowUp
+            ? 'Showing only entities that need follow-up (amber/red chips). Click to clear.'
+            : `Show only entities where some cell has been stuck waiting on the client for ≥ 7 days. ${needsFollowUpCount ?? 0} match.`}
+        >
+          ⏰ Needs follow-up
+          {needsFollowUpCount !== undefined && needsFollowUpCount > 0 && (
+            <span className="text-2xs tabular-nums opacity-70">({needsFollowUpCount})</span>
+          )}
+        </button>
+      )}
       {(statusFilter && statusFilter !== 'all')
         || (partnerFilter && partnerFilter !== 'all')
-        || (associateFilter && associateFilter !== 'all') ? (
+        || (associateFilter && associateFilter !== 'all')
+        || needsFollowUp ? (
         <button
           type="button"
           onClick={() => {
             onStatusFilterChange?.('all');
             onPartnerFilterChange?.('all');
             onAssociateFilterChange?.('all');
+            onNeedsFollowUpChange?.(false);
           }}
           className="text-xs text-ink-muted hover:text-ink underline"
           title="Clear all filters"
