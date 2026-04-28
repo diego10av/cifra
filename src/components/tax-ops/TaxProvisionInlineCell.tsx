@@ -1,12 +1,16 @@
 'use client';
 
 // ════════════════════════════════════════════════════════════════════════
-// TaxProvisionInlineCell — stint 64.J
+// TaxProvisionInlineCell — stint 64.J + 64.L
 //
-// Cell shown on /tax-ops/cit for the "Tax Provision {year}" column.
-// Tracks the interim CIT tax-provision calculation that some clients
-// (≈ 20 of 160 entities at writing) need before their year-end financial
-// statements close. Diego's words:
+// Generic tax-provision cell. Used twice on /tax-ops/cit:
+//   • "CIT Provision {year}" → tax_type='cit_annual', service_kind='provision'
+//   • "NWT Provision {year}" → tax_type='nwt_annual', service_kind='provision'
+//
+// Tracks the interim provision calculation that some clients (~20 of
+// 160 entities at writing) ask for before their year-end financial
+// statements close. Same workflow for both taxes — Diego confirmed
+// 2026-04-28. Diego's words:
 //
 //   "Hay a veces que algunos clientes nos mandan un borrador de los
 //   estados financieros para que calculemos las tax provisions. El

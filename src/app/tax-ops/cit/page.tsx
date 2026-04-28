@@ -48,12 +48,20 @@ export default function CitPage() {
     tax_type: 'nwt_annual', year, period_pattern: 'annual',
     service_kind: 'review', show_inactive: true,
   });
-  // Stint 64.J — Tax Provision column. Same entity set, service_kind='provision'
+  // Stint 64.J — CIT Provision column. Same entity set, service_kind='provision'
   // on tax_type='cit_annual'. ~20/160 entities opt in (Diego's estimate); the
   // rest render "+ Opt in" so he can attach a provision when a client suddenly
   // sends a draft FS mid-year.
-  const provision = useMatrixData({
+  const citProvision = useMatrixData({
     tax_type: 'cit_annual', year, period_pattern: 'annual',
+    service_kind: 'provision', show_inactive: true,
+  });
+  // Stint 64.L — NWT Provision column. Identical workflow to CIT Provision
+  // but tracks the interim Net Wealth Tax (Form IF) calc separately, since
+  // CIT and NWT can move on different timelines (a client may send draft FS
+  // and want only the NWT calc, or vice versa).
+  const nwtProvision = useMatrixData({
+    tax_type: 'nwt_annual', year, period_pattern: 'annual',
     service_kind: 'provision', show_inactive: true,
   });
 
@@ -77,22 +85,33 @@ export default function CitPage() {
     return m;
   }, [nwt.data, year]);
 
-  // Map entity_id → Tax Provision cell + obligation_id (stint 64.J).
-  const provisionCellByEntity = useMemo(() => {
-    if (!provision.data) return new Map<string, { obligation_id: string | null; cell: ReturnType<typeof getCell> }>();
+  // Map entity_id → CIT Provision cell + obligation_id (stint 64.J).
+  const citProvisionCellByEntity = useMemo(() => {
+    if (!citProvision.data) return new Map<string, { obligation_id: string | null; cell: ReturnType<typeof getCell> }>();
     const m = new Map<string, { obligation_id: string | null; cell: ReturnType<typeof getCell> }>();
-    for (const e of provision.data.entities) {
+    for (const e of citProvision.data.entities) {
       m.set(e.id, { obligation_id: e.obligation_id, cell: getCell(e, String(year)) });
     }
     return m;
-  }, [provision.data, year]);
+  }, [citProvision.data, year]);
+
+  // Map entity_id → NWT Provision cell + obligation_id (stint 64.L).
+  const nwtProvisionCellByEntity = useMemo(() => {
+    if (!nwtProvision.data) return new Map<string, { obligation_id: string | null; cell: ReturnType<typeof getCell> }>();
+    const m = new Map<string, { obligation_id: string | null; cell: ReturnType<typeof getCell> }>();
+    for (const e of nwtProvision.data.entities) {
+      m.set(e.id, { obligation_id: e.obligation_id, cell: getCell(e, String(year)) });
+    }
+    return m;
+  }, [nwtProvision.data, year]);
 
   const refetchAll = useCallback(() => {
     current.refetch();
     prior.refetch();
     nwt.refetch();
-    provision.refetch();
-  }, [current, prior, nwt, provision]);
+    citProvision.refetch();
+    nwtProvision.refetch();
+  }, [current, prior, nwt, citProvision, nwtProvision]);
 
   async function patchFiling(filingId: string, patch: Record<string, unknown>): Promise<void> {
     const res = await fetch(`/api/tax-ops/filings/${filingId}`, {
@@ -248,15 +267,18 @@ export default function CitPage() {
       },
     },
     {
-      // Stint 64.J — Tax Provision column. Mirrors NWT Review pattern
+      // Stint 64.J / 64.L — CIT Provision column. Mirrors NWT Review pattern
       // (opt-in / status dropdown / opt-out). Uses provision-specific
       // status enum: awaiting_fs → fs_received → working → sent →
       // (optional) comments_received → working → sent → finalized.
-      key: `tax_provision_${year}`,
-      label: `Tax Provision ${year}`,
+      // Renamed from "Tax Provision" → "CIT Provision" in 64.L when
+      // NWT Provision joined the matrix; "Tax provision" is ambiguous
+      // when there's both.
+      key: `cit_provision_${year}`,
+      label: `CIT Provision ${year}`,
       widthClass: 'w-[200px]',
       render: (e) => {
-        const info = provisionCellByEntity.get(e.id) ?? { obligation_id: null, cell: null };
+        const info = citProvisionCellByEntity.get(e.id) ?? { obligation_id: null, cell: null };
         return (
           <TaxProvisionInlineCell
             entityId={e.id}
@@ -275,10 +297,10 @@ export default function CitPage() {
                 period_pattern: 'annual',
                 service_kind: 'provision',
               });
-              provision.refetch();
+              citProvision.refetch();
             }}
             onCreateFiling={async (nextStatus) => {
-              const cur = provisionCellByEntity.get(e.id);
+              const cur = citProvisionCellByEntity.get(e.id);
               if (!cur?.obligation_id) {
                 throw new Error('Opt in first, then set a status');
               }
@@ -287,23 +309,86 @@ export default function CitPage() {
                 period_label: periodLabel,
                 status: nextStatus,
               });
-              provision.refetch();
+              citProvision.refetch();
             }}
             onUpdateStatus={async (nextStatus) => {
-              const cur = provisionCellByEntity.get(e.id);
+              const cur = citProvisionCellByEntity.get(e.id);
               if (!cur?.cell?.filing_id) return;
               await patchFiling(cur.cell.filing_id, { status: nextStatus });
-              provision.refetch();
+              citProvision.refetch();
             }}
             onOptOut={async () => {
-              const cur = provisionCellByEntity.get(e.id);
+              const cur = citProvisionCellByEntity.get(e.id);
               if (!cur?.obligation_id) return;
               const res = await fetch(`/api/tax-ops/obligations/${cur.obligation_id}`, { method: 'DELETE' });
               if (!res.ok) {
                 const b = await res.json().catch(() => ({}));
                 throw new Error(b?.error ?? `Opt-out failed (${res.status})`);
               }
-              provision.refetch();
+              citProvision.refetch();
+            }}
+          />
+        );
+      },
+    },
+    {
+      // Stint 64.L — NWT Provision column. Same workflow as CIT
+      // Provision but for the Net Wealth Tax (Form IF) interim calc.
+      // Tracked separately because a client may opt in to one and
+      // not the other (some clients only need NWT provision; others
+      // only CIT; many ask for both at the same time).
+      key: `nwt_provision_${year}`,
+      label: `NWT Provision ${year}`,
+      widthClass: 'w-[200px]',
+      render: (e) => {
+        const info = nwtProvisionCellByEntity.get(e.id) ?? { obligation_id: null, cell: null };
+        return (
+          <TaxProvisionInlineCell
+            entityId={e.id}
+            year={year}
+            cell={{
+              obligation_id: info.obligation_id,
+              filing_id: info.cell?.filing_id ?? null,
+              status: info.cell?.status ?? null,
+              comments: info.cell?.comments ?? null,
+              last_action_at: info.cell?.last_action_at ?? null,
+            }}
+            onOptIn={async () => {
+              await createObligation({
+                entity_id: e.id,
+                tax_type: 'nwt_annual',
+                period_pattern: 'annual',
+                service_kind: 'provision',
+              });
+              nwtProvision.refetch();
+            }}
+            onCreateFiling={async (nextStatus) => {
+              const cur = nwtProvisionCellByEntity.get(e.id);
+              if (!cur?.obligation_id) {
+                throw new Error('Opt in first, then set a status');
+              }
+              await createFiling({
+                obligation_id: cur.obligation_id,
+                period_label: periodLabel,
+                status: nextStatus,
+              });
+              nwtProvision.refetch();
+            }}
+            onUpdateStatus={async (nextStatus) => {
+              const cur = nwtProvisionCellByEntity.get(e.id);
+              if (!cur?.cell?.filing_id) return;
+              await patchFiling(cur.cell.filing_id, { status: nextStatus });
+              nwtProvision.refetch();
+            }}
+            onOptOut={async () => {
+              const cur = nwtProvisionCellByEntity.get(e.id);
+              if (!cur?.obligation_id) return;
+              const res = await fetch(`/api/tax-ops/obligations/${cur.obligation_id}`, { method: 'DELETE' });
+              if (!res.ok) {
+                const b = await res.json().catch(() => ({}));
+                throw new Error(b?.error ?? `Opt-out failed (${res.status})`);
+              }
+              nwtProvision.refetch();
             }}
           />
         );
@@ -317,7 +402,7 @@ export default function CitPage() {
     <div className="space-y-3">
       <PageHeader
         title="Form 500"
-        subtitle={`Annual CIT (IRC) · Municipal Business Tax (ICC) · Net Wealth Tax (IF) — one unified return per entity. Tax Provision ${year}, Assessment ${year - 1} and NWT Review ${year} all editable inline. Click any status cell to update.`}
+        subtitle={`Annual CIT (IRC) · Municipal Business Tax (ICC) · Net Wealth Tax (IF) — one unified return per entity. Assessment ${year - 1}, NWT Review ${year}, CIT Provision ${year} and NWT Provision ${year} all editable inline. Click any status cell to update.`}
       />
 
       <MatrixToolbar
