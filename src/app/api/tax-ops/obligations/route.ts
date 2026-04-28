@@ -23,7 +23,7 @@ async function insertObligation(
   entityId: string,
   taxType: string,
   periodPattern: string,
-  serviceKind: 'filing' | 'review',
+  serviceKind: 'filing' | 'review' | 'provision',
 ): Promise<string> {
   const id = generateId();
   await execute(
@@ -48,7 +48,13 @@ export async function POST(request: NextRequest) {
     entity_id?: string;
     tax_type?: string;
     period_pattern?: string;
-    service_kind?: 'filing' | 'review';
+    // Stint 64.J — 'provision' = interim CIT tax-provision calc
+    // (Form 500). Diego: "a veces los clientes nos mandan un borrador
+    // de los estados financieros para que calculemos las tax
+    // provisions… normalmente ya no pasa nada más, ya lo siguiente
+    // es que nos suele mandar los estados financieros finales y
+    // hacemos la declaración del impuesto a sociedades final."
+    service_kind?: 'filing' | 'review' | 'provision';
   };
 
   if (!body.entity_id || !body.tax_type || !body.period_pattern) {

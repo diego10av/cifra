@@ -23,7 +23,8 @@ export interface MatrixQuery {
   tax_type: string;
   year: number;
   period_pattern?: string;
-  service_kind?: 'filing' | 'review';
+  // Stint 64.J adds 'provision' for the new CIT tax-provision column.
+  service_kind?: 'filing' | 'review' | 'provision';
   show_inactive?: boolean;
 }
 
