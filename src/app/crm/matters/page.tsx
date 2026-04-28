@@ -163,7 +163,23 @@ export default function MattersPage() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState illustration="folder" title="No matters yet" description="Matters typically arrive from won opportunities, or direct from Notion import." />
+        (() => {
+          const filtersActive = q !== '' || status !== '';
+          return (
+            <EmptyState
+              illustration="folder"
+              title={filtersActive ? 'No matters match these filters' : 'No matters yet'}
+              description={filtersActive
+                ? 'Loosen your filters or clear them to see all matters.'
+                : 'Matters typically arrive from won opportunities. Use the wizard for full setup or quick-add for imports.'}
+              action={filtersActive ? undefined : (
+                <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
+                  Quick add matter
+                </Button>
+              )}
+            />
+          );
+        })()
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
           <table className="w-full text-sm">

@@ -249,11 +249,28 @@ function CompaniesPageContent() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState
-          illustration="clients"
-          title="No companies yet"
-          description="Run the Notion import (scripts/import-notion-crm.md) to bring your CRM data in."
-        />
+        // Stint 63.F — actionable empty state. The previous copy
+        // pointed at a Notion import script Diego only ran once; for
+        // ongoing use the right CTA is "create one now". Two distinct
+        // copies: filtered-empty (loosen filters) vs truly-empty
+        // (create your first one).
+        (() => {
+          const filtersActive = q !== '' || classFilter !== '';
+          return (
+            <EmptyState
+              illustration="clients"
+              title={filtersActive ? 'No companies match these filters' : 'No companies yet'}
+              description={filtersActive
+                ? 'Loosen your filters or clear them to see all companies.'
+                : 'Create your first company to start tracking accounts. Press N anywhere in /crm for quick-capture.'}
+              action={filtersActive ? undefined : (
+                <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
+                  New company
+                </Button>
+              )}
+            />
+          );
+        })()
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
           <table className="w-full text-sm">

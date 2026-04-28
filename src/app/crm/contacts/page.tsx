@@ -217,7 +217,23 @@ function ContactsPageContent() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState illustration="approvers" title="No contacts yet" description="Run the Notion import to populate." />
+        (() => {
+          const filtersActive = q !== '' || lifecycle !== '';
+          return (
+            <EmptyState
+              illustration="approvers"
+              title={filtersActive ? 'No contacts match these filters' : 'No contacts yet'}
+              description={filtersActive
+                ? 'Loosen your filters or clear them to see all contacts.'
+                : 'Add your first contact to start tracking people. Press N anywhere in /crm for quick-capture.'}
+              action={filtersActive ? undefined : (
+                <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
+                  New contact
+                </Button>
+              )}
+            />
+          );
+        })()
       ) : (
         <div className="border border-border rounded-lg overflow-hidden bg-white">
           <table className="w-full text-sm">

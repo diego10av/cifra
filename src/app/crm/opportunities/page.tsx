@@ -215,7 +215,23 @@ export default function OpportunitiesPage() {
       </div>
 
       {rows.length === 0 ? (
-        <EmptyState illustration="reports" title="No opportunities yet" description="Run the Notion import or create one from a company detail page." />
+        (() => {
+          const filtersActive = q !== '' || stage !== '';
+          return (
+            <EmptyState
+              illustration="reports"
+              title={filtersActive ? 'No opportunities match these filters' : 'No opportunities yet'}
+              description={filtersActive
+                ? 'Loosen your filters or clear them to see all opportunities.'
+                : 'Track your sales pipeline. Create one or open a company detail page to add an opportunity for that account.'}
+              action={filtersActive ? undefined : (
+                <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
+                  New opportunity
+                </Button>
+              )}
+            />
+          );
+        })()
       ) : view === 'kanban' ? (
         <PipelineKanban rows={rows} onStageChange={handleStageChange} />
       ) : (
