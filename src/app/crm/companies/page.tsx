@@ -200,7 +200,7 @@ function CompaniesPageContent() {
     <div>
       <PageHeader
         title="Companies"
-        subtitle="CRM accounts — firms, prospects, service providers, referrers."
+        subtitle="CRM accounts — firms, prospects, service providers, referrers. Press N anywhere to quick-create."
         actions={
           <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
             New company

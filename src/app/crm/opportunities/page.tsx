@@ -13,7 +13,6 @@ import { BulkActionBar } from '@/components/crm/BulkActionBar';
 import { PipelineKanban } from '@/components/crm/PipelineKanban';
 import { ExportButton } from '@/components/crm/ExportButton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
-import { DateBadge } from '@/components/crm/DateBadge';
 // Stint 63.G/H/I — port the patterns to opportunities.
 import { CrmContextMenu, type CrmContextAction } from '@/components/crm/CrmContextMenu';
 import { CrmSavedViews } from '@/components/crm/CrmSavedViews';
@@ -233,7 +232,7 @@ function OpportunitiesPageContent() {
     <div>
       <PageHeader
         title="Opportunities"
-        subtitle={`Sales pipeline · ${formatEur(totalPipeline)} weighted pipeline across ${openRows.length} open`}
+        subtitle={`Sales pipeline · ${formatEur(totalPipeline)} weighted across ${openRows.length} open. Press N anywhere to quick-create.`}
         actions={
           <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
             New opportunity

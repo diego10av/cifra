@@ -177,7 +177,7 @@ function ContactsPageContent() {
     <div>
       <PageHeader
         title="Contacts"
-        subtitle="People at client companies, prospects, referrers."
+        subtitle="People at client companies, prospects, referrers. Press N anywhere to quick-create."
         actions={
           <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
             New contact

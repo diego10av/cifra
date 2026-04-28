@@ -12,7 +12,6 @@ import { CrmFormModal } from '@/components/crm/CrmFormModal';
 import { BulkActionBar } from '@/components/crm/BulkActionBar';
 import { ExportButton } from '@/components/crm/ExportButton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
-import { DateBadge } from '@/components/crm/DateBadge';
 // Stint 63.G/H/I — port the patterns to matters.
 import { CrmContextMenu, type CrmContextAction } from '@/components/crm/CrmContextMenu';
 import { CrmSavedViews } from '@/components/crm/CrmSavedViews';
@@ -24,7 +23,7 @@ import { useToast } from '@/components/Toaster';
 import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { ChipSelect } from '@/components/tax-ops/ChipSelect';
 import {
-  LABELS_MATTER_STATUS, MATTER_STATUSES, formatEur, formatDate,
+  LABELS_MATTER_STATUS, MATTER_STATUSES, formatEur,
   type MatterStatus,
 } from '@/lib/crm-types';
 
@@ -170,7 +169,7 @@ function MattersPageContent() {
     <div>
       <PageHeader
         title="Matters"
-        subtitle="Client engagements — active and historical."
+        subtitle="Client engagements — active and historical. Click any cell to edit inline."
         actions={
           <>
             <Link
