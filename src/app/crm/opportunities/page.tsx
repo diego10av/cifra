@@ -16,10 +16,25 @@ import { DateBadge } from '@/components/crm/DateBadge';
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
+// Stint 63.A.2 — port Tax-Ops inline editors to opportunities table.
+import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
+import { ChipSelect } from '@/components/tax-ops/ChipSelect';
 import {
   LABELS_STAGE, OPPORTUNITY_STAGES, formatEur, formatDate,
   type OpportunityStage,
 } from '@/lib/crm-types';
+
+// Stint 63.A.2 — pipeline stage tones, mirroring the emoji language
+// already in LABELS_STAGE: blue → yellow → orange → red → purple → green/red.
+const STAGE_TONES: Record<string, string> = {
+  lead_identified: 'bg-info-50 text-info-800',
+  initial_contact: 'bg-amber-50 text-amber-800',
+  meeting_held:    'bg-amber-100 text-amber-900',
+  proposal_sent:   'bg-danger-50 text-danger-800',
+  in_negotiation:  'bg-brand-50 text-brand-800',
+  won:             'bg-success-50 text-success-800',
+  lost:            'bg-surface-alt text-ink-faint',
+};
 
 interface Opportunity {
   id: string;
@@ -80,6 +95,49 @@ export default function OpportunitiesPage() {
     }
     toast.success(`Moved to ${newStage.replace(/_/g, ' ')}`);
     await load();
+  }
+
+  // Stint 63.A.2 — generic inline-edit helper. The Kanban already had
+  // handleStageChange; this generalises it to any field. Numeric fields
+  // (estimated_value_eur, probability_pct) come as strings from
+  // InlineTextCell — coerce to number/null before sending.
+  async function patchOpportunity(id: string, field: string, value: unknown): Promise<void> {
+    let coerced = value;
+    if (field === 'estimated_value_eur' || field === 'probability_pct') {
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === '') coerced = null;
+        else {
+          const n = Number(trimmed.replace(/,/g, ''));
+          coerced = Number.isFinite(n) ? n : null;
+        }
+      }
+    }
+    try {
+      const res = await fetch(`/api/crm/opportunities/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: coerced }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error?.message ?? `Save failed (${res.status})`);
+      }
+      // Optimistic local update. We reload from server only when the
+      // weighted_value_eur generated column needs to recompute (changes
+      // to estimated_value_eur or probability_pct).
+      if (field === 'estimated_value_eur' || field === 'probability_pct') {
+        await load();
+      } else {
+        setRows(prev => prev?.map(r =>
+          r.id === id ? { ...r, [field]: coerced as never } : r
+        ) ?? null);
+      }
+    } catch (e) {
+      toast.error(`Save failed: ${String(e instanceof Error ? e.message : e)}`);
+      await load();
+      throw e;
+    }
   }
 
   async function handleCreate(values: Record<string, unknown>) {
@@ -195,24 +253,68 @@ export default function OpportunitiesPage() {
                       className="h-4 w-4 accent-brand-500 cursor-pointer"
                     />
                   </td>
+                  {/* Name → link to detail. */}
                   <td className="px-3 py-2">
                     <Link href={`/crm/opportunities/${r.id}`} className="font-medium text-brand-700 hover:underline">{r.name}</Link>
                   </td>
+                  {/* Company → link, not editable inline (changing the
+                      parent company is a heavy action). */}
                   <td className="px-3 py-2">
                     {r.company_id ? <Link href={`/crm/companies/${r.company_id}`} className="text-ink-muted hover:underline">{r.company_name}</Link> : <span className="text-ink-muted">—</span>}
                   </td>
-                  <td className="px-3 py-2">{LABELS_STAGE[r.stage as OpportunityStage] ?? r.stage}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{formatEur(r.estimated_value_eur)}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{r.probability_pct !== null ? `${r.probability_pct}%` : '—'}</td>
-                  <td className="px-3 py-2 text-right tabular-nums font-medium">{formatEur(r.weighted_value_eur)}</td>
-                  <td className="px-3 py-2"><DateBadge value={r.estimated_close_date} mode="urgency" /></td>
-                  <td className="px-3 py-2 text-ink-muted truncate max-w-[200px]">
-                    {r.next_action ? (
-                      <span title={r.next_action}>
-                        {r.next_action}
-                        {r.next_action_due && <span className="ml-1 text-2xs">({formatDate(r.next_action_due)})</span>}
-                      </span>
-                    ) : '—'}
+                  {/* Stage — ChipSelect with pipeline-stage tones. */}
+                  <td className="px-3 py-2">
+                    <ChipSelect
+                      value={r.stage}
+                      options={OPPORTUNITY_STAGES.map(v => ({
+                        value: v,
+                        label: LABELS_STAGE[v as OpportunityStage],
+                        tone: STAGE_TONES[v],
+                      }))}
+                      onChange={next => { void patchOpportunity(r.id, 'stage', next); }}
+                      ariaLabel="Stage"
+                    />
+                  </td>
+                  {/* Estimated value — InlineTextCell with numeric coerce. */}
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    <InlineTextCell
+                      value={r.estimated_value_eur !== null ? formatEur(r.estimated_value_eur) : null}
+                      onSave={async v => { await patchOpportunity(r.id, 'estimated_value_eur', v); }}
+                      placeholder="—"
+                    />
+                  </td>
+                  {/* Probability — InlineTextCell, just the % integer. */}
+                  <td className="px-3 py-2 text-right tabular-nums">
+                    <InlineTextCell
+                      value={r.probability_pct !== null ? `${r.probability_pct}` : null}
+                      onSave={async v => { await patchOpportunity(r.id, 'probability_pct', v); }}
+                      placeholder="—"
+                    />
+                  </td>
+                  {/* Weighted — read-only (server-computed generated column). */}
+                  <td className="px-3 py-2 text-right tabular-nums font-medium text-ink-soft">
+                    {formatEur(r.weighted_value_eur)}
+                  </td>
+                  {/* Estimated close — InlineDateCell, urgency mode. */}
+                  <td className="px-3 py-2">
+                    <InlineDateCell
+                      value={r.estimated_close_date}
+                      onSave={async v => { await patchOpportunity(r.id, 'estimated_close_date', v); }}
+                    />
+                  </td>
+                  {/* Next action — InlineTextCell. The due date stays
+                      read-only here (edit from detail page if needed). */}
+                  <td className="px-3 py-2 max-w-[200px]">
+                    <InlineTextCell
+                      value={r.next_action}
+                      onSave={async v => { await patchOpportunity(r.id, 'next_action', v); }}
+                      placeholder="—"
+                    />
+                    {r.next_action_due && (
+                      <div className="text-2xs text-ink-faint mt-0.5">
+                        due {formatDate(r.next_action_due)}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

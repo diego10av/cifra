@@ -15,10 +15,21 @@ import { DateBadge } from '@/components/crm/DateBadge';
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { MATTER_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
+// Stint 63.A.2 — port Tax-Ops inline editors to matters table.
+import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
+import { ChipSelect } from '@/components/tax-ops/ChipSelect';
 import {
   LABELS_MATTER_STATUS, MATTER_STATUSES, formatEur, formatDate,
   type MatterStatus,
 } from '@/lib/crm-types';
+
+// Stint 63.A.2 — matter status tones (active/on_hold/closed/archived).
+const STATUS_TONES: Record<string, string> = {
+  active:   'bg-success-50 text-success-800',
+  on_hold:  'bg-amber-50 text-amber-800',
+  closed:   'bg-info-50 text-info-800',
+  archived: 'bg-surface-alt text-ink-faint',
+};
 
 interface Matter {
   id: string;
@@ -77,6 +88,28 @@ export default function MattersPage() {
     }
     toast.success('Matter created');
     await load();
+  }
+
+  // Stint 63.A.2 — inline-edit helper for matter rows.
+  async function patchMatter(id: string, field: string, value: unknown): Promise<void> {
+    try {
+      const res = await fetch(`/api/crm/matters/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error?.message ?? `Save failed (${res.status})`);
+      }
+      setRows(prev => prev?.map(r =>
+        r.id === id ? { ...r, [field]: value as never } : r
+      ) ?? null);
+    } catch (e) {
+      toast.error(`Save failed: ${String(e instanceof Error ? e.message : e)}`);
+      await load();
+      throw e;
+    }
   }
 
   if (rows === null) return <PageSkeleton />;
@@ -167,27 +200,67 @@ export default function MattersPage() {
                       className="h-4 w-4 accent-brand-500 cursor-pointer"
                     />
                   </td>
+                  {/* Reference → link, with conflict-check warning chip. */}
                   <td className="px-3 py-2">
                     <Link href={`/crm/matters/${r.id}`} className="font-medium text-brand-700 hover:underline font-mono">{r.matter_reference}</Link>
                     {!r.conflict_check_done && r.status === 'active' && (
                       <span className="ml-2 text-2xs uppercase tracking-wide text-danger-700 bg-danger-50 border border-danger-200 rounded px-1 py-0.5" title="Conflict check pending">No conflict check</span>
                     )}
                   </td>
+                  {/* Client → link, not editable inline (heavy action). */}
                   <td className="px-3 py-2">
                     {r.client_id ? <Link href={`/crm/companies/${r.client_id}`} className="text-ink-muted hover:underline">{r.client_name}</Link> : <span className="text-ink-muted">—</span>}
                   </td>
-                  <td className="px-3 py-2">{LABELS_MATTER_STATUS[r.status as MatterStatus] ?? r.status}</td>
-                  <td className="px-3 py-2 text-ink-muted">{(r.practice_areas ?? []).join(', ') || '—'}</td>
-                  <td className="px-3 py-2 text-ink-muted">{r.fee_type ?? '—'}{r.hourly_rate_eur ? ` · ${formatEur(r.hourly_rate_eur)}/h` : ''}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{formatEur(r.total_billed)}</td>
-                  <td className="px-3 py-2 text-right tabular-nums">{Number(r.total_hours).toFixed(1)}h</td>
-                  <td className="px-3 py-2 text-ink-muted">{formatDate(r.opening_date)}</td>
+                  {/* Status — ChipSelect with active/on_hold/closed/archived tones. */}
                   <td className="px-3 py-2">
-                    {r.status === 'active' && r.closing_date
-                      ? <DateBadge value={r.closing_date} mode="urgency" />
-                      : r.closing_date
-                        ? <span className="text-ink-muted tabular-nums">{formatDate(r.closing_date)}</span>
-                        : <span className="text-ink-muted">—</span>}
+                    <ChipSelect
+                      value={r.status}
+                      options={MATTER_STATUSES.map(v => ({
+                        value: v,
+                        label: LABELS_MATTER_STATUS[v as MatterStatus],
+                        tone: STATUS_TONES[v],
+                      }))}
+                      onChange={next => { void patchMatter(r.id, 'status', next); }}
+                      ariaLabel="Matter status"
+                    />
+                  </td>
+                  {/* Practice areas → read-only list (heavy edit; uses
+                      tags-with-suggestions in detail page). */}
+                  <td className="px-3 py-2 text-ink-muted">{(r.practice_areas ?? []).join(', ') || '—'}</td>
+                  {/* Fee type — InlineTextCell (free text: hourly,
+                      fixed, retainer, contingency, etc.). */}
+                  <td className="px-3 py-2 max-w-[120px]">
+                    <InlineTextCell
+                      value={r.fee_type}
+                      onSave={async v => { await patchMatter(r.id, 'fee_type', v); }}
+                      placeholder="—"
+                    />
+                    {r.hourly_rate_eur && (
+                      <div className="text-2xs text-ink-faint mt-0.5">
+                        {formatEur(r.hourly_rate_eur)}/h
+                      </div>
+                    )}
+                  </td>
+                  {/* Total billed — read-only (server-aggregated from invoices). */}
+                  <td className="px-3 py-2 text-right tabular-nums">{formatEur(r.total_billed)}</td>
+                  {/* Hours — read-only (server-aggregated from time entries). */}
+                  <td className="px-3 py-2 text-right tabular-nums">{Number(r.total_hours).toFixed(1)}h</td>
+                  {/* Opening date — InlineDateCell, neutral mode (not action-triggering). */}
+                  <td className="px-3 py-2">
+                    <InlineDateCell
+                      value={r.opening_date}
+                      onSave={async v => { await patchMatter(r.id, 'opening_date', v); }}
+                      mode="neutral"
+                    />
+                  </td>
+                  {/* Closing date — InlineDateCell. urgency mode for active
+                      matters (overdue/today highlighted), neutral otherwise. */}
+                  <td className="px-3 py-2">
+                    <InlineDateCell
+                      value={r.closing_date}
+                      onSave={async v => { await patchMatter(r.id, 'closing_date', v); }}
+                      mode={r.status === 'active' ? 'urgency' : 'neutral'}
+                    />
                   </td>
                 </tr>
               ))}
