@@ -73,6 +73,15 @@ function CompaniesPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState(searchParams.get('q') ?? '');
   const [classFilter, setClassFilter] = useState<string>(searchParams.get('classification') ?? '');
+  // Stint 64.B — extra filters inspired by HubSpot/Salesforce list views.
+  // Diego: "deberías incluir más filtros... cómo lo hacen los CRM top top?
+  // esa debería ser tu inspiración." Country + industry are the two
+  // axes that are most-asked-for after classification (segmentation by
+  // location + sector). Both filtered client-side over the already-loaded
+  // list to keep the API surface stable.
+  const [countryFilter, setCountryFilter] = useState<string>(searchParams.get('country') ?? '');
+  const [industryFilter, setIndustryFilter] = useState<string>(searchParams.get('industry') ?? '');
+  const [sizeFilter, setSizeFilter] = useState<string>(searchParams.get('size') ?? '');
   const [newOpen, setNewOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // Stint 63.C — context menu state. Lifted to page level so a single
@@ -92,18 +101,58 @@ function CompaniesPageContent() {
     const qs = new URLSearchParams();
     if (q) qs.set('q', q);
     if (classFilter) qs.set('classification', classFilter);
+    if (countryFilter) qs.set('country', countryFilter);
+    if (industryFilter) qs.set('industry', industryFilter);
+    if (sizeFilter) qs.set('size', sizeFilter);
     const s = qs.toString();
     router.replace(s ? `${pathname}?${s}` : pathname, { scroll: false });
-  }, [q, classFilter, router, pathname]);
+  }, [q, classFilter, countryFilter, industryFilter, sizeFilter, router, pathname]);
 
   // currentQuery is what CrmSavedViews captures when Diego clicks
-  // "Save current as…". Same fields as the URL sync above.
+  // "Save current as…". Captures all filter dimensions so a saved
+  // view restores Diego back to the exact same slice.
   const currentQuery = useMemo(() => {
     const qs = new URLSearchParams();
     if (q) qs.set('q', q);
     if (classFilter) qs.set('classification', classFilter);
+    if (countryFilter) qs.set('country', countryFilter);
+    if (industryFilter) qs.set('industry', industryFilter);
+    if (sizeFilter) qs.set('size', sizeFilter);
     return qs.toString();
-  }, [q, classFilter]);
+  }, [q, classFilter, countryFilter, industryFilter, sizeFilter]);
+
+  // Stint 64.B — list of unique non-null countries from the loaded
+  // rows, sorted. Lets the country dropdown only show values that
+  // actually exist in the data — Diego shouldn't have to remember
+  // every ISO code.
+  const countriesInData = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows ?? []) if (r.country) set.add(r.country);
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
+  // Stint 64.B — apply country/industry/size filters client-side over
+  // the rows already returned by the API (which only filters on q +
+  // classification). Avoids extending the /api/crm/companies query
+  // surface for filters that are cheap to compute locally.
+  const filteredRows = useMemo(() => {
+    if (!rows) return null;
+    return rows.filter(r => {
+      if (countryFilter && r.country !== countryFilter) return false;
+      if (industryFilter && r.industry !== industryFilter) return false;
+      if (sizeFilter && r.size !== sizeFilter) return false;
+      return true;
+    });
+  }, [rows, countryFilter, industryFilter, sizeFilter]);
+
+  const hasActiveFilters = !!(q || classFilter || countryFilter || industryFilter || sizeFilter);
+  const clearAllFilters = () => {
+    setQ('');
+    setClassFilter('');
+    setCountryFilter('');
+    setIndustryFilter('');
+    setSizeFilter('');
+  };
 
   const toggleOne = (id: string) => setSelected(prev => {
     const n = new Set(prev);
@@ -237,6 +286,55 @@ function CompaniesPageContent() {
             <option key={k} value={k}>{label}{counts[k] ? ` · ${counts[k]}` : ''}</option>
           ))}
         </select>
+        {/* Stint 64.B — Country filter (only countries actually present
+            in data). HubSpot/Salesforce list-view inspiration: never
+            show users dropdown options that filter to zero rows. */}
+        <select
+          value={countryFilter}
+          onChange={e => setCountryFilter(e.target.value)}
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white"
+          aria-label="Filter by country"
+        >
+          <option value="">All countries</option>
+          {countriesInData.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        {/* Stint 64.B — Industry filter. Static list because industries
+            are a fixed taxonomy (LABELS_INDUSTRY). */}
+        <select
+          value={industryFilter}
+          onChange={e => setIndustryFilter(e.target.value)}
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white"
+          aria-label="Filter by industry"
+        >
+          <option value="">All industries</option>
+          {Object.entries(LABELS_INDUSTRY).map(([k, label]) => (
+            <option key={k} value={k}>{label}</option>
+          ))}
+        </select>
+        {/* Stint 64.B — Size filter. */}
+        <select
+          value={sizeFilter}
+          onChange={e => setSizeFilter(e.target.value)}
+          className="px-2 py-1.5 text-sm border border-border rounded-md bg-white"
+          aria-label="Filter by size"
+        >
+          <option value="">All sizes</option>
+          {Object.entries(LABELS_SIZE).map(([k, label]) => (
+            <option key={k} value={k}>{label}</option>
+          ))}
+        </select>
+        {hasActiveFilters && (
+          <button
+            type="button"
+            onClick={clearAllFilters}
+            className="text-xs text-ink-muted hover:text-ink underline"
+            title="Clear all filters"
+          >
+            Clear filters
+          </button>
+        )}
         <CrmSavedViews
           currentQuery={currentQuery}
           storageKey="cifra.crm.companies.savedViews.v1"
@@ -244,26 +342,27 @@ function CompaniesPageContent() {
         />
         <div className="ml-auto flex items-center gap-2">
           <ExportButton entity="companies" />
-          <span className="text-xs text-ink-muted">{rows.length} companies</span>
+          <span className="text-xs text-ink-muted">
+            {filteredRows?.length ?? 0}{filteredRows && rows && filteredRows.length !== rows.length ? ` of ${rows.length}` : ''} companies
+          </span>
         </div>
       </div>
 
-      {rows.length === 0 ? (
+      {(filteredRows ?? rows).length === 0 ? (
         // Stint 63.F — actionable empty state. The previous copy
         // pointed at a Notion import script Diego only ran once; for
         // ongoing use the right CTA is "create one now". Two distinct
         // copies: filtered-empty (loosen filters) vs truly-empty
         // (create your first one).
         (() => {
-          const filtersActive = q !== '' || classFilter !== '';
           return (
             <EmptyState
               illustration="clients"
-              title={filtersActive ? 'No companies match these filters' : 'No companies yet'}
-              description={filtersActive
+              title={hasActiveFilters ? 'No companies match these filters' : 'No companies yet'}
+              description={hasActiveFilters
                 ? 'Loosen your filters or clear them to see all companies.'
                 : 'Create your first company to start tracking accounts. Press N anywhere in /crm for quick-capture.'}
-              action={filtersActive ? undefined : (
+              action={hasActiveFilters ? undefined : (
                 <Button onClick={() => setNewOpen(true)} variant="primary" size="sm" icon={<PlusIcon size={13} />}>
                   New company
                 </Button>
@@ -279,9 +378,9 @@ function CompaniesPageContent() {
                 <th className="px-3 py-2 w-8">
                   <input
                     type="checkbox"
-                    checked={selected.size > 0 && selected.size === rows.length}
-                    ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < rows.length; }}
-                    onChange={e => toggleAll(e.target.checked)}
+                    checked={selected.size > 0 && selected.size === (filteredRows?.length ?? 0)}
+                    ref={el => { if (el) el.indeterminate = selected.size > 0 && selected.size < (filteredRows?.length ?? 0); }}
+                    onChange={e => setSelected(e.target.checked ? new Set((filteredRows ?? []).map(r => r.id)) : new Set())}
                     className="h-4 w-4 accent-brand-500 cursor-pointer"
                   />
                 </th>
@@ -294,7 +393,7 @@ function CompaniesPageContent() {
               </tr>
             </thead>
             <tbody>
-              {rows.map(r => (
+              {(filteredRows ?? rows).map(r => (
                 <tr
                   key={r.id}
                   onContextMenu={(e) => {

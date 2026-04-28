@@ -81,7 +81,7 @@ function TopNav() {
 
 function Hero() {
   return (
-    <section className="pt-20 pb-16 md:pt-28 md:pb-20">
+    <section className="pt-16 pb-12 md:pt-24 md:pb-16">
       <Container>
         <div className="max-w-[880px]">
           <Eyebrow>Private capital · Europe</Eyebrow>
@@ -113,9 +113,105 @@ function Hero() {
               See what cifra does
             </a>
           </div>
+          {/* Stint 64.B — small "Made in Luxembourg" badge. Diego asked
+              for Factorial-style polish; this anchors the local-first
+              identity sutilly without pushing it into the headline. */}
+          <div className="mt-6 inline-flex items-center gap-1.5 text-2xs text-ink-faint">
+            <span aria-hidden>🇱🇺</span>
+            <span>Made in Luxembourg · Built for Europe</span>
+          </div>
         </div>
+        {/* Stint 64.B — Factorial-inspired product mockup. Browser-frame
+            window with a fake Tax-Ops matrix (CIT page) showing real
+            visual elements: family chips, status badges, deadlines.
+            Compact (~320px tall) so the hero doesn't get longer than the
+            "short punchy" stint-60 brief allows. Pure HTML/Tailwind —
+            no screenshot dependency, no images to maintain. */}
+        <ProductMockup />
       </Container>
     </section>
+  );
+}
+
+// Stint 64.B — visual mock of the Tax-Ops matrix, rendered as live HTML
+// (no image assets). Gives the landing a Factorial/Stripe-style visual
+// anchor without requiring real screenshots. Data is purely illustrative.
+function ProductMockup() {
+  // 6 rows of fake data — 3 families, varied statuses + deadlines.
+  const rows: Array<{ family: string; tone: string; entity: string; status: string; statusTone: string; deadline: string; deadlineTone: string; partner: string }> = [
+    { family: 'AVALLON',   tone: 'bg-blue-100 text-blue-800',     entity: 'Avallon Holdings SARL',     status: 'Filed',          statusTone: 'bg-success-50 text-success-800',  deadline: '2026-04-30', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
+    { family: 'AVALLON',   tone: 'bg-blue-100 text-blue-800',     entity: 'Avallon MBO Fund III SCA',  status: 'Working',        statusTone: 'bg-amber-50 text-amber-800',      deadline: '2026-12-31', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
+    { family: 'PENINSULA', tone: 'bg-emerald-100 text-emerald-800', entity: 'PE1 SARL',                  status: 'Draft sent',     statusTone: 'bg-info-50 text-info-800',         deadline: '2026-12-31', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
+    { family: 'PENINSULA', tone: 'bg-emerald-100 text-emerald-800', entity: 'MBB Luxembourg SCSp',       status: 'Awaiting info',  statusTone: 'bg-amber-50 text-amber-800',      deadline: 'Today',      deadlineTone: 'text-danger-700 font-semibold', partner: 'Diego' },
+    { family: 'INVENIO',   tone: 'bg-purple-100 text-purple-800', entity: 'Invenio Partners II SCSp',  status: 'Client approved',statusTone: 'bg-info-50 text-info-800',         deadline: '2026-12-31', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
+    { family: 'MILL REEF', tone: 'bg-amber-100 text-amber-800',   entity: 'Mill Reef Capital SARL',    status: 'Filed',          statusTone: 'bg-success-50 text-success-800',  deadline: '2026-04-15', deadlineTone: 'text-ink-soft',  partner: 'Diego' },
+  ];
+  return (
+    <div className="mt-12 md:mt-16 mx-auto max-w-[960px]">
+      <div className="rounded-xl border border-[#E5DFD7] bg-white shadow-[0_30px_60px_-30px_rgba(20,20,40,0.18)] overflow-hidden">
+        {/* Browser frame */}
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-[#EFEAE2] bg-[#F8F5EF]">
+          <div className="flex gap-1.5 shrink-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+          </div>
+          <div className="flex-1 mx-3 h-6 rounded-md bg-white/70 border border-[#EFEAE2] flex items-center px-2.5 text-2xs text-ink-faint truncate">
+            app.cifracompliance.com/tax-ops/cit
+          </div>
+          <div className="text-2xs text-ink-faint hidden sm:block">cifra</div>
+        </div>
+        {/* Page header strip */}
+        <div className="px-5 py-3 border-b border-[#EFEAE2] flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold text-ink">Corporate tax returns</div>
+            <div className="text-2xs text-ink-muted mt-0.5">Form 500 — annual CIT + municipal business tax · 6 entities</div>
+          </div>
+          <div className="hidden md:flex items-center gap-2">
+            <div className="text-2xs text-ink-faint px-2 py-1 rounded border border-[#EFEAE2]">2025</div>
+            <div className="text-2xs text-white px-2 py-1 rounded bg-brand-500">+ New entity</div>
+          </div>
+        </div>
+        {/* Matrix table mock */}
+        <div className="overflow-hidden">
+          <table className="w-full text-2xs sm:text-xs">
+            <thead className="bg-[#FBFAF7] text-ink-muted">
+              <tr>
+                <th className="text-left px-3 py-2 font-medium border-b border-[#EFEAE2]">Family</th>
+                <th className="text-left px-3 py-2 font-medium border-b border-[#EFEAE2]">Entity</th>
+                <th className="text-left px-3 py-2 font-medium border-b border-[#EFEAE2] hidden sm:table-cell">Status 2025</th>
+                <th className="text-left px-3 py-2 font-medium border-b border-[#EFEAE2]">Deadline</th>
+                <th className="text-left px-3 py-2 font-medium border-b border-[#EFEAE2] hidden md:table-cell">Partner</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i) => (
+                <tr key={i} className="border-b border-[#EFEAE2] last:border-b-0">
+                  <td className="px-3 py-2">
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-2xs font-medium ${r.tone}`}>
+                      {r.family}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2 text-ink font-medium">{r.entity}</td>
+                  <td className="px-3 py-2 hidden sm:table-cell">
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-2xs ${r.statusTone}`}>
+                      {r.status}
+                    </span>
+                  </td>
+                  <td className={`px-3 py-2 tabular-nums ${r.deadlineTone}`}>{r.deadline}</td>
+                  <td className="px-3 py-2 text-ink-soft hidden md:table-cell">{r.partner}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Caption below the mock */}
+      <p className="mt-4 text-center text-2xs text-ink-faint">
+        Live preview — every column inline-editable, every status changes the deadline rotation,
+        every override goes to the audit trail.
+      </p>
+    </div>
   );
 }
 
