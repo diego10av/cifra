@@ -625,11 +625,31 @@ export const TASK_FIELDS: FieldSchema[] = [
 // ────────────────────────── Invoice schema ─────────────────────────────
 
 export const INVOICE_FIELDS: FieldSchema[] = [
+  // Stint 64.G — company picker required by POST /api/crm/billing.
+  // Until 64.G the form schema had no field for it, so every "New
+  // invoice" attempt 400'd. Diego: "no quiero emitir facturas, sólo
+  // trackearlas con su cliente". Picker first because that's the
+  // first decision when recording an invoice from finance.
+  {
+    name: 'company_id',
+    label: 'Client',
+    type: 'entity-select',
+    entitySource: 'company',
+    required: true,
+    help: 'Which client does this invoice belong to?',
+  },
+  {
+    name: 'matter_id',
+    label: 'Matter',
+    type: 'entity-select',
+    entitySource: 'matter',
+    help: 'Optional — link to a specific engagement or case.',
+  },
   {
     name: 'invoice_number',
     label: 'Invoice number',
     type: 'text',
-    placeholder: 'Auto-generated (MP-YYYY-NNNN) if left blank',
+    placeholder: 'From your finance team — leave blank to auto-generate',
   },
   {
     name: 'status',

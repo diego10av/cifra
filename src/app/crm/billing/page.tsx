@@ -108,11 +108,10 @@ export default function BillingPage() {
   }
 
   async function handleCreate(values: Record<string, unknown>) {
-    // Note: company_id is required by API. For stint 26 we don't yet
-    // have a Company picker inside the form (needs an async-search
-    // component). Short-term: instruct user to create an invoice from
-    // within a Matter or Company detail page. Show friendly error if
-    // they try from here.
+    // Stint 64.G — INVOICE_FIELDS now requires `company_id` at the
+    // form level via the new entity-select picker, so the legacy
+    // `company_required` branch is unreachable. Surface any other
+    // server error verbatim.
     const res = await fetch('/api/crm/billing', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -120,13 +119,9 @@ export default function BillingPage() {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      const code = err?.error?.code ?? '';
-      if (code === 'company_required') {
-        throw new Error('To create an invoice from here, add company_id. For now, create invoices from the Matter detail page (upcoming stint adds company picker to this form).');
-      }
       throw new Error(err?.error?.message ?? `Create failed (${res.status})`);
     }
-    toast.success('Invoice created');
+    toast.success('Invoice tracked');
     await load();
   }
 
@@ -152,8 +147,8 @@ export default function BillingPage() {
         open={newOpen}
         onClose={() => setNewOpen(false)}
         mode="create"
-        title="New invoice"
-        subtitle="Issue a new invoice. Number auto-generates (MP-YYYY-NNNN). Company + matter pickers coming in Billing Pro."
+        title="Track invoice"
+        subtitle="Record an invoice issued by your finance team. Add the number, amounts, dates and status to follow up payment here."
         fields={INVOICE_FIELDS}
         initial={{
           status: 'draft',

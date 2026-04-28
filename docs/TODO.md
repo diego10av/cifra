@@ -100,6 +100,47 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-28** — Stint 64.G: Billing — company picker + tracking-mode framing
+
+Diego: *"En el CRM he querido incluir una nueva factura en la sección
+de Billing y no me deja. Me ha dado un error... no quiero que emitas
+tu factura ni documento; simplemente quiero incluirlos en la lista
+para hacer seguimiento. De emitir la factura se encarga mi
+departamento de finanzas."* Two things in one report — bug + reframe.
+
+- **Bug**: POST `/api/crm/billing` requires `company_id`, but
+  `INVOICE_FIELDS` had no company picker (a known gap parked since
+  stint 26 with the comment *"needs an async-search component"*).
+  That async component now exists (`<SearchableSelect>`, since stint
+  43.D8); the deferred fix shipped here.
+- **Schema-level fix**: extended `CrmFormModal` with a new
+  `'entity-select'` `FieldType` + `entitySource: 'company' | 'matter'`
+  discriminator. New `useEntityOptions` hook fetches
+  `/api/crm/companies?limit=500` or `/api/crm/matters?limit=500`
+  once per modal-open and feeds the existing `<SearchableSelect>`.
+  Single arbitrary-variant wrapper (`[&>div]:block [&>div]:w-full`)
+  flips the primitive's inline-block wrapper to full-width without
+  forking it. Rule §13 satisfied: same primitive, every form.
+- **`INVOICE_FIELDS`**: added `company_id` (required) + `matter_id`
+  (optional) at the top — Client/Matter is the first decision when
+  recording an invoice from finance. `invoice_number` placeholder
+  now reads *"From your finance team — leave blank to auto-generate"*.
+- **Reframe**: modal title `New invoice` → `Track invoice`; subtitle
+  *"Issue a new invoice. Number auto-generates..."* → *"Record an
+  invoice issued by your finance team. Add the number, amounts,
+  dates and status to follow up payment here."* Toast on save:
+  `Invoice tracked` (was `Invoice created`). Removed the now-dead
+  `company_required` legacy branch in `handleCreate`.
+- **Reusable for the future**: every other CRM form that needs to
+  pick a company/matter (Opportunity, Matter creation refactor,
+  future Activities) can now declare `type: 'entity-select'` in its
+  schema. No per-form scaffolding needed.
+
+Files: `src/components/crm/CrmFormModal.tsx`,
+`src/components/crm/schemas.ts`, `src/app/crm/billing/page.tsx`.
+
+Gates: tsc clean · 707/707 tests · 0 design-lint violations.
+
 **2026-04-27** — Stint 50.D: round-2 dedup + hard-delete (`3b72ef2` + manual SQL)
 
 Diego después de round 1: "todavía hay muchos duplicados... lo único que

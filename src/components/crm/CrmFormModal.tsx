@@ -18,12 +18,19 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
 import { useTaxonomy } from '@/lib/useTaxonomy';
+import { SearchableSelect, type SearchableOption } from '@/components/ui/SearchableSelect';
 
 export type FieldType =
   | 'text' | 'textarea' | 'email' | 'tel' | 'url'
   | 'select' | 'multiselect'
   | 'date' | 'number' | 'checkbox'
-  | 'tags';
+  | 'tags'
+  // Stint 64.G — async-loaded combobox for picking another CRM
+  // entity (a company, a matter…). Renders <SearchableSelect> under
+  // the hood; options hydrate once per modal-open from the existing
+  // GET endpoints. Required for the new-invoice form (Diego: "no
+  // quiero emitir facturas, sólo trackearlas con su cliente").
+  | 'entity-select';
 
 export interface FieldSchema {
   name: string;
@@ -36,6 +43,9 @@ export interface FieldSchema {
    *  until the fetch resolves. */
   taxonomyKind?: 'country' | 'industry' | 'practice_area' | 'fee_type'
               | 'role_tag' | 'source' | 'loss_reason';
+  /** For 'entity-select' — which collection to async-load. Each source
+   *  maps a known API endpoint + label format (see useEntityOptions). */
+  entitySource?: 'company' | 'matter';
   placeholder?: string;
   help?: string;
   /** For number: number format hint. For text: maxLength. */
@@ -162,6 +172,60 @@ export function CrmFormModal({
   );
 }
 
+// ─────────────────────────── Entity options hook ─────────────────────
+//
+// Stint 64.G — async-loads the option list for `type: 'entity-select'`
+// fields. We deliberately fetch all rows up to the API's hard cap (500)
+// once per source per modal-open, then let <SearchableSelect> filter
+// client-side. At today's scale (<100 companies, <100 matters) this is
+// instant; revisit a server-side typeahead when row counts approach
+// the cap.
+//
+// Endpoints reused (no schema changes needed):
+//   companies → GET /api/crm/companies?limit=500 → { id, company_name, ... }[]
+//   matters   → GET /api/crm/matters?limit=500   → { id, matter_reference, title, ... }[]
+
+interface CompanyRow { id: string; company_name: string }
+interface MatterRow  { id: string; matter_reference: string | null; title: string | null }
+
+function useEntityOptions(source: FieldSchema['entitySource'] | undefined): {
+  options: SearchableOption[];
+  loading: boolean;
+} {
+  const [options, setOptions] = useState<SearchableOption[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!source) { setOptions([]); setLoading(false); return; }
+    let alive = true;
+    setLoading(true);
+    const url = source === 'company'
+      ? '/api/crm/companies?limit=500'
+      : '/api/crm/matters?limit=500';
+    fetch(url, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : [])
+      .then((rows: unknown) => {
+        if (!alive) return;
+        if (!Array.isArray(rows)) { setOptions([]); return; }
+        const opts: SearchableOption[] = source === 'company'
+          ? (rows as CompanyRow[]).map(r => ({
+              value: r.id,
+              label: r.company_name ?? r.id,
+            }))
+          : (rows as MatterRow[]).map(r => ({
+              value: r.id,
+              label: [r.matter_reference, r.title].filter(Boolean).join(' · ') || r.id,
+            }));
+        setOptions(opts);
+      })
+      .catch(() => { if (alive) setOptions([]); })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
+  }, [source]);
+
+  return { options, loading };
+}
+
 // ─────────────────────────── Field renderer ──────────────────────────
 
 function FieldRenderer({
@@ -177,7 +241,11 @@ function FieldRenderer({
   // the dropdown renders correctly on first paint before the fetch.
   const taxonomyOpts = useTaxonomy(field.taxonomyKind, field.options ?? []);
   const effectiveOptions = field.taxonomyKind ? taxonomyOpts : (field.options ?? []);
-  const full = field.type === 'textarea' || field.type === 'tags' || field.type === 'multiselect';
+  // Stint 64.G — async load entity options when this is an entity-select.
+  // No-op for every other field type (the hook is cheap when source is
+  // undefined; it just bails out in the effect).
+  const entityState = useEntityOptions(field.type === 'entity-select' ? field.entitySource : undefined);
+  const full = field.type === 'textarea' || field.type === 'tags' || field.type === 'multiselect' || field.type === 'entity-select';
   return (
     <div className={full ? 'md:col-span-2' : ''}>
       <label className="block text-xs uppercase tracking-wide font-semibold text-ink-muted mb-1">
@@ -260,6 +328,32 @@ function FieldRenderer({
           onChange={onChange}
           placeholder={field.placeholder ?? 'Type + Enter to add'}
         />
+      ) : field.type === 'entity-select' ? (
+        // SearchableSelect's wrapper is inline-block by default and its
+        // trigger is inline-flex — fine for tax-ops chips, but in a
+        // form grid we need full-width input chrome. The arbitrary
+        // variant `[&>div]:block [&>div]:w-full` flips the wrapper to
+        // block / 100% width without touching the primitive. `bare`
+        // strips the default chrome so triggerClassName fully owns the
+        // look (matches the other inputs at h-9).
+        <div className="[&>div]:block [&>div]:w-full">
+          <SearchableSelect
+            bare
+            options={entityState.options}
+            value={(value as string) ?? null}
+            onChange={(next) => onChange(next || null)}
+            placeholder={
+              entityState.loading
+                ? 'Loading…'
+                : (field.placeholder ?? 'Search and select…')
+            }
+            ariaLabel={field.label}
+            disabled={entityState.loading}
+            triggerClassName={`w-full h-9 px-2.5 bg-white text-ink hover:bg-surface-alt/50 border ${
+              error ? 'border-danger-400' : 'border-border'
+            }`}
+          />
+        </div>
       ) : null}
       {field.help && !error && (
         <p className="mt-1 text-2xs text-ink-muted">{field.help}</p>
