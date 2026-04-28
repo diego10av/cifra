@@ -100,6 +100,74 @@ Things worth remembering but not actionable yet:
 
 *(Archived every Monday morning into `docs/archive/TODO-YYYY-WW.md`.)*
 
+**2026-04-28** — Stint 64.H: CRM Excel exports — accounting-grade formatting
+
+Diego: *"el excel que importo de billing está bien pero el formato
+podía ser mejorable. si yo anoto el numero de factura no aparece
+pegado a la izquierda. las cantidades no aparecen con un formato
+accounting sino general. echa un vistazo general a todos los excel
+del módulo CRM... en línea con los estándares más altos."*
+
+Audit + rewrite of `src/app/api/crm/export/route.ts` covering all
+seven entities (companies, contacts, opportunities, matters,
+activities, tasks, billing). The previous export was correct at the
+data level (numbers as numbers, dates as dates, frozen header) but
+**unformatted at the cell level** — Excel fell back to "General"
+which gave the drift Diego saw: amounts without `€`, no thousands
+separator, manual text not pinned to the left.
+
+What landed:
+
+- **Column-level `format` discriminator**: every column declares one
+  of `text` · `longtext` · `currency` · `percentage` · `integer` ·
+  `decimal` · `date` · `datetime` · `yesno` · `status`. A single
+  `decorateSheet()` helper applies styling, alignment, num-format
+  and totals from this metadata — adding a new column is a 1-line
+  schema edit, not a styling pass.
+- **Number formats** (xlsx-skill standards):
+  - Currency → true Excel accounting format
+    `_-* #,##0.00\ "€"_-;-* #,##0.00\ "€"_-;_-* "-"??\ "€"_-;_-@_-`
+    (vertically-aligned €, dash for zero, leading dash for negatives).
+  - Percentage → `0.0%` (DB stores 17 → coerced to 0.17 → renders 17.0%).
+  - Decimal → `#,##0.00`. Integer → `#,##0`. Date → `dd/mm/yyyy`
+    (LU/EU). Datetime → `dd/mm/yyyy hh:mm`.
+- **Header row**: bold white Calibri on slate-800 fill, height 24,
+  centered (numeric headers) / left (text headers), medium
+  bottom-border. Frozen.
+- **Body rows**: Calibri 11, vertically middle-aligned, horizontally
+  aligned by column type — text/status left, numbers/dates right,
+  yes-no centered, longtext wrapped. Subtle bottom-border on every
+  row for clean horizontal separation.
+- **AutoFilter** across the data range — every export is now an
+  analyzable table out of the box.
+- **Totals row** (billing, opportunities, matters, activities):
+  bold, top + bottom medium-borders, `=SUM(col2:colN)` formulas
+  for currency + decimal columns. Stays out of the autofilter range
+  so it doesn't disappear when filtering. Formulas not hardcoded
+  — the export remains dynamic if the user edits cells.
+- **Value coercion**: numeric strings → numbers (Postgres ships
+  `numeric` as string); date strings → `Date`; booleans → "Yes"/"No";
+  empty strings → null cells. Centralised in one `coerce()`
+  function so every entity goes through the same path.
+
+Files: `src/app/api/crm/export/route.ts` (rewritten, 410 lines).
+
+Smoke-tested with a temp Node script that generated an actual
+.xlsx — `file` confirms it's a valid "Microsoft Excel 2007+" file.
+
+Gates: tsc clean · 707/707 tests · 0 design-lint violations.
+
+**2026-04-28** — Stint 64.G follow-up: CRM money formatting — show cents (`678707f`)
+
+Diego: *"no hay decimales en billing. es esto normal en CRMS?"* No
+— accounting standard is always two decimals (Stripe, HubSpot, Xero,
+QuickBooks, Salesforce). DB stored cents fine; we just weren't
+displaying them. `formatEur` in `src/lib/crm-types.ts` switched from
+`maximumFractionDigits: 0` to `min/max: 2`. All 80 callsites
+inherit. Number inputs in `CrmFormModal` now use `step="any"` so
+the spinner doesn't suggest integer-only. `amount_excl_vat`
+placeholder `5000` → `5000.00`.
+
 **2026-04-28** — Stint 64.G: Billing — company picker + tracking-mode framing
 
 Diego: *"En el CRM he querido incluir una nueva factura en la sección
