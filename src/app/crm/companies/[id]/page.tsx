@@ -13,7 +13,11 @@ import { RecordHistory } from '@/components/crm/RecordHistory';
 import { RetainerLedger } from '@/components/crm/RetainerLedger';
 import { ApplyTemplateButton } from '@/components/crm/ApplyTemplateButton';
 import { COMPANY_FIELDS } from '@/components/crm/schemas';
+// Stint 63 bonus — port inline-edit primitives to the detail page so
+// the read-only Cards become live edit widgets, matching the list UX.
+import { ChipSelect } from '@/components/tax-ops/ChipSelect';
 import {
+  COMPANY_INDUSTRIES, COMPANY_SIZES,
   LABELS_CLASSIFICATION, LABELS_INDUSTRY, LABELS_SIZE,
   LABELS_STAGE, LABELS_MATTER_STATUS, LABELS_INVOICE_STATUS,
   formatEur, formatDate,
@@ -61,6 +65,21 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
       toast.info('No changes to save');
     }
     await load();
+  }
+
+  // Stint 63 bonus — single-field patch for the inline edit Cards.
+  async function patchField(field: string, value: unknown) {
+    try {
+      const res = await fetch(`/api/crm/companies/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: value }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await load();
+    } catch (e) {
+      toast.error(`Save failed: ${String(e instanceof Error ? e.message : e)}`);
+    }
   }
 
   async function handleDelete() {
@@ -136,8 +155,34 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-        <Card title="Industry">{c.industry ? LABELS_INDUSTRY[c.industry as keyof typeof LABELS_INDUSTRY] : '—'}</Card>
-        <Card title="Size">{c.size ? LABELS_SIZE[c.size as keyof typeof LABELS_SIZE] : '—'}</Card>
+        <Card title="Industry">
+          <ChipSelect
+            value={String(c.industry ?? '')}
+            options={[
+              { value: '', label: '—', tone: 'bg-surface-alt text-ink-faint' },
+              ...COMPANY_INDUSTRIES.map(v => ({
+                value: v,
+                label: LABELS_INDUSTRY[v as keyof typeof LABELS_INDUSTRY],
+              })),
+            ]}
+            onChange={next => { void patchField('industry', next || null); }}
+            ariaLabel="Industry"
+          />
+        </Card>
+        <Card title="Size">
+          <ChipSelect
+            value={String(c.size ?? '')}
+            options={[
+              { value: '', label: '—', tone: 'bg-surface-alt text-ink-faint' },
+              ...COMPANY_SIZES.map(v => ({
+                value: v,
+                label: LABELS_SIZE[v as keyof typeof LABELS_SIZE],
+              })),
+            ]}
+            onChange={next => { void patchField('size', next || null); }}
+            ariaLabel="Size"
+          />
+        </Card>
         <Card title="Linked tax entity">{c.entity_id ? <Link href={`/entities/${String(c.entity_id)}`} className="text-brand-700 hover:underline">View in Tax module →</Link> : '—'}</Card>
       </div>
 
