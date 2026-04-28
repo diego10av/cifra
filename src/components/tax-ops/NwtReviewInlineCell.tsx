@@ -24,6 +24,24 @@ import Link from 'next/link';
 import {
   FilingStatusBadge, filingStatusLabel, FILING_STATUSES,
 } from './FilingStatusBadge';
+import { followUpSignal } from './follow-up';
+import { FollowUpChip } from './FollowUpChip';
+
+// Stint 64.K — states where we're waiting on the client (not on
+// Diego). After these sit > 7 days without a status change the
+// follow-up chip nudges Diego.
+//   info_to_request               — we haven't asked the client yet
+//   info_requested                — we asked, they owe a response
+//   draft_sent                    — review delivered, awaiting approval
+//   awaiting_client_clarification — explicit wait state
+// NOT counted: working / partially_approved / client_approved (Diego's
+//   queue or progressing internally) and filed (terminal).
+const NWT_WAITING_STATES = new Set([
+  'info_to_request',
+  'info_requested',
+  'draft_sent',
+  'awaiting_client_clarification',
+]);
 
 interface NwtCellData {
   obligation_id: string | null;
@@ -104,6 +122,10 @@ export function NwtReviewInlineCell({
 
   // State B or C: has obligation, with or without filing
   const statusValue = cell.status ?? 'info_to_request';
+  const signal = followUpSignal(
+    NWT_WAITING_STATES.has(statusValue),
+    cell.last_action_at,
+  );
   const tooltip = [
     filingStatusLabel(statusValue),
     cell.draft_sent_at ? `Interim received: ${cell.draft_sent_at}` : null,
@@ -140,6 +162,7 @@ export function NwtReviewInlineCell({
           <option key={s} value={s}>{filingStatusLabel(s)}</option>
         ))}
       </select>
+      <FollowUpChip signal={signal} />
       {/* Stint 43.D10 — IF / RS chips bumped to 10px + show date inline so
           Diego doesn't need to hover. Quick "+ today" buttons appear when
           the field is unset and onPatchDates is wired. */}

@@ -236,12 +236,17 @@ export async function POST(request: NextRequest) {
 
   const id = generateId();
   try {
+    // Stint 64.K — stamp last_action_at = today on INSERT so the
+    // follow-up chip's day-counter starts when Diego actually
+    // creates the filing (not when he later edits it). Otherwise
+    // a row created in `sent` today wouldn't show a chip until
+    // 7 days AFTER his next edit, which defeats the alert.
     await execute(
       `INSERT INTO tax_filings
          (id, obligation_id, period_year, period_label, deadline_date,
           status, prepared_with, comments, assigned_to,
-          filed_at, draft_sent_at, import_source)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'manual')`,
+          filed_at, draft_sent_at, last_action_at, import_source)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_DATE, 'manual')`,
       [
         id, obligation_id, period_year, period_label, deadline,
         body.status ?? 'info_to_request',
