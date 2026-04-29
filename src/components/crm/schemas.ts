@@ -274,7 +274,7 @@ export const CONTACT_FIELDS: FieldSchema[] = [
     label: 'Lifecycle stage',
     type: 'select',
     options: asOptions(CONTACT_LIFECYCLES, LABELS_LIFECYCLE),
-    help: 'Lead → Prospect → Customer → Former customer.',
+    help: 'Peer = lawyer/advisor from another firm in your professional network (no current deal). Sales funnel: Lead → Prospect → Customer → Former customer.',
   },
   {
     name: 'role_tags',

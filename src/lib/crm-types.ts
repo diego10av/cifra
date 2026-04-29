@@ -35,7 +35,17 @@ export const ACTIVITY_TYPES = [
 ] as const;
 export type ActivityType = typeof ACTIVITY_TYPES[number];
 
-export const CONTACT_LIFECYCLES = ['lead', 'prospect', 'customer', 'former_customer'] as const;
+// Stint 64.Q.2 — `peer` added for professional-network contacts
+// (lawyers from other firms, advisors, fellow tax practitioners)
+// who Diego wants in his CRM but who aren't in any sales funnel.
+// Pattern stolen from how Big-4 / top legal CRMs (InterAction,
+// Salesforce Service Cloud Legal) split lifecycle ("are they on a
+// sales path?") from role tags ("what hat do they wear today?").
+// Diego: "abogados de otros despachos pero que igual de primera no
+// hay nada en lo que poder trabajar con ellos, no me pueden o no
+// quieren referirme a nadie pero yo quiero tenerles en mi base de
+// datos."
+export const CONTACT_LIFECYCLES = ['peer', 'lead', 'prospect', 'customer', 'former_customer'] as const;
 export type ContactLifecycle = typeof CONTACT_LIFECYCLES[number];
 
 export const ENGAGEMENT_LEVELS = ['active', 'dormant', 'lapsed'] as const;
@@ -112,6 +122,7 @@ export const LABELS_ACTIVITY_TYPE: Record<ActivityType, string> = {
 };
 
 export const LABELS_LIFECYCLE: Record<ContactLifecycle, string> = {
+  peer:            'Peer / network',
   lead:            'Lead',
   prospect:        'Prospect',
   customer:        'Customer',

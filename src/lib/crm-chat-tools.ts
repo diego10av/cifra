@@ -61,7 +61,7 @@ export const CRM_TOOLS: Anthropic.Tool[] = [
     input_schema: {
       type: 'object',
       properties: {
-        lifecycle_stage: { type: 'string', enum: ['lead', 'prospect', 'customer', 'former_customer'] },
+        lifecycle_stage: { type: 'string', enum: ['peer', 'lead', 'prospect', 'customer', 'former_customer'] },
         engagement_level: { type: 'string', enum: ['active', 'dormant', 'lapsed'] },
         dormant_since_days: { type: 'number' },
         role_tag: { type: 'string', description: 'e.g. "main_poc", "decision_maker", "billing_contact".' },
