@@ -23,7 +23,8 @@
 // Future hooks: notes, archive, mark inactive, merge, etc.
 // ════════════════════════════════════════════════════════════════════════
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { MoreVerticalIcon } from 'lucide-react';
 import { useToast } from '@/components/Toaster';
 
@@ -51,7 +52,23 @@ export function EntityActionsMenu({
   const [draftDate, setDraftDate] = useState<string>(liquidationDate ?? '');
   const [busy, setBusy] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
+
+  // Stint 64.V.5 — popover is portaled to <body> instead of being
+  // rendered inside the table flow. The previous `position: absolute`
+  // inside a sticky parent + z-[15] sticky neighbours made the popover
+  // visually clipped / overlapped (Diego's "totally corrupted screen"
+  // screenshot). Same pattern as SearchableSelect (stint 49.B2).
+  const [popupPos, setPopupPos] = useState<{ left: number; top: number } | null>(null);
+
+  const recomputePos = useCallback(() => {
+    const t = triggerRef.current;
+    if (!t) return;
+    const r = t.getBoundingClientRect();
+    setPopupPos({ left: r.left, top: r.bottom + 4 });
+  }, []);
 
   // Re-sync drafts when external state changes (e.g. after a refetch)
   useEffect(() => {
@@ -59,11 +76,16 @@ export function EntityActionsMenu({
     setDraftDate(liquidationDate ?? '');
   }, [liquidationDate]);
 
-  // Click outside to close
+  // Click outside to close. The popover lives in a portal outside
+  // wrapperRef's tree, so we have to check both the wrapper AND the
+  // portaled popover before deciding "this click was outside".
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (wrapperRef.current?.contains(target)) return;
+      if (popoverRef.current?.contains(target)) return;
+      setOpen(false);
     };
     window.addEventListener('mousedown', handler);
     return () => window.removeEventListener('mousedown', handler);
@@ -78,6 +100,21 @@ export function EntityActionsMenu({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open]);
+
+  // Compute + track popup position so it follows scroll/resize.
+  useEffect(() => {
+    if (!open) { setPopupPos(null); return; }
+    recomputePos();
+    const onScroll = () => recomputePos();
+    const onResize = () => recomputePos();
+    // capture=true so we catch scroll on inner overflow:auto ancestors too.
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open, recomputePos]);
 
   async function saveStatus() {
     if (busy) return;
@@ -126,20 +163,20 @@ export function EntityActionsMenu({
     }
   }
 
-  return (
-    <span ref={wrapperRef} className="relative inline-block ml-1">
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
-        aria-label={`Actions for ${entityName}`}
-        title="Entity actions"
-        className="inline-flex items-center justify-center w-5 h-5 rounded text-ink-faint opacity-60 hover:opacity-100 hover:bg-surface-alt hover:text-ink"
-      >
-        <MoreVerticalIcon size={12} />
-      </button>
-      {open && (
+  // Popover JSX rendered to body via portal. Clamp to viewport so a
+  // click near the right/bottom edge doesn't render off-screen.
+  const W = 260;
+  const H = 200; // rough approximation; tighter clamp not worth the
+                 // measurement round-trip for a small popover
+  const popupNode = open && popupPos && typeof document !== 'undefined'
+    ? createPortal(
         <div
-          className="absolute left-0 top-full mt-1 z-popover min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
+          ref={popoverRef}
+          className="fixed z-popover min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
+          style={{
+            left: Math.min(popupPos.left, (typeof window !== 'undefined' ? window.innerWidth  : 1200) - W - 4),
+            top:  Math.min(popupPos.top,  (typeof window !== 'undefined' ? window.innerHeight : 800)  - H - 4),
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="text-xs font-medium text-ink">Entity actions</div>
@@ -219,8 +256,24 @@ export function EntityActionsMenu({
             Current-year matrix keeps the entity visible so wrap-up
             filings stay actionable.
           </div>
-        </div>
-      )}
+        </div>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <span ref={wrapperRef} className="relative inline-block ml-1">
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        aria-label={`Actions for ${entityName}`}
+        title="Entity actions"
+        className="inline-flex items-center justify-center w-5 h-5 rounded text-ink-faint opacity-60 hover:opacity-100 hover:bg-surface-alt hover:text-ink"
+      >
+        <MoreVerticalIcon size={12} />
+      </button>
+      {popupNode}
     </span>
   );
 }

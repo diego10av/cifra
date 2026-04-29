@@ -16,7 +16,8 @@
 // still the source of truth for editing once a date exists.
 // ════════════════════════════════════════════════════════════════════════
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useToast } from '@/components/Toaster';
 // Re-export pure helpers from their own module so they're testable
 // without pulling this 'use client' component into the test env.
@@ -38,20 +39,50 @@ export function LiquidationChip({
   const [draft, setDraft] = useState<string>(liquidationDate ?? '');
   const [busy, setBusy] = useState(false);
   const wrapperRef = useRef<HTMLSpanElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
+
+  // Stint 64.V.5 — popover portaled to <body> so the table's sticky
+  // cells can't visually clip / overlap it. Same pattern as
+  // EntityActionsMenu + SearchableSelect.
+  const [popupPos, setPopupPos] = useState<{ left: number; top: number } | null>(null);
+  const recomputePos = useCallback(() => {
+    const t = triggerRef.current;
+    if (!t) return;
+    const r = t.getBoundingClientRect();
+    setPopupPos({ left: r.left, top: r.bottom + 4 });
+  }, []);
 
   // Sync draft when prop changes (after refetch)
   useEffect(() => { setDraft(liquidationDate ?? ''); }, [liquidationDate]);
 
-  // Click-outside to close
+  // Click-outside (now also checks the portaled popover).
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (!wrapperRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (wrapperRef.current?.contains(target)) return;
+      if (popoverRef.current?.contains(target)) return;
+      setOpen(false);
     };
     window.addEventListener('mousedown', handler);
     return () => window.removeEventListener('mousedown', handler);
   }, [open]);
+
+  // Track popup position so it follows scroll/resize.
+  useEffect(() => {
+    if (!open) { setPopupPos(null); return; }
+    recomputePos();
+    const onScroll = () => recomputePos();
+    const onResize = () => recomputePos();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+  }, [open, recomputePos]);
 
   async function save(nextDate: string | null) {
     setBusy(true);
@@ -89,24 +120,17 @@ export function LiquidationChip({
     ? `Liquidated · ${liquidationDate}`
     : `Liquidating · ${liquidationDate.slice(5)}`;
 
-  return (
-    <span ref={wrapperRef} className="relative inline-block ml-1.5">
-      <button
-        type="button"
-        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
-        disabled={busy}
-        className={[
-          'inline-flex items-center px-1.5 py-0 rounded text-2xs font-medium whitespace-nowrap',
-          chipClass,
-          'disabled:opacity-50',
-        ].join(' ')}
-        title={`Liquidation date: ${liquidationDate} · click to change`}
-      >
-        {chipLabel}
-      </button>
-      {open && (
+  const W = 260;
+  const H = 200;
+  const popupNode = open && popupPos && typeof document !== 'undefined'
+    ? createPortal(
         <div
-          className="absolute left-0 top-full mt-1 z-popover min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
+          ref={popoverRef}
+          className="fixed z-popover min-w-[260px] bg-surface border border-border rounded-md shadow-lg p-2 space-y-2"
+          style={{
+            left: Math.min(popupPos.left, (typeof window !== 'undefined' ? window.innerWidth  : 1200) - W - 4),
+            top:  Math.min(popupPos.top,  (typeof window !== 'undefined' ? window.innerHeight : 800)  - H - 4),
+          }}
           onClick={(e) => e.stopPropagation()}
         >
           <div className="text-xs font-medium text-ink">Liquidation date</div>
@@ -157,8 +181,28 @@ export function LiquidationChip({
             Current-year matrix keeps showing it so wrap-up filings stay
             visible.
           </div>
-        </div>
-      )}
+        </div>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <span ref={wrapperRef} className="relative inline-block ml-1.5">
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        disabled={busy}
+        className={[
+          'inline-flex items-center px-1.5 py-0 rounded text-2xs font-medium whitespace-nowrap',
+          chipClass,
+          'disabled:opacity-50',
+        ].join(' ')}
+        title={`Liquidation date: ${liquidationDate} · click to change`}
+      >
+        {chipLabel}
+      </button>
+      {popupNode}
     </span>
   );
 }
