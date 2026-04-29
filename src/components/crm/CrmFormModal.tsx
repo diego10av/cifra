@@ -13,7 +13,7 @@
 // re-validates).
 // ════════════════════════════════════════════════════════════════════════
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
@@ -191,9 +191,12 @@ interface MatterRow  { id: string; matter_reference: string | null; title: strin
 function useEntityOptions(source: FieldSchema['entitySource'] | undefined): {
   options: SearchableOption[];
   loading: boolean;
+  refetch: () => void;
 } {
   const [options, setOptions] = useState<SearchableOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [tick, setTick] = useState(0);
+  const refetch = useCallback(() => setTick(t => t + 1), []);
 
   useEffect(() => {
     if (!source) { setOptions([]); setLoading(false); return; }
@@ -221,9 +224,98 @@ function useEntityOptions(source: FieldSchema['entitySource'] | undefined): {
       .catch(() => { if (alive) setOptions([]); })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, [source]);
+  }, [source, tick]);
 
-  return { options, loading };
+  return { options, loading, refetch };
+}
+
+// Stint 64.Q.4 — inline "Create new company" affordance attached to
+// the entity-select picker when entitySource='company'. Diego: "haz
+// eso también" → an inline create flow so adding a new contact whose
+// firm doesn't exist yet doesn't force a context switch to
+// /crm/companies. Single field (company_name); on success calls
+// onCreated(newId) so the parent can refetch options + auto-select
+// the new entry.
+function InlineCreateCompany({
+  onCreated,
+}: {
+  onCreated: (newId: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setBusy(true); setError(null);
+    try {
+      const res = await fetch('/api/crm/companies', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ company_name: trimmed }),
+      });
+      if (!res.ok) {
+        const b = await res.json().catch(() => ({}));
+        throw new Error(b?.error?.message ?? `HTTP ${res.status}`);
+      }
+      const body = await res.json() as { id: string };
+      onCreated(body.id);
+      setOpen(false);
+      setName('');
+    } catch (e) {
+      setError(String(e instanceof Error ? e.message : e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="text-2xs text-brand-700 hover:underline mt-1"
+      >
+        + Create new company
+      </button>
+    );
+  }
+
+  return (
+    <div className="mt-1 flex items-center gap-1">
+      <input
+        autoFocus
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { e.preventDefault(); void submit(); }
+          else if (e.key === 'Escape') { setOpen(false); setName(''); setError(null); }
+        }}
+        disabled={busy}
+        placeholder="New company name"
+        className="flex-1 h-7 px-2 text-xs border border-border rounded bg-white"
+      />
+      <button
+        type="button"
+        onClick={submit}
+        disabled={busy || !name.trim()}
+        className="h-7 px-2 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+      >
+        {busy ? '…' : 'Create'}
+      </button>
+      <button
+        type="button"
+        onClick={() => { setOpen(false); setName(''); setError(null); }}
+        disabled={busy}
+        className="h-7 px-1 text-xs text-ink-muted hover:text-ink"
+      >
+        ✕
+      </button>
+      {error && <span className="text-2xs text-danger-700" title={error}>⚠</span>}
+    </div>
+  );
 }
 
 // ─────────────────────────── Field renderer ──────────────────────────
@@ -343,23 +435,37 @@ function FieldRenderer({
         // block / 100% width without touching the primitive. `bare`
         // strips the default chrome so triggerClassName fully owns the
         // look (matches the other inputs at h-9).
-        <div className="[&>div]:block [&>div]:w-full">
-          <SearchableSelect
-            bare
-            options={entityState.options}
-            value={(value as string) ?? null}
-            onChange={(next) => onChange(next || null)}
-            placeholder={
-              entityState.loading
-                ? 'Loading…'
-                : (field.placeholder ?? 'Search and select…')
-            }
-            ariaLabel={field.label}
-            disabled={entityState.loading}
-            triggerClassName={`w-full h-9 px-2.5 bg-white text-ink hover:bg-surface-alt/50 border ${
-              error ? 'border-danger-400' : 'border-border'
-            }`}
-          />
+        <div>
+          <div className="[&>div]:block [&>div]:w-full">
+            <SearchableSelect
+              bare
+              options={entityState.options}
+              value={(value as string) ?? null}
+              onChange={(next) => onChange(next || null)}
+              placeholder={
+                entityState.loading
+                  ? 'Loading…'
+                  : (field.placeholder ?? 'Search and select…')
+              }
+              ariaLabel={field.label}
+              disabled={entityState.loading}
+              triggerClassName={`w-full h-9 px-2.5 bg-white text-ink hover:bg-surface-alt/50 border ${
+                error ? 'border-danger-400' : 'border-border'
+              }`}
+            />
+          </div>
+          {/* Stint 64.Q.4 — inline create flow for the company picker.
+              Adding a contact whose firm doesn't exist in the DB yet
+              shouldn't force a context switch to /crm/companies. After
+              creation, refetch options and auto-select the new entry. */}
+          {field.entitySource === 'company' && (
+            <InlineCreateCompany
+              onCreated={(newId) => {
+                entityState.refetch();
+                onChange(newId);
+              }}
+            />
+          )}
         </div>
       ) : null}
       {field.help && !error && (
