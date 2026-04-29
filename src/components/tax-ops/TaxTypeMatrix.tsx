@@ -360,20 +360,26 @@ export function TaxTypeMatrix({
       style={{ maxHeight: 'calc(100vh - 220px)' }}
     >
       <table className="min-w-full text-sm border-separate border-spacing-0">
-        <thead className="bg-surface-alt sticky top-0 z-sticky">
+        {/* Stint 64.N — sticky lives on every <th> individually rather
+            than on <thead>. Browsers (especially Safari) don't honour
+            sticky on <thead>; cell-level sticky is the reliable pattern
+            and matches what Linear/Notion/Veeva ship. Each th carries
+            an explicit opaque bg-surface-alt so rows scrolling
+            underneath don't bleed through. */}
+        <thead>
           <tr className="text-left text-ink-muted">
             {familyCol && (
               <th
-                // Stint 54 — z-[20] so the Family header always wins
-                // over both the body sticky cells (z-[15]) and the
-                // generic header row (z-sticky:10).
-                className="sticky left-0 z-[20] bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[170px] max-w-[170px]"
+                // Family header: stuck top + left, highest z so it
+                // wins the top-left corner against both body sticky
+                // cells and other header cells.
+                className="sticky top-0 left-0 z-[25] bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[170px] max-w-[170px]"
               >
                 {familyCol.label}
               </th>
             )}
             <th
-              className="sticky z-[20] bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[220px]"
+              className="sticky top-0 z-[25] bg-surface-alt border-b border-r border-border px-2.5 py-2 font-medium min-w-[220px]"
               style={{ left: `${entityStickyLeft}px` }}
             >
               {firstColLabel}
@@ -382,7 +388,11 @@ export function TaxTypeMatrix({
               <th
                 key={col.key}
                 className={[
-                  'border-b border-border px-2 py-2 font-medium whitespace-nowrap',
+                  // Stint 64.N — every header cell is now sticky-top
+                  // with an opaque bg so vertical scroll doesn't
+                  // bleed through. z-[20] is below Family/Entity
+                  // (z-[25]) but above body sticky cells (z-[15]).
+                  'sticky top-0 z-[20] bg-surface-alt border-b border-border px-2 py-2 font-medium whitespace-nowrap',
                   col.alignRight ? 'text-right' : 'text-left',
                   col.widthClass ?? '',
                 ].join(' ')}
@@ -391,12 +401,12 @@ export function TaxTypeMatrix({
               </th>
             ))}
             {effectiveRowAction && (
-              <th className="border-b border-border px-2 py-2 font-medium w-[60px]"></th>
+              <th className="sticky top-0 z-[20] bg-surface-alt border-b border-border px-2 py-2 font-medium w-[60px]"></th>
             )}
           </tr>
         </thead>
         <tbody>
-          {groups.map(group => {
+          {groups.map((group, idx) => {
             const isCollapsed = collapsed.has(group.name);
             return (
               <GroupBlock
@@ -421,6 +431,12 @@ export function TaxTypeMatrix({
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
                 onDragEnd={handleDragEnd}
+                /* Stint 64.N — first group has no leading spacer; every
+                   subsequent group gets a 12px breathing space so the
+                   eye sees "this is a new family" without needing extra
+                   borders. Diego: "como estas dos cosas salen como del
+                   mismo color, a veces no es lo más mejor". */
+                showLeadingSpacer={idx > 0}
               />
             );
           })}
@@ -438,6 +454,7 @@ function GroupBlock({
   groupFooter, totalCols,
   liquidationVisuals, onLiquidationChanged,
   draggable, dragId, onDragStart, onDragOver, onDrop, onDragEnd,
+  showLeadingSpacer,
 }: {
   group: { name: string; items: MatrixEntity[] };
   grouped: boolean;
@@ -460,6 +477,10 @@ function GroupBlock({
   onDragOver?: (e: React.DragEvent, entity: MatrixEntity) => void;
   onDrop?: (e: React.DragEvent, entity: MatrixEntity) => void;
   onDragEnd?: () => void;
+  /** Stint 64.N — render a thin spacer row above the group header so
+   *  the eye sees a clean break between families. Set true for every
+   *  group except the first. */
+  showLeadingSpacer?: boolean;
 }) {
   // First entity's group_id is the canonical id for this group — use it
   // when calling groupFooter so "+Add" knows where to attach new entities.
@@ -467,6 +488,16 @@ function GroupBlock({
 
   return (
     <>
+      {/* Stint 64.N — 12px breathing space before every group except
+          the first one. Diego's matrix used to render footer →
+          immediate next family header with both on the same colour
+          band; this spacer + tonal contrast on the header makes the
+          break read at a glance. */}
+      {showLeadingSpacer && (
+        <tr aria-hidden="true">
+          <td colSpan={totalCols} className="h-3 bg-surface" />
+        </tr>
+      )}
       {grouped && group.name && (
         <tr>
           <td

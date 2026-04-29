@@ -13,7 +13,7 @@
 // filing) for one-click action.
 
 import Link from 'next/link';
-import { CheckSquareIcon, ChevronRightIcon } from 'lucide-react';
+import { CheckSquareIcon, AlertCircleIcon, ChevronRightIcon } from 'lucide-react';
 import { useCrmFetch } from '@/lib/useCrmFetch';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { DateBadge } from '@/components/crm/DateBadge';
@@ -60,14 +60,50 @@ export function TasksDueWidget() {
   }
 
   const tasks = data.tasks ?? [];
+
+  // Stint 64.N — escalate the widget header tone when there are
+  // overdue tasks (due_date < today). Diego: "si hay una task que
+  // está overdo, me gustaría que todavía se me pusiese una pequeña
+  // notificación o alerta, algo que no sea muy molesto, para que
+  // vea que hay algo que debería haber hecho".
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayKey = today.toISOString().slice(0, 10);
+  let overdueCount = 0;
+  let dueTodayCount = 0;
+  let dueLaterCount = 0;
+  for (const t of tasks) {
+    if (!t.due_date) continue;
+    if (t.due_date < todayKey) overdueCount += 1;
+    else if (t.due_date === todayKey) dueTodayCount += 1;
+    else dueLaterCount += 1;
+  }
+  const hasOverdue = overdueCount > 0;
+
+  const subtitleParts: string[] = [];
+  if (hasOverdue) subtitleParts.push(`${overdueCount} overdue`);
+  if (dueTodayCount > 0) subtitleParts.push(`${dueTodayCount} due today`);
+  if (dueLaterCount > 0) subtitleParts.push(`${dueLaterCount} due this week`);
+  const subtitle = subtitleParts.length > 0
+    ? subtitleParts.join(' · ')
+    : 'Open tasks with due_date in the next 7 days.';
+
   return (
     <div className="rounded-md border border-border bg-surface overflow-hidden">
-      <div className="flex items-center gap-2 px-3 py-2 bg-amber-50/30 border-l-4 border-amber-500">
-        <CheckSquareIcon size={14} className="text-amber-600" />
+      <div className={`flex items-center gap-2 px-3 py-2 ${
+        hasOverdue
+          ? 'bg-danger-50 border-l-4 border-danger-500'
+          : 'bg-amber-50/30 border-l-4 border-amber-500'
+      }`}>
+        {hasOverdue
+          ? <AlertCircleIcon size={14} className="text-danger-700" />
+          : <CheckSquareIcon size={14} className="text-amber-600" />}
         <div className="flex-1">
-          <div className="text-sm font-semibold text-ink">Tasks due this week</div>
-          <div className="text-xs text-ink-muted">
-            Open tasks with due_date in the next 7 days.
+          <div className={`text-sm font-semibold ${hasOverdue ? 'text-danger-800' : 'text-ink'}`}>
+            {hasOverdue ? 'Tasks overdue' : 'Tasks due this week'}
+          </div>
+          <div className={`text-xs ${hasOverdue ? 'text-danger-700' : 'text-ink-muted'}`}>
+            {subtitle}
           </div>
         </div>
         <div className="inline-flex items-center text-xs text-ink-muted">
