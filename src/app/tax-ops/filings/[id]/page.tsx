@@ -18,7 +18,7 @@
 
 import { useEffect, useState, useCallback, use } from 'react';
 import Link from 'next/link';
-import { ArrowLeftIcon, CheckIcon } from 'lucide-react';
+import { ArrowLeftIcon, CheckIcon, HistoryIcon } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { DateBadge } from '@/components/crm/DateBadge';
@@ -27,6 +27,7 @@ import {
   FilingStatusBadge, FILING_STATUSES, filingStatusLabel,
 } from '@/components/tax-ops/FilingStatusBadge';
 import { CspContactsEditor, type CspContact } from '@/components/tax-ops/CspContactsEditor';
+import { AuditLogDrawer } from '@/components/tax-ops/AuditLogDrawer';
 
 interface FilingDetail {
   id: string;
@@ -79,6 +80,9 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
   // Local editable copies (autosaved on blur)
   const [comments, setComments] = useState('');
   const [cspContacts, setCspContacts] = useState<CspContact[]>([]);
+
+  // Stint 64.O — F2 audit log drawer.
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -149,6 +153,15 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
             >
               {FILING_STATUSES.map(s => <option key={s} value={s}>{filingStatusLabel(s)}</option>)}
             </select>
+            {/* Stint 64.O — open the audit log timeline for this filing. */}
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              className="inline-flex items-center gap-1 px-2 py-1 text-sm border border-border rounded-md bg-surface hover:bg-surface-alt/50 text-ink-soft hover:text-ink"
+              title="View change history (audit log) for this filing"
+            >
+              <HistoryIcon size={13} /> History
+            </button>
           </div>
         </div>
         <div className="mt-2 flex items-center gap-4 text-sm">
@@ -294,6 +307,16 @@ export default function FilingDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
       </div>
+
+      {/* Stint 64.O — F2 audit log drawer. Open via the History button
+          in the header. */}
+      <AuditLogDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        targetType="tax_filing"
+        targetId={data.id}
+        targetLabel={`${humanTaxType(data.tax_type)} · ${data.period_label} · ${data.entity_name}`}
+      />
     </div>
   );
 }

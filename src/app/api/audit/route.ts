@@ -33,11 +33,20 @@ async function getFilterOptions(): Promise<{ actions: string[]; counts: Array<{ 
   return { actions: filterCache.actions, counts: filterCache.counts };
 }
 
-// GET /api/audit?entity_id=&declaration_id=&action=&since=&limit=
+// GET /api/audit?entity_id=&declaration_id=&target_type=&target_id=&action=&since=&limit=
+//
+// Stint 64.O — added `target_type` + `target_id` filters so the
+// per-row "📜 History" drawer on /tax-ops/filings/[id] (and any
+// future caller) can hit the same endpoint with
+// ?target_type=tax_filing&target_id=<id>. The
+// `(target_type, target_id, created_at DESC)` index from migration
+// 004 makes this fast.
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
   const entityId = sp.get('entity_id');
   const declarationId = sp.get('declaration_id');
+  const targetType = sp.get('target_type');
+  const targetId = sp.get('target_id');
   const action = sp.get('action');
   const since = sp.get('since');
   const limit = Math.min(parseInt(sp.get('limit') || '500', 10) || 500, 2000);
@@ -47,6 +56,8 @@ export async function GET(request: NextRequest) {
   let i = 1;
   if (entityId) { where.push(`a.entity_id = $${i++}`); vals.push(entityId); }
   if (declarationId) { where.push(`a.declaration_id = $${i++}`); vals.push(declarationId); }
+  if (targetType) { where.push(`a.target_type = $${i++}`); vals.push(targetType); }
+  if (targetId)   { where.push(`a.target_id   = $${i++}`); vals.push(targetId); }
   if (action) { where.push(`a.action = $${i++}`); vals.push(action); }
   if (since) { where.push(`a.created_at >= $${i++}`); vals.push(since); }
 
