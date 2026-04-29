@@ -20,7 +20,11 @@ import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 type EventType =
   | 'follow_up' | 'birthday' | 'anniversary'
   | 'opp_close' | 'opp_next_action'
-  | 'matter_close' | 'task_due' | 'invoice_due';
+  | 'matter_close' | 'task_due' | 'invoice_due'
+  // Stint 64.Q.6 — tax-ops deadlines surface here too. The endpoint
+  // (/api/crm/upcoming) UNIONs them in; the calendar renders them
+  // alongside CRM events so Diego doesn't switch between modules.
+  | 'tax_deadline';
 
 interface CalEvent {
   id: string;
@@ -45,6 +49,10 @@ const TYPE_META: Record<EventType, { icon: string; label: string; tone: string }
   matter_close:    { icon: '⚖️', label: 'Matter close',  tone: 'bg-indigo-50 text-indigo-800 border-indigo-200' },
   task_due:        { icon: '☑️', label: 'Task',          tone: 'bg-surface-alt text-ink-soft border-border' },
   invoice_due:     { icon: '💶', label: 'Invoice due',   tone: 'bg-danger-50 text-danger-800 border-danger-200' },
+  // Stint 64.Q.6 — tax-ops deadlines. Red-leaning tone (statutory
+  // deadlines are hard-stop, missing one has consequences) but
+  // distinct from invoice_due (rose vs danger-50).
+  tax_deadline:    { icon: '🏛️', label: 'Tax deadline',  tone: 'bg-rose-50 text-rose-900 border-rose-200' },
 };
 
 export default function CalendarPage() {

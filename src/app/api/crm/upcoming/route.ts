@@ -3,9 +3,16 @@ import { query } from '@/lib/db';
 
 // GET /api/crm/upcoming?days=7
 //
-// Unified next-N-days event feed across every date-bearing CRM entity.
-// Powers <UpcomingThisWeekWidget /> on the home and the /crm/calendar
-// month view.
+// Unified next-N-days event feed across every date-bearing CRM entity
+// + (since stint 64.Q.6) tax-ops deadlines. Powers <UpcomingThisWeek
+// Widget /> on the home and the /crm/calendar month view.
+//
+// Diego: "todos los calendarios de la plataforma cifracompliance están
+// vinculados de tal modo que si me meto me aparecen todas las cosas
+// que tengo pendientes, o por hacer tanto de tax operations como de
+// CRM o como de VAT. No quiero tener que ir pasando de calendario en
+// calendario." Right call — there's now ONE calendar feed for the
+// whole product.
 //
 // Sources + event types:
 //   - crm_contacts.next_follow_up          → type: 'follow_up'
@@ -16,6 +23,7 @@ import { query } from '@/lib/db';
 //   - crm_matters.closing_date (active)    → type: 'matter_close'
 //   - crm_tasks.due_date (open)            → type: 'task_due'
 //   - crm_billing_invoices.due_date (outstanding) → type: 'invoice_due'
+//   - tax_filings.deadline_date (not filed)       → type: 'tax_deadline'
 //
 // Returns flat array, sorted ascending by date.
 
@@ -27,7 +35,8 @@ export type UpcomingEventType =
   | 'opp_next_action'
   | 'matter_close'
   | 'task_due'
-  | 'invoice_due';
+  | 'invoice_due'
+  | 'tax_deadline';
 
 export interface UpcomingEvent {
   id: string;
@@ -228,6 +237,45 @@ export async function GET(request: NextRequest) {
       detail: i.client_name ? `${i.client_name} · €${Number(i.outstanding).toFixed(2)} outstanding` : `€${Number(i.outstanding).toFixed(2)} outstanding`,
       link: `/crm/billing/${i.id}`,
       target_type: 'crm_invoice', target_id: i.id,
+    });
+  }
+
+  // ─── 8. Tax-ops filing deadlines (stint 64.Q.6) ────────────────
+  // Every active filing whose statutory deadline lands inside the
+  // window AND that hasn't been filed/paid/waived yet. Joins to
+  // tax_obligations + tax_entities for the human-readable label
+  // ("VAT Q1 2026 · Acme SARL"). Status filter mirrors what the
+  // tax-ops "Deadline radar" widget on /tax-ops home considers
+  // actionable.
+  const taxDeadlines = await query<{
+    id: string;
+    deadline_date: string;
+    period_label: string;
+    tax_type: string;
+    entity_id: string;
+    entity_name: string;
+    status: string;
+  }>(
+    `SELECT f.id, f.deadline_date::text, f.period_label, o.tax_type,
+            e.id AS entity_id, e.legal_name AS entity_name, f.status
+       FROM tax_filings f
+       JOIN tax_obligations o ON o.id = f.obligation_id
+       JOIN tax_entities    e ON e.id = o.entity_id
+      WHERE o.is_active = TRUE
+        AND e.is_active = TRUE
+        AND f.deadline_date IS NOT NULL
+        AND f.status NOT IN ('filed', 'paid', 'waived')
+        AND f.deadline_date BETWEEN CURRENT_DATE AND CURRENT_DATE + ($1 || ' days')::interval`,
+    [days],
+  );
+  for (const t of taxDeadlines) {
+    const niceTaxType = t.tax_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    events.push({
+      id: `tax_deadline:${t.id}`, type: 'tax_deadline', date: t.deadline_date,
+      title: `${niceTaxType} · ${t.period_label}`,
+      detail: t.entity_name,
+      link: `/tax-ops/filings/${t.id}`,
+      target_type: 'tax_filing', target_id: t.id,
     });
   }
 
