@@ -240,6 +240,7 @@ export default function BillingPage() {
                 <th className="text-left px-3 py-2 font-medium">Issue</th>
                 <th className="text-left px-3 py-2 font-medium">Due</th>
                 <th className="text-right px-3 py-2 font-medium">Excl. VAT</th>
+                <th className="text-right px-3 py-2 font-medium" title="VAT charged on the invoice. 0 € is correct for B2B sales outside Luxembourg (reverse charge / non-EU export).">VAT</th>
                 <th className="text-right px-3 py-2 font-medium">Incl. VAT</th>
                 <th className="text-right px-3 py-2 font-medium">Outstanding</th>
                 <th className="text-left px-3 py-2 font-medium">Status</th>
@@ -264,6 +265,32 @@ export default function BillingPage() {
                       : <span className="text-ink-muted tabular-nums">{formatDate(r.due_date)}</span>}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums">{formatEur(r.amount_excl_vat)}</td>
+                  {/* Stint 64.Q.3 — VAT column. Diego: "si se emite
+                      factura a una empresa fuera de luxemburgo el
+                      iva es 0 en la factura emitida." Right call.
+                      0 € for non-LU B2B (reverse charge / export)
+                      is a *real* value, not missing data — render
+                      it explicitly as "0,00 €" so the row reads as
+                      complete. Em-dash only when the field is
+                      genuinely null in DB (legacy). */}
+                  <td
+                    className="px-3 py-2 text-right tabular-nums"
+                    title={
+                      r.vat_amount === null || r.vat_amount === undefined
+                        ? 'No VAT recorded — likely legacy import'
+                        : r.vat_rate !== null && r.vat_rate !== undefined
+                          ? `VAT rate: ${Number(r.vat_rate).toFixed(2)}%`
+                          : Number(r.vat_amount) === 0
+                            ? '0 € — correct for non-LU B2B (reverse charge / export)'
+                            : 'VAT amount as recorded on the invoice'
+                    }
+                  >
+                    {r.vat_amount === null || r.vat_amount === undefined
+                      ? <span className="text-ink-faint">—</span>
+                      : Number(r.vat_amount) === 0
+                        ? <span className="text-ink-soft">{formatEur(r.vat_amount)}</span>
+                        : formatEur(r.vat_amount)}
+                  </td>
                   <td className="px-3 py-2 text-right tabular-nums font-medium">{formatEur(r.amount_incl_vat)}</td>
                   <td className="px-3 py-2 text-right tabular-nums">
                     {Number(r.outstanding) > 0 ? <span className="text-amber-700">{formatEur(r.outstanding)}</span> : <span className="text-ink-muted">—</span>}
