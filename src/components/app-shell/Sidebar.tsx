@@ -250,30 +250,50 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
           href: '/crm',
           label: 'CRM',
           icon: BriefcaseIcon,
-          // Stint 64.Q.8 — sidebar order aligned with /crm Overview's
-          // widget priority (Diego: "el orden debería estar alineado").
+          // Stint 64.R — sidebar order follows the legal-CRM canon
+          // (Clio Grow, Lexicata, InterAction by LexisNexis) plus
+          // mainstream sales CRM (HubSpot, Salesforce). Diego: "el
+          // orden no es el correcto. contacts debería ser lo primero,
+          // luego companies, y luego te dejo a ti decidir".
           //
-          // Overview widget order = sidebar order:
-          //   Forecast               →  Opportunities (#1 widget = pipeline money)
-          //   WIP                    →  Matters       (#2 widget = active engagements)
-          //   Key Account Health     →  Companies + Contacts (#3 = relationship master)
-          //   Deals at Risk          →  Opportunities (already up)
-          //   Actions Due            →  Tasks         (#5 widget)
-          //   Upcoming this week     →  Calendar      (#6 widget)
-          //   (no widget)            →  Activities, Billing → end of list
+          // The previous order (mirroring the Overview's daily-priority
+          // widget sequence) confused two distinct purposes:
+          //   - Overview = dashboard, sorted by URGENCY (what demands
+          //     attention today: pipeline forecast, deals at risk).
+          //   - Sidebar = navigation, sorted by CONCEPTUAL HIERARCHY
+          //     (data foundation first, then derived flows).
           //
-          // Outreach folded into Opportunities (stint 64.Q.7). The
-          // /crm/outreach route still exists but redirects to
-          // /crm/opportunities so old bookmarks keep working.
+          // For a legal practice, the foundation is people — Contacts
+          // are the primary asset, Companies are the firms they belong
+          // to, and Opportunities/Matters are derived from those
+          // relationships. Forecast money is downstream signal.
+          //
+          // Order grouped by mental model:
+          //   1. Overview        — daily landing dashboard
+          //   ── Foundation data ──
+          //   2. Contacts        — people (the primary asset)
+          //   3. Companies       — firms / clients
+          //   ── Sales + work flow ──
+          //   4. Opportunities   — pipeline (deals derived from people)
+          //   5. Matters         — engagements (active work after won)
+          //   6. Activities      — logged interactions across the above
+          //   ── Daily ops ──
+          //   7. Tasks           — to-do items
+          //   8. Calendar        — temporal view across all surfaces
+          //   ── Financial output ──
+          //   9. Billing         — invoices
+          //
+          // Outreach folded into Opportunities (stint 64.Q.7); the
+          // /crm/outreach route is a server-side redirect.
           children: [
             { href: '/crm',               label: 'Overview',      icon: BriefcaseIcon },
+            { href: '/crm/contacts',      label: 'Contacts',      icon: UsersIcon },
+            { href: '/crm/companies',     label: 'Companies',     icon: Building2Icon },
             { href: '/crm/opportunities', label: 'Opportunities', icon: TrendingUpIcon },
             { href: '/crm/matters',       label: 'Matters',       icon: GavelIcon },
-            { href: '/crm/companies',     label: 'Companies',     icon: Building2Icon },
-            { href: '/crm/contacts',      label: 'Contacts',      icon: UsersIcon },
+            { href: '/crm/activities',    label: 'Activities',    icon: MessageSquareIcon },
             { href: '/crm/tasks',         label: 'Tasks',         icon: CheckSquareIcon },
             { href: '/crm/calendar',      label: 'Calendar',      icon: CalendarIcon },
-            { href: '/crm/activities',    label: 'Activities',    icon: MessageSquareIcon },
             { href: '/crm/billing',       label: 'Billing',       icon: ReceiptIcon },
           ],
         },
