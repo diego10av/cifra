@@ -1,10 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+
+// Stint 64.X.4 — only allow same-app navigation targets. Prevents
+// `?next=https://evil.com` open-redirect (the middleware already forwards
+// only pathnames, but defence-in-depth at the consumer is cheap).
+function safeNextUrl(raw: string | null): string {
+  if (!raw) return '/';
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/';
+  return raw;
+}
 
 export default function LoginPage() {
   // Stint 61 — username + password. Username is sent lower-cased so users
@@ -14,6 +23,7 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,8 +35,13 @@ export default function LoginPage() {
       body: JSON.stringify({ username: username.trim().toLowerCase(), password }),
     });
     setLoading(false);
-    if (res.ok) router.push('/');
-    else setError('Invalid credentials');
+    if (res.ok) {
+      // Stint 64.X.4 — bounce back to the deep link that triggered the
+      // redirect (preserved by middleware). Diego's complaint was that
+      // login always landed on `/` regardless of intent.
+      const next = safeNextUrl(searchParams?.get('next') ?? null);
+      router.push(next);
+    } else setError('Invalid credentials');
   }
 
   return (

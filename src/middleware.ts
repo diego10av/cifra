@@ -120,7 +120,18 @@ export async function middleware(request: NextRequest) {
     if (pathname.startsWith('/api/')) {
       return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     }
+    // Stint 64.X.4 — preserve original destination so the login form can
+    // bounce the user back where they were trying to go. Diego: "después
+    // de loggearme caigo en una página extraña en vez del dashboard."
+    // Without ?next, every login session lands on `/` regardless of which
+    // deep link triggered the redirect, which feels disorienting (esp. when
+    // a stale tab restores after a session expires).
     const loginUrl = new URL('/login', request.url);
+    // Only forward intra-app paths (start with `/`, no scheme). Skip /login
+    // itself to avoid an infinite ?next=/login chain.
+    if (pathname && pathname !== '/login' && pathname !== '/') {
+      loginUrl.searchParams.set('next', pathname + request.nextUrl.search);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
