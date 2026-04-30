@@ -576,37 +576,38 @@ function GroupBlock({
         <tr>
           <td
             colSpan={totalCols}
-            // Stint 54 — was bg-surface-alt/70 (translucent). When the
-            // user scrolls, the rows underneath show through and the
-            // group header looks "transparent". Switched to fully
-            // opaque bg-surface-alt + z-[15] so it stays solid against
-            // both vertical and horizontal scroll.
-            className="sticky left-0 z-[15] bg-surface-alt border-b border-border px-2.5 py-1 font-semibold text-xs text-ink"
+            // Stint 64.X.5 — same fix as the group footer below: sticky
+            // on a td colspan=N doesn't pin reliably, so the family name
+            // (e.g. "TRILANTIC (2)") would scroll off-screen on
+            // horizontal scroll. Wrap content in a sticky <div> instead.
+            className="bg-surface-alt border-b border-border p-0"
           >
-            {/* Stint 40.P — group header has two affordances: chevron
-                toggles collapse, name links to family overview. */}
-            <span className="inline-flex items-center gap-1">
-              <button
-                type="button"
-                aria-label={isCollapsed ? 'Expand group' : 'Collapse group'}
-                onClick={() => toggleGroup(group.name)}
-                className="inline-flex items-center cursor-pointer hover:text-brand-700"
-              >
-                {isCollapsed ? <ChevronRightIcon size={11} /> : <ChevronDownIcon size={11} />}
-              </button>
-              {groupId ? (
-                <Link
-                  href={`/tax-ops/families/${groupId}`}
-                  className="hover:text-brand-700 hover:underline cursor-pointer"
-                  title={`Open ${group.name} family overview`}
+            <div className="sticky left-0 inline-flex items-center bg-surface-alt z-[15] px-2.5 py-1 font-semibold text-xs text-ink">
+              {/* Stint 40.P — group header has two affordances: chevron
+                  toggles collapse, name links to family overview. */}
+              <span className="inline-flex items-center gap-1">
+                <button
+                  type="button"
+                  aria-label={isCollapsed ? 'Expand group' : 'Collapse group'}
+                  onClick={() => toggleGroup(group.name)}
+                  className="inline-flex items-center cursor-pointer hover:text-brand-700"
                 >
-                  {group.name}
-                </Link>
-              ) : (
-                <span>{group.name}</span>
-              )}
-              <span className="ml-1 text-ink-muted font-normal">({group.items.length})</span>
-            </span>
+                  {isCollapsed ? <ChevronRightIcon size={11} /> : <ChevronDownIcon size={11} />}
+                </button>
+                {groupId ? (
+                  <Link
+                    href={`/tax-ops/families/${groupId}`}
+                    className="hover:text-brand-700 hover:underline cursor-pointer"
+                    title={`Open ${group.name} family overview`}
+                  >
+                    {group.name}
+                  </Link>
+                ) : (
+                  <span>{group.name}</span>
+                )}
+                <span className="ml-1 text-ink-muted font-normal">({group.items.length})</span>
+              </span>
+            </div>
           </td>
         </tr>
       )}
@@ -638,13 +639,25 @@ function GroupBlock({
         <tr className="border-b border-border/70 bg-surface-alt">
           <td
             colSpan={totalCols}
-            // Stint 54 — was bg-surface-alt/20 (mostly transparent),
-            // which made the "+ New entity" / "Add existing" row
-            // look ghosted while scrolling. Solid bg + z-[15] now
-            // matches the group header above.
-            className="sticky left-0 z-[15] bg-surface-alt border-r border-border"
+            // Stint 64.X.5 — sticky-left used to live on the td itself,
+            // but `position:sticky` on a `<td colspan=N>` is unreliable
+            // across browsers (the cell scrolls with the table instead
+            // of pinning, even with `left:0` set). Diego: "no veo la row
+            // para añadir entidad cuando hago scroll a la derecha."
+            //
+            // Fix: keep the td non-sticky (it spans all columns and
+            // anchors the row), and wrap the actual content in a
+            // sticky-left <div> which pins reliably. The padded background
+            // sits on the div so the buttons stay readable as they
+            // overlay scrolling cells underneath.
+            className="bg-surface-alt border-r border-border p-0"
           >
-            {groupFooter({ name: group.name, groupId })}
+            <div
+              className="sticky left-0 inline-flex items-center bg-surface-alt z-[15]"
+              style={{ minHeight: '32px' }}
+            >
+              {groupFooter({ name: group.name, groupId })}
+            </div>
           </td>
         </tr>
       )}
