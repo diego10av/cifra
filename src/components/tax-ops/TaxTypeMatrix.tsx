@@ -929,8 +929,25 @@ function CellRender({
   // still render the dropdown so the user can "set a status" → creates
   // the filing on save. Disabled when the entity lacks an obligation_id
   // (no way to place a filing without one).
+  //
+  // Stint 64.X.1 side-effect fix: when an entity appears in the matrix
+  // via `or_kinds` (no primary filing obligation, only provision/review)
+  // and there's no cell for this period, render an em-dash instead of
+  // a misleading "Info to request" placeholder — that placeholder used
+  // to imply work was pending on a filing that doesn't exist for this
+  // entity. Diego saw this on Jacques rows after the or_kinds change.
   if (onStatusChange) {
     const disabled = !entity.obligation_id;
+    if (disabled && !cell) {
+      return (
+        <td
+          className={['px-2 py-1.5 align-middle text-ink-faint', column.widthClass ?? '', finalReturnRing].join(' ')}
+          title={('No filing obligation for this period' + finalReturnTooltipSuffix).trim() || undefined}
+        >
+          —
+        </td>
+      );
+    }
     return (
       <td
         className={['px-1.5 py-1 align-middle', column.widthClass ?? '', finalReturnRing].join(' ')}
