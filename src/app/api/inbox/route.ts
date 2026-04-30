@@ -44,7 +44,11 @@ export type InboxItemKind =
   // Stint 56.F — task-driven inbox events.
   | 'task_due_today'
   | 'task_followup_today'
-  | 'task_unblocked';
+  | 'task_unblocked'
+  // Stint 64.X.7 — explicit overdue (due_date < today) bucket. Diego:
+  // "alarma de tareas vencidas" — el inbox sólo decía "Due today", no
+  // recogía las que ya habían pasado de fecha y siguen sin done.
+  | 'task_overdue';
 
 interface InboxItem {
   id: string;
@@ -358,11 +362,57 @@ export async function GET() {
       });
     }
 
-    // ── 9. Tasks: due today + follow-up today + just-unblocked ──
+    // ── 9. Tasks: overdue + due today + follow-up today + just-unblocked ──
     //
     // Stint 56.F — surface task events Diego asked for ("notifications
     // light"). Computed on-demand (same as everything else here), no
     // cron. Email digest can come later if Diego wants.
+    //
+    // Stint 64.X.7 — added the explicit overdue bucket (due_date in the
+    // past, status not done/cancelled). Previously Diego could only see
+    // "Due today" / "Follow-up today" — anything missed yesterday
+    // disappeared from the inbox even though it was the most urgent
+    // class of work. Critical severity so overdue tasks pump the badge.
+    const tasksOverdue = await safeQuery<{
+      id: string; title: string; entity_name: string | null;
+      family_name: string | null; due_date: string;
+      days_overdue: string;
+    }>(
+      `SELECT t.id, t.title,
+              COALESCE(
+                (SELECT legal_name FROM tax_entities WHERE id = t.entity_id),
+                (SELECT legal_name FROM tax_entities WHERE id = t.related_entity_id)
+              ) AS entity_name,
+              COALESCE(
+                (SELECT g.name FROM tax_entities e JOIN tax_client_groups g ON g.id = e.client_group_id WHERE e.id = t.entity_id),
+                (SELECT g.name FROM tax_entities e JOIN tax_client_groups g ON g.id = e.client_group_id WHERE e.id = t.related_entity_id)
+              ) AS family_name,
+              t.due_date::text AS due_date,
+              (CURRENT_DATE - t.due_date)::text AS days_overdue
+         FROM tax_ops_tasks t
+        WHERE t.due_date < CURRENT_DATE
+          AND t.status NOT IN ('done','cancelled')
+        ORDER BY t.due_date ASC, t.priority
+        LIMIT 30`,
+    );
+    for (const t of tasksOverdue) {
+      const days = Number(t.days_overdue);
+      const ago = days === 1 ? '1 day ago' : `${days} days ago`;
+      items.push({
+        id: `task-overdue-${t.id}`,
+        kind: 'task_overdue',
+        severity: 'critical',
+        title: `Overdue — ${t.title}`,
+        description: [
+          [t.family_name, t.entity_name].filter(Boolean).join(' · ') || 'No entity',
+          `Due ${ago}`,
+        ].join(' · '),
+        href: `/tax-ops/tasks/${t.id}`,
+        context: { task_id: t.id },
+        created_at: t.due_date,
+      });
+    }
+
     const tasksDue = await safeQuery<{
       id: string; title: string; entity_name: string | null;
       family_name: string | null; due_date: string;

@@ -38,7 +38,12 @@ type InboxKind =
   | 'validator_findings'
   | 'budget_warn'
   | 'feedback_new'
-  | 'schema_missing';
+  | 'schema_missing'
+  // Stint 56.F + 64.X.7 — task buckets the API surfaces.
+  | 'task_overdue'
+  | 'task_due_today'
+  | 'task_followup_today'
+  | 'task_unblocked';
 
 interface InboxItem {
   id: string;
@@ -315,6 +320,11 @@ function kindVisual(kind: InboxKind, severity: Severity): {
     budget_warn:        WalletIcon,
     feedback_new:       MessageCircleIcon,
     schema_missing:     DatabaseIcon,
+    // Stint 56.F + 64.X.7 — task icons.
+    task_overdue:       AlertTriangleIcon,
+    task_due_today:     ClockIcon,
+    task_followup_today: ClockIcon,
+    task_unblocked:     CheckCircle2Icon,
   };
   return { Icon: Icon[kind] ?? InfoIcon, tint };
 }
