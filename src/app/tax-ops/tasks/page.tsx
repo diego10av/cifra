@@ -873,11 +873,15 @@ function TasksListContent() {
                   </td>
                   {/* Follow-up — Stint 58.fix: always visible, immediately
                       before Due. Same overdue/today highlighting that
-                      InlineDateCell already provides. */}
+                      InlineDateCell already provides.
+                      Stint 64.X.3 — neutral mode for done/cancelled
+                      tasks so the dates don't read as "overdue" once
+                      the work is closed. */}
                   <td className="px-2 py-1.5">
                     <InlineDateCell
                       value={t.follow_up_date}
                       onSave={async v => { await patchTask(t.id, { follow_up_date: v }); }}
+                      mode={t.status === 'done' || t.status === 'cancelled' ? 'neutral' : 'urgency'}
                     />
                   </td>
                   {/* Due — inline editable date. */}
@@ -885,6 +889,7 @@ function TasksListContent() {
                     <InlineDateCell
                       value={t.due_date}
                       onSave={async v => { await patchTask(t.id, { due_date: v }); }}
+                      mode={t.status === 'done' || t.status === 'cancelled' ? 'neutral' : 'urgency'}
                     />
                   </td>
                   {/* Priority — Stint 58.T2.3: ChipSelect with priority tone. */}

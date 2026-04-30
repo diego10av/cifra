@@ -290,13 +290,16 @@ export default function TasksPage() {
                         ariaLabel="Status"
                       />
                     </td>
-                    {/* Due — InlineDateCell. urgency mode highlights
-                        overdue / today (kept like the previous read-only
-                        styling but now editable). */}
+                    {/* Due — InlineDateCell. Stint 64.X.3: mode is
+                        'neutral' (no red overdue colouring) when the
+                        task is already done or cancelled. Diego: "una
+                        tarea DONE no debería aparecer ya como overdue,
+                        eso se debería actualizar automáticamente". */}
                     <td className="px-3 py-2">
                       <InlineDateCell
                         value={r.due_date}
                         onSave={async v => { await patchTask(r.id, 'due_date', v); }}
+                        mode={isDone || r.status === 'cancelled' ? 'neutral' : 'urgency'}
                       />
                     </td>
                     {/* Related — read-only (changing the parent of a task
