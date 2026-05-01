@@ -15,8 +15,13 @@
 // Conventions (canon):
 //   • bg-surface wrapper · rounded-lg · border border-border · overflow-hidden
 //   • thead bg-surface-alt · text-2xs uppercase tracking-wide · text-ink-muted
-//   • td px-3 py-2.5 · text-sm · border-t border-border on rows after the first
+//   • td px-3 py-1.5 · text-sm · border-t border-border on rows after the first
+//     (Stint 64.X.13 — was py-2.5, tightened to match TaxTypeMatrix's
+//     ~37px row height so the user feels zero density shift switching
+//     between /tax-ops/* and /crm/*. Linear / HubSpot reference.)
 //   • hover:bg-surface-alt/50 (the canonical hover from F1.4)
+//   • body <tr> carries `group` so descendant cells can hover-reveal
+//     placeholder hints (`group-hover:`) — matches matrix-row pattern.
 //   • sticky-thead optional (set `stickyHeader`)
 //
 // Empty + loading states are rendered inline so consumers don't have
@@ -107,7 +112,7 @@ export function DataTable<Row>({
             {Array.from({ length: loadingRowCount }).map((_, i) => (
               <tr key={i} className="border-t border-border">
                 {columns.map(c => (
-                  <td key={c.key} className="px-3 py-2.5">
+                  <td key={c.key} className="px-3 py-1.5">
                     <Skeleton className="h-4 w-full max-w-[160px]" />
                   </td>
                 ))}
@@ -156,7 +161,10 @@ export function DataTable<Row>({
           <tbody>
             {rows.map((row, i) => {
               const baseClass = [
-                'border-t border-border',
+                // Stint 64.X.13 — `group` on every row so descendant
+                // cells can use `group-hover:` for empty-state hint
+                // reveal (mirrors TaxTypeMatrix behaviour).
+                'group border-t border-border',
                 hoverable || onRowClick ? 'hover:bg-surface-alt/50' : '',
                 onRowClick ? 'cursor-pointer' : '',
                 rowClassName?.(row) ?? '',
@@ -183,7 +191,11 @@ export function DataTable<Row>({
                       <td
                         key={c.key}
                         className={[
-                          'px-3 py-2.5 align-middle',
+                          // Stint 64.X.13 — py-2.5 → py-1.5 matches
+                          // TaxTypeMatrix density (~37px rows). The
+                          // user shouldn't feel a height shift moving
+                          // between Tax-Ops and CRM lists.
+                          'px-3 py-1.5 align-middle',
                           c.alignRight ? 'text-right tabular-nums' : '',
                           c.muted ? 'text-ink-muted' : '',
                           c.widthClass ?? '',
