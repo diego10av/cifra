@@ -179,7 +179,14 @@ export function MatrixToolbar({
   }
 
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    // Stint 64.X.14 — toolbar gap tightened (gap-3 → gap-2) + labels
+    // demoted to `text-xs` (was `text-sm`) so the toolbar fits on one
+    // line at 1280px even on the busiest matrix (CIT: search + year +
+    // status + partner + associate + needs-followup + clear + count
+    // + new-entity + export). Pre-fix it wrapped to 2 rows on
+    // anything narrower than ~1500px. Filter inputs themselves keep
+    // `text-sm` for readability — only the bracket labels shrink.
+    <div className="flex items-center gap-2 flex-wrap">
       {/* Stint 64 — entity search. Renders first (most prominent) when
           wired so Diego can find a specific entity in 100+ row lists
           without scrolling. Filtering happens in `filterEntities`
@@ -193,7 +200,7 @@ export function MatrixToolbar({
             onChange={(e) => onSearchQueryChange(e.target.value)}
             placeholder="Search entity…"
             aria-label="Search by entity name"
-            className="pl-7 pr-7 py-1 text-sm border border-border rounded-md bg-surface w-[200px]"
+            className="pl-7 pr-7 py-1 text-sm border border-border rounded-md bg-surface w-[180px]"
           />
           {searchQuery && (
             <button
@@ -207,12 +214,12 @@ export function MatrixToolbar({
           )}
         </div>
       )}
-      <label className="inline-flex items-center gap-1.5 text-sm">
-        <span className="text-ink-muted">Period year:</span>
+      <label className="inline-flex items-center gap-1 text-xs">
+        <span className="text-ink-muted">Year</span>
         <select
           value={year}
           onChange={(e) => onYearChange(Number(e.target.value))}
-          className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
+          className="px-1.5 py-1 text-sm border border-border rounded-md bg-surface"
         >
           {years.map(y => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -225,12 +232,12 @@ export function MatrixToolbar({
           Pages pass the available periods; selecting one collapses the
           matrix to a single column. */}
       {periodOptions && onPeriodFilterChange && (
-        <label className="inline-flex items-center gap-1.5 text-sm">
-          <span className="text-ink-muted">{periodLabel}:</span>
+        <label className="inline-flex items-center gap-1 text-xs">
+          <span className="text-ink-muted">{periodLabel}</span>
           <select
             value={periodFilter ?? 'all'}
             onChange={(e) => onPeriodFilterChange(e.target.value)}
-            className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
+            className="px-1.5 py-1 text-sm border border-border rounded-md bg-surface"
           >
             <option value="all">All</option>
             {periodOptions.map(o => (
@@ -240,12 +247,12 @@ export function MatrixToolbar({
         </label>
       )}
       {onStatusFilterChange && (
-        <label className="inline-flex items-center gap-1.5 text-sm">
-          <span className="text-ink-muted">Status:</span>
+        <label className="inline-flex items-center gap-1 text-xs">
+          <span className="text-ink-muted">Status</span>
           <select
             value={statusFilter ?? 'all'}
             onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="px-2 py-1 text-sm border border-border rounded-md bg-surface"
+            className="px-1.5 py-1 text-sm border border-border rounded-md bg-surface"
           >
             <option value="all">All</option>
             {FILING_STATUSES.map(s => (
@@ -256,8 +263,8 @@ export function MatrixToolbar({
         </label>
       )}
       {onPartnerFilterChange && (
-        <label className="inline-flex items-center gap-1.5 text-sm">
-          <span className="text-ink-muted">Partner:</span>
+        <label className="inline-flex items-center gap-1 text-xs">
+          <span className="text-ink-muted">Partner</span>
           <SearchableSelect
             options={partnerOptions}
             value={partnerFilter ?? 'all'}
@@ -267,8 +274,8 @@ export function MatrixToolbar({
         </label>
       )}
       {onAssociateFilterChange && (
-        <label className="inline-flex items-center gap-1.5 text-sm">
-          <span className="text-ink-muted">Associate:</span>
+        <label className="inline-flex items-center gap-1 text-xs">
+          <span className="text-ink-muted">Associate</span>
           <SearchableSelect
             options={associateOptions}
             value={associateFilter ?? 'all'}
