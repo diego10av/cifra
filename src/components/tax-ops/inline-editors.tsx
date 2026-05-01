@@ -59,13 +59,22 @@ export function InlineStatusCell({
 // ─── Short text (comments — single line preview, popover multiline) ───
 
 export function InlineTextCell({
-  value, onSave, placeholder, disabled, multiline = false,
+  value, onSave, placeholder, disabled, multiline = false, hoverReveal = false,
 }: {
   value: string | null;
   onSave: (next: string | null) => Promise<void>;
   placeholder?: string;
   disabled?: boolean;
   multiline?: boolean;
+  /**
+   * Stint 64.X.12 — when `true`, an empty cell renders `—` at rest and
+   * reveals the placeholder hint only on row hover (parent `<tr>` must
+   * carry the `group` class — TaxTypeMatrix already does). Default
+   * `false` preserves the always-visible placeholder so non-matrix
+   * call sites (CRM activity / opportunity detail / form-like layouts
+   * with no `group` ancestor) keep working.
+   */
+  hoverReveal?: boolean;
 }) {
   return (
     <InlineCellEditor<string>
@@ -76,10 +85,15 @@ export function InlineTextCell({
       ariaLabel="Edit text"
       renderDisplay={(v) => (
         <span
-          className={v ? 'text-ink-soft text-xs line-clamp-2' : 'text-ink-faint italic text-xs'}
-          title={v || undefined}
+          className={v ? 'text-ink-soft text-xs line-clamp-2' : 'text-ink-faint italic text-xs whitespace-nowrap'}
+          title={v || (placeholder ?? 'Add note…')}
         >
-          {v || (placeholder ?? 'Add note…')}
+          {v || (hoverReveal ? (
+            <>
+              <span className="group-hover:hidden">—</span>
+              <span className="hidden group-hover:inline">{placeholder ?? 'Add note…'}</span>
+            </>
+          ) : (placeholder ?? 'Add note…'))}
         </span>
       )}
       renderEditor={({ value, setValue, commit, cancel }) =>
@@ -108,12 +122,14 @@ export function InlineTextCell({
 // ─── Tags (string[]) — comma-separated input ─────────────────────────
 
 export function InlineTagsCell({
-  value, onSave, placeholder, disabled,
+  value, onSave, placeholder, disabled, hoverReveal = false,
 }: {
   value: string[];
   onSave: (next: string[]) => Promise<void>;
   placeholder?: string;
   disabled?: boolean;
+  /** Stint 64.X.12 — see InlineTextCell. */
+  hoverReveal?: boolean;
 }) {
   return (
     <InlineCellEditor<string[]>
@@ -124,7 +140,16 @@ export function InlineTagsCell({
       ariaLabel="Edit tags"
       renderDisplay={(v) => (
         v.length === 0
-          ? <span className="text-ink-faint italic text-xs whitespace-nowrap">{placeholder ?? 'Add…'}</span>
+          ? (
+            <span className="text-ink-faint italic text-xs whitespace-nowrap" title={placeholder ?? 'Add…'}>
+              {hoverReveal ? (
+                <>
+                  <span className="group-hover:hidden">—</span>
+                  <span className="hidden group-hover:inline">{placeholder ?? 'Add…'}</span>
+                </>
+              ) : (placeholder ?? 'Add…')}
+            </span>
+          )
           : <span className="text-ink-soft text-xs">{v.join(', ')}</span>
       )}
       renderEditor={({ value, setValue, commit, cancel }) => (

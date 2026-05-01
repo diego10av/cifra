@@ -93,6 +93,7 @@ export function partnerInChargeColumn(periodLabels: string[], refetch: () => voi
           value={value}
           disabled={allFilingIds.length === 0}
           placeholder="+ partner"
+          hoverReveal
           onSave={async (next) => {
             await patchAllFilings(allFilingIds, { partner_in_charge: next });
             refetch();
@@ -128,6 +129,7 @@ export function associatesWorkingColumn(periodLabels: string[], refetch: () => v
           value={value}
           disabled={allFilingIds.length === 0}
           placeholder="+ associate"
+          hoverReveal
           onSave={async (next) => {
             await patchAllFilings(allFilingIds, { associates_working: next });
             refetch();
@@ -545,12 +547,13 @@ function ContactsInlineEditor({
           type="button"
           onClick={() => { setDraft(value); setOpen(true); }}
           disabled={disabled}
-          // Stint 64.X.8 — `whitespace-nowrap` so the placeholder doesn't
-          // truncate as "+ Add conta" inside narrow Contacts columns.
-          className="text-xs text-ink-muted hover:text-ink disabled:opacity-50 disabled:cursor-not-allowed italic whitespace-nowrap"
+          // Stint 64.X.12 — unified empty-state: `—` at rest,
+          // "+ Add contact" reveals on row hover.
+          className="text-xs text-ink-faint italic whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           title={disabled ? 'Set a status first (creates the filing)' : 'Click to add contacts'}
         >
-          + Add contact
+          <span className="group-hover:hidden">—</span>
+          <span className="hidden group-hover:inline text-ink-muted hover:text-ink">+ Add contact</span>
         </button>
       ) : (
         <button
@@ -719,6 +722,7 @@ export function commentsColumn(periodLabels: string[], refetch: () => void): Mat
           disabled={!cell}
           placeholder="Add note…"
           multiline
+          hoverReveal
           onSave={async (next) => {
             if (!cell?.filing_id) return;
             await patchFiling(cell.filing_id, { comments: next });
