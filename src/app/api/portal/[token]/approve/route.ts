@@ -85,12 +85,33 @@ export async function POST(
     const ip = getClientIp(request);
     const userAgent = request.headers.get('user-agent') || 'unknown';
 
-    // Transition + audit, inside a small logical block (no tx to keep
-    // compatibility with the existing declaration PATCH flow — if this
-    // becomes a concurrency hazard we'll wrap in tx).
+    // Stint 67.D bug fix: previously this UPDATE set only `status` and
+    // `updated_at`, leaving `approved_at` and `approved_by` NULL even
+    // though the declaration was now approved. The internal reviewer
+    // path (PATCH /api/declarations/[id]) populates both, so post-portal
+    // the row's status and timestamps were inconsistent — UI panels
+    // showing "Approved on …" rendered blank, the front-page PDF
+    // signed-off section showed nothing, and any downstream report that
+    // groups by approved_at was missing the portal-approved declarations.
+    // Stamp `approved_by = 'client_portal'` (per cookie format §6 we
+    // don't have a per-client userId) and `approved_at = NOW()` here too.
+    let body: Record<string, unknown> = {};
+    try { body = (await request.json()) as Record<string, unknown>; } catch { /* empty body OK */ }
+    const approverName = typeof body?.approver_name === 'string'
+      ? body.approver_name.trim().slice(0, 120)
+      : null;
+    const approvedBy = approverName
+      ? `client_portal:${approverName}`
+      : 'client_portal';
+
     await execute(
-      `UPDATE declarations SET status = 'approved', updated_at = NOW() WHERE id = $1`,
-      [declId],
+      `UPDATE declarations
+          SET status = 'approved',
+              approved_at = NOW(),
+              approved_by = $2,
+              updated_at = NOW()
+        WHERE id = $1`,
+      [declId, approvedBy],
     );
 
     // Same precedent upsert that PATCH /api/declarations/[id] runs on
