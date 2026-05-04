@@ -48,10 +48,19 @@ export function GlobalSearch() {
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Register ⌘K / Ctrl+K shortcut globally.
+  // Stint 65.G — was bound to ⌘K which conflicted with the TopBar
+  // command palette (also ⌘K). Both fired on the same keystroke,
+  // race condition. Now bound to ⌘⇧K so the two surfaces don't
+  // collide:
+  //   ⌘K   = global command palette (TopBar SearchBar) — works
+  //          across the whole app, includes commands + entities
+  //          + declarations + providers
+  //   ⌘⇧K  = CRM search (this) — scoped to /crm/* entities
+  //          (companies / contacts / opportunities / matters / invoices)
+  //          which the global palette doesn't index
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         setOpen(v => !v);
       }

@@ -20,9 +20,12 @@ export default function CrmHomePage() {
       <FirstTimeBanner />
       <div>
         <h1 className="text-lg font-semibold text-ink">CRM home</h1>
+        {/* Stint 65.F — mental-model statement matching the one on
+            /tax-ops. Two parallel surfaces; the user should never have
+            to ask "which module owns this?". */}
         <p className="text-sm text-ink-muted mt-0.5">
-          Daily landing — pipeline forecast, unbilled work, Key Account health, deals at risk,
-          actions due today, and what&apos;s hitting this week.
+          Commercial side. Pipeline forecast, unbilled work, Key Account health, deals at risk,
+          actions due today, what&apos;s hitting this week. Compliance lives in Tax-Ops.
         </p>
       </div>
 

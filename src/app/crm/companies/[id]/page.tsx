@@ -2,6 +2,7 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import Link from 'next/link';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { useRouter } from 'next/navigation';
 import { PencilIcon, Trash2Icon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -126,10 +127,18 @@ export default function CompanyDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div>
-      <div className="text-xs text-ink-muted mb-2">
-        <Link href="/crm/companies" className="hover:underline">← All companies</Link>
-      </div>
       <PageHeader
+        // Stint 65.E — breadcrumb replaces the loose "← All companies"
+        // backlink. Same orientation, more orientation: shows the full
+        // path so a user dropped in via a deep-link (or after closing
+        // a drawer) immediately knows where they are.
+        breadcrumb={
+          <Breadcrumbs crumbs={[
+            { label: 'CRM',       href: '/crm' },
+            { label: 'Companies', href: '/crm/companies' },
+            { label: String(c.company_name ?? '(unnamed)') },
+          ]} />
+        }
         title={String(c.company_name ?? '(unnamed)')}
         subtitle={`${c.classification ? LABELS_CLASSIFICATION[c.classification as keyof typeof LABELS_CLASSIFICATION] : ''}${c.country ? ` · ${c.country}` : ''}`}
         actions={

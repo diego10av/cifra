@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PencilIcon, Trash2Icon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/Toaster';
@@ -115,10 +116,16 @@ export default function MatterDetailPage({ params }: { params: Promise<{ id: str
 
   return (
     <div>
-      <div className="text-xs text-ink-muted mb-2">
-        <Link href="/crm/matters" className="hover:underline">← All matters</Link>
-      </div>
       <PageHeader
+        // Stint 65.E — breadcrumb replaces the loose "← All matters"
+        // backlink so deep-linked users see the full path.
+        breadcrumb={
+          <Breadcrumbs crumbs={[
+            { label: 'CRM',     href: '/crm' },
+            { label: 'Matters', href: '/crm/matters' },
+            { label: String(m.matter_reference ?? m.title ?? '(unnamed)') },
+          ]} />
+        }
         title={<span><span className="font-mono text-brand-600 mr-2">{String(m.matter_reference)}</span>{String(m.title)}</span>}
         subtitle={`${m.status ? LABELS_MATTER_STATUS[m.status as keyof typeof LABELS_MATTER_STATUS] : ''}${m.client_name ? ` · ${m.client_name}` : ''}${m.fee_type ? ` · ${m.fee_type}` : ''}`}
         actions={
