@@ -217,6 +217,10 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
             { href: '/tax-ops/other',            label: 'Other (ad-hoc)',       icon: FolderIcon },
             { href: '/tax-ops/entities',         label: 'Entities',             icon: Building2Icon },
             { href: '/tax-ops/families',         label: 'Families',             icon: Building2Icon },
+            // Stint 65.C — Filings is the cross-tax-type search/filter
+            // surface. Was reachable only via the (now removed) top-tabs;
+            // surfaced here so the route isn't orphaned.
+            { href: '/tax-ops/filings',          label: 'Filings',              icon: FileTextIcon },
             { href: '/tax-ops/settings',         label: 'Settings',             icon: SettingsIcon },
           ],
         },
