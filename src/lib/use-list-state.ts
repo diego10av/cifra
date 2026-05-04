@@ -17,7 +17,7 @@
 // ════════════════════════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export type SortDir = 'asc' | 'desc';
 
@@ -57,23 +57,18 @@ export function useListState<SK extends string, F extends string>(
   opts: ListStateOptions<SK, F>,
 ): ListState<SK, F> {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // Stint 67.A.c — `useSearchParams` REMOVED from this hook entirely.
-  // Just calling `useSearchParams()` (without `.get()`) was enough to
-  // force the parent `<Suspense fallback>` into its fallback during
-  // Next.js 16 prerendering, and the streamed HTML's `<!--$~-->`
-  // marker never resolved on the client even after hydration. Pages
-  // that consumed this hook (/clients, /entities) hung on the
-  // skeleton forever despite their API endpoints returning 200 OK.
-  //
-  // Workaround: parse `window.location.search` inside a post-mount
-  // effect. That keeps deep-link support (visiting
-  // /clients?filter=csp will apply the filter after the first paint)
-  // while sidestepping `useSearchParams` entirely. Down side: the
-  // initial render flashes defaults for one tick, then the URL state
-  // applies. Acceptable: invisible to the user 99% of the time.
-  // router.replace continues to write filter changes back to the URL
-  // so back/forward navigation still works.
+  // Stint 67.A.b — initial state uses defaults; URL params are read in
+  // an effect AFTER mount (below). Reading `searchParams.get(...)`
+  // synchronously during render was forcing the parent <Suspense>
+  // boundary into its fallback under Next.js 16 + React 19, and the
+  // streamed HTML's `<!--$~-->` placeholder never resolved client-side
+  // — the page hung forever on the skeleton even though the API
+  // returned 200 OK. Pages that don't go through this hook
+  // (/declarations) read searchParams the same way without breaking,
+  // but /clients + /entities (which DO use the hook) stuck.
+  // Defer-until-effect sidesteps the boundary entirely.
 
   const [q, setQ] = useState('');
   const [filter, setFilter] = useState<F>(opts.defaultFilter);
@@ -82,20 +77,18 @@ export function useListState<SK extends string, F extends string>(
   const [page, setPageRaw] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(opts.defaultPageSize);
 
-  // Initialize from URL params after mount (read raw window.location).
+  // Initialize from URL params after mount.
   const hasReadUrl = useRef(false);
   useEffect(() => {
     if (hasReadUrl.current) return;
     hasReadUrl.current = true;
-    if (typeof window === 'undefined') return;
-    const sp = new URLSearchParams(window.location.search);
-    const initialQ = sp.get('q') ?? '';
-    const initialFilter = readEnum<F>(sp.get('filter'), opts.filterValues, opts.defaultFilter);
-    const initialSort = readEnum<SK>(sp.get('sort'), opts.sortKeys, opts.defaultSort);
-    const initialDir: SortDir = (sp.get('dir') === 'asc' ? 'asc' : sp.get('dir') === 'desc' ? 'desc' : (opts.defaultDir ?? 'desc'));
-    const initialPage = Math.max(1, Number(sp.get('page')) || 1);
-    const initialPageSize = opts.pageSizes.includes(Number(sp.get('size')))
-      ? Number(sp.get('size'))
+    const initialQ = searchParams.get('q') ?? '';
+    const initialFilter = readEnum<F>(searchParams.get('filter'), opts.filterValues, opts.defaultFilter);
+    const initialSort = readEnum<SK>(searchParams.get('sort'), opts.sortKeys, opts.defaultSort);
+    const initialDir: SortDir = (searchParams.get('dir') === 'asc' ? 'asc' : searchParams.get('dir') === 'desc' ? 'desc' : (opts.defaultDir ?? 'desc'));
+    const initialPage = Math.max(1, Number(searchParams.get('page')) || 1);
+    const initialPageSize = opts.pageSizes.includes(Number(searchParams.get('size')))
+      ? Number(searchParams.get('size'))
       : opts.defaultPageSize;
     if (initialQ) setQ(initialQ);
     if (initialFilter !== opts.defaultFilter) setFilter(initialFilter);
@@ -145,11 +138,9 @@ export function useListState<SK extends string, F extends string>(
       isInitialMount.current = false;
       return;
     }
-    if (typeof window === 'undefined') return;
-    const currentSp = new URLSearchParams(window.location.search);
     const qs = new URLSearchParams();
     for (const key of opts.passthroughParams ?? []) {
-      const v = currentSp.get(key);
+      const v = searchParams.get(key);
       if (v != null) qs.set(key, v);
     }
     if (q.trim()) qs.set('q', q.trim());
