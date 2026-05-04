@@ -110,7 +110,8 @@ const ENTITIES = [
     matricule: '20192999810',
     rcs_number: 'B245678',
     legal_form: 'SCSp',
-    entity_type: 'aifm',
+    // Stint 67: 'aifm' was replaced by 'manco' in mig 021's whitelist.
+    entity_type: 'manco',
     regime: 'ordinary' as const,
     frequency: 'quarterly' as const,
     address: '2-4, avenue JF Kennedy, L-1855 Luxembourg',
@@ -133,7 +134,8 @@ const ENTITIES = [
     matricule: '20152123456',
     rcs_number: 'B198765',
     legal_form: 'SARL',
-    entity_type: 'holding',
+    // Stint 67: 'holding' was replaced by 'active_holding' in mig 021.
+    entity_type: 'active_holding',
     regime: 'ordinary' as const,
     frequency: 'annual' as const,
     address: '15, boulevard Royal, L-2449 Luxembourg',
@@ -163,7 +165,9 @@ interface SeedApprover {
   role: string | null;
   organization: string | null;
   country: string | null;
-  approver_type: 'client' | 'csp' | 'internal' | 'other';
+  // Stint 67: 'internal' was retired; the column constraint is
+  // 'client' | 'csp' | 'other'. Map old internal contacts to 'other'.
+  approver_type: 'client' | 'csp' | 'other';
   is_primary: boolean;
   sort_order: number;
   notes: string | null;
@@ -214,7 +218,7 @@ const APPROVERS: SeedApprover[] = [
     id: `${DEMO_PREFIX}app-hold-2`, entity_id: `${DEMO_PREFIX}ent-hold`,
     name: 'Tomasz Kowalski', email: 'tkowalski@zephyr.demo',
     phone: '+48 22 555 12 34', role: 'Group Controller', organization: 'Zephyr Holdings SARL',
-    country: 'PL', approver_type: 'internal', is_primary: false, sort_order: 2,
+    country: 'PL', approver_type: 'other', is_primary: false, sort_order: 2,
     notes: 'Controller based in Warsaw — needs English summaries, gets CC.',
   },
 ];
@@ -437,14 +441,20 @@ function addDays(base: Date, days: number): string {
 async function wipeDemo(): Promise<void> {
   console.log('🧹  Wiping existing demo rows (prefix: demo-)...');
   // Order matters — children first to avoid FK violations.
+  // Invoice lines + invoices reference declarations, which the demo
+  // also seeds — clear them by *parent* declaration id so we don't
+  // leave orphans when the seed-script numbering changes.
+  await execute(`DELETE FROM invoice_lines WHERE declaration_id LIKE $1`, [`${DEMO_PREFIX}%`]);
+  await execute(`DELETE FROM invoices WHERE declaration_id LIKE $1`, [`${DEMO_PREFIX}%`]);
+  // Everything else is keyed by `id` (text PK with the demo- prefix).
   const tables = [
-    'invoice_lines', 'invoices', 'aed_communications', 'precedents',
+    'aed_communications', 'precedents',
     'entity_approvers', 'declarations', 'entities', 'clients',
   ];
   for (const t of tables) {
-    await execute(`DELETE FROM ${t} WHERE id LIKE $1 OR (CASE WHEN '${t}' = 'invoice_lines' OR '${t}' = 'invoices' THEN declaration_id LIKE $1 ELSE FALSE END)`, [`${DEMO_PREFIX}%`]);
+    await execute(`DELETE FROM ${t} WHERE id LIKE $1`, [`${DEMO_PREFIX}%`]);
   }
-  // Clean api_calls rows tagged with demo label
+  // api_calls rows are tagged via `label`, not id.
   try {
     await execute(`DELETE FROM api_calls WHERE label LIKE 'demo %'`);
   } catch { /* best-effort */ }
