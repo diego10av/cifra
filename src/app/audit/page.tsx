@@ -1,5 +1,11 @@
 'use client';
 
+// Stint 67.A.e — `dynamic = 'force-dynamic'` (below). Same fix as
+// /clients, /entities, /closing. Without it Next.js 16 statically
+// prerendered this page, captured the Suspense fallback at build
+// time, and the served HTML never hydrated.
+export const dynamic = 'force-dynamic';
+
 import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
