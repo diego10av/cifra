@@ -9,7 +9,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, Suspense, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { PlusIcon, ArrowRightIcon, SearchIcon, ChevronUpIcon, ChevronDownIcon, ChevronsLeftIcon, ChevronLeftIcon, ChevronRightIcon as ChevronRightMiniIcon, ChevronsRightIcon } from 'lucide-react';
@@ -31,12 +31,9 @@ type SortDir = 'asc' | 'desc';
 
 const PAGE_SIZES = [25, 50, 100, 250] as const;
 
+// Stint 67.C: <Suspense> wrapper removed (see /clients/page.tsx).
 export default function DeclarationsPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <DeclarationsContent />
-    </Suspense>
-  );
+  return <DeclarationsContent />;
 }
 
 function DeclarationsContent() {

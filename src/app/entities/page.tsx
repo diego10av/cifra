@@ -10,7 +10,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useCallback, useEffect, useState, Suspense } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -55,12 +55,12 @@ const SORT_KEYS = ['entity', 'client', 'vat_status', 'regime', 'frequency', 'vat
 const FILTERS = ['all', 'registered', 'pending'] as const;
 const PAGE_SIZES = [25, 50, 100, 250] as const;
 
+// Stint 67.C: <Suspense> wrapper removed (see /clients/page.tsx — same
+// SSR-streaming-stuck-pending issue with React 19 / Next 16). With
+// force-dynamic the boundary is dead weight; EntitiesContent renders
+// <PageSkeleton/> internally while loading.
 export default function EntitiesPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <EntitiesContent />
-    </Suspense>
-  );
+  return <EntitiesContent />;
 }
 
 function EntitiesContent() {

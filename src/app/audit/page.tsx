@@ -3,7 +3,7 @@
 // Stint 67.B.b: per-page force-dynamic — see /clients/page.tsx.
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FileSearchIcon, XIcon } from 'lucide-react';
@@ -25,12 +25,9 @@ interface AuditRow {
 interface ActionCount { action: string; n: number }
 interface AuditResponse { rows: AuditRow[]; actions: string[]; counts: ActionCount[] }
 
+// Stint 67.C: <Suspense> wrapper removed (see /clients/page.tsx).
 export default function AuditPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <AuditContent />
-    </Suspense>
-  );
+  return <AuditContent />;
 }
 
 function AuditContent() {

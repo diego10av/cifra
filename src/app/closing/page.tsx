@@ -15,7 +15,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -59,12 +59,9 @@ interface ClosingResponse {
   };
 }
 
+// Stint 67.C: <Suspense> wrapper removed (see /clients/page.tsx).
 export default function ClosingPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <ClosingContent />
-    </Suspense>
-  );
+  return <ClosingContent />;
 }
 
 function ClosingContent() {
