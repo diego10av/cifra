@@ -777,6 +777,42 @@ function applyDirectEvidenceRules(
       };
     }
 
+    // ═══════════════ RULE 16 — Outgoing B2B services to EU customer ═══════
+    // Stint 67.D: previously this case fell through to the TIER 4 AI
+    // proposer because no deterministic rule matched. The pattern is
+    // unambiguous though: outgoing to a VAT-registered EU customer with
+    // no VAT charged on the invoice → reverse charge under Article 196
+    // EU VAT Directive (the customer self-assesses; LU side reports the
+    // turnover in box 423/450).
+    //
+    // Required signals:
+    //   - direction = outgoing
+    //   - customer country in the EU but ≠ LU
+    //   - zero VAT on the invoice (vat_rate = 0, vat_applied = 0)
+    //   - customer VAT-ID present and well-formed (regex; VIES validation
+    //     is deferred to filing-time — see ECSL `rejected_lines`)
+    //
+    // Without a captured customer VAT-ID we flag (RULE 16X) — a B2C
+    // supply to an EU consumer follows place-of-supply Art. 17§2 LTVA
+    // and should be 17% LU VAT, not RC.
+    if (isBilledWithoutVat && customerCountry &&
+        isEU(customerCountry) && !isLuxembourg(customerCountry)) {
+      if (customerVat) {
+        return ruleMatch('RULE 16', 'OUT_EU_RC',
+          `B2B service to EU customer (${customerCountry}, VAT-ID ${customerVat}) — reverse charge under Art. 196 EU VAT Directive; LU reports the turnover in box 423/450.`);
+      }
+      return {
+        treatment: null, rule: 'RULE 16X',
+        reason: 'Outgoing to EU customer without VAT-ID evidence — cannot self-assess RC eligibility.',
+        source: 'rule', flag: true,
+        flag_reason:
+          'Customer country is in the EU (not LU) but no VAT number was captured. Without proof '
+          + 'the customer is a taxable person, the place-of-supply default for B2C is Luxembourg '
+          + '(Art. 17§2 LTVA), meaning 17% LU VAT should be charged. Capture the customer\'s VAT '
+          + 'number or B2C status evidence before classifying as OUT_EU_RC.',
+      };
+    }
+
     // RULE 14 requires BOTH an exemption reference AND zero VAT, AND picks
     // the sub-paragraph based on the matched keyword family (real-estate
     // → 44§1 b, fund management → 44§1 d, financial → 44§1 a).
