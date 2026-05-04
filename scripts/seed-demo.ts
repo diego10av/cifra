@@ -322,11 +322,11 @@ const LINES_SCSP: SeedLine[] = [
   { provider: 'Horizon Italy SRL', country: 'IT', direction: 'outgoing',
     description: 'Asset-management fees Q1 2026',
     amount_eur: 45000, vat_rate: 0, vat_applied: 0, rc_amount: 0,
-    treatment: 'OUT_EU', classification_rule: 'RULE 6', ai_confidence: 0.96 },
+    treatment: 'OUT_EU_RC', classification_rule: 'RULE 6', ai_confidence: 0.96 },
   { provider: 'Horizon France SARL', country: 'FR', direction: 'outgoing',
     description: 'Asset-management fees Q1 2026',
     amount_eur: 38500, vat_rate: 0, vat_applied: 0, rc_amount: 0,
-    treatment: 'OUT_EU', classification_rule: 'RULE 6', ai_confidence: 0.96 },
+    treatment: 'OUT_EU_RC', classification_rule: 'RULE 6', ai_confidence: 0.96 },
 ];
 
 const LINES_HOLD: SeedLine[] = [
@@ -368,7 +368,7 @@ const LINES_HOLD: SeedLine[] = [
   { provider: 'Zephyr France SASU', country: 'FR', direction: 'outgoing',
     description: 'Management services Q1',
     amount_eur: 28000, vat_rate: 0, vat_applied: 0, rc_amount: 0,
-    treatment: 'OUT_EU', classification_rule: 'RULE 6', ai_confidence: 0.97 },
+    treatment: 'OUT_EU_RC', classification_rule: 'RULE 6', ai_confidence: 0.97 },
   // Outgoing to non-EU subsidiary
   { provider: 'Zephyr UK Ltd', country: 'GB', direction: 'outgoing',
     description: 'Management services Q1',

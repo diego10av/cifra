@@ -2,7 +2,7 @@
 
 // Stint 67.B.b: per-page force-dynamic — see /clients/page.tsx.
 export const dynamic = 'force-dynamic';
-import { useEffect, useState, useMemo, useCallback, useRef, Suspense } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { SearchIcon, PlusIcon, ExternalLinkIcon, Trash2Icon, TargetIcon } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -53,14 +53,12 @@ const CLASSIFICATION_TONES: Record<string, string> = {
   not_yet_client: 'bg-surface-alt text-ink-faint',
 };
 
+// Stint 67.C: Suspense wrapper removed (see /clients/page.tsx). The
+// 63.D rationale ("Suspense required by Next 16 useSearchParams")
+// holds only for static-rendered pages; with force-dynamic the
+// boundary is the trap, not the requirement.
 export default function CompaniesPage() {
-  // Stint 63.D — Suspense boundary required by Next 16 useSearchParams
-  // when the consumer renders during SSR.
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <CompaniesPageContent />
-    </Suspense>
-  );
+  return <CompaniesPageContent />;
 }
 
 function CompaniesPageContent() {

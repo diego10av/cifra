@@ -2,7 +2,7 @@
 
 // Stint 67.B.b: per-page force-dynamic — see /clients/page.tsx.
 export const dynamic = 'force-dynamic';
-import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { SearchIcon, PlusIcon, ExternalLinkIcon, BuildingIcon, Trash2Icon } from 'lucide-react';
@@ -64,12 +64,9 @@ interface Opportunity {
   primary_contact_name: string | null;
 }
 
+// Stint 67.C: Suspense wrapper removed (see /clients/page.tsx).
 export default function OpportunitiesPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <OpportunitiesPageContent />
-    </Suspense>
-  );
+  return <OpportunitiesPageContent />;
 }
 
 function OpportunitiesPageContent() {

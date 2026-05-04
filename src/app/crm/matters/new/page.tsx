@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
 // historic matters where the conflict-check gate doesn't apply.
 // ════════════════════════════════════════════════════════════════════════
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeftIcon, ChevronRightIcon, CheckCircle2Icon, AlertTriangleIcon, ShieldCheckIcon } from 'lucide-react';
@@ -75,15 +75,11 @@ const FEE_TYPES = [
   { value: 'hourly',      label: 'Hourly' },
 ];
 
-// The inner component reads useSearchParams, which forces a Suspense
-// boundary during static prerender. The outer export wraps in Suspense
-// so Next can emit the shell at build time.
+// Stint 67.C: Suspense wrapper removed (see /clients/page.tsx). With
+// force-dynamic the route renders dynamically, so useSearchParams
+// resolves without suspending.
 export default function MatterIntakePage() {
-  return (
-    <Suspense fallback={<div className="text-sm text-ink-muted italic px-3 py-6">Loading wizard…</div>}>
-      <MatterIntakeInner />
-    </Suspense>
-  );
+  return <MatterIntakeInner />;
 }
 
 function MatterIntakeInner() {

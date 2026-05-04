@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 // knows what they're attaching to).
 // ════════════════════════════════════════════════════════════════════════
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -458,12 +458,9 @@ function NewEntityPageInner() {
   );
 }
 
+// Stint 67.C: Suspense wrapper removed (see /clients/page.tsx).
 export default function NewEntityPage() {
-  return (
-    <Suspense fallback={<PageSkeleton />}>
-      <NewEntityPageInner />
-    </Suspense>
-  );
+  return <NewEntityPageInner />;
 }
 
 function Field({

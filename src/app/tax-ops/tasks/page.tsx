@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 // Filtros: Mine · Overdue · Waiting · This week + search.
 // Inline edit en status, priority, assignee, due_date, follow_up_date.
 
-import { useEffect, useState, useCallback, useMemo, useRef, Suspense } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
@@ -160,14 +160,12 @@ type ViewMode = 'list' | 'board' | 'calendar';
 
 interface FamilyOption { id: string; name: string }
 
+// Stint 67.C: Suspense wrapper removed (see /clients/page.tsx). The
+// 57.D rationale ("Suspense required for useSearchParams") only
+// applies to static-rendered pages; force-dynamic resolves params at
+// request time, no boundary needed.
 export default function TasksListPage() {
-  // Suspense boundary required by Next 16 useSearchParams under
-  // /app router when the consumer renders during SSR.
-  return (
-    <Suspense fallback={null}>
-      <TasksListContent />
-    </Suspense>
-  );
+  return <TasksListContent />;
 }
 
 function TasksListContent() {
