@@ -90,7 +90,12 @@ function Hero() {
           >
             The operating system for
             <br />
-            <span className="text-brand-500">private capital structures.</span>
+            {/* Stint 65.A — accent on the second-line phrase. The
+                whole headline is now navy (post brand-refresh), so we
+                bring back tonal hierarchy with the cifra red accent
+                on the punctum word — same role 55legal gives to
+                "BOUTIQUE" beside its all-navy "Luxembourg law,". */}
+            <span className="text-accent-500">private capital structures.</span>
           </h1>
           <p className="mt-6 max-w-[680px] text-lg leading-[1.55] text-ink-soft">
             Compliance, clients, entities, invoices — connected.
