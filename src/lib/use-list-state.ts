@@ -16,7 +16,7 @@
 // function to `applySort` on the consuming side.
 // ════════════════════════════════════════════════════════════════════════
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export type SortDir = 'asc' | 'desc';
@@ -92,7 +92,28 @@ export function useListState<SK extends string, F extends string>(
   useEffect(() => { setPageRaw(1); }, [q, filter, sort, dir, pageSize]);
 
   // URL sync.
+  //
+  // Stint 67.A — skip the first run (initial mount). The state was
+  // just initialized FROM searchParams, so router.replace on mount
+  // would write the same URL we read from. In Next.js 16 / React 19
+  // that triggers a Suspense reset of the route segment which loops
+  // the page back to its `<PageSkeleton />` fallback, and the data-
+  // fetch effect never gets a stable mount to run on. Result before
+  // the fix: /clients, /entities (both consumers of this hook) hung
+  // forever on the skeleton even though their /api/* endpoints
+  // returned 200 OK.
+  //
+  // Skipping the initial run + only writing the URL when a dimension
+  // actually changes mirrors how /declarations does it (which never
+  // had this bug). The user-visible behaviour is identical: the URL
+  // already reflects the initial state because the initial state
+  // was read from it.
+  const isInitialMount = useRef(true);
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     const qs = new URLSearchParams();
     for (const key of opts.passthroughParams ?? []) {
       const v = searchParams.get(key);
