@@ -71,7 +71,11 @@ export default function GlobalError({
           <button
             onClick={() => reset()}
             style={{
-              background: '#F14E72',
+              // Stint 65.A — was the old brand-pink. Now the navy
+              // primary. This page is the inline-style fallback when
+              // CSS fails to load, so the hex literal is intentional
+              // (no tokens available here).
+              background: '#1F2D55',
               color: '#fff',
               border: 0,
               borderRadius: 6,

@@ -2,9 +2,23 @@
 
 /* ═══════════════════════════════════════════════════════════════
  *  cifra — design tokens
- *  Inspired by Factorial (warm, premium, confident) and Avalara
- *  (serious, trustworthy). Coral is the brand accent, used sparingly
- *  over a warm-neutral base.
+ *
+ *  Stint 65.A — brand refresh (2026-05-04). Diego's strategic shift:
+ *  cifra is moving away from the Factorial-pink, SaaS-friendly look
+ *  toward a Big4 / boutique-law aesthetic. Reference point: 55legal.lu
+ *  (Lux boutique) — deep navy wordmark with a small coral-red accent
+ *  in the logo (the triangle inside the "A"). Same coral our brand
+ *  already had — just demoted from primary to accent.
+ *
+ *    Primary brand   = Navy        (#1F2D55 base, scale 50–900)
+ *    Accent          = cifra red   (#E8264C, the old brand-500)
+ *    Neutrals        = Cool greys  (cooler than the old warm beige)
+ *
+ *  Pre-refresh mood: friendly HR-tech adjacent.
+ *  Post-refresh mood: trust-credible, advisory, established firm.
+ *  The accent red still appears — but only on the logo dot, AED
+ *  urgent badges, destructive confirms, and key alert chips. Never
+ *  as the dominant CTA colour.
  * ═══════════════════════════════════════════════════════════════ */
 
 :root {
@@ -14,35 +28,69 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
                Monaco, Consolas, monospace;
 
-  /* ── Brand: Factorial pink-red ────────────────
-   *  Factorial uses a vivid pink-red as accent. We adapt a scale around
-   *  #E8264C for use as CTA colour, logo, links, and focus rings. The
-   *  rest of the interface stays on warm neutrals — pink appears sparingly.
+  /* ── Brand: Navy (primary) ────────────────────
+   *  Stint 65.A — replaces the Factorial pink as the primary brand
+   *  colour. Navy is the genre signal that puts cifra in the same
+   *  visual league as 55legal, Arendt, Loyens, the Big4. Scale built
+   *  around #1F2D55 — dark enough to read as authority, blue-tinted
+   *  enough to read as "trust", not "default Bootstrap".
+   *
+   *  Wherever the codebase uses brand-{tier} today (591 usages across
+   *  167 files) it now resolves to a navy tier. The semantic of
+   *  "brand" is preserved — it's still the colour that says "cifra".
+   *  Only the hue changed.
    */
-  --color-brand-50:  #FFF0F4;
-  --color-brand-100: #FFD9E0;
-  --color-brand-200: #FFB0BE;
-  --color-brand-300: #FA8097;
-  --color-brand-400: #F14E72;
-  --color-brand-500: #E8264C;  /* primary — the cifra pink */
-  --color-brand-600: #C61640;
-  --color-brand-700: #9E1033;
-  --color-brand-800: #7A0C28;
-  --color-brand-900: #540919;
+  --color-brand-50:  #F2F4FA;
+  --color-brand-100: #DDE2EE;
+  --color-brand-200: #B6BFD7;
+  --color-brand-300: #8593BB;
+  --color-brand-400: #506599;
+  --color-brand-500: #1F2D55;  /* primary — the cifra navy */
+  --color-brand-600: #1A2548;
+  --color-brand-700: #141C39;
+  --color-brand-800: #0F162C;
+  --color-brand-900: #0A0F1E;
 
-  /* ── Neutrals: warm off-whites and greys ──── */
-  --color-canvas:       #FAF8F6;  /* page background */
+  /* ── Accent: cifra red (former brand) ─────────
+   *  Stint 65.A — the same scale that used to be `brand-*`, now
+   *  scoped to `accent-*` for sparing use. Logo dot, AED-urgent
+   *  badges, destructive confirms emphasis, and a handful of "this
+   *  needs eyes NOW" chips. Never primary CTA. Never sidebar accent.
+   *
+   *  Preserved verbatim from pre-refresh so any hex literals around
+   *  the codebase that referenced #E8264C still match.
+   */
+  --color-accent-50:  #FFF0F4;
+  --color-accent-100: #FFD9E0;
+  --color-accent-200: #FFB0BE;
+  --color-accent-300: #FA8097;
+  --color-accent-400: #F14E72;
+  --color-accent-500: #E8264C;  /* the cifra red, demoted to accent */
+  --color-accent-600: #C61640;
+  --color-accent-700: #9E1033;
+  --color-accent-800: #7A0C28;
+  --color-accent-900: #540919;
+
+  /* ── Neutrals: cool greys ─────────────────────
+   *  Stint 65.A — shifted slightly cooler than the old warm beige
+   *  (`#FAF8F6` canvas / `#F6F3F0` surface-alt) because warm beige +
+   *  navy reads as "rustic-corporate", which clashes with the
+   *  Big4-clean direction. Cool off-white pairs cleanly with navy
+   *  without going cold-clinical (those are still off-white, not
+   *  pure-white-flat).
+   */
+  --color-canvas:       #F8F9FB;  /* page background — cool off-white */
   --color-surface:      #FFFFFF;  /* cards */
-  --color-surface-alt:  #F6F3F0;  /* subtle fills */
+  --color-surface-alt:  #F1F3F7;  /* subtle fills */
 
-  --color-border:       #E8E3DC;
-  --color-border-strong:#D4CEC5;
-  --color-divider:      #F0ECE6;
+  --color-border:       #E5E7EB;
+  --color-border-strong:#CFD3DC;
+  --color-divider:      #EEF0F4;
 
-  --color-ink:          #1A1614;  /* primary text */
-  --color-ink-soft:     #433D39;  /* secondary text */
-  --color-ink-muted:    #7A716B;  /* tertiary text */
-  --color-ink-faint:    #B5ACA3;  /* placeholder/disabled */
+  --color-ink:          #0F162C;  /* primary text — navy-tinted */
+  --color-ink-soft:     #3D4A66;  /* secondary text */
+  --color-ink-muted:    #6B7588;  /* tertiary text */
+  --color-ink-faint:    #A4ADBE;  /* placeholder/disabled */
 
   /* ── Semantic colours (compliance-safe) ──── */
   --color-success-50:   #EDFDF5;
@@ -125,6 +173,19 @@
   --color-brand-700: var(--color-brand-700);
   --color-brand-800: var(--color-brand-800);
   --color-brand-900: var(--color-brand-900);
+
+  /* Stint 65.A — accent palette (cifra red, demoted from primary).
+   *  Used sparingly for AED urgent / destructive emphasis / logo dot. */
+  --color-accent-50:  var(--color-accent-50);
+  --color-accent-100: var(--color-accent-100);
+  --color-accent-200: var(--color-accent-200);
+  --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-700: var(--color-accent-700);
+  --color-accent-800: var(--color-accent-800);
+  --color-accent-900: var(--color-accent-900);
 
   --color-canvas:      var(--color-canvas);
   --color-surface:     var(--color-surface);
