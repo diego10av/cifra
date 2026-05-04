@@ -59,21 +59,45 @@ export function useListState<SK extends string, F extends string>(
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const initialQ = searchParams.get('q') ?? '';
-  const initialFilter = readEnum<F>(searchParams.get('filter'), opts.filterValues, opts.defaultFilter);
-  const initialSort = readEnum<SK>(searchParams.get('sort'), opts.sortKeys, opts.defaultSort);
-  const initialDir: SortDir = (searchParams.get('dir') === 'asc' ? 'asc' : searchParams.get('dir') === 'desc' ? 'desc' : (opts.defaultDir ?? 'desc'));
-  const initialPage = Math.max(1, Number(searchParams.get('page')) || 1);
-  const initialPageSize = opts.pageSizes.includes(Number(searchParams.get('size')))
-    ? Number(searchParams.get('size'))
-    : opts.defaultPageSize;
+  // Stint 67.A.b — initial state uses defaults; URL params are read in
+  // an effect AFTER mount (below). Reading `searchParams.get(...)`
+  // synchronously during render was forcing the parent <Suspense>
+  // boundary into its fallback under Next.js 16 + React 19, and the
+  // streamed HTML's `<!--$~-->` placeholder never resolved client-side
+  // — the page hung forever on the skeleton even though the API
+  // returned 200 OK. Pages that don't go through this hook
+  // (/declarations) read searchParams the same way without breaking,
+  // but /clients + /entities (which DO use the hook) stuck.
+  // Defer-until-effect sidesteps the boundary entirely.
 
-  const [q, setQ] = useState(initialQ);
-  const [filter, setFilter] = useState<F>(initialFilter);
-  const [sort, setSort] = useState<SK>(initialSort);
-  const [dir, setDir] = useState<SortDir>(initialDir);
-  const [page, setPageRaw] = useState<number>(initialPage);
-  const [pageSize, setPageSize] = useState<number>(initialPageSize);
+  const [q, setQ] = useState('');
+  const [filter, setFilter] = useState<F>(opts.defaultFilter);
+  const [sort, setSort] = useState<SK>(opts.defaultSort);
+  const [dir, setDir] = useState<SortDir>(opts.defaultDir ?? 'desc');
+  const [page, setPageRaw] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(opts.defaultPageSize);
+
+  // Initialize from URL params after mount.
+  const hasReadUrl = useRef(false);
+  useEffect(() => {
+    if (hasReadUrl.current) return;
+    hasReadUrl.current = true;
+    const initialQ = searchParams.get('q') ?? '';
+    const initialFilter = readEnum<F>(searchParams.get('filter'), opts.filterValues, opts.defaultFilter);
+    const initialSort = readEnum<SK>(searchParams.get('sort'), opts.sortKeys, opts.defaultSort);
+    const initialDir: SortDir = (searchParams.get('dir') === 'asc' ? 'asc' : searchParams.get('dir') === 'desc' ? 'desc' : (opts.defaultDir ?? 'desc'));
+    const initialPage = Math.max(1, Number(searchParams.get('page')) || 1);
+    const initialPageSize = opts.pageSizes.includes(Number(searchParams.get('size')))
+      ? Number(searchParams.get('size'))
+      : opts.defaultPageSize;
+    if (initialQ) setQ(initialQ);
+    if (initialFilter !== opts.defaultFilter) setFilter(initialFilter);
+    if (initialSort !== opts.defaultSort) setSort(initialSort);
+    if (initialDir !== (opts.defaultDir ?? 'desc')) setDir(initialDir);
+    if (initialPage !== 1) setPageRaw(initialPage);
+    if (initialPageSize !== opts.defaultPageSize) setPageSize(initialPageSize);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const setPage = useCallback((v: number | ((p: number) => number)) => {
     setPageRaw(prev => typeof v === 'function' ? (v as (p: number) => number)(prev) : v);
