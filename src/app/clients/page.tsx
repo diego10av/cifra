@@ -65,24 +65,10 @@ export default function ClientsPage() {
 }
 
 function ClientsContent() {
-  // Stint 67.A.d — DEBUG instrumentation. /clients hangs in suspense
-  // and we can't tell if this component is even hydrating. Logging
-  // mount + state changes to console so the next deploy reveals
-  // what's actually running.
-  if (typeof window !== 'undefined') {
-    console.log('[clients] ClientsContent rendering');
-  }
   const router = useRouter();
   const [clients, setClients] = useState<Client[] | null>(null);
   const [schemaMissing, setSchemaMissing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log('[clients] mounted, clients=', clients);
-  }, []);
-  useEffect(() => {
-    console.log('[clients] clients changed:', clients);
-  }, [clients]);
 
   const list = useListState<ClientSortKey, ClientFilter>({
     basePath: '/clients',
