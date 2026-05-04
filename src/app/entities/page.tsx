@@ -5,11 +5,6 @@
 //
 // Stint 12: URL-synced filters + column sort + pagination (via
 // useListState + ListFooter). Matches the declarations-list UX.
-//
-// Stint 67.A.e — `dynamic = 'force-dynamic'` to opt out of static
-// prerendering (same fix as /clients). Without it Next.js 16 baked
-// the Suspense fallback into static HTML and the page never
-// hydrated.
 // ════════════════════════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useState, Suspense } from 'react';
@@ -56,9 +51,6 @@ type VatFilter = 'all' | 'registered' | 'pending';
 const SORT_KEYS = ['entity', 'client', 'vat_status', 'regime', 'frequency', 'vat_number'] as const;
 const FILTERS = ['all', 'registered', 'pending'] as const;
 const PAGE_SIZES = [25, 50, 100, 250] as const;
-
-// Stint 67.A.e — see header note.
-export const dynamic = 'force-dynamic';
 
 export default function EntitiesPage() {
   return (

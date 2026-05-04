@@ -5,15 +5,6 @@
 // expands to show the entities that hang off it + their lifecycle.
 //
 // Stint 12: URL-synced filters + sort dropdown + pagination.
-//
-// Stint 67.A.e — `dynamic = 'force-dynamic'` (below). Without this
-// Next.js 16 was apparently statically prerendering this page during
-// the build; useSearchParams in `<Suspense>` captured the FALLBACK at
-// build-time, baked it into the static HTML, and the served page
-// never loaded the client bundle to hydrate (no console.logs ever
-// fired in production, even after 4 deploy attempts).
-// `force-dynamic` opts out of static optimization → every request
-// SSRs fresh → bundle loads → hydration runs → page works.
 // ════════════════════════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useState, Suspense } from 'react';
@@ -64,9 +55,6 @@ type ClientSortKey = typeof SORT_KEYS[number];
 const FILTERS = ['all', 'end_client', 'csp', 'other'] as const;
 type ClientFilter = typeof FILTERS[number];
 const PAGE_SIZES = [25, 50, 100, 250] as const;
-
-// Stint 67.A.e — opt out of static optimization. See header note.
-export const dynamic = 'force-dynamic';
 
 export default function ClientsPage() {
   return (

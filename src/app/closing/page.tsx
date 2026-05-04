@@ -12,9 +12,6 @@
 // Default: current calendar quarter.
 // ════════════════════════════════════════════════════════════════════════
 
-// Stint 67.A.e — see /clients header note.
-export const dynamic = 'force-dynamic';
-
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
