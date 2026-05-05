@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import {
   UsersIcon, ClockIcon, RefreshCwIcon, LayersIcon, MergeIcon,
-  CalendarIcon, BookUserIcon, DatabaseIcon, ChevronRightIcon,
+  BookUserIcon, DatabaseIcon, ChevronRightIcon,
 } from 'lucide-react';
 import { PageHeader } from '@/components/ui/PageHeader';
 
@@ -52,12 +52,6 @@ export default function TaxOpsSettingsPage() {
           icon={BookUserIcon}
           title="Contacts book"
           description="Reverse index of every CSP contact across entities and filings. Rename a contact once, propagate to every row in one transaction."
-        />
-        <SettingsCard
-          href="/tax-ops/settings/calendar"
-          icon={CalendarIcon}
-          title="Calendar subscription"
-          description="Subscribe all upcoming deadlines to Google / Apple / Outlook Calendar via a read-only iCal feed."
         />
         <SettingsCard
           href="/tax-ops/settings/backup"

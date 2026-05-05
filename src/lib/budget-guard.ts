@@ -29,7 +29,7 @@ export interface BudgetError {
   limit_eur: number;
 }
 
-const DEFAULT_MONTHLY_LIMIT_EUR = 75;
+const DEFAULT_MONTHLY_LIMIT_EUR = 20;
 const SOFT_WARN_PCT = 0.80;
 const HARD_BLOCK_PCT = 1.00;
 

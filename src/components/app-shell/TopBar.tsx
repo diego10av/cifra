@@ -1,28 +1,18 @@
 'use client';
 
-// Top bar sitting above the main content column. Holds global search,
-// the Inbox (reviewer's action queue), "Ask cifra" chat trigger, and a
+// Top bar sitting above the main content column. Holds global search +
 // mobile hamburger. Height 56px.
-//
-// 2026-04-18: replaced the placeholder BellIcon with the Inbox button
-// (see ./InboxButton.tsx). The bell used to render without ever doing
-// anything, which created false expectation of notifications. The
-// Inbox replaces it with a real feed — items that need the reviewer's
-// next action, now.
 
 import { useState } from 'react';
-import { MenuIcon, XIcon, SparklesIcon } from 'lucide-react';
+import { MenuIcon, XIcon } from 'lucide-react';
 import SearchBar from '@/components/SearchBar';
 import { Sidebar, type SidebarBadges } from './Sidebar';
-import { InboxButton } from './InboxButton';
 
 interface TopBarProps {
   badges: SidebarBadges;
-  onOpenChat?: () => void;
-  chatOpen?: boolean;
 }
 
-export function TopBar({ badges, onOpenChat, chatOpen = false }: TopBarProps) {
+export function TopBar({ badges }: TopBarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -39,11 +29,6 @@ export function TopBar({ badges, onOpenChat, chatOpen = false }: TopBarProps) {
 
           <div className="flex-1 min-w-0">
             <SearchBar />
-          </div>
-
-          <div className="flex items-center gap-1 shrink-0">
-            <AskCifraButton onClick={onOpenChat} active={chatOpen} />
-            <InboxButton />
           </div>
         </div>
       </header>
@@ -69,29 +54,5 @@ export function TopBar({ badges, onOpenChat, chatOpen = false }: TopBarProps) {
         </div>
       )}
     </>
-  );
-}
-
-// "Ask cifra" trigger — opens the right-side ChatDrawer. Uses the
-// sparkles icon to mark AI + compact label to keep the topbar quiet.
-function AskCifraButton({ onClick, active }: { onClick?: () => void; active: boolean }) {
-  if (!onClick) return null;
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={active}
-      aria-label="Open cifra assistant"
-      title="Ask cifra (AI assistant)"
-      className={[
-        'inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md text-sm font-medium',
-        'transition-colors duration-150',
-        active
-          ? 'bg-brand-50 text-brand-700 border border-brand-100'
-          : 'text-ink-soft hover:bg-surface-alt hover:text-ink border border-transparent',
-      ].join(' ')}
-    >
-      <SparklesIcon size={13} strokeWidth={2} />
-      <span className="hidden sm:inline">Ask cifra</span>
-    </button>
   );
 }

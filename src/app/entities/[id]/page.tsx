@@ -5,7 +5,6 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Trash2Icon } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
-import { ApproversCard } from '@/components/entity/ApproversCard';
 import { EntityEditCard } from '@/components/entity/EntityEditCard';
 import { EntityProrataCard } from '@/components/entity/EntityProrataCard';
 import { OfficialDocumentsCard } from '@/components/entity/OfficialDocumentsCard';
@@ -150,8 +149,6 @@ export default function EntityDetailPage() {
           fetch(`/api/entities/${id}/timeline`).then(r => r.json()).then(setData);
         }}
       />
-
-      <ApproversCard entityId={id} />
 
       <EntityProrataCard entityId={id} />
 

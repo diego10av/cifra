@@ -20,36 +20,36 @@ describe('firm-wide monthly budget', () => {
     mockQueryOne.mockReset();
   });
 
-  it('reports spend + remaining against the default €75 cap', async () => {
-    mockQueryOne.mockResolvedValueOnce({ total: 12.5 });
+  it('reports spend + remaining against the default €20 cap', async () => {
+    mockQueryOne.mockResolvedValueOnce({ total: 5 });
     const s = await getBudgetStatus();
-    expect(s.month_spend_eur).toBe(12.5);
-    expect(s.limit_eur).toBe(75);
-    expect(s.remaining_eur).toBe(62.5);
+    expect(s.month_spend_eur).toBe(5);
+    expect(s.limit_eur).toBe(20);
+    expect(s.remaining_eur).toBe(15);
     expect(s.over_budget).toBe(false);
   });
 
   it('flags over_soft_warn at 80%', async () => {
-    mockQueryOne.mockResolvedValueOnce({ total: 60 });
+    mockQueryOne.mockResolvedValueOnce({ total: 16 });
     const s = await getBudgetStatus();
     expect(s.over_soft_warn).toBe(true);
     expect(s.over_budget).toBe(false);
   });
 
   it('flags over_budget at 100%', async () => {
-    mockQueryOne.mockResolvedValueOnce({ total: 80 });
+    mockQueryOne.mockResolvedValueOnce({ total: 20 });
     const s = await getBudgetStatus();
     expect(s.over_budget).toBe(true);
   });
 
   it('requireBudget returns ok when under the cap', async () => {
-    mockQueryOne.mockResolvedValueOnce({ total: 10 });
+    mockQueryOne.mockResolvedValueOnce({ total: 5 });
     const r = await requireBudget();
     expect(r.ok).toBe(true);
   });
 
   it('requireBudget returns an error envelope when over', async () => {
-    mockQueryOne.mockResolvedValueOnce({ total: 100 });
+    mockQueryOne.mockResolvedValueOnce({ total: 25 });
     const r = await requireBudget();
     expect(r.ok).toBe(false);
     if (!r.ok) {

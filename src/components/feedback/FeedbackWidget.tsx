@@ -13,8 +13,7 @@
 //   message is stashed in localStorage so the user doesn't lose it;
 //   next time they submit, we drain the queue first.
 // - Kept tiny in layout: 40px pill bottom-right, doesn't obstruct.
-// - Auto-hides on /login and /portal/* (public pages, no feedback
-//   channel yet).
+// - Auto-hides on /login (public page).
 // ════════════════════════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useState } from 'react';
@@ -26,8 +25,7 @@ import {
 
 const QUEUE_KEY = 'cifra_feedback_queue_v1';
 
-// Routes where the widget stays hidden — public or auth-gated UIs.
-const HIDDEN_PATH_PREFIXES = ['/login', '/portal/'];
+const HIDDEN_PATH_PREFIXES = ['/login'];
 
 type Category = 'bug' | 'ux' | 'feature' | 'question' | 'other';
 type Severity = 'low' | 'medium' | 'high';

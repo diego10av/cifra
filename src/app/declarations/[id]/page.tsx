@@ -22,7 +22,6 @@ import {
 import { PreviewPanel } from './PreviewPanel';
 import { OutputsPanel } from './OutputsPanel';
 import { DeclarationNotes, FilingPanel } from './FilingPanel';
-import { ShareLinkModal } from './ShareLinkModal';
 import { PhaseCTA, SummaryApproveCTA } from './PhaseCTA';
 import { DocRow, StatusBadge, TriageTag, FileIcon } from './DocRow';
 import { TreatmentBadge } from './TreatmentBadge';
@@ -79,7 +78,6 @@ export default function DeclarationDetailPage() {
     prior_period: string | null;
     model: string;
   }>(null);
-  const [shareOpen, setShareOpen] = useState(false);
   const [bulkEditOpen, setBulkEditOpen] = useState<null | 'incoming' | 'outgoing'>(null);
   const [excelImportOpen, setExcelImportOpen] = useState(false);
   // When non-null, holds the invoice_id whose Attachments modal is open
@@ -742,17 +740,6 @@ export default function DeclarationDetailPage() {
               )}
               {data.status === 'review' && (
                 <button
-                  onClick={() => setShareOpen(true)}
-                  disabled={unclassified > 0 || flagged > 0}
-                  className="h-8 px-3 rounded-md border border-border-strong text-sm font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5"
-                  title={unclassified > 0 || flagged > 0 ? 'Resolve all issues before sharing for client approval' : 'Share a signed link with the fund manager for approval'}
-                >
-                  <ShareIcon size={13} />
-                  Share for approval
-                </button>
-              )}
-              {data.status === 'review' && (
-                <button
                   onClick={() => handleStatusChange('approved')}
                   disabled={unclassified > 0 || flagged > 0}
                   className="h-8 px-4 rounded-md bg-success-500 text-white text-sm font-semibold hover:bg-success-700 transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer inline-flex items-center gap-1.5 shadow-xs"
@@ -1353,11 +1340,6 @@ export default function DeclarationDetailPage() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* ─────────── SHARE LINK MODAL ─────────── */}
-      {shareOpen && (
-        <ShareLinkModal declarationId={id} onClose={() => setShareOpen(false)} />
       )}
 
       {/* ─────────── BULK EDIT MODAL ─────────── */}

@@ -6,10 +6,18 @@ import { verifySession, AUTH_COOKIE_NAME } from '@/lib/auth';
 
 const PUBLIC_PATHS = new Set<string>(['/login', '/api/auth/login']);
 
+// Tag the response so the server-component AppShell can render without
+// the operator chrome on the public surface (currently only /login).
+function withNoShellHeader(request: NextRequest): { request: { headers: Headers } } {
+  const headers = new Headers(request.headers);
+  headers.set('x-cifra-no-shell', '1');
+  return { request: { headers } };
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (PUBLIC_PATHS.has(pathname)) return NextResponse.next();
+  if (PUBLIC_PATHS.has(pathname)) return NextResponse.next(withNoShellHeader(request));
 
   const cookie = request.cookies.get(AUTH_COOKIE_NAME)?.value;
   const session = await verifySession(cookie);

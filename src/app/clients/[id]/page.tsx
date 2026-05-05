@@ -20,7 +20,6 @@ import {
   ChevronRightIcon, PencilIcon, CheckIcon, Trash2Icon,
 } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
-import { ContactsCard } from '@/components/clients/ContactsCard';
 import { EngagedViaCard } from '@/components/clients/EngagedViaCard';
 import { BillingCard } from '@/components/clients/BillingCard';
 import { describeApiError, formatUiError } from '@/lib/ui-errors';
@@ -205,9 +204,6 @@ export default function ClientDetailPage() {
             }}
             onSaved={() => { void load(); }}
           />
-
-          {/* Multi-contact roster — stint 11 (2026-04-19). */}
-          <ContactsCard clientId={client.id} />
 
           {/* Billing / fee schedule — stint 15 (2026-04-20). Per Diego:
               he wants to remember the fees agreed with each client and

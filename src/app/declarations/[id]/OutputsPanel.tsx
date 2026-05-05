@@ -12,7 +12,6 @@ import { useCallback, useEffect, useState } from 'react';
 import type { BoxResult, OutputsResponse } from './_types';
 import { fmtEUR } from './_helpers';
 import { KeyBox, Spinner } from './_atoms';
-import { EmailDrafterModal } from './EmailDrafterModal';
 
 export function OutputsPanel({ declarationId }: { declarationId: string }) {
   const [data, setData] = useState<OutputsResponse | null>(null);
@@ -20,7 +19,6 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
   const [error, setError] = useState<string | null>(null);
   const [copiedRef, setCopiedRef] = useState(false);
   const [expanded, setExpanded] = useState(false);
-  const [emailOpen, setEmailOpen] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -130,13 +128,6 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
             <DownloadIcon /> ECSL
           </button>
           <button
-            onClick={() => setEmailOpen(true)}
-            className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer flex items-center gap-1.5"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-            Draft email
-          </button>
-          <button
             onClick={() => setExpanded(!expanded)}
             className="h-8 px-3 rounded border border-border-strong text-xs font-medium text-ink-soft hover:bg-surface-alt hover:border-gray-400 transition-all duration-150 cursor-pointer"
           >
@@ -144,8 +135,6 @@ export function OutputsPanel({ declarationId }: { declarationId: string }) {
           </button>
         </div>
       </div>
-      {emailOpen && <EmailDrafterModal declarationId={declarationId} onClose={() => setEmailOpen(false)} />}
-
       {/* Stint 67.D + 67.E — eCDF XML XSD-compliance warning. The five
           flagged items are now extracted into src/config/ecdf-xsd-config.ts
           (one constant + *_VERIFIED flag per item) so an XSD-pull update
