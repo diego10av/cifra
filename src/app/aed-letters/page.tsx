@@ -39,6 +39,7 @@ interface AEDComm {
 interface Entity { id: string; name: string; }
 
 type StatusFilter = 'all' | 'open' | 'archived';
+type UrgencyFilter = 'all' | 'high' | 'medium' | 'low';
 
 export default function AEDLettersPage() {
   const [letters, setLetters] = useState<AEDComm[] | null>(null);
@@ -46,6 +47,14 @@ export default function AEDLettersPage() {
   const [selectedEntity, setSelectedEntity] = useState('');
   const [uploading, setUploading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('open');
+  // Read initial urgency filter from URL — the home dashboard's
+  // "AED letters urgent" card link drops users here with ?urgency=high.
+  const [urgencyFilter, setUrgencyFilter] = useState<UrgencyFilter>(() => {
+    if (typeof window === 'undefined') return 'all';
+    const u = new URLSearchParams(window.location.search).get('urgency') ?? '';
+    return u === 'high' || u === 'medium' || u === 'low' ? u : 'all';
+  });
+  const [entityFilter, setEntityFilter] = useState<string>('');
   const fileInput = useRef<HTMLInputElement>(null);
 
   function load() {
@@ -91,8 +100,10 @@ export default function AEDLettersPage() {
   };
 
   const visible = letters.filter(l => {
-    if (statusFilter === 'open')     return l.status === 'received' || l.status === 'reviewed';
-    if (statusFilter === 'archived') return l.status === 'archived';
+    if (statusFilter === 'open' && !(l.status === 'received' || l.status === 'reviewed')) return false;
+    if (statusFilter === 'archived' && l.status !== 'archived') return false;
+    if (urgencyFilter !== 'all' && l.urgency !== urgencyFilter) return false;
+    if (entityFilter && l.entity_id !== entityFilter) return false;
     return true;
   }).sort((a, b) => {
     // Urgent first, then by deadline, then by recency
@@ -169,17 +180,49 @@ export default function AEDLettersPage() {
         </div>
       </div>
 
-      {/* Filter chips */}
-      <div className="flex items-center gap-1 mb-4">
-        <FilterChip active={statusFilter === 'open'}     onClick={() => setStatusFilter('open')}>
-          Open <Count active={statusFilter === 'open'} value={counts.open} />
-        </FilterChip>
-        <FilterChip active={statusFilter === 'all'}      onClick={() => setStatusFilter('all')}>
-          All <Count active={statusFilter === 'all'} value={counts.total} />
-        </FilterChip>
-        <FilterChip active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
-          Archived <Count active={statusFilter === 'archived'} value={counts.total - counts.open - counts.actioned} />
-        </FilterChip>
+      {/* Filter chips: status (left group) + urgency + entity (right) */}
+      <div className="flex items-center gap-2 flex-wrap mb-4">
+        <div className="flex items-center gap-1">
+          <FilterChip active={statusFilter === 'open'}     onClick={() => setStatusFilter('open')}>
+            Open <Count active={statusFilter === 'open'} value={counts.open} />
+          </FilterChip>
+          <FilterChip active={statusFilter === 'all'}      onClick={() => setStatusFilter('all')}>
+            All <Count active={statusFilter === 'all'} value={counts.total} />
+          </FilterChip>
+          <FilterChip active={statusFilter === 'archived'} onClick={() => setStatusFilter('archived')}>
+            Archived <Count active={statusFilter === 'archived'} value={counts.total - counts.open - counts.actioned} />
+          </FilterChip>
+        </div>
+        <div className="h-5 w-px bg-divider" aria-hidden />
+        <div className="flex items-center gap-1">
+          <span className="text-2xs uppercase tracking-wider text-ink-faint font-semibold mr-1">Urgency</span>
+          {(['all', 'high', 'medium', 'low'] as const).map(u => (
+            <FilterChip key={u} active={urgencyFilter === u} onClick={() => setUrgencyFilter(u)}>
+              {u === 'all' ? 'All' : u.charAt(0).toUpperCase() + u.slice(1)}
+            </FilterChip>
+          ))}
+        </div>
+        <div className="h-5 w-px bg-divider" aria-hidden />
+        <select
+          value={entityFilter}
+          onChange={e => setEntityFilter(e.target.value)}
+          className="h-7 text-xs px-2 rounded-md border border-border bg-surface text-ink-soft hover:border-border-strong"
+          aria-label="Filter by entity"
+        >
+          <option value="">All entities</option>
+          {entities.map(e => (
+            <option key={e.id} value={e.id}>{e.name}</option>
+          ))}
+        </select>
+        {(urgencyFilter !== 'all' || entityFilter) && (
+          <button
+            type="button"
+            onClick={() => { setUrgencyFilter('all'); setEntityFilter(''); }}
+            className="text-2xs text-ink-muted hover:text-ink underline ml-auto"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
       {/* Letters list */}

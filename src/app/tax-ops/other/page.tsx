@@ -13,12 +13,12 @@ import { PageHeader } from '@/components/ui/PageHeader';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
-import { DateBadge } from '@/components/crm/DateBadge';
 import { crmLoadShape } from '@/lib/useCrmFetch';
 import {
-  FilingStatusBadge, filingStatusLabel, FILING_STATUSES,
+  filingStatusLabel, FILING_STATUSES,
 } from '@/components/tax-ops/FilingStatusBadge';
 import { AddAdhocFilingModal } from '@/components/tax-ops/AddAdhocFilingModal';
+import { InlineStatusCell, InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { useToast } from '@/components/Toaster';
 
 // Stint 40.E — wht_director_adhoc added so director-fee WHT filings
@@ -98,6 +98,26 @@ export default function OtherPage() {
     load();
   }
 
+  // Inline-edit helpers — PATCH a single field on the filing.
+  // Optimistically reflects the new value in local state on success.
+  const patchFiling = useCallback(
+    async (filingId: string, body: Record<string, unknown>): Promise<void> => {
+      const res = await fetch(`/api/tax-ops/filings/${filingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err?.error?.message ?? `Save failed (${res.status})`);
+        throw new Error(`PATCH /api/tax-ops/filings/${filingId} → ${res.status}`);
+      }
+      // Reload silently to refresh the row + any derived counters.
+      setRows(prev => prev?.map(r => r.id === filingId ? { ...r, ...body } as FilingRow : r) ?? prev);
+    },
+    [toast],
+  );
+
   const filtered = (rows ?? []).filter(r =>
     (typeFilter === '' || r.tax_type === typeFilter) &&
     (statusFilter === '' || r.status === statusFilter)
@@ -171,8 +191,8 @@ export default function OtherPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(r => (
-                <tr key={r.id} className="border-t border-border hover:bg-surface-alt/50">
+              {filtered.map((r, i) => (
+                <tr key={r.id} className={`border-t border-border hover:bg-surface-alt/50 ${i % 2 === 1 ? 'bg-surface-alt/30' : ''}`}>
                   <td className="px-3 py-2">
                     <Link href={`/tax-ops/filings/${r.id}`} className="font-medium text-ink hover:text-brand-700">
                       {r.entity_name}
@@ -183,13 +203,32 @@ export default function OtherPage() {
                   </td>
                   <td className="px-3 py-2 text-ink-soft">{humanTaxType(r.tax_type)}</td>
                   <td className="px-3 py-2 tabular-nums text-ink-muted">{r.period_label}</td>
-                  <td className="px-3 py-2"><DateBadge value={r.deadline_date} mode="urgency" /></td>
-                  <td className="px-3 py-2"><FilingStatusBadge status={r.status} /></td>
-                  <td className="px-3 py-2 text-ink-soft">{r.assigned_to ?? '—'}</td>
+                  <td className="px-3 py-2">
+                    <InlineDateCell
+                      value={r.deadline_date}
+                      onSave={async next => patchFiling(r.id, { deadline_date: next })}
+                    />
+                  </td>
+                  <td className="px-3 py-2">
+                    <InlineStatusCell
+                      value={r.status}
+                      onSave={async next => patchFiling(r.id, { status: next })}
+                    />
+                  </td>
+                  <td className="px-3 py-2 text-ink-soft">
+                    <InlineTextCell
+                      value={r.assigned_to ?? ''}
+                      placeholder="Set assignee"
+                      onSave={async next => patchFiling(r.id, { assigned_to: next || null })}
+                    />
+                  </td>
                   <td className="px-3 py-2 text-ink-soft max-w-[320px]">
-                    <span className="line-clamp-2 text-xs" title={r.comments_preview ?? ''}>
-                      {r.comments_preview ?? '—'}
-                    </span>
+                    <InlineTextCell
+                      value={r.comments_preview ?? ''}
+                      placeholder="Add comment"
+                      multiline
+                      onSave={async next => patchFiling(r.id, { comments: next || null })}
+                    />
                   </td>
                   <td className="px-3 py-2 text-right">
                     <button
