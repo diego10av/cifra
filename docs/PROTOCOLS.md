@@ -570,4 +570,68 @@ bureaucratic, kill it. If we're forgetting things, tighten it.
 
 ---
 
-*Last amended: 2026-04-19 — added §13 CLAUDE.md maintenance discipline.*
+## 15. Mac performance hygiene (2026-05-05)
+
+Diego's dev Mac is **8 GB RAM, 4 physical cores** — fundamentally
+undersized for the cifra workload (Next.js dev + Claude Code +
+Claude desktop + Chrome + Dropbox + occasionally Photos indexing).
+The Mac hangs when the kernel compressor saturates and starts
+swapping to SSD. Until hardware is upgraded, follow this hygiene.
+
+### Baseline check at session start
+
+```bash
+pkill -f "next dev" 2>/dev/null      # mata dev servers huérfanos
+pkill -f "tsc --watch" 2>/dev/null   # mata typecheck watchers viejos
+vm_stat | head -10                   # comprueba pages free + compressor
+```
+
+**Healthy thresholds:**
+- Pages free > 50 000 (~200 MB)
+- Pages stored in compressor < 500 000 (~2 GB)
+
+If either threshold trips, close apps before starting dev work
+or the Mac will hang within 30 minutes.
+
+### Firm rules
+
+- **One cloud sync only.** Diego's primary is Dropbox; OneDrive
+  must stay closed. If a OneDrive process appears, kill it
+  (`osascript -e 'tell application "OneDrive" to quit'` or
+  `pkill -9 -f OneDrive`).
+- **Claude desktop OR Claude Code, not both.** Each is ~600 MB
+  Electron; running both simultaneously costs ~1.2 GB.
+- **Microsoft Defender:** if it was Diego-installed (not firm-
+  managed), uninstall or set to on-demand-only mode. Real-time
+  scan is the heaviest sustained-CPU process on the system.
+  If firm-managed: leave alone, but compensate by closing more
+  GUI apps during dev.
+- **Chrome < 10 tabs during dev.** Strategy tabs (Notion, GitHub,
+  ROADMAP) live in a separate window that gets quit before opening
+  the dev server.
+
+### Hardware upgrade — when budget allows
+
+The right ROI move when cifra's MRR can absorb it: MacBook Air
+M-series with **16 GB minimum, 24 GB preferable**. 8 GB is below
+the operational floor for this workload in 2026; every hang costs
+a unit of context Diego has to rebuild from scratch.
+
+Don't upgrade impulsively — but treat it as a known capex line
+in `docs/BUSINESS_PLAN.md` once revenue is non-zero. Approx. €1300-1500.
+
+### Diagnostic when a hang happens
+
+If the Mac freezes mid-session, **before forcing reboot**:
+1. If Activity Monitor still responds: screenshot the Memory tab
+   sorted by Memory descending.
+2. If totally frozen: hold Cmd+Power for hard reboot, then on
+   next boot run `log show --predicate 'eventMessage CONTAINS "memorystatus"' --last 1h | head -50`
+   — surfaces what the kernel killed under pressure.
+3. Paste either artefact into the next Claude session for root-cause.
+
+---
+
+*Last amended: 2026-05-05 — added §15 Mac performance hygiene
+after diagnosing repeated hangs (8 GB RAM saturation, 2.5 GB
+compressed, 185K swapouts in one session).*
