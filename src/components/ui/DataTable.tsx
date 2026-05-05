@@ -140,7 +140,12 @@ export function DataTable<Row>({
       {caption && <div className="px-3 py-2 border-b border-border text-sm font-medium text-ink">{caption}</div>}
       <div className="overflow-x-auto">
         <table className="w-full text-sm border-collapse">
-          <thead className={['bg-surface-alt', stickyHeader ? 'sticky top-0 z-sticky' : ''].join(' ')}>
+          <thead className={[
+            'bg-surface-alt',
+            stickyHeader
+              ? 'sticky top-0 z-sticky shadow-[0_1px_0_rgba(15,22,44,0.08)]'
+              : '',
+          ].join(' ')}>
             <tr>
               {columns.map(c => (
                 <th
@@ -161,10 +166,14 @@ export function DataTable<Row>({
           <tbody>
             {rows.map((row, i) => {
               const baseClass = [
-                // Stint 64.X.13 — `group` on every row so descendant
-                // cells can use `group-hover:` for empty-state hint
-                // reveal (mirrors TaxTypeMatrix behaviour).
+                // `group` on every row so descendant cells can use
+                // `group-hover:` for empty-state hint reveal.
                 'group border-t border-border',
+                // 2026-05-05 brand pulse: subtle zebra stripes on
+                // every other row. The shade is light enough not to
+                // compete with hover, dark enough that scanning long
+                // tables doesn't fatigue.
+                'even:bg-surface-alt/30',
                 hoverable || onRowClick ? 'hover:bg-surface-alt/50' : '',
                 onRowClick ? 'cursor-pointer' : '',
                 rowClassName?.(row) ?? '',
