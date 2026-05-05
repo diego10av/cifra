@@ -16,8 +16,8 @@
 // domain alive at his name.
 // ════════════════════════════════════════════════════════════════════════
 
-import Link from 'next/link';
 import { ReceiptIcon, BarChart3Icon, BriefcaseIcon, ArrowRightIcon } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 const APP_LOGIN_URL = 'https://app.cifracompliance.com/login';
 
@@ -27,9 +27,7 @@ export default function MarketingPage() {
       {/* Top nav */}
       <header className="border-b border-divider">
         <div className="max-w-[1100px] mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="text-base font-semibold text-ink leading-none">
-            cifra<span className="text-accent-500">·</span>
-          </span>
+          <Logo />
           <a
             href={APP_LOGIN_URL}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft hover:text-ink transition-colors"
