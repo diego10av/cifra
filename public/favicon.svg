@@ -1,17 +1,10 @@
-<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <!--
-    cifra favicon — navy background + white C + cifra-red dot signature.
-    Brand refresh stint 65.A (2026-05-04): navy primary, cifra-red as
-    accent. The dot at bottom-right of the C is the signature element
-    of the cifra· wordmark (logo option A confirmed 2026-05-05).
-    Keeps the C glyph readable at 16×16 (browser tab) — no gradients,
-    no thin strokes.
+    cifra favicon — coherent with src/components/Logo.tsx LogoMark.
+    Rounded square navy + white "c" arc + accent-red dot at x-height
+    middle. Renders crisp at 16x16 (browser tab) without gradients.
   -->
-  <rect x="1" y="1" width="22" height="22" rx="5" fill="#1F2D55"/>
-  <path d="M16 8.5a5.5 5.5 0 1 0 0 7" stroke="white" stroke-width="2.2" stroke-linecap="round" fill="none"/>
-  <circle cx="18.5" cy="16.5" r="1.7" fill="#E8264C"/>
+  <rect x="0" y="0" width="32" height="32" rx="7" fill="#1F2D55"/>
+  <path d="M21 11.2a6.5 6.5 0 1 0 0 9.6" stroke="white" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+  <circle cx="23.6" cy="16" r="1.9" fill="#E8264C"/>
 </svg>
-</content>
-</invoke>
-<invoke name="Read">
-<parameter name="file_path">/Users/gonzalezmansodiego/Desktop/VAT Platform/vat-platform/src/app/layout.tsx
