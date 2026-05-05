@@ -525,22 +525,36 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
         ))}
       </nav>
 
-      {/* Footer — collapse toggle + user menu */}
+      {/* Footer — collapse toggle + shortcut hint + user menu */}
       <div className="border-t border-divider shrink-0">
-        <button
-          type="button"
-          onClick={() => setCollapsed(!collapsed)}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          className={[
-            'w-full flex items-center text-2xs text-ink-muted hover:text-ink hover:bg-surface-alt transition-colors',
-            collapsed ? 'h-9 justify-center' : 'h-9 px-3 gap-2',
-          ].join(' ')}
-        >
-          {collapsed
-            ? <PanelLeftOpenIcon size={14} />
-            : <><PanelLeftCloseIcon size={14} /><span>Collapse</span></>}
-        </button>
+        <div className={collapsed ? '' : 'flex items-stretch'}>
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className={[
+              'flex items-center text-2xs text-ink-muted hover:text-ink hover:bg-surface-alt transition-colors',
+              collapsed ? 'w-full h-9 justify-center' : 'flex-1 h-9 px-3 gap-2',
+            ].join(' ')}
+          >
+            {collapsed
+              ? <PanelLeftOpenIcon size={14} />
+              : <><PanelLeftCloseIcon size={14} /><span>Collapse</span></>}
+          </button>
+          {!collapsed && (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('cifra-open-shortcuts'))}
+              aria-label="Open keyboard shortcuts (?)"
+              title="Keyboard shortcuts (?)"
+              className="h-9 px-3 inline-flex items-center gap-1.5 text-2xs text-ink-muted hover:text-ink hover:bg-surface-alt transition-colors border-l border-divider"
+            >
+              <kbd className="font-mono text-2xs px-1 py-px rounded bg-surface-alt border border-border-strong text-ink-soft">?</kbd>
+              <span>shortcuts</span>
+            </button>
+          )}
+        </div>
         {!collapsed && (
           <div className="px-3 pb-3 pt-1 border-t border-divider">
             <UserMenu />

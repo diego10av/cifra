@@ -60,6 +60,15 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, [pendingLeader]);
 
+  // External callers (e.g. the sidebar's "?" hint button) can open the
+  // help overlay by dispatching this custom event. Avoids context/ref
+  // plumbing for a trivial toggle.
+  useEffect(() => {
+    function onOpen() { setHelpOpen(true); }
+    window.addEventListener('cifra-open-shortcuts', onOpen);
+    return () => window.removeEventListener('cifra-open-shortcuts', onOpen);
+  }, []);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Modifier-keyed shortcuts handled elsewhere (⌘K in SearchBar).
