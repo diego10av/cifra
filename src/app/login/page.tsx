@@ -1,6 +1,5 @@
 'use client';
 
-// Stint 67.B.b: per-page force-dynamic — see /clients/page.tsx.
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -8,9 +7,9 @@ import { Logo } from '@/components/Logo';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
-// Stint 64.X.4 — only allow same-app navigation targets. Prevents
-// `?next=https://evil.com` open-redirect (the middleware already forwards
-// only pathnames, but defence-in-depth at the consumer is cheap).
+// Only allow same-app navigation targets — prevents `?next=https://evil.com`
+// open-redirect. The middleware already forwards only pathnames; defence-in-
+// depth at the consumer is cheap.
 function safeNextUrl(raw: string | null): string {
   if (!raw) return '/';
   if (!raw.startsWith('/') || raw.startsWith('//')) return '/';
@@ -18,9 +17,6 @@ function safeNextUrl(raw: string | null): string {
 }
 
 export default function LoginPage() {
-  // Stint 61 — username + password. Username is sent lower-cased so users
-  // don't have to remember the exact case of their AUTH_USERS entry.
-  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,13 +30,10 @@ export default function LoginPage() {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: username.trim().toLowerCase(), password }),
+      body: JSON.stringify({ password }),
     });
     setLoading(false);
     if (res.ok) {
-      // Stint 64.X.4 — bounce back to the deep link that triggered the
-      // redirect (preserved by middleware). Diego's complaint was that
-      // login always landed on `/` regardless of intent.
       const next = safeNextUrl(searchParams?.get('next') ?? null);
       router.push(next);
     } else setError('Invalid credentials');
@@ -48,7 +41,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-canvas p-6 relative overflow-hidden">
-      {/* soft brand glow in the corner */}
       <div
         aria-hidden
         className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full opacity-20 pointer-events-none"
@@ -73,35 +65,17 @@ export default function LoginPage() {
             </div>
           )}
           <Input
-            type="text"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            placeholder="Username"
-            autoComplete="username"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            autoFocus
-          />
-          <Input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
             placeholder="Password"
             autoComplete="current-password"
+            autoFocus
           />
           <Button type="submit" variant="primary" loading={loading} className="w-full justify-center h-9">
             Sign in
           </Button>
         </form>
-        <div className="mt-6 pt-4 border-t border-border text-center">
-          <a
-            href="https://cifracompliance.com"
-            className="text-2xs text-ink-faint hover:text-ink-muted transition-colors"
-          >
-            ← cifracompliance.com
-          </a>
-        </div>
       </div>
     </div>
   );
