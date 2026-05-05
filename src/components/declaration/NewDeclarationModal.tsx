@@ -18,6 +18,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Modal } from '@/components/ui/Modal';
 import { useToast } from '@/components/Toaster';
 import { describeApiError } from '@/lib/ui-errors';
@@ -186,7 +187,7 @@ export function NewDeclarationModal({
       ) : entities.length === 0 ? (
         <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
           You need at least one entity to create a declaration.{' '}
-          <a href="/clients/new" className="underline font-medium">Create your first client and entity</a>.
+          <Link href="/clients/new" className="underline font-medium">Create your first client and entity</Link>.
         </div>
       ) : (
         <div className="space-y-4">

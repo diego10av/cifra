@@ -108,7 +108,7 @@ export function makeReorderHandler(refetch: () => void) {
       }
       refetch();
     } catch (e) {
-      // eslint-disable-next-line no-console
+       
       console.error('Reorder failed:', e);
       // Refetch anyway so the local optimistic state is reset.
       refetch();

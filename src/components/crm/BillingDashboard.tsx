@@ -204,24 +204,31 @@ function PracticePie({ items }: { items: Array<{ label: string; value: number }>
   const total = items.reduce((s, i) => s + i.value, 0);
   const palette = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899'];
   const r = 60, cx = 70, cy = 70;
-  let cumulative = 0;
-  const slices = items.map((item, i) => {
-    const start = cumulative / total;
-    cumulative += item.value;
-    const end = cumulative / total;
+  // Pure reduce instead of mutating a closure variable inside .map()
+  // (which trips React Compiler's "Cannot reassign variable after render
+  // completes" rule).
+  const { slices } = items.reduce<{
+    cumulative: number;
+    slices: Array<{ path: string; color: string; label: string; value: number; pct: number }>;
+  }>((acc, item, i) => {
+    const start = acc.cumulative / total;
+    const nextCumulative = acc.cumulative + item.value;
+    const end = nextCumulative / total;
     const largeArc = end - start > 0.5 ? 1 : 0;
     const x1 = cx + r * Math.cos(2 * Math.PI * start - Math.PI / 2);
     const y1 = cy + r * Math.sin(2 * Math.PI * start - Math.PI / 2);
     const x2 = cx + r * Math.cos(2 * Math.PI * end - Math.PI / 2);
     const y2 = cy + r * Math.sin(2 * Math.PI * end - Math.PI / 2);
-    return {
+    acc.slices.push({
       path: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`,
       color: palette[i % palette.length],
       label: item.label,
       value: item.value,
       pct: total > 0 ? (item.value / total) * 100 : 0,
-    };
-  });
+    });
+    acc.cumulative = nextCumulative;
+    return acc;
+  }, { cumulative: 0, slices: [] });
 
   return (
     <div className="flex items-start gap-4">

@@ -15,7 +15,7 @@
 // something like TanStack Table would erase the tight pixel economy.
 // ════════════════════════════════════════════════════════════════════════
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronDownIcon, ChevronRightIcon, PencilIcon, GripVerticalIcon } from 'lucide-react';
@@ -254,8 +254,9 @@ export function TaxTypeMatrix({
   // can block cross-family drops.
   const [dragId, setDragId] = useState<string | null>(null);
   const [dragGroup, setDragGroup] = useState<string | null>(null);
-  // Reset optimistic state when fresh data arrives.
-  useMemo(() => { setOptimistic(null); }, [entities]);
+  // Reset optimistic state when fresh data arrives. useEffect (not
+  // useMemo) — we want the side-effect after render, not during.
+  useEffect(() => { setOptimistic(null); }, [entities]);
   const effective = optimistic ?? entities;
 
   const groups = useMemo(() => {
@@ -327,6 +328,17 @@ export function TaxTypeMatrix({
     }
   }, [onCellClick, router]);
 
+  // Stint 51.C — render-context palette assignment. Walk the entities in
+  // their visual order and produce a Map<family-name, palette-index> that
+  // never lets two adjacent rows share a colour. Memoized on the entity
+  // list so the assignment is stable across re-renders that don't change
+  // the order. (Hooks must run unconditionally — kept above the early
+  // return below.)
+  const familyColorMap = useMemo(
+    () => buildFamilyColorMap(entities.map(e => e.group_name)),
+    [entities],
+  );
+
   if (entities.length === 0) {
     return (
       <div className="rounded-md border border-border bg-surface px-4 py-8 text-center">
@@ -343,16 +355,6 @@ export function TaxTypeMatrix({
   const otherCols = columns.filter(c => c.key !== 'family');
   const familyColWidth = 130;   // Stint 64.X.9 — was 170, narrowed with chip removal
   const entityStickyLeft = familyCol ? familyColWidth : 0;
-
-  // Stint 51.C — render-context palette assignment. Walk the entities in
-  // their visual order and produce a Map<family-name, palette-index> that
-  // never lets two adjacent rows share a colour. Memoized on the entity
-  // list so the assignment is stable across re-renders that don't change
-  // the order.
-  const familyColorMap = useMemo(
-    () => buildFamilyColorMap(entities.map(e => e.group_name)),
-    [entities],
-  );
 
   // Stint 40.G.2 — compose a row action that prepends a pencil ✎
   // when onEditFiling is set. Pencil is disabled (but visible) when

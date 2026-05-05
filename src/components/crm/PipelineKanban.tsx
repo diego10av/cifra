@@ -136,8 +136,12 @@ function KanbanCard({
   onDragEnd: () => void;
   isDragging: boolean;
 }) {
+  // useState lazy initializer captures Date.now() once on mount so render
+  // stays pure (React Compiler flags Date.now() during render). Stage age
+  // doesn't need to update mid-session — refresh on next mount is fine.
+  const [now] = useState(() => Date.now());
   const daysInStage = opp.stage_entered_at
-    ? Math.floor((Date.now() - new Date(opp.stage_entered_at).getTime()) / 86400000)
+    ? Math.floor((now - new Date(opp.stage_entered_at).getTime()) / 86400000)
     : null;
   const stale = daysInStage !== null && daysInStage > 14 && !['won', 'lost'].includes(opp.stage);
 

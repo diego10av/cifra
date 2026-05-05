@@ -140,7 +140,7 @@ function main() {
     violations.push(...scanFile(f));
   }
   if (violations.length === 0) {
-    // eslint-disable-next-line no-console
+     
     console.log(`✓ design-lint: 0 violations across ${files.length} files`);
     process.exit(0);
   }
@@ -150,22 +150,22 @@ function main() {
     if (!byRule.has(v.rule)) byRule.set(v.rule, []);
     byRule.get(v.rule)!.push(v);
   }
-  // eslint-disable-next-line no-console
+   
   console.error(`✗ design-lint: ${violations.length} violations across ${files.length} files`);
   for (const [rule, vs] of byRule) {
     const meta = RULES.find(r => r.rule === rule);
-    // eslint-disable-next-line no-console
+     
     console.error(`\n  ${rule} — ${meta?.description ?? ''} (${vs.length})`);
     for (const v of vs.slice(0, 20)) {
-      // eslint-disable-next-line no-console
+       
       console.error(`    ${v.file}:${v.line}  ${v.match}`);
     }
     if (vs.length > 20) {
-      // eslint-disable-next-line no-console
+       
       console.error(`    … and ${vs.length - 20} more`);
     }
   }
-  // eslint-disable-next-line no-console
+   
   console.error('\nDocs: docs/DESIGN_SYSTEM.md');
   process.exit(1);
 }

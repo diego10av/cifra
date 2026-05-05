@@ -108,8 +108,8 @@ function ClosingContent() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Closing dashboard</h1>
           <p className="text-sm text-ink-muted mt-1 max-w-xl">
-            One row per entity for the chosen period. Fastest way to see "which
-            returns still need work" at the end of a quarter.
+            One row per entity for the chosen period. Fastest way to see &ldquo;which
+            returns still need work&rdquo; at the end of a quarter.
           </p>
         </div>
         <div className="flex items-center gap-1 flex-wrap">

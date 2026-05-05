@@ -183,7 +183,7 @@ function ShortcutsHelp({ currentPath }: { currentPath: string }) {
       <div className="pt-3 border-t border-divider text-xs text-ink-muted">
         Missing a shortcut? Open Feedback
         (<kbd className="text-2xs px-1 py-0.5 rounded bg-surface-alt border border-border font-mono">Shift + ?</kbd>
-        {' '}then click <em>Feedback</em>) and we'll add it.
+        {' '}then click <em>Feedback</em>) and we&rsquo;ll add it.
       </div>
     </div>
   );
