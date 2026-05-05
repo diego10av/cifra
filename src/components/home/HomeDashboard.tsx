@@ -3,14 +3,16 @@
 // ════════════════════════════════════════════════════════════════════════
 // HomeDashboard — landing page when Diego signs in or hits `/`.
 //
-// Three sections, every element passes Rule §11 (actionable-first):
-//   1. Today's focus  — 4 cards counting things that need action.
-//   2. Quick actions  — 3 primary buttons saving navigation.
-//   3. Modules        — 3 cards summarising VAT / Tax-Ops / CRM.
-//
-// Data comes from /api/home which aggregates 7 cheap COUNT queries in
-// parallel. Each query is defensive — if a table breaks the affected
-// card shows 0, never breaks the whole page.
+// 2026-05-05 redesign per Diego ("la home no es muy visual, imagínate
+// ser un diseñador top con un taste increíble"):
+//   - Editorial-feeling hero with the day-aware greeting in serif.
+//   - Today's focus cards now tint their background by tone when they
+//     have a value (amber / red / brand) so urgency reads at a glance.
+//     "All clear" cards stay quiet so they don't compete for attention.
+//   - Modules section uses a richer card with a hairline stat row and a
+//     tagline rather than just a number.
+//   - Quick actions row stays compact, separated by a subtle divider.
+//   - Whole page is < 1 viewport at 1440×900 by design (1-screen rule).
 // ════════════════════════════════════════════════════════════════════════
 
 import { useEffect, useState } from 'react';
@@ -18,6 +20,7 @@ import Link from 'next/link';
 import {
   AlertTriangleIcon, MailWarningIcon, CheckSquareIcon, FileTextIcon,
   PlusIcon, ArrowRightIcon, ReceiptIcon, BarChart3Icon, BriefcaseIcon,
+  CheckIcon,
 } from 'lucide-react';
 import { PageContainer } from '@/components/ui/PageContainer';
 
@@ -58,24 +61,42 @@ export function HomeDashboard() {
 
   const greeting = greetingForLocalTime();
   const today = new Intl.DateTimeFormat('en-GB', {
-    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    weekday: 'long', day: 'numeric', month: 'long',
   }).format(new Date());
+
+  const totalUrgent =
+    data.todayFocus.overdueFilings +
+    data.todayFocus.aedUrgent +
+    data.todayFocus.tasksToday +
+    data.todayFocus.declarationsInReview;
 
   return (
     <PageContainer width="wide">
-      <header className="mb-8">
-        <h1 className="text-2xl font-serif font-medium tracking-tight text-ink leading-tight">{greeting}</h1>
-        <p className="text-sm text-ink-muted mt-1">{today}</p>
+      {/* ─── Editorial header ───────────────────────────────── */}
+      <header className="mb-10 pb-6 border-b border-divider">
+        <p className="text-2xs uppercase tracking-[0.14em] text-ink-faint font-semibold mb-2">
+          {today}
+        </p>
+        <h1
+          className="font-serif text-3xl md:text-4xl font-medium text-ink leading-[1.05]"
+          style={{ letterSpacing: '-0.02em' }}
+        >
+          {greeting}.
+        </h1>
+        <p className="text-base text-ink-muted mt-3 max-w-xl leading-relaxed">
+          {loading
+            ? <span className="text-ink-faint">Loading focus…</span>
+            : totalUrgent === 0
+              ? <span className="inline-flex items-center gap-1.5"><CheckIcon size={15} className="text-success-500" /> Inbox is clear. Nothing demands your attention right now.</span>
+              : <span>You have <strong className="text-ink">{totalUrgent}</strong> {totalUrgent === 1 ? 'item' : 'items'} that need attention today.</span>}
+        </p>
       </header>
 
-      {/* TODAY'S FOCUS */}
+      {/* ─── Today's focus ─────────────────────────────────── */}
       <section className="mb-10">
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-2xs font-semibold uppercase tracking-wider text-ink-muted">
-            Today&apos;s focus
-          </h2>
-          {loading && <span className="text-2xs text-ink-faint">Loading…</span>}
-        </div>
+        <h2 className="text-2xs font-semibold uppercase tracking-[0.14em] text-accent-600 mb-3">
+          Today&apos;s focus
+        </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <FocusCard
             count={data.todayFocus.overdueFilings}
@@ -96,39 +117,39 @@ export function HomeDashboard() {
             label="tasks due today"
             href="/crm/tasks"
             icon={<CheckSquareIcon size={16} />}
-            tone="info"
+            tone="brand"
           />
           <FocusCard
             count={data.todayFocus.declarationsInReview}
             label="declarations in review"
             href="/declarations?status=review"
             icon={<FileTextIcon size={16} />}
-            tone="info"
+            tone="brand"
           />
         </div>
       </section>
 
-      {/* QUICK ACTIONS */}
+      {/* ─── Quick actions ─────────────────────────────────── */}
       <section className="mb-10">
-        <h2 className="text-2xs font-semibold uppercase tracking-wider text-ink-muted mb-3">
+        <h2 className="text-2xs font-semibold uppercase tracking-[0.14em] text-accent-600 mb-3">
           Quick actions
         </h2>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <QuickAction href="/declarations" label="New VAT declaration" />
           <QuickAction href="/crm/matters" label="New CRM matter" />
           <QuickAction href="/aed-letters" label="Upload AED letter" />
         </div>
       </section>
 
-      {/* MODULES */}
+      {/* ─── Modules ────────────────────────────────────── */}
       <section>
-        <h2 className="text-2xs font-semibold uppercase tracking-wider text-ink-muted mb-3">
+        <h2 className="text-2xs font-semibold uppercase tracking-[0.14em] text-accent-600 mb-3">
           Modules
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <ModuleCard
             href="/declarations"
-            icon={<ReceiptIcon size={20} />}
+            icon={<ReceiptIcon size={18} />}
             title="VAT"
             stat={data.modules.vat}
             statLabel={data.modules.vat === 1 ? 'declaration in flight' : 'declarations in flight'}
@@ -136,7 +157,7 @@ export function HomeDashboard() {
           />
           <ModuleCard
             href="/tax-ops"
-            icon={<BarChart3Icon size={20} />}
+            icon={<BarChart3Icon size={18} />}
             title="Tax-Ops"
             stat={data.modules.taxOps}
             statLabel={data.modules.taxOps === 1 ? 'filing this week' : 'filings this week'}
@@ -144,7 +165,7 @@ export function HomeDashboard() {
           />
           <ModuleCard
             href="/crm"
-            icon={<BriefcaseIcon size={20} />}
+            icon={<BriefcaseIcon size={18} />}
             title="CRM"
             stat={data.modules.crm}
             statLabel={data.modules.crm === 1 ? 'active matter' : 'active matters'}
@@ -156,14 +177,38 @@ export function HomeDashboard() {
   );
 }
 
-// ─── FocusCard ───────────────────────────────────────────────────────────
+// ─── FocusCard ──────────────────────────────────────────────────────────
 
-type Tone = 'danger' | 'warning' | 'info';
+type Tone = 'danger' | 'warning' | 'brand';
 
-const TONE_MAP: Record<Tone, { bg: string; text: string; iconText: string }> = {
-  danger:  { bg: 'bg-danger-50',  text: 'text-danger-700',  iconText: 'text-danger-600'  },
-  warning: { bg: 'bg-warning-50', text: 'text-warning-700', iconText: 'text-warning-600' },
-  info:    { bg: 'bg-brand-50',   text: 'text-brand-700',   iconText: 'text-brand-600'   },
+const TONE_MAP: Record<Tone, {
+  activeBg: string;
+  activeBorder: string;
+  iconBg: string;
+  iconText: string;
+  numText: string;
+}> = {
+  danger: {
+    activeBg: 'bg-danger-50',
+    activeBorder: 'border-danger-500/30',
+    iconBg: 'bg-danger-500',
+    iconText: 'text-white',
+    numText: 'text-danger-700',
+  },
+  warning: {
+    activeBg: 'bg-warning-50',
+    activeBorder: 'border-warning-500/30',
+    iconBg: 'bg-warning-500',
+    iconText: 'text-white',
+    numText: 'text-warning-700',
+  },
+  brand: {
+    activeBg: 'bg-brand-50',
+    activeBorder: 'border-brand-500/30',
+    iconBg: 'bg-brand-500',
+    iconText: 'text-white',
+    numText: 'text-brand-700',
+  },
 };
 
 function FocusCard({
@@ -182,15 +227,16 @@ function FocusCard({
     <Link
       href={href}
       className={[
-        'group relative block rounded-lg border border-border bg-surface p-4',
-        'hover:border-border-strong hover:bg-surface-alt/50 transition-colors',
-        isClear ? 'opacity-70 hover:opacity-100' : '',
+        'group relative block rounded-lg border p-4 transition-all',
+        isClear
+          ? 'border-border bg-surface hover:border-border-strong'
+          : `${t.activeBorder} ${t.activeBg} hover:shadow-sm`,
       ].join(' ')}
     >
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className={[
           'inline-flex w-7 h-7 items-center justify-center rounded-md',
-          isClear ? 'bg-surface-alt text-ink-muted' : `${t.bg} ${t.iconText}`,
+          isClear ? 'bg-surface-alt text-ink-muted' : `${t.iconBg} ${t.iconText}`,
         ].join(' ')}>
           {icon}
         </div>
@@ -199,23 +245,29 @@ function FocusCard({
           className="text-ink-faint opacity-0 group-hover:opacity-100 transition-opacity mt-1"
         />
       </div>
-      <div className="text-3xl font-semibold leading-none text-ink">
+      <div className={[
+        'text-3xl font-semibold leading-none tabular-nums',
+        isClear ? 'text-ink-muted' : t.numText,
+      ].join(' ')}>
         {isClear ? '—' : count}
       </div>
-      <div className="text-xs text-ink-muted mt-2">
+      <div className={[
+        'text-xs mt-2',
+        isClear ? 'text-ink-muted' : 'text-ink-soft',
+      ].join(' ')}>
         {isClear ? `No ${label} ✓` : label}
       </div>
     </Link>
   );
 }
 
-// ─── QuickAction ─────────────────────────────────────────────────────────
+// ─── QuickAction ────────────────────────────────────────────────────────
 
 function QuickAction({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-brand-500 text-white text-sm font-medium hover:bg-brand-600 transition-colors"
+      className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md bg-surface border border-border-strong text-ink-soft text-sm font-medium hover:bg-surface-alt hover:text-ink hover:border-ink-muted transition-colors"
     >
       <PlusIcon size={14} />
       {label}
@@ -223,7 +275,7 @@ function QuickAction({ href, label }: { href: string; label: string }) {
   );
 }
 
-// ─── ModuleCard ──────────────────────────────────────────────────────────
+// ─── ModuleCard ─────────────────────────────────────────────────────────
 
 function ModuleCard({
   href, icon, title, stat, statLabel, description,
@@ -238,28 +290,32 @@ function ModuleCard({
   return (
     <Link
       href={href}
-      className="group block rounded-lg border border-border bg-surface p-5 hover:border-border-strong hover:bg-surface-alt/50 transition-colors"
+      className="group block rounded-lg border border-border bg-surface p-5 hover:border-border-strong transition-colors"
     >
-      <div className="flex items-center gap-2 mb-3">
-        <div className="inline-flex w-8 h-8 items-center justify-center rounded-md bg-brand-50 text-brand-700">
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="inline-flex w-9 h-9 items-center justify-center rounded-md bg-brand-50 text-brand-700">
           {icon}
         </div>
-        <h3 className="text-base font-semibold text-ink">{title}</h3>
         <ArrowRightIcon
           size={14}
-          className="ml-auto text-ink-faint opacity-0 group-hover:opacity-100 transition-opacity"
+          className="text-ink-faint opacity-0 group-hover:opacity-100 transition-opacity mt-1.5"
         />
       </div>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-xl font-semibold text-ink">{stat}</span>
+      <h3 className="font-serif text-xl font-medium text-ink mb-1 leading-tight">
+        {title}
+      </h3>
+      <p className="text-2xs uppercase tracking-wider text-ink-faint font-semibold mb-3">
+        {description}
+      </p>
+      <div className="flex items-baseline gap-1.5 pt-3 border-t border-divider">
+        <span className="text-lg font-semibold text-ink tabular-nums">{stat}</span>
         <span className="text-xs text-ink-muted">{statLabel}</span>
       </div>
-      <p className="text-xs text-ink-faint mt-2">{description}</p>
     </Link>
   );
 }
 
-// ─── helpers ─────────────────────────────────────────────────────────────
+// ─── helpers ────────────────────────────────────────────────────────────
 
 function greetingForLocalTime(): string {
   const h = new Date().getHours();
