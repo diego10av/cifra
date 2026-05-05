@@ -27,6 +27,13 @@
                Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
                Monaco, Consolas, monospace;
+  /* Serif for h1 / h2 / page hero text. Newsreader is a contemporary
+   * serif drawn for screen reading; gives titles the "document weight"
+   * that boutique-law / Big4 visual language uses. Body + numbers stay
+   * in Inter. Loaded via next/font in src/app/layout.tsx as
+   * --font-newsreader CSS variable. */
+  --font-serif: var(--font-newsreader), "Newsreader", "Charter",
+                "Iowan Old Style", "Apple Garamond", Georgia, serif;
 
   /* ── Brand: Navy (primary) ────────────────────
    *  Stint 65.A — replaces the Factorial pink as the primary brand
@@ -79,7 +86,12 @@
    *  without going cold-clinical (those are still off-white, not
    *  pure-white-flat).
    */
-  --color-canvas:       #F8F9FB;  /* page background — cool off-white */
+  /* 2026-05-05 brand pulse: deepened the canvas/surface contrast so
+   * cards lift off the page (was canvas #F8F9FB → #F4F5F8, surface-alt
+   * #F1F3F7 unchanged). The 4-point luminosity gap was too subtle —
+   * cards looked welded to the background. Now there's clear depth:
+   *   canvas (slightly cooler) → surface white → surface-alt fill. */
+  --color-canvas:       #F4F5F8;  /* page background — cool off-white, deepened */
   --color-surface:      #FFFFFF;  /* cards */
   --color-surface-alt:  #F1F3F7;  /* subtle fills */
 
@@ -245,6 +257,12 @@
    *  Already defined as a CSS variable; this binds it so callers can
    *  type `shadow-focus` instead of inline `style={{boxShadow:…}}`. */
   --shadow-focus: var(--shadow-focus);
+
+  /* Font families exposed for Tailwind utility classes. font-sans is
+   * the default everywhere; font-serif targets h1 / h2 / page hero. */
+  --font-sans:  var(--font-sans);
+  --font-serif: var(--font-serif);
+  --font-mono:  var(--font-mono);
 
   /* Stint 47.F3.3 — semantic spacing aliases for vertical rhythm.
    *  Diego's pages used space-y-2/3/4/5 interchangeably; these tokens

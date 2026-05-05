@@ -64,7 +64,7 @@ export function HomeDashboard() {
   return (
     <PageContainer width="wide">
       <header className="mb-8">
-        <h1 className="text-2xl font-semibold text-ink leading-tight">{greeting}</h1>
+        <h1 className="text-2xl font-serif font-medium tracking-tight text-ink leading-tight">{greeting}</h1>
         <p className="text-sm text-ink-muted mt-1">{today}</p>
       </header>
 

@@ -53,7 +53,15 @@ export function Logo({ className = '', showMark = true }: { className?: string; 
         className="font-semibold tracking-tight text-base text-brand-700"
         style={{ letterSpacing: '-0.02em' }}
       >
-        cifra<span className="text-accent-500">·</span>
+        cifra
+        {/* The dot is rendered as an explicit filled circle so it
+            stays visible at small sizes (period glyph is too thin and
+            disappears in the wordmark). 4px circle, accent-500. */}
+        <span
+          aria-hidden="true"
+          className="inline-block w-[5px] h-[5px] rounded-full bg-accent-500 ml-[2px] align-baseline"
+          style={{ verticalAlign: 'baseline', transform: 'translateY(-1px)' }}
+        />
       </span>
     </span>
   );

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Newsreader } from 'next/font/google';
 import './globals.css';
 import { AppShell } from '@/components/app-shell/AppShell';
 import { ToastProvider } from '@/components/Toaster';
@@ -9,6 +9,17 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+});
+
+// Newsreader is a contemporary serif drawn for screen reading. Used
+// for h1 / h2 / page hero text — gives titles the "document" weight
+// that boutique-law / Big4 visual language uses (vs Inter for everything,
+// which reads as generic SaaS). Body + numbers stay in Inter.
+const newsreader = Newsreader({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-newsreader',
+  weight: ['400', '500', '600'],
 });
 
 export const metadata: Metadata = {
@@ -35,7 +46,7 @@ export const dynamic = 'force-dynamic';
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`h-full ${inter.variable}`}>
+    <html lang="en" className={`h-full ${inter.variable} ${newsreader.variable}`}>
       <body className="min-h-full bg-canvas text-ink antialiased">
         <ToastProvider>
           <ShortcutsProvider>

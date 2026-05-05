@@ -401,7 +401,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
             clearly the active marker without overwhelming. */}
         {active && (
           <span
-            className="absolute left-0 top-2 bottom-2 w-[2px] rounded-r-full bg-brand-500"
+            className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-brand-500"
             aria-hidden="true"
           />
         )}
@@ -413,14 +413,14 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
               'transition-colors duration-150 flex-1 min-w-0',
               indentClass(depth),
               active
-                ? 'bg-surface-alt text-ink font-medium'
+                ? 'bg-brand-50 text-brand-800 font-semibold'
                 : 'text-ink-soft hover:bg-surface-alt hover:text-ink',
             ].join(' ')}
           >
             <Icon
               size={iconSize}
               strokeWidth={active ? 2.2 : 1.8}
-              className={active ? 'text-ink' : 'text-ink-muted'}
+              className={active ? 'text-brand-700' : 'text-ink-muted'}
             />
             <span className="flex-1 truncate">{item.label}</span>
             {typeof item.badge === 'number' && item.badge > 0 && (
