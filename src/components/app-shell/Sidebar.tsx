@@ -79,20 +79,16 @@ export interface SidebarBadges {
   deadlinesUrgent?: number;
 }
 
-type Role = 'admin' | 'reviewer' | 'junior' | 'client';
-
 type NavItem = {
   href: string;
   label: string;
   icon: LucideIcon;
   badge?: number | undefined;
-  /** Roles that can see this item. Defaults to all roles. */
-  roles?: readonly Role[];
   /** Nested sub-items, rendered indented under the parent. When present,
    *  a chevron button appears next to the label to toggle visibility. */
   children?: NavItem[];
 };
-type NavGroup = { label?: string; items: NavItem[]; roles?: readonly Role[] };
+type NavGroup = { label?: string; items: NavItem[] };
 
 interface TaxCategory {
   tax_type: string;
@@ -203,7 +199,6 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
     },
     // Tax-Ops — promoted above VAT (stint 39.A).
     {
-      roles: ['admin', 'reviewer'],
       items: [
         {
           href: '/tax-ops',
@@ -228,7 +223,6 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
     },
     // VAT — Diego's original module, now second.
     {
-      roles: ['admin', 'reviewer'],
       items: [
         {
           href: '/declarations',
@@ -248,7 +242,6 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
       ],
     },
     {
-      roles: ['admin', 'reviewer'],
       items: [
         {
           href: '/crm',
@@ -305,7 +298,6 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
     },
     {
       label: 'Operations',
-      roles: ['admin', 'reviewer'],
       items: [
         { href: '/metrics',  label: 'Metrics',  icon: BarChart3Icon },
         { href: '/audit',    label: 'Audit',    icon: ShieldCheckIcon },
@@ -315,24 +307,11 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
   ];
 }
 
-function filterForRole(groups: NavGroup[], role: Role): NavGroup[] {
-  return groups
-    .filter(g => !g.roles || g.roles.includes(role))
-    .map(g => ({
-      ...g,
-      items: g.items.filter(item => !item.roles || item.roles.includes(role)),
-    }))
-    .filter(g => g.items.length > 0);
-}
-
 // localStorage key for the expanded state of a given parent href
 const EXPANDED_KEY_PREFIX = 'cifra-sidebar-expanded-';
 
 export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
   const pathname = usePathname() || '/';
-  // Single-user reset: always admin. Role-based filtering is a no-op now,
-  // but the type + filterForRole call are kept for now (clean-up pending).
-  const role: Role = 'admin';
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [taxCategories, setTaxCategories] = useState<TaxCategory[]>([]);
 
@@ -361,7 +340,7 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
     setExpanded(next);
   }, []);
 
-  const groups = filterForRole(buildGroups(badges, taxCategories), role);
+  const groups = buildGroups(badges, taxCategories);
 
   // Stint 48.B1 — match rule has to know whether the item has children.
   // For Home (`/`): only match exact. For LEAF items: match the route or
@@ -513,14 +492,14 @@ export function Sidebar({ badges = {} }: { badges?: SidebarBadges }) {
 
       {/* Footer — user + logout */}
       <div className="px-3 pb-3 pt-2 border-t border-divider shrink-0">
-        <UserMenu role={role} />
+        <UserMenu />
       </div>
     </aside>
   );
 }
 
 // Single-user UserMenu: shows "Diego · cifra · founder" + sign-out menu.
-function UserMenu({ role: _role }: { role: Role }) {
+function UserMenu() {
   const [open, setOpen] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
 
