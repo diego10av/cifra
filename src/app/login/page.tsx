@@ -9,15 +9,11 @@ import { Button } from '@/components/ui/Button';
 
 // Only allow same-app navigation targets — prevents `?next=https://evil.com`
 // open-redirect. The middleware already forwards only pathnames; defence-in-
-// depth at the consumer is cheap. Default destination is /tax-ops directly
-// (not /) so post-login skips the / → /tax-ops server redirect that
-// briefly flashes a transition page.
+// depth at the consumer is cheap. Default destination is `/` (the home
+// dashboard).
 function safeNextUrl(raw: string | null): string {
-  if (!raw) return '/tax-ops';
-  if (!raw.startsWith('/') || raw.startsWith('//')) return '/tax-ops';
-  // If next= is just "/" the user would land on the redirect-only page;
-  // skip it and go directly to the operational landing.
-  if (raw === '/') return '/tax-ops';
+  if (!raw) return '/';
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/';
   return raw;
 }
 
