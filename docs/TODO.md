@@ -46,6 +46,21 @@
 
 ## ✅ Done this week
 
+**2026-05-06** — Persistent alert surface — sidebar badges + tab title (4th commit)
+
+- **Sidebar badges everywhere alerts live**: Tax-Ops > Overview shows
+  overdue filings count, Tax-Ops > Tasks shows tasks due today, CRM >
+  Tasks shows CRM tasks due today (in addition to the existing
+  Declarations + Deadlines badges). Visible from any page in the app.
+- **Browser tab title** shows `(N) cifra` when there's anything
+  pending — visible even when cifra is in a background tab.
+  `deadlinesUrgent` excluded intentionally (projected periods, not
+  hanging action items).
+- AppShellInner now uses `/api/home` as the single aggregator (was
+  fetching three list endpoints just to count). 2 fetches instead of
+  3, lighter on the pipe. Same data the home dashboard uses, so the
+  badges and Today's focus stay consistent.
+
 **2026-05-06** — Home dashboard alerts now meta-modular (3rd commit)
 
 - **Restored CRM tasks visibility on home**. Previous commit replaced

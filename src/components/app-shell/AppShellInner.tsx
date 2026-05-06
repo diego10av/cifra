@@ -16,35 +16,49 @@ import { OfflineBanner } from './OfflineBanner';
 import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
 import { useSidebarCollapsed } from '@/lib/use-sidebar-collapsed';
 
-interface Declaration { id: string; status: string; }
-interface AedLetter { id: string; urgency: string | null; status: string; }
 interface Deadline { is_overdue: boolean; bucket: string; }
+
+interface HomeSnapshot {
+  todayFocus: {
+    overdueFilings: number;
+    aedUrgent: number;
+    taxOpsTasksToday: number;
+    crmTasksToday: number;
+    declarationsInReview: number;
+  };
+}
 
 export function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '/';
   const [badges, setBadges] = useState<SidebarBadges>({});
   const [collapsed] = useSidebarCollapsed();
 
-  // Refresh badges when the user navigates. Cheap: these endpoints are
-  // already indexed and most returns are < 50 rows. No streaming needed.
+  // Refresh badges when the user navigates. /api/home is the aggregator
+  // for "what needs Diego's attention" — same data the home dashboard
+  // uses, so navigation badges + Today's focus stay in sync. Deadlines
+  // is fetched separately because /api/deadlines runs the
+  // computeDeadline projection (per entity, per frequency) — that
+  // logic isn't trivially portable to the aggregator.
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
-        const [declRes, aedRes, dlRes] = await Promise.allSettled([
-          fetch('/api/declarations').then(r => r.ok ? r.json() : []),
-          fetch('/api/aed').then(r => r.ok ? r.json() : []),
+        const [homeRes, dlRes] = await Promise.allSettled([
+          fetch('/api/home').then(r => r.ok ? r.json() as Promise<HomeSnapshot> : null),
           fetch('/api/deadlines').then(r => r.ok ? r.json() : []),
         ]);
         if (cancelled) return;
-        const declarations: Declaration[] = declRes.status === 'fulfilled' ? declRes.value : [];
-        const aed: AedLetter[] = aedRes.status === 'fulfilled' ? aedRes.value : [];
+        const home: HomeSnapshot | null = homeRes.status === 'fulfilled' ? homeRes.value : null;
         const deadlines: Deadline[] = dlRes.status === 'fulfilled' ? dlRes.value : [];
+        const focus = home?.todayFocus;
 
         setBadges({
-          declarationsInReview: declarations.filter(d => d.status === 'review').length,
-          aedUrgent: aed.filter(a => a.urgency === 'high' && a.status !== 'actioned' && a.status !== 'archived').length,
+          declarationsInReview: focus?.declarationsInReview ?? 0,
+          aedUrgent: focus?.aedUrgent ?? 0,
           deadlinesUrgent: deadlines.filter(d => d.is_overdue || d.bucket === 'urgent').length,
+          taxOpsTasksToday: focus?.taxOpsTasksToday ?? 0,
+          crmTasksToday: focus?.crmTasksToday ?? 0,
+          taxOpsOverdueFilings: focus?.overdueFilings ?? 0,
         });
       } catch {
         /* silent — sidebar simply renders without counts */
@@ -53,6 +67,20 @@ export function AppShellInner({ children }: { children: React.ReactNode }) {
     load();
     return () => { cancelled = true; };
   }, [pathname]);
+
+  // Browser tab title reflects the live alert count so Diego sees
+  // pending work even when cifra is in a background tab. Excludes
+  // `deadlinesUrgent` intentionally — those are projected periods,
+  // not action items hanging over today.
+  useEffect(() => {
+    const total =
+      (badges.taxOpsTasksToday ?? 0) +
+      (badges.crmTasksToday ?? 0) +
+      (badges.aedUrgent ?? 0) +
+      (badges.taxOpsOverdueFilings ?? 0) +
+      (badges.declarationsInReview ?? 0);
+    document.title = total > 0 ? `(${total}) cifra` : 'cifra';
+  }, [badges]);
 
   return (
     <div className="min-h-screen">

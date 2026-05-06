@@ -79,6 +79,12 @@ export interface SidebarBadges {
   aedUrgent?: number;
   /** Deadlines overdue + urgent (<= 7 days). */
   deadlinesUrgent?: number;
+  /** Tax-Ops tasks (engagements + workstreams + atomic) due today or overdue. */
+  taxOpsTasksToday?: number;
+  /** CRM tasks due today or overdue. */
+  crmTasksToday?: number;
+  /** Tax-Ops filings whose deadline has passed and not filed/paid. */
+  taxOpsOverdueFilings?: number;
 }
 
 type NavItem = {
@@ -207,8 +213,10 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
           label: 'Tax-Ops',
           icon: FileStackIcon,
           children: [
-            { href: '/tax-ops',                  label: 'Overview',              icon: FileStackIcon },
-            { href: '/tax-ops/tasks',            label: 'Tasks',                 icon: CheckSquareIcon },
+            { href: '/tax-ops',                  label: 'Overview',              icon: FileStackIcon,
+              badge: badges.taxOpsOverdueFilings },
+            { href: '/tax-ops/tasks',            label: 'Tasks',                 icon: CheckSquareIcon,
+              badge: badges.taxOpsTasksToday },
             // Tax-type children are data-driven from /api/tax-ops/categories.
             ...buildTaxCategoryNavItems(taxCategories),
             { href: '/tax-ops/other',            label: 'Other (ad-hoc)',       icon: FolderIcon },
@@ -294,7 +302,8 @@ function buildGroups(badges: SidebarBadges, taxCategories: TaxCategory[]): NavGr
             { href: '/crm/opportunities', label: 'Opportunities', icon: TrendingUpIcon },
             { href: '/crm/matters',       label: 'Matters',       icon: GavelIcon },
             { href: '/crm/activities',    label: 'Activities',    icon: MessageSquareIcon },
-            { href: '/crm/tasks',         label: 'Tasks',         icon: CheckSquareIcon },
+            { href: '/crm/tasks',         label: 'Tasks',         icon: CheckSquareIcon,
+              badge: badges.crmTasksToday },
             { href: '/crm/calendar',      label: 'Calendar',      icon: CalendarIcon },
             { href: '/crm/billing',       label: 'Billing',       icon: ReceiptIcon },
           ],
