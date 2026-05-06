@@ -75,6 +75,9 @@ interface TaskFull extends TaskRow {
     notes: string | null;
     sort_order: number;
   }>;
+  // Stint 84.E — stale chip data.
+  is_stale?: boolean;
+  stale_days?: number | null;
 }
 
 const STATUSES = [
@@ -936,6 +939,15 @@ function TasksListContent() {
                       {t.deliverables && t.deliverables.length > 0 && (
                         <span className="shrink-0">
                           <DeliverablesRollupChip items={t.deliverables} />
+                        </span>
+                      )}
+                      {/* Stint 84.E — stale chase reminder. */}
+                      {t.is_stale && (
+                        <span
+                          className="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-2xs font-semibold bg-danger-50 text-danger-700 border border-danger-200"
+                          title={`Waiting ${t.stale_days ?? 5}d without an update — chase the counterparty.`}
+                        >
+                          🔴 {t.stale_days ?? 5}d stale
                         </span>
                       )}
                       <Link

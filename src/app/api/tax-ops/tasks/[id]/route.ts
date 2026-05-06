@@ -52,24 +52,11 @@ interface TaskDetail {
 interface TaskDeliverable {
   id: string;
   label: string;
-  status: 'pending' | 'drafted' | 'reviewed' | 'signed' | 'filed' | 'na';
+  status: string;
   due_date: string | null;
   link_url: string | null;
   notes: string | null;
   sort_order: number;
-}
-
-function parseDeliverables(raw: unknown): TaskDeliverable[] {
-  if (Array.isArray(raw)) return raw as TaskDeliverable[];
-  if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed as TaskDeliverable[] : [];
-    } catch {
-      return [];
-    }
-  }
-  return [];
 }
 
 interface SubtaskRow {
@@ -118,9 +105,6 @@ const ALLOWED = [
   'partner_sign_off', 'partner_sign_off_at',
   // Stint 56.D — favourite/star.
   'is_starred',
-  // Stint 84.C — deliverables JSONB (full-replace semantics; clients
-  // send the entire array on each update).
-  'deliverables',
 ] as const;
 
 export async function GET(
@@ -146,9 +130,7 @@ export async function GET(
               reviewer, reviewer_at::text AS reviewer_at,
               partner_sign_off,
               partner_sign_off_at::text AS partner_sign_off_at,
-              is_starred,
-              -- Stint 84.C — deliverables JSONB list (defaults to []).
-              deliverables
+              is_starred
          FROM tax_ops_tasks WHERE id = $1`,
       [id],
     ),
@@ -163,8 +145,7 @@ export async function GET(
               (SELECT COUNT(*)::int FROM tax_ops_task_comments c WHERE c.task_id = t.id) AS comment_count,
               (SELECT body         FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_body,
               (SELECT created_at::text FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_at,
-              (SELECT created_by   FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_by,
-              t.deliverables  -- Stint 84.C
+              (SELECT created_by   FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_by
          FROM tax_ops_tasks t
         WHERE t.parent_task_id = $1
         ORDER BY
@@ -173,18 +154,22 @@ export async function GET(
       [id],
     ),
     query<SubtaskRow>(
-      `SELECT id, title, status, priority, due_date::text, assignee
-         FROM tax_ops_tasks
-        WHERE depends_on_task_id = $1
-          AND status NOT IN ('done','cancelled')
-        ORDER BY due_date ASC NULLS LAST`,
+      // Stint 84.F — multi-blocker: things WAITING on this task. Read
+      // from the link table; ignore done/cancelled.
+      `SELECT t.id, t.title, t.status, t.priority, t.due_date::text, t.assignee
+         FROM tax_ops_tasks t
+         JOIN tax_ops_task_blockers b ON b.task_id = t.id
+        WHERE b.blocker_id = $1
+          AND t.status NOT IN ('done','cancelled')
+        ORDER BY t.due_date ASC NULLS LAST`,
       [id],
     ),
     query<SubtaskRow>(
+      // Stint 84.F — multi-blocker: things THIS task is blocked by.
       `SELECT t.id, t.title, t.status, t.priority, t.due_date::text, t.assignee
          FROM tax_ops_tasks t
-         JOIN tax_ops_tasks self ON self.depends_on_task_id = t.id
-        WHERE self.id = $1`,
+         JOIN tax_ops_task_blockers b ON b.blocker_id = t.id
+        WHERE b.task_id = $1`,
       [id],
     ),
   ]);
@@ -192,12 +177,37 @@ export async function GET(
   if (!taskRows[0]) return NextResponse.json({ error: 'not_found' }, { status: 404 });
   const task = taskRows[0];
 
-  // Stint 84.C — postgres-js in this codebase returns JSONB columns as
-  // raw strings rather than parsed objects. Coerce here so clients can
-  // treat `deliverables` as an array unconditionally.
-  task.deliverables = parseDeliverables(task.deliverables);
+  // Stint 84.D — fetch deliverables from the dedicated table for the
+  // parent + every sub-task in a single round-trip; group client-side.
+  const taskIdsForDeliverables = [task.id, ...subtasks.map(s => s.id)];
+  const deliverableRows = taskIdsForDeliverables.length > 0
+    ? await query<TaskDeliverable & { task_id: string }>(
+        `SELECT id, task_id, label, status,
+                due_date::text AS due_date,
+                link_url, notes, sort_order
+           FROM tax_ops_task_deliverables
+          WHERE task_id = ANY($1::text[])
+          ORDER BY sort_order ASC, created_at ASC`,
+        [taskIdsForDeliverables],
+      )
+    : [];
+  const deliverablesByTask = new Map<string, TaskDeliverable[]>();
+  for (const d of deliverableRows) {
+    const list = deliverablesByTask.get(d.task_id) ?? [];
+    list.push({
+      id: d.id,
+      label: d.label,
+      status: d.status,
+      due_date: d.due_date,
+      link_url: d.link_url,
+      notes: d.notes,
+      sort_order: d.sort_order,
+    });
+    deliverablesByTask.set(d.task_id, list);
+  }
+  task.deliverables = deliverablesByTask.get(task.id) ?? [];
   for (const sub of subtasks) {
-    sub.deliverables = parseDeliverables(sub.deliverables);
+    sub.deliverables = deliverablesByTask.get(sub.id) ?? [];
   }
 
   // Stint 84 — counterparties for the parent task itself + every sub-task in
@@ -261,7 +271,11 @@ export async function GET(
     task,
     subtasks,
     blocked_by_us: blockedByUs,   // tasks waiting for us
-    blocker: blockerTask[0] ?? null, // task we're waiting for
+    // Stint 84.F — multi-blocker: array of every task this one waits on.
+    // The legacy `blocker` field stays populated with the first item for
+    // back-compat with any consumer still reading it.
+    blockers: blockerTask,
+    blocker: blockerTask[0] ?? null,
     related_entity_name,
     related_filing_label,
     // Stint 84 — counterparties on the parent task itself (engagement-level
@@ -315,10 +329,6 @@ export async function PATCH(
   // Serialize JSON fields
   if (body.recurrence_rule !== undefined && body.recurrence_rule !== null) {
     body.recurrence_rule = JSON.stringify(body.recurrence_rule);
-  }
-  // Stint 84.C — deliverables also lands as JSONB.
-  if (body.deliverables !== undefined && Array.isArray(body.deliverables)) {
-    body.deliverables = JSON.stringify(body.deliverables);
   }
 
   const { sql, values, changes } = buildUpdate(

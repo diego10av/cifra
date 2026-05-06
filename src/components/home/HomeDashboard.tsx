@@ -141,6 +141,10 @@ export function HomeDashboard() {
         </div>
       </section>
 
+      {/* ─── Stint 84.E — Chase today: stale waiting-on-* tasks. ─── */}
+      <ChaseToday />
+
+
       {/* ─── Modules ────────────────────────────────────── */}
       <section>
         <h2 className="text-2xs font-semibold uppercase tracking-[0.14em] text-accent-600 mb-3">
@@ -174,6 +178,90 @@ export function HomeDashboard() {
         </div>
       </section>
     </PageContainer>
+  );
+}
+
+// ─── Stint 84.E — ChaseToday: stale waiting-on-* tasks ──────────────────
+//
+// Surfaces every task that has been in waiting_on_external /
+// waiting_on_internal status for >5 days without a new comment. The
+// "no se me olvide perseguir a quien me debe" pain Diego flagged.
+// Hidden when there's nothing to chase — the section disappears so
+// it doesn't add noise on a quiet day.
+
+interface StaleTask {
+  id: string;
+  title: string;
+  status: string;
+  stale_days: number | null;
+  entity_name: string | null;
+  family_name: string | null;
+  parent_task_id: string | null;
+}
+
+function ChaseToday() {
+  const [items, setItems] = useState<StaleTask[] | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/tax-ops/tasks?stale=1')
+      .then(r => (r.ok ? r.json() : { tasks: [] }))
+      .then((b: { tasks: StaleTask[] }) => {
+        if (!cancelled) setItems(b.tasks ?? []);
+      })
+      .catch(() => { if (!cancelled) setItems([]); });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (items === null || items.length === 0) return null;
+
+  const sorted = [...items].sort((a, b) => (b.stale_days ?? 0) - (a.stale_days ?? 0));
+
+  return (
+    <section className="mb-10">
+      <h2 className="text-2xs font-semibold uppercase tracking-[0.14em] text-danger-600 mb-3">
+        Chase today
+        <span className="ml-2 text-2xs text-ink-muted font-normal normal-case tracking-normal">
+          {items.length} task{items.length === 1 ? '' : 's'} waiting &gt; 5 days without an update
+        </span>
+      </h2>
+      <ul className="rounded-md border border-danger-200 bg-danger-50/30 divide-y divide-danger-200/60">
+        {sorted.slice(0, 8).map(t => (
+          <li key={t.id} className="flex items-center gap-3 px-3 py-2">
+            <span
+              className="shrink-0 inline-flex items-center justify-center min-w-[2.5rem] h-6 px-1.5 rounded text-2xs font-semibold bg-danger-500 text-white tabular-nums"
+              title={`Waiting ${t.stale_days ?? 5}d without an update`}
+            >
+              {t.stale_days ?? 5}d
+            </span>
+            <div className="flex-1 min-w-0">
+              <Link
+                href={`/tax-ops/tasks/${t.parent_task_id ?? t.id}`}
+                className="text-sm text-ink hover:text-brand-700 hover:underline truncate inline-block max-w-full"
+              >
+                {t.title}
+              </Link>
+              {(t.family_name || t.entity_name) && (
+                <span className="ml-2 text-2xs text-ink-muted">
+                  {t.family_name ?? ''}
+                  {t.family_name && t.entity_name ? ' › ' : ''}
+                  {t.entity_name ?? ''}
+                </span>
+              )}
+            </div>
+            <span className="text-2xs text-danger-700 font-medium uppercase tracking-wide">
+              {t.status === 'waiting_on_external' ? 'External' : 'Internal'}
+            </span>
+          </li>
+        ))}
+        {sorted.length > 8 && (
+          <li className="px-3 py-2 text-xs text-ink-muted">
+            <Link href="/tax-ops/tasks?status=waiting_on_external&status=waiting_on_internal" className="hover:underline text-brand-700">
+              … and {sorted.length - 8} more — open in Tasks list
+            </Link>
+          </li>
+        )}
+      </ul>
+    </section>
   );
 }
 

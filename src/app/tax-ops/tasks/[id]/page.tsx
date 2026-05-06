@@ -17,6 +17,7 @@ import Link from 'next/link';
 import {
   ArrowLeftIcon, PlusIcon, Trash2Icon, CheckIcon, SendIcon,
   ChevronRightIcon, ChevronDownIcon, ArrowUpIcon, MessageSquareIcon,
+  XIcon,
 } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
@@ -109,7 +110,8 @@ interface Comment {
 interface DetailResponse {
   task: Task;
   subtasks: Subtask[];
-  blocker: Subtask | null;
+  blocker: Subtask | null;        // legacy single blocker (back-compat)
+  blockers?: Subtask[];           // Stint 84.F — multi-blocker list
   blocked_by_us: Subtask[];
   related_entity_name: string | null;
   related_filing_label: string | null;
@@ -289,15 +291,22 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               className="px-2 py-1 border border-border rounded-md bg-surface"
             />
           </label>
-          <label className="inline-flex items-center gap-1">
-            <span className="text-ink-muted">Assignee:</span>
-            <input
-              defaultValue={t.assignee ?? ''}
-              onBlur={e => patch({ assignee: e.target.value.trim() || null })}
-              placeholder="short name"
-              className="w-[120px] px-2 py-1 border border-border rounded-md bg-surface"
-            />
-          </label>
+          {/* Stint 84.G — engagement-aware assignee. For an engagement,
+              "owner" is the counterparty marked responsible (Stakeholders
+              section below). The free-text assignee field is hidden to
+              stop the duplication, but the underlying column is preserved
+              for the existing matrices that still surface it. */}
+          {!isEngagementPage && (
+            <label className="inline-flex items-center gap-1">
+              <span className="text-ink-muted">Assignee:</span>
+              <input
+                defaultValue={t.assignee ?? ''}
+                onBlur={e => patch({ assignee: e.target.value.trim() || null })}
+                placeholder="short name"
+                className="w-[120px] px-2 py-1 border border-border rounded-md bg-surface"
+              />
+            </label>
+          )}
           {t.auto_generated && (
             <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-2xs bg-brand-100 text-brand-800">
               Auto-generated
@@ -616,7 +625,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               fetch the whole task list on every detail-page mount. */}
           <DependenciesPanel
             taskId={id}
-            currentBlocker={data.blocker}
+            blockers={data.blockers ?? (data.blocker ? [data.blocker] : [])}
             blockedByUs={data.blocked_by_us}
             onChanged={load}
           />
@@ -903,7 +912,9 @@ function SubtaskNode({
         )}
         {/* Stint 84 — counterparty chips on the row. Only show the first
             so the row stays scannable; details and full management live
-            in the expanded panel. */}
+            in the expanded panel. Stint 84.G: when a responsible
+            counterparty exists, it IS the row's owner indicator —
+            assignee chip below is suppressed to avoid duplicating. */}
         {task.counterparties && task.counterparties.length > 0 && (
           <span className="flex items-center gap-1">
             <CounterpartyChip counterparty={task.counterparties[0]} size="xs" />
@@ -923,7 +934,10 @@ function SubtaskNode({
         {task.due_date && (
           <span className="text-xs"><DateBadge value={task.due_date} mode="urgency" /></span>
         )}
-        {task.assignee && (
+        {/* Assignee shown ONLY when no counterparty is set — old matrices
+            still rely on this field, but inside the engagement view the
+            counterparty chip above replaces it. */}
+        {task.assignee && (!task.counterparties || task.counterparties.length === 0) && (
           <span className="text-xs px-1 bg-surface-alt text-ink-soft rounded">{task.assignee}</span>
         )}
         {/* Stint 58.T3.2 — quick-add sub-task per node. Hover-only so
@@ -1151,20 +1165,21 @@ function SubtaskNode({
 }
 
 
-// ─── Dependencies panel — stint 55.B ──────────────────────────────────
+// ─── Dependencies panel — stint 55.B → 84.F multi-blocker ───────────────
 //
-// Renders the blocker (with edit + clear) and the list of tasks blocked
-// by this one. The picker is lazy: the dropdown of candidates only
-// fetches /api/tax-ops/tasks once it's opened.
+// Renders the list of blockers (every task this one is waiting on) plus
+// the list of tasks blocked by this one. Each blocker is its own chip
+// with an unlink button. "+ Add blocker" lazy-loads the candidates
+// dropdown.
 
 interface DependenciesPanelProps {
   taskId: string;
-  currentBlocker: Subtask | null;
+  blockers: Subtask[];
   blockedByUs: Subtask[];
   onChanged: () => void;
 }
 
-function DependenciesPanel({ taskId, currentBlocker, blockedByUs, onChanged }: DependenciesPanelProps) {
+function DependenciesPanel({ taskId, blockers, blockedByUs, onChanged }: DependenciesPanelProps) {
   const [editing, setEditing] = useState(false);
   const [candidates, setCandidates] = useState<Subtask[] | null>(null);
   const [picked, setPicked] = useState<string>('');
@@ -1173,18 +1188,27 @@ function DependenciesPanel({ taskId, currentBlocker, blockedByUs, onChanged }: D
     const r = await fetch('/api/tax-ops/tasks?status=queued&status=in_progress&status=waiting_on_external&status=waiting_on_internal');
     if (!r.ok) return;
     const body = await r.json() as { tasks: Subtask[] };
-    // Exclude this task itself.
-    setCandidates((body.tasks ?? []).filter(t => t.id !== taskId));
+    // Exclude this task + already-linked blockers.
+    const linked = new Set([taskId, ...blockers.map(b => b.id)]);
+    setCandidates((body.tasks ?? []).filter(t => !linked.has(t.id)));
   }
 
-  async function setBlocker(blockerId: string | null) {
-    await fetch(`/api/tax-ops/tasks/${taskId}`, {
-      method: 'PATCH',
+  async function addBlocker(blockerId: string) {
+    await fetch(`/api/tax-ops/tasks/${taskId}/blockers`, {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ depends_on_task_id: blockerId }),
+      body: JSON.stringify({ blocker_id: blockerId }),
     });
     setEditing(false);
     setPicked('');
+    setCandidates(null);  // force refetch next open so the just-added one disappears from the list
+    onChanged();
+  }
+
+  async function unlinkBlocker(blockerId: string) {
+    await fetch(`/api/tax-ops/tasks/${taskId}/blockers/${blockerId}`, {
+      method: 'DELETE',
+    });
     onChanged();
   }
 
@@ -1192,64 +1216,70 @@ function DependenciesPanel({ taskId, currentBlocker, blockedByUs, onChanged }: D
     <div className="rounded-md border border-border bg-surface px-4 py-3 text-sm">
       <h3 className="text-sm font-semibold text-ink mb-2">Dependencies</h3>
       <div className="mb-2">
-        <div className="text-ink-muted mb-0.5">Blocked by</div>
-        {currentBlocker ? (
-          <div className="flex items-center gap-1">
-            <Link
-              href={`/tax-ops/tasks/${currentBlocker.id}`}
-              className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs ${
-                currentBlocker.status === 'done'
-                  ? 'bg-success-50 text-success-800 hover:bg-success-100'
-                  : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-              }`}
-            >
-              {currentBlocker.title}
-              {currentBlocker.status === 'done' && <CheckIcon size={10} />}
-            </Link>
+        <div className="text-ink-muted mb-1">
+          Blocked by {blockers.length > 0 && <span className="text-ink-faint">({blockers.length})</span>}
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
+          {blockers.map(b => (
+            <span key={b.id} className="inline-flex items-center gap-1">
+              <Link
+                href={`/tax-ops/tasks/${b.id}`}
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs ${
+                  b.status === 'done'
+                    ? 'bg-success-50 text-success-800 hover:bg-success-100'
+                    : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
+                }`}
+              >
+                {b.title}
+                {b.status === 'done' && <CheckIcon size={10} />}
+              </Link>
+              <button
+                type="button"
+                onClick={() => void unlinkBlocker(b.id)}
+                className="p-0.5 text-ink-muted hover:text-danger-700"
+                title="Remove this blocker"
+                aria-label="Remove blocker"
+              >
+                <XIcon size={10} />
+              </button>
+            </span>
+          ))}
+          {editing ? (
+            <span className="inline-flex items-center gap-1">
+              <SearchableSelect
+                options={(candidates ?? []).map(c => ({ value: c.id, label: c.title }))}
+                value={picked}
+                onChange={setPicked}
+                placeholder={candidates === null ? 'Loading…' : 'Pick a task…'}
+                ariaLabel="Pick blocker task"
+                triggerClassName="min-w-[200px]"
+              />
+              <button
+                type="button"
+                onClick={() => picked && void addBlocker(picked)}
+                disabled={!picked}
+                className="px-2 py-0.5 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => { setEditing(false); setPicked(''); }}
+                className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
+              >
+                Cancel
+              </button>
+            </span>
+          ) : (
             <button
               type="button"
-              onClick={() => void setBlocker(null)}
-              className="text-2xs text-ink-muted hover:text-danger-700 px-1"
-              title="Remove blocker"
+              onClick={() => { setEditing(true); if (candidates === null) void loadCandidates(); }}
+              className="text-xs text-ink-muted hover:text-brand-700 px-1"
             >
-              clear
+              + Add blocker
             </button>
-          </div>
-        ) : editing ? (
-          <div className="flex items-center gap-1">
-            <SearchableSelect
-              options={(candidates ?? []).map(c => ({ value: c.id, label: c.title }))}
-              value={picked}
-              onChange={setPicked}
-              placeholder={candidates === null ? 'Loading…' : 'Pick a task…'}
-              ariaLabel="Pick blocker task"
-              triggerClassName="min-w-[200px]"
-            />
-            <button
-              type="button"
-              onClick={() => picked && void setBlocker(picked)}
-              disabled={!picked}
-              className="px-2 py-0.5 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
-            >
-              Set
-            </button>
-            <button
-              type="button"
-              onClick={() => { setEditing(false); setPicked(''); }}
-              className="px-2 py-0.5 text-xs rounded border border-border hover:bg-surface-alt"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => { setEditing(true); if (candidates === null) void loadCandidates(); }}
-            className="text-xs text-ink-muted hover:text-brand-700"
-          >
-            + Set blocker
-          </button>
-        )}
+          )}
+        </div>
       </div>
 
       {blockedByUs.length > 0 && (

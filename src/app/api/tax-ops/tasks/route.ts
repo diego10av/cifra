@@ -65,6 +65,12 @@ interface TaskListRow {
     notes: string | null;
     sort_order: number;
   }>;
+  // Stint 84.E — stale signal: TRUE when the task is in waiting_on_*
+  // status AND no comment has been posted in the last 5 days. Surfaced
+  // as a red chip on the row + drives the "Chase today" home dashboard
+  // section.
+  is_stale: boolean;
+  stale_days: number | null;
 }
 
 const VALID_STATUSES = ['queued', 'in_progress', 'waiting_on_external',
@@ -89,6 +95,9 @@ export async function GET(request: NextRequest) {
   const onlyReady = url.searchParams.get('ready') === '1';
   // Stint 56.D — "Starred only" filter.
   const onlyStarred = url.searchParams.get('starred') === '1';
+  // Stint 84.E — "Stale only" filter for the home dashboard "Chase today"
+  // section. waiting_on_* + no comment in last 5d.
+  const onlyStale = url.searchParams.get('stale') === '1';
 
   const where: string[] = [];
   const params: unknown[] = [];
@@ -138,6 +147,15 @@ export async function GET(request: NextRequest) {
   }
   if (onlyStarred) {
     where.push(`t.is_starred = TRUE`);
+  }
+  if (onlyStale) {
+    where.push(
+      `t.status IN ('waiting_on_external','waiting_on_internal')
+        AND COALESCE(
+              (SELECT MAX(c.created_at) FROM tax_ops_task_comments c WHERE c.task_id = t.id),
+              t.updated_at
+            ) < NOW() - INTERVAL '5 days'`,
+    );
   }
 
   const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
@@ -208,8 +226,32 @@ export async function GET(request: NextRequest) {
             t.preparer, t.reviewer, t.partner_sign_off,
             -- Stint 56.D — favourite.
             t.is_starred,
-            -- Stint 84.C — deliverables list for the roll-up chip.
-            t.deliverables
+            -- Stint 84.E — stale follow-up signal. The "anchor" date for
+            -- staleness is the most recent of:
+            --   (a) last comment on this task, OR
+            --   (b) task.updated_at if no comment exists yet.
+            -- A task is stale when status is waiting_on_external/internal
+            -- AND that anchor is older than 5 days. The day-count is
+            -- surfaced so the UI can render "8d stale" instead of just a
+            -- boolean.
+            CASE
+              WHEN t.status IN ('waiting_on_external','waiting_on_internal')
+               AND COALESCE(
+                     (SELECT MAX(c.created_at) FROM tax_ops_task_comments c WHERE c.task_id = t.id),
+                     t.updated_at
+                   ) < NOW() - INTERVAL '5 days'
+              THEN TRUE ELSE FALSE
+            END AS is_stale,
+            CASE
+              WHEN t.status IN ('waiting_on_external','waiting_on_internal')
+              THEN GREATEST(0, EXTRACT(EPOCH FROM (
+                    NOW() - COALESCE(
+                      (SELECT MAX(c.created_at) FROM tax_ops_task_comments c WHERE c.task_id = t.id),
+                      t.updated_at
+                    )
+                  ))::int / 86400)
+              ELSE NULL
+            END AS stale_days
        FROM tax_ops_tasks t
        LEFT JOIN tax_filings f ON f.id = t.related_filing_id
        ${whereSQL}
@@ -232,17 +274,36 @@ export async function GET(request: NextRequest) {
     params,
   );
 
-  // Stint 84.C — JSONB deliverables comes back as a string from this
-  // codebase's postgres client. Parse to array so the client can use
-  // .filter / .map without a guard.
-  for (const r of rows) {
-    const raw: unknown = (r as unknown as { deliverables: unknown }).deliverables;
-    let parsed: unknown = raw;
-    if (typeof raw === 'string') {
-      try { parsed = JSON.parse(raw); } catch { parsed = []; }
+  // Stint 84.D — fetch deliverables for every visible task in one
+  // batch from the dedicated table and attach to each row. Roll-up
+  // chip on the row needs status counts — full row data is light.
+  const taskIds = rows.map(r => r.id);
+  if (taskIds.length > 0) {
+    const deliverables = await query<{
+      id: string; task_id: string; label: string; status: string;
+      due_date: string | null; link_url: string | null;
+      notes: string | null; sort_order: number;
+    }>(
+      `SELECT id, task_id, label, status,
+              due_date::text AS due_date,
+              link_url, notes, sort_order
+         FROM tax_ops_task_deliverables
+        WHERE task_id = ANY($1::text[])
+        ORDER BY sort_order ASC, created_at ASC`,
+      [taskIds],
+    );
+    const byTask = new Map<string, typeof deliverables>();
+    for (const d of deliverables) {
+      const list = byTask.get(d.task_id) ?? [];
+      list.push(d);
+      byTask.set(d.task_id, list);
     }
-    (r as unknown as { deliverables: unknown }).deliverables =
-      Array.isArray(parsed) ? parsed : [];
+    for (const r of rows) {
+      (r as unknown as { deliverables: unknown }).deliverables =
+        (byTask.get(r.id) ?? []).map(({ task_id: _, ...rest }) => rest);
+    }
+  } else {
+    for (const r of rows) (r as unknown as { deliverables: unknown }).deliverables = [];
   }
 
   return NextResponse.json({ tasks: rows });

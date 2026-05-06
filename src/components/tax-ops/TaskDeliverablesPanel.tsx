@@ -1,15 +1,15 @@
 'use client';
 
-// TaskDeliverablesPanel — stint 84.C
+// TaskDeliverablesPanel — stint 84.C → 84.D
 //
 // Inline manager for a task's deliverables list (the docs that need to
 // exist as part of completing the task). Status is manual only —
 // cifra is not the document store, so adding a link or attachment
 // never auto-bumps. Diego: "para eso ya tenemos iManage".
 //
-// Data lives in the JSONB column `tax_ops_tasks.deliverables`. The
-// component fully replaces the array on every change via PATCH so we
-// don't need a granular CRUD endpoint.
+// 84.D: data lives in its own table tax_ops_task_deliverables. Each
+// row is independent — no full-array replace, no concurrent-edit
+// stomping. Per-item PATCH/DELETE for granular audit trail.
 
 import { useState } from 'react';
 import {
@@ -38,18 +38,12 @@ const STATUS_OPTIONS: Array<{ value: DeliverableStatus; label: string; tone: str
   { value: 'na',       label: 'N/A',      tone: 'bg-surface-alt text-ink-faint border-border' },
 ];
 
-function makeId(): string {
-  // Stable enough for client-generated identifiers; collisions don't
-  // matter inside one task's array.
-  return `del_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export function TaskDeliverablesPanel({
   taskId, deliverables, onSaved, dense = false,
 }: {
   taskId: string;
   deliverables: Deliverable[];
-  /** Called after a successful PATCH so the parent can refetch. */
+  /** Called after a successful create/update/delete so the parent refetches. */
   onSaved: () => void;
   /** Compact layout (used inside SubtaskNode expanded panel). */
   dense?: boolean;
@@ -58,48 +52,45 @@ export function TaskDeliverablesPanel({
   const [linkEditing, setLinkEditing] = useState<{ id: string; value: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function persist(next: Deliverable[]) {
+  async function add(label: string) {
+    const trimmed = label.trim();
+    if (!trimmed) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/tax-ops/tasks/${taskId}`, {
-        method: 'PATCH',
+      await fetch(`/api/tax-ops/tasks/${taskId}/deliverables`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deliverables: next }),
+        body: JSON.stringify({ label: trimmed }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setDraftLabel('');
       onSaved();
     } finally {
       setBusy(false);
     }
   }
 
-  async function add(label: string) {
-    const trimmed = label.trim();
-    if (!trimmed) return;
-    const next: Deliverable[] = [
-      ...deliverables,
-      {
-        id: makeId(),
-        label: trimmed,
-        status: 'pending',
-        due_date: null,
-        link_url: null,
-        notes: null,
-        sort_order: deliverables.length,
-      },
-    ];
-    await persist(next);
-    setDraftLabel('');
-  }
-
   async function update(id: string, patch: Partial<Deliverable>) {
-    const next = deliverables.map(d => (d.id === id ? { ...d, ...patch } : d));
-    await persist(next);
+    setBusy(true);
+    try {
+      await fetch(`/api/tax-ops/deliverables/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patch),
+      });
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function remove(id: string) {
-    const next = deliverables.filter(d => d.id !== id);
-    await persist(next);
+    setBusy(true);
+    try {
+      await fetch(`/api/tax-ops/deliverables/${id}`, { method: 'DELETE' });
+      onSaved();
+    } finally {
+      setBusy(false);
+    }
   }
 
   const containerClass = dense
@@ -139,23 +130,11 @@ export function TaskDeliverablesPanel({
             onChange={(next) => void update(d.id, { status: next })}
           />
           <input
-            value={d.label}
-            onChange={e => {
-              const v = e.target.value;
-              // Optimistic local change; persist on blur.
-              const next = deliverables.map(x => (x.id === d.id ? { ...x, label: v } : x));
-              // Re-render parent only when persisted; for optimistic we'd
-              // need lifted state. Skipped — keep it simple.
-              if (next.find(x => x.id === d.id)?.label === v) {
-                // no-op; updated on blur via update()
-              }
-              // We mutate the prop reference in-place so the input shows
-              // the typing. Persist on blur.
-              (d as Deliverable).label = v;
-            }}
+            defaultValue={d.label}
+            key={`${d.id}-${d.label}`}
             onBlur={async (e) => {
               const v = e.target.value.trim();
-              if (v && v !== '') void update(d.id, { label: v });
+              if (v && v !== d.label) await update(d.id, { label: v });
             }}
             className="flex-1 px-1.5 py-0.5 text-sm bg-transparent border border-transparent rounded focus:border-border focus:bg-surface"
           />
@@ -298,7 +277,7 @@ function StatusChip({
 
 /** Roll-up summary chip used on collapsed rows ("📄 2/4 drafted"). */
 export function DeliverablesRollupChip({ items }: { items: Deliverable[] }) {
-  if (items.length === 0) return null;
+  if (!Array.isArray(items) || items.length === 0) return null;
   const drafted = items.filter(d => d.status !== 'pending' && d.status !== 'na').length;
   const filed   = items.filter(d => d.status === 'filed').length;
   const allDone = filed === items.length;
