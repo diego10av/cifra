@@ -5,7 +5,7 @@
 > When something is fixed, move it to "Done this week" → archive
 > on Mondays.
 >
-> Last updated: **2026-05-05** (post-reset Phases 1-10).
+> Last updated: **2026-05-05** (post-reset Phases 1-10 + dogfood polish).
 
 ---
 
@@ -96,6 +96,21 @@ Executed in one long session + follow-on stabilization sessions:
 Tests went from 707 → 614 (-93 from the purge), still all green.
 Build green, tsc clean, design-lint 0 violations. Migrations 080 +
 081 applied to Supabase via MCP.
+
+**2026-05-05** — Pre-dogfood polish (3 commits)
+
+- **Confirm modal sweep**: closed the gap on CIT/NWT opt-out (matrix
+  delete-on-first-click); upgraded `window.confirm()` → ConfirmModal in
+  5 HIGH-severity pages (companies, contacts, matters, opportunities,
+  entities archive). New `useConfirm()` hook gives ConfirmModal the
+  ergonomics of a one-liner await.
+- **Toast coverage audit**: added `useToast()` feedback to 11 pages
+  where mutations were silent — aed-letters upload, client profile
+  edit, entity creation/edit, registration creation, legal-override
+  delete, feedback triage, prorata config, legal-watch triage,
+  rollover commit. Errors that failed silently now surface; success
+  confirmations land. Skipped pages with rich inline feedback already
+  (FilingEditDrawer, DeadlineRuleEditor, FeedbackWidget, bulk-import).
 
 ---
 
