@@ -63,6 +63,18 @@ const RULES: Array<{ pattern: RegExp; rule: string; description: string }> = [
     rule: 'no-bare-z-index',
     description: 'Use z-{sticky|popover|drawer|modal|toast} tokens',
   },
+  {
+    // Diego caught a "Delete permanently" button rendering invisible:
+    // bg-danger-600 was used in src but the danger palette only had
+    // 50/500/700 declared in globals.css, so Tailwind 4 emitted an
+    // undefined --color-danger-600 var reference and the bg vanished.
+    // Catch every (bg|text|border|ring|hover:*)-{palette}-{N} where N
+    // is not in the canonical {50,100,...,900} set so typos like
+    // bg-danger-650 also fail before they ship.
+    pattern: /\b(?:hover:|focus:)?(?:bg|text|border|ring|outline)-(?:brand|accent|danger|success|warning|info)-(?!(?:50|100|200|300|400|500|600|700|800|900)\b)\d+/g,
+    rule: 'no-undefined-palette-shade',
+    description: 'Palette shade must be one of {50,100,200,300,400,500,600,700,800,900}',
+  },
 ];
 
 // Files where we've documented a deliberate exception. Each entry

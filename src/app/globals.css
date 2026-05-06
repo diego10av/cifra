@@ -104,22 +104,56 @@
   --color-ink-muted:    #6B7588;  /* tertiary text */
   --color-ink-faint:    #A4ADBE;  /* placeholder/disabled */
 
-  /* ── Semantic colours (compliance-safe) ──── */
+  /* ── Semantic colours (compliance-safe) ────
+   * Full 50-900 ramps. Components reach for shade-600 (one notch
+   * darker than 500 for hover states) and shade-200/300 (subtle
+   * borders on tinted backgrounds) constantly; if a shade isn't
+   * declared here, Tailwind silently emits an undefined custom
+   * property and the utility renders as transparent — which is
+   * exactly the bug Diego caught on the cascade-delete button. */
   --color-success-50:   #EDFDF5;
+  --color-success-100:  #D4F8E5;
+  --color-success-200:  #A8EDC8;
+  --color-success-300:  #75DDA9;
+  --color-success-400:  #3EC289;
   --color-success-500:  #0E9F6E;
+  --color-success-600:  #0A8B5C;
   --color-success-700:  #056E4B;
+  --color-success-800:  #045037;
+  --color-success-900:  #033123;
 
   --color-warning-50:   #FEF6E7;
+  --color-warning-100:  #FCE8C0;
+  --color-warning-200:  #F8D483;
+  --color-warning-300:  #F2BB47;
+  --color-warning-400:  #ECAE1E;
   --color-warning-500:  #E0A207;
+  --color-warning-600:  #C28705;
   --color-warning-700:  #9A6B03;
+  --color-warning-800:  #6E4B02;
+  --color-warning-900:  #432D01;
 
   --color-danger-50:    #FEECEB;
+  --color-danger-100:   #FCD3D1;
+  --color-danger-200:   #F8A6A2;
+  --color-danger-300:   #F37774;
+  --color-danger-400:   #E54C49;
   --color-danger-500:   #D62828;
+  --color-danger-600:   #B91D1D;
   --color-danger-700:   #9C1212;
+  --color-danger-800:   #7A0E0E;
+  --color-danger-900:   #560A0A;
 
   --color-info-50:      #EEF4FB;
+  --color-info-100:     #DBE7F8;
+  --color-info-200:     #B6CFEF;
+  --color-info-300:     #87B0E5;
+  --color-info-400:     #5C95DD;
   --color-info-500:     #3B82F6;
+  --color-info-600:     #2A6FD8;
   --color-info-700:     #1E5AC6;
+  --color-info-800:     #163E97;
+  --color-info-900:     #0E2C70;
 
   /* ── Elevation ────────────────────────────── */
   --shadow-xs: 0 1px 2px 0 rgba(26, 22, 20, 0.05);
@@ -210,17 +244,45 @@
   --color-ink-muted:   var(--color-ink-muted);
   --color-ink-faint:   var(--color-ink-faint);
   --color-success-50:  var(--color-success-50);
+  --color-success-100: var(--color-success-100);
+  --color-success-200: var(--color-success-200);
+  --color-success-300: var(--color-success-300);
+  --color-success-400: var(--color-success-400);
   --color-success-500: var(--color-success-500);
+  --color-success-600: var(--color-success-600);
   --color-success-700: var(--color-success-700);
+  --color-success-800: var(--color-success-800);
+  --color-success-900: var(--color-success-900);
   --color-warning-50:  var(--color-warning-50);
+  --color-warning-100: var(--color-warning-100);
+  --color-warning-200: var(--color-warning-200);
+  --color-warning-300: var(--color-warning-300);
+  --color-warning-400: var(--color-warning-400);
   --color-warning-500: var(--color-warning-500);
+  --color-warning-600: var(--color-warning-600);
   --color-warning-700: var(--color-warning-700);
+  --color-warning-800: var(--color-warning-800);
+  --color-warning-900: var(--color-warning-900);
   --color-danger-50:   var(--color-danger-50);
+  --color-danger-100:  var(--color-danger-100);
+  --color-danger-200:  var(--color-danger-200);
+  --color-danger-300:  var(--color-danger-300);
+  --color-danger-400:  var(--color-danger-400);
   --color-danger-500:  var(--color-danger-500);
+  --color-danger-600:  var(--color-danger-600);
   --color-danger-700:  var(--color-danger-700);
+  --color-danger-800:  var(--color-danger-800);
+  --color-danger-900:  var(--color-danger-900);
   --color-info-50:     var(--color-info-50);
+  --color-info-100:    var(--color-info-100);
+  --color-info-200:    var(--color-info-200);
+  --color-info-300:    var(--color-info-300);
+  --color-info-400:    var(--color-info-400);
   --color-info-500:    var(--color-info-500);
+  --color-info-600:    var(--color-info-600);
   --color-info-700:    var(--color-info-700);
+  --color-info-800:    var(--color-info-800);
+  --color-info-900:    var(--color-info-900);
 
   /* Stint 45.F1.1 — type scale exposed as Tailwind text-{tier} utilities.
    *  Tailwind 4 syntax: `--text-{name}` + `--text-{name}--line-height`. */
