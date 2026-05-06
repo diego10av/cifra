@@ -54,6 +54,17 @@ interface TaskListRow {
   partner_sign_off: string | null;
   // Stint 56.D — favourite.
   is_starred: boolean;
+  // Stint 84.C — deliverables list (used for the "X/Y drafted" roll-up
+  // chip on collapsed rows). Always returned; empty array when none.
+  deliverables: Array<{
+    id: string;
+    label: string;
+    status: 'pending' | 'drafted' | 'reviewed' | 'signed' | 'filed' | 'na';
+    due_date: string | null;
+    link_url: string | null;
+    notes: string | null;
+    sort_order: number;
+  }>;
 }
 
 const VALID_STATUSES = ['queued', 'in_progress', 'waiting_on_external',
@@ -196,7 +207,9 @@ export async function GET(request: NextRequest) {
             -- Stint 56.A — sign-off snapshot for the chip in title cell.
             t.preparer, t.reviewer, t.partner_sign_off,
             -- Stint 56.D — favourite.
-            t.is_starred
+            t.is_starred,
+            -- Stint 84.C — deliverables list for the roll-up chip.
+            t.deliverables
        FROM tax_ops_tasks t
        LEFT JOIN tax_filings f ON f.id = t.related_filing_id
        ${whereSQL}
@@ -218,6 +231,19 @@ export async function GET(request: NextRequest) {
         t.created_at DESC`,
     params,
   );
+
+  // Stint 84.C — JSONB deliverables comes back as a string from this
+  // codebase's postgres client. Parse to array so the client can use
+  // .filter / .map without a guard.
+  for (const r of rows) {
+    const raw: unknown = (r as unknown as { deliverables: unknown }).deliverables;
+    let parsed: unknown = raw;
+    if (typeof raw === 'string') {
+      try { parsed = JSON.parse(raw); } catch { parsed = []; }
+    }
+    (r as unknown as { deliverables: unknown }).deliverables =
+      Array.isArray(parsed) ? parsed : [];
+  }
 
   return NextResponse.json({ tasks: rows });
 }

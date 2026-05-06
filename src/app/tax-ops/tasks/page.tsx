@@ -35,6 +35,7 @@ import { TaskHoverPreview } from '@/components/tax-ops/TaskHoverPreview';
 import { TaskCalendar } from '@/components/tax-ops/TaskCalendar';
 import { TaskContextMenu, type ContextTask } from '@/components/tax-ops/TaskContextMenu';
 import { ChipSelect } from '@/components/tax-ops/ChipSelect';
+import { DeliverablesRollupChip } from '@/components/tax-ops/TaskDeliverablesPanel';
 
 interface TaskFull extends TaskRow {
   description: string | null;
@@ -64,6 +65,16 @@ interface TaskFull extends TaskRow {
   effective_status?: string;
   is_status_rolled_up?: boolean;
   subtask_open?: number;
+  // Stint 84.C — deliverables roll-up chip on each row.
+  deliverables?: Array<{
+    id: string;
+    label: string;
+    status: 'pending' | 'drafted' | 'reviewed' | 'signed' | 'filed' | 'na';
+    due_date: string | null;
+    link_url: string | null;
+    notes: string | null;
+    sort_order: number;
+  }>;
 }
 
 const STATUSES = [
@@ -415,7 +426,21 @@ function TasksListContent() {
         ?? `HTTP ${res.status}`;
       throw new Error(msg);
     }
+    // Stint 84.C — bug Diego flagged: editing a sub-task didn't reflect
+    // until reload because `load()` only refetches root tasks. Sub-tasks
+    // live in `childrenByParent[parentId]`, which we now refresh in
+    // parallel for every expanded parent so the UI stays in sync.
     load();
+    if (expanded.size > 0) {
+      const refreshes = await Promise.allSettled(
+        [...expanded].map(async (pid) => ({ pid, kids: await loadChildren(pid) })),
+      );
+      const next: Record<string, TaskFull[]> = { ...childrenByParent };
+      for (const r of refreshes) {
+        if (r.status === 'fulfilled') next[r.value.pid] = r.value.kids;
+      }
+      setChildrenByParent(next);
+    }
   }
 
   async function moveTaskStatus(taskId: string, newStatus: string) {
@@ -905,6 +930,12 @@ function TasksListContent() {
                           {t.blocker_status === 'done'
                             ? <UnlockIcon size={11} className="text-success-700" />
                             : <LockIcon size={11} className="text-warning-700" />}
+                        </span>
+                      )}
+                      {/* Stint 84.C — deliverables roll-up. */}
+                      {t.deliverables && t.deliverables.length > 0 && (
+                        <span className="shrink-0">
+                          <DeliverablesRollupChip items={t.deliverables} />
                         </span>
                       )}
                       <Link

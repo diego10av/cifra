@@ -11,8 +11,13 @@
 import { useEffect, useState } from 'react';
 import { humanize, iconFor, groupByMonth, type AuditRow } from '@/lib/audit-humanize';
 
+interface EngagementRow extends AuditRow {
+  subtask_id?: string | null;
+  subtask_title?: string | null;
+}
+
 interface Response {
-  rows: AuditRow[];
+  rows: EngagementRow[];
   limit: number;
 }
 
@@ -27,7 +32,16 @@ function formatTime(iso: string): string {
   } catch { return iso.slice(0, 10); }
 }
 
-export function TaskTimeline({ taskId }: { taskId: string }) {
+export function TaskTimeline({
+  taskId, includeChildren = false,
+}: {
+  taskId: string;
+  /** Stint 84.C — when true, audits + comments of every direct sub-task
+   *  are folded into a single chronological feed. Used on engagement
+   *  detail pages so the reviewer can scan the deal's history without
+   *  drilling into each workstream. */
+  includeChildren?: boolean;
+}) {
   const [data, setData] = useState<Response | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,13 +49,14 @@ export function TaskTimeline({ taskId }: { taskId: string }) {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(`/api/tax-ops/tasks/${taskId}/timeline`)
+    const url = `/api/tax-ops/tasks/${taskId}/timeline${includeChildren ? '?include_children=1' : ''}`;
+    fetch(url)
       .then(r => r.ok ? r.json() as Promise<Response> : Promise.reject(new Error(`HTTP ${r.status}`)))
       .then(b => { if (!cancelled) { setData(b); setError(null); } })
       .catch((e: Error) => { if (!cancelled) setError(e.message); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [taskId]);
+  }, [taskId, includeChildren]);
 
   if (loading) return <div className="text-sm text-ink-muted italic">Loading activity…</div>;
   if (error)   return <div className="text-sm text-danger-700">Activity load failed: {error}</div>;
@@ -64,18 +79,33 @@ export function TaskTimeline({ taskId }: { taskId: string }) {
           <li key={g.key} className="mb-4 ml-4">
             <div className="text-xs text-ink-muted mb-1.5 font-medium">{g.label}</div>
             <ul className="space-y-1.5">
-              {g.items.map(r => (
-                <li key={r.id} className="flex items-start gap-2 text-sm">
-                  <span className="w-5 shrink-0 text-center" aria-hidden>{iconFor(r.action)}</span>
-                  <span className="flex-1 min-w-0">
-                    <span className="text-ink">{humanize(r)}</span>
-                    <span className="text-ink-muted ml-2 text-xs tabular-nums">
-                      {formatTime(r.created_at)}
-                      {r.user_id && r.user_id !== 'founder' ? ` · ${r.user_id}` : ''}
+              {g.items.map(r => {
+                const er = r as EngagementRow;
+                return (
+                  <li key={r.id} className="flex items-start gap-2 text-sm">
+                    <span className="w-5 shrink-0 text-center" aria-hidden>{iconFor(r.action)}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="text-ink">{humanize(r)}</span>
+                      {/* Stint 84.C — sub-task badge so the reviewer can
+                          tell which workstream the event belongs to in
+                          a consolidated engagement feed. */}
+                      {er.subtask_title && (
+                        <a
+                          href={`/tax-ops/tasks/${er.subtask_id}`}
+                          className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-2xs bg-info-50 text-info-800 border border-info-200 hover:bg-info-100"
+                          title="Open this workstream"
+                        >
+                          {er.subtask_title}
+                        </a>
+                      )}
+                      <span className="text-ink-muted ml-2 text-xs tabular-nums">
+                        {formatTime(r.created_at)}
+                        {r.user_id && r.user_id !== 'founder' ? ` · ${r.user_id}` : ''}
+                      </span>
                     </span>
-                  </span>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </li>
         ))}

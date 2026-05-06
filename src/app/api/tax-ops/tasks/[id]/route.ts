@@ -45,6 +45,31 @@ interface TaskDetail {
   partner_sign_off_at: string | null;
   // Stint 56.D — favourite.
   is_starred: boolean;
+  // Stint 84.C — deliverables list (manual-status doc tracker).
+  deliverables: TaskDeliverable[];
+}
+
+interface TaskDeliverable {
+  id: string;
+  label: string;
+  status: 'pending' | 'drafted' | 'reviewed' | 'signed' | 'filed' | 'na';
+  due_date: string | null;
+  link_url: string | null;
+  notes: string | null;
+  sort_order: number;
+}
+
+function parseDeliverables(raw: unknown): TaskDeliverable[] {
+  if (Array.isArray(raw)) return raw as TaskDeliverable[];
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed as TaskDeliverable[] : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
 }
 
 interface SubtaskRow {
@@ -66,6 +91,8 @@ interface SubtaskRow {
   last_comment_by?: string | null;
   // Stint 84 — counterparties responsible for / informed on this sub-task.
   counterparties?: TaskCounterparty[];
+  // Stint 84.C — deliverables (used for roll-up chip + expanded panel).
+  deliverables?: TaskDeliverable[];
 }
 
 interface TaskCounterparty {
@@ -91,6 +118,9 @@ const ALLOWED = [
   'partner_sign_off', 'partner_sign_off_at',
   // Stint 56.D — favourite/star.
   'is_starred',
+  // Stint 84.C — deliverables JSONB (full-replace semantics; clients
+  // send the entire array on each update).
+  'deliverables',
 ] as const;
 
 export async function GET(
@@ -116,7 +146,9 @@ export async function GET(
               reviewer, reviewer_at::text AS reviewer_at,
               partner_sign_off,
               partner_sign_off_at::text AS partner_sign_off_at,
-              is_starred
+              is_starred,
+              -- Stint 84.C — deliverables JSONB list (defaults to []).
+              deliverables
          FROM tax_ops_tasks WHERE id = $1`,
       [id],
     ),
@@ -131,7 +163,8 @@ export async function GET(
               (SELECT COUNT(*)::int FROM tax_ops_task_comments c WHERE c.task_id = t.id) AS comment_count,
               (SELECT body         FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_body,
               (SELECT created_at::text FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_at,
-              (SELECT created_by   FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_by
+              (SELECT created_by   FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_by,
+              t.deliverables  -- Stint 84.C
          FROM tax_ops_tasks t
         WHERE t.parent_task_id = $1
         ORDER BY
@@ -158,6 +191,14 @@ export async function GET(
 
   if (!taskRows[0]) return NextResponse.json({ error: 'not_found' }, { status: 404 });
   const task = taskRows[0];
+
+  // Stint 84.C — postgres-js in this codebase returns JSONB columns as
+  // raw strings rather than parsed objects. Coerce here so clients can
+  // treat `deliverables` as an array unconditionally.
+  task.deliverables = parseDeliverables(task.deliverables);
+  for (const sub of subtasks) {
+    sub.deliverables = parseDeliverables(sub.deliverables);
+  }
 
   // Stint 84 — counterparties for the parent task itself + every sub-task in
   // a single round-trip; client-side groups them by task_id.
@@ -274,6 +315,10 @@ export async function PATCH(
   // Serialize JSON fields
   if (body.recurrence_rule !== undefined && body.recurrence_rule !== null) {
     body.recurrence_rule = JSON.stringify(body.recurrence_rule);
+  }
+  // Stint 84.C — deliverables also lands as JSONB.
+  if (body.deliverables !== undefined && Array.isArray(body.deliverables)) {
+    body.deliverables = JSON.stringify(body.deliverables);
   }
 
   const { sql, values, changes } = buildUpdate(

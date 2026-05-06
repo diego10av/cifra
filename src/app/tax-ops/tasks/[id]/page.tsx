@@ -32,6 +32,9 @@ import { TaskAttachmentsPanel } from '@/components/tax-ops/TaskAttachmentsPanel'
 import {
   CounterpartyChipPicker, CounterpartyChip,
 } from '@/components/tax-ops/CounterpartyChipPicker';
+import {
+  TaskDeliverablesPanel, DeliverablesRollupChip, type Deliverable,
+} from '@/components/tax-ops/TaskDeliverablesPanel';
 
 interface Task {
   id: string;
@@ -62,6 +65,8 @@ interface Task {
   reviewer_at: string | null;
   partner_sign_off: string | null;
   partner_sign_off_at: string | null;
+  // Stint 84.C — deliverables JSONB list.
+  deliverables: Deliverable[];
 }
 
 interface Subtask {
@@ -80,6 +85,9 @@ interface Subtask {
   last_comment_by?: string | null;
   // Stint 84 — counterparties responsible for / informed on this sub-task.
   counterparties?: TaskCounterparty[];
+  // Stint 84.C — deliverables list (roll-up chip on collapsed row +
+  // full panel inside the expanded SubtaskNode).
+  deliverables?: Deliverable[];
 }
 
 interface TaskCounterparty {
@@ -235,6 +243,10 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const t = data.task;
   const isDone = t.status === 'done';
   const visibleTags = t.tags.filter(tg => !tg.startsWith('recurring_from:'));
+  // Stint 84.C — engagement detection drives copy and behaviour at
+  // multiple points (Workstreams section header, Engagement notes label,
+  // consolidated timeline). Compute once.
+  const isEngagementPage = data.subtasks.length > 0;
 
   return (
     <div className="space-y-4 max-w-5xl">
@@ -425,6 +437,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             />
           </div>
 
+          {/* Stint 84.C — Deliverables: structured list of the docs this
+              task needs to produce. Manual status only (cifra is not the
+              doc store; iManage etc. are linked via link_url). */}
+          <TaskDeliverablesPanel
+            taskId={id}
+            deliverables={t.deliverables ?? []}
+            onSaved={load}
+          />
+
           {/* Subtasks — Stint 55.A recursive tree, stint 84 engagement-aware:
               when sub-tasks exist this is an "engagement" (a transaction
               with workstreams). The card grows a progress bar + last-activity
@@ -524,11 +545,21 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             );
           })()}
 
-          {/* Comments */}
+          {/* Comments / Engagement notes — Stint 84.C: when this task
+              has sub-tasks (i.e. it's an engagement), the parent's
+              comments are deal-wide notes, not feedback on a single
+              atomic task. The label reflects that. */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
             <h3 className="text-sm font-semibold text-ink mb-2">
-              Comments <span className="text-xs font-normal text-ink-muted">({comments.length})</span>
+              {isEngagementPage ? 'Engagement notes' : 'Comments'}{' '}
+              <span className="text-xs font-normal text-ink-muted">({comments.length})</span>
             </h3>
+            {isEngagementPage && comments.length === 0 && (
+              <p className="text-2xs text-ink-faint italic mb-2">
+                Notes that apply to the whole engagement (vs the per-workstream comments
+                threaded inside each sub-task).
+              </p>
+            )}
             <div className="space-y-2 mb-3">
               {comments.map(c => (
                 <div key={c.id} className="rounded-md bg-surface-alt/40 px-3 py-2">
@@ -565,12 +596,15 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               download URLs. Max 25 MB / file. */}
           <TaskAttachmentsPanel taskId={id} />
 
-          {/* Activity — Stint 56.B. Surfaces every audit_log row
-              tagged tax_ops_task for this id (status changes,
-              sign-offs, attachments, reassignments). */}
+          {/* Activity — Stint 56.B; engagement-aware in 84.C: when the
+              task has sub-tasks the timeline pulls audit + comments
+              from the parent + every direct workstream into a single
+              chronological feed (with per-row sub-task badges). */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-sm font-semibold text-ink mb-2">Activity</h3>
-            <TaskTimeline taskId={id} />
+            <h3 className="text-sm font-semibold text-ink mb-2">
+              {isEngagementPage ? 'Engagement timeline' : 'Activity'}
+            </h3>
+            <TaskTimeline taskId={id} includeChildren={isEngagementPage} />
           </div>
         </div>
 
@@ -720,6 +754,11 @@ function SubtaskNode({
   const [commentDraft, setCommentDraft] = useState('');
   const [sending, setSending] = useState(false);
   const [statusDraft, setStatusDraft] = useState(task.status);
+
+  // Stint 84.C — keep the local statusDraft in sync with prop changes.
+  // Without this, after the parent re-fetches and `task.status` changes,
+  // the chip selection drifted (showed the stale local pick).
+  useEffect(() => { setStatusDraft(task.status); }, [task.status]);
 
   const hasChildren = (task.subtask_total ?? 0) > 0 || (children !== null && children.length > 0);
   const hasComments = (task.comment_count ?? 0) > 0;
@@ -877,6 +916,10 @@ function SubtaskNode({
             )}
           </span>
         )}
+        {/* Stint 84.C — deliverables roll-up chip ("📄 2/4"). */}
+        {task.deliverables && task.deliverables.length > 0 && (
+          <DeliverablesRollupChip items={task.deliverables} />
+        )}
         {task.due_date && (
           <span className="text-xs"><DateBadge value={task.due_date} mode="urgency" /></span>
         )}
@@ -1016,6 +1059,14 @@ function SubtaskNode({
               }}
             />
           </div>
+
+          {/* Stint 84.C — deliverables for this workstream (dense layout). */}
+          <TaskDeliverablesPanel
+            taskId={task.id}
+            deliverables={task.deliverables ?? []}
+            onSaved={() => onCommentsChanged?.()}
+            dense
+          />
 
           {/* Comments thread */}
           <div className="space-y-1.5">
