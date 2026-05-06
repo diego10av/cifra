@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Logo } from '@/components/Logo';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -21,7 +21,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
   const searchParams = useSearchParams();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -33,14 +32,20 @@ export default function LoginPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     });
-    setLoading(false);
     if (res.ok) {
       const next = safeNextUrl(searchParams?.get('next') ?? null);
-      // replace() not push() — keeps /login out of the browser history so
-      // the back button after login goes to wherever Diego came from, not
-      // back to the login form.
-      router.replace(next);
-    } else setError('Invalid credentials');
+      // Hard navigation, not router.replace(): the AppShell server component
+      // is rendered inside the shared root layout and reads `x-cifra-no-shell`
+      // from the request headers. On a client-side replace() Next.js reuses
+      // the existing root layout, so the post-login page renders without the
+      // sidebar/topbar until a manual reload kicks middleware again. A full
+      // page navigation makes middleware re-evaluate and AppShell mount with
+      // the operator chrome. Loading state stays on through the transition.
+      window.location.href = next;
+      return;
+    }
+    setLoading(false);
+    setError('Invalid credentials');
   }
 
   return (

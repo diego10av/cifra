@@ -46,14 +46,15 @@ export default function MarketingPage() {
               className="font-serif text-[44px] md:text-[58px] leading-[1.05] font-medium tracking-tight text-ink"
               style={{ letterSpacing: '-0.02em' }}
             >
-              Luxembourg tax compliance,
+              The Luxembourg professional&rsquo;s
               <br />
-              <span className="text-ink-soft italic">built law-first.</span>
+              <span className="text-ink-soft italic">workspace.</span>
             </h1>
             <p className="mt-7 text-lg md:text-xl text-ink-soft max-w-2xl leading-relaxed">
-              AI reads invoices and AED letters. A deterministic classifier with
-              LTVA and CJEU citations turns them into eCDF-ready returns. Every
-              override is audit-logged with the article that justified it.
+              VAT returns, the corporate-tax matrix, and your client book — in
+              one place. AI reads, a deterministic classifier with LTVA and
+              CJEU citations decides, and every override is audit-logged with
+              the article that justified it.
             </p>
             <div className="mt-10 flex items-center gap-4">
               <a
@@ -64,7 +65,7 @@ export default function MarketingPage() {
                 <ArrowRightIcon size={15} />
               </a>
               <span className="text-2xs uppercase tracking-wider text-ink-faint font-semibold">
-                Single workspace · three modules
+                VAT &middot; Tax-Ops &middot; CRM
               </span>
             </div>
           </div>
