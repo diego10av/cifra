@@ -24,6 +24,7 @@ import { OpportunityHoverPreview } from '@/components/crm/OpportunityHoverPrevie
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { OPPORTUNITY_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
+import { useConfirm } from '@/lib/use-confirm';
 // Stint 63.A.2 — port Tax-Ops inline editors to opportunities table.
 import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { ChipSelect } from '@/components/tax-ops/ChipSelect';
@@ -94,6 +95,7 @@ function OpportunitiesPageContent() {
   // Stint 63.H — bulk-edit drawer state.
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const toast = useToast();
+  const { confirm, confirmModal } = useConfirm();
 
   // Stint 63.G — sync filter state → URL. View change is treated as
   // navigation (push) so Back returns to the previous view; pure
@@ -173,7 +175,12 @@ function OpportunitiesPageContent() {
 
   // Stint 63.I — soft-delete invoked from context menu.
   async function archiveOpportunity(id: string, name: string) {
-    if (!confirm(`Archive "${name}"? Soft delete; restore from /crm/trash.`)) return;
+    if (!await confirm({
+      title: `Archive ${name}?`,
+      description: 'It moves to trash for 30 days. You can restore it from /crm/trash.',
+      tone: 'danger',
+      confirmLabel: 'Archive',
+    })) return;
     try {
       const res = await fetch(`/api/crm/opportunities/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -262,6 +269,7 @@ function OpportunitiesPageContent() {
 
   return (
     <div>
+      {confirmModal}
       <PageHeader
         title="Opportunities"
         subtitle={`Sales pipeline · ${formatEur(totalPipeline)} weighted across ${openRows.length} open. Press N anywhere to quick-create.`}

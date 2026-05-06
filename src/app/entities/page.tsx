@@ -26,6 +26,7 @@ import { Card } from '@/components/ui/Card';
 import { useListState, paginate, type SortDir } from '@/lib/use-list-state';
 import { ListFooter } from '@/components/ui/ListFooter';
 import { useToast } from '@/components/Toaster';
+import { useConfirm } from '@/lib/use-confirm';
 import { describeApiError, formatUiError } from '@/lib/ui-errors';
 
 interface Entity {
@@ -66,6 +67,7 @@ export default function EntitiesPage() {
 function EntitiesContent() {
   const router = useRouter();
   const toast = useToast();
+  const { confirm, confirmModal } = useConfirm();
   const [entities, setEntities] = useState<Entity[] | null>(null);
   const [clients, setClients] = useState<Map<string, ClientRow>>(new Map());
 
@@ -98,7 +100,12 @@ function EntitiesContent() {
   useEffect(() => { void load(); }, [load]);
 
   async function handleDelete(entity: Entity) {
-    if (!confirm(`Delete "${entity.name}"? This hides it from the list but keeps the data for audit.`)) return;
+    if (!await confirm({
+      title: `Delete ${entity.name}?`,
+      description: 'It hides from the list but keeps the data in the audit log. You can restore via the audit trail if needed.',
+      tone: 'danger',
+      confirmLabel: 'Delete',
+    })) return;
     try {
       const res = await fetch(`/api/entities/${entity.id}`, {
         method: 'DELETE', headers: { 'Content-Type': 'application/json' },
@@ -152,6 +159,7 @@ function EntitiesContent() {
 
   return (
     <div>
+      {confirmModal}
       <PageHeader
         title="All entities"
         subtitle="Cross-client list. Use this when you need to search across clients — otherwise work from Clients → drill in."

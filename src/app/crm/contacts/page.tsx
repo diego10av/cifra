@@ -22,6 +22,7 @@ import { ContactHoverPreview } from '@/components/crm/ContactHoverPreview';
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { CONTACT_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
+import { useConfirm } from '@/lib/use-confirm';
 // Stint 63.A — port Tax-Ops inline editors to CRM contacts table.
 import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { ChipSelect } from '@/components/tax-ops/ChipSelect';
@@ -88,6 +89,7 @@ function ContactsPageContent() {
   // Stint 63.E — bulk-edit drawer state.
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const toast = useToast();
+  const { confirm, confirmModal } = useConfirm();
 
   // Stint 63.D — sync state → URL with router.replace (filter changes
   // don't bloat back-history). Skip first render.
@@ -143,7 +145,12 @@ function ContactsPageContent() {
 
   // Stint 63.C — soft-delete invoked from the context menu.
   async function archiveContact(id: string, name: string) {
-    if (!confirm(`Archive "${name}"? Soft delete; restore from /crm/trash.`)) return;
+    if (!await confirm({
+      title: `Archive ${name}?`,
+      description: 'It moves to trash for 30 days. You can restore it from /crm/trash.',
+      tone: 'danger',
+      confirmLabel: 'Archive',
+    })) return;
     try {
       const res = await fetch(`/api/crm/contacts/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -181,6 +188,7 @@ function ContactsPageContent() {
 
   return (
     <div>
+      {confirmModal}
       <PageHeader
         title="Contacts"
         subtitle="People at client companies, prospects, referrers. Press N anywhere to quick-create."

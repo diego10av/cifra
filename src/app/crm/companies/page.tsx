@@ -15,6 +15,7 @@ import { ExportButton } from '@/components/crm/ExportButton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
 import { CompanyHoverPreview } from '@/components/crm/CompanyHoverPreview';
 import { CrmContextMenu, type CrmContextAction } from '@/components/crm/CrmContextMenu';
+import { useConfirm } from '@/lib/use-confirm';
 import { CrmSavedViews } from '@/components/crm/CrmSavedViews';
 import { BulkEditDrawer, type BulkEditField } from '@/components/crm/BulkEditDrawer';
 import { COMPANY_FIELDS } from '@/components/crm/schemas';
@@ -90,6 +91,7 @@ function CompaniesPageContent() {
   // Stint 63.E — bulk-edit drawer state.
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const toast = useToast();
+  const { confirm, confirmModal } = useConfirm();
 
   // Stint 63.D — sync filter state → URL. router.replace (not push)
   // because filter changes shouldn't bloat the back-history (mirror of
@@ -196,7 +198,12 @@ function CompaniesPageContent() {
 
   // Stint 63.C — soft-delete helper invoked by the context menu.
   async function archiveCompany(id: string, name: string) {
-    if (!confirm(`Archive "${name}"? This soft-deletes; you can restore from /crm/trash.`)) return;
+    if (!await confirm({
+      title: `Archive ${name}?`,
+      description: 'It moves to trash for 30 days. You can restore it from /crm/trash.',
+      tone: 'danger',
+      confirmLabel: 'Archive',
+    })) return;
     try {
       const res = await fetch(`/api/crm/companies/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -247,6 +254,7 @@ function CompaniesPageContent() {
 
   return (
     <div>
+      {confirmModal}
       <PageHeader
         title="Companies"
         subtitle="CRM accounts — firms, prospects, service providers, referrers. Press N anywhere to quick-create."

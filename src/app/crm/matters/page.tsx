@@ -23,6 +23,7 @@ import { MatterHoverPreview } from '@/components/crm/MatterHoverPreview';
 import { crmLoadList } from '@/lib/useCrmFetch';
 import { MATTER_FIELDS } from '@/components/crm/schemas';
 import { useToast } from '@/components/Toaster';
+import { useConfirm } from '@/lib/use-confirm';
 // Stint 63.A.2 — port Tax-Ops inline editors to matters table.
 import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { ChipSelect } from '@/components/tax-ops/ChipSelect';
@@ -77,6 +78,7 @@ function MattersPageContent() {
   // Stint 63.H — bulk-edit drawer state.
   const [bulkEditOpen, setBulkEditOpen] = useState(false);
   const toast = useToast();
+  const { confirm, confirmModal } = useConfirm();
 
   // Stint 63.G — URL filter sync.
   const firstSync = useRef(true);
@@ -131,7 +133,12 @@ function MattersPageContent() {
 
   // Stint 63.I — soft-delete (archive) helper for context menu.
   async function archiveMatter(id: string, ref: string) {
-    if (!confirm(`Archive "${ref}"? Soft delete; restore from /crm/trash.`)) return;
+    if (!await confirm({
+      title: `Archive matter ${ref}?`,
+      description: 'It moves to trash for 30 days. You can restore it from /crm/trash.',
+      tone: 'danger',
+      confirmLabel: 'Archive',
+    })) return;
     try {
       const res = await fetch(`/api/crm/matters/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -168,6 +175,7 @@ function MattersPageContent() {
 
   return (
     <div>
+      {confirmModal}
       <PageHeader
         title="Matters"
         subtitle="Client engagements — active and historical. Click any cell to edit inline."
