@@ -46,6 +46,23 @@
 
 ## ✅ Done this week
 
+**2026-05-06** — Tasks UX polish (1 commit)
+
+- **Tailwind 4 z-index tokens fixed**: `--z-*` → `--z-index-*` in
+  `globals.css`. The 5 utilities (`z-popover/modal/drawer/sticky/toast`)
+  were silently rendering as `z-index: auto` across 49 files. Visible
+  symptom for Diego: Views + Columns dropdowns invisible behind table
+  cells. One token rename fixes all popovers, modals, drawers, and
+  sticky table headers app-wide.
+- **Engagement row indicator**: rows with `subtask_total > 0` now show
+  a navy chevron + a small `done/total` chip next to the title. Atomic
+  rows keep the muted chevron. Resolves Diego's "no se distingue qué
+  filas son engagements".
+- **Removed `Templates` toolbar button + placeholder page**: 6 cards
+  with disabled "Instantiate (coming soon)" buttons. Failed Rule §11
+  (actionable-first). Reinstate when the instantiation flow ships for
+  real.
+
 **2026-05-05** — Strategic dogfood-first reset (10 phases)
 
 Diego pivoted from "going to sell soon" to "dogfood-first single-user".

@@ -354,11 +354,11 @@
    *    modal:   50  — centred dialogs (above drawers)
    *    toast:   60  — toast rack (above everything)
    */
-  --z-sticky:  10;
-  --z-popover: 30;
-  --z-drawer:  40;
-  --z-modal:   50;
-  --z-toast:   60;
+  --z-index-sticky:  10;
+  --z-index-popover: 30;
+  --z-index-drawer:  40;
+  --z-index-modal:   50;
+  --z-index-toast:   60;
 }
 
 /* ── Base ────────────────────────────────────── */

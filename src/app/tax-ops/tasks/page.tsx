@@ -618,13 +618,6 @@ function TasksListContent() {
           )}
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <Link
-            href="/tax-ops/tasks/templates"
-            className="inline-flex items-center gap-1 px-2 py-1.5 text-sm rounded-md border border-border hover:bg-surface-alt"
-            title="Browse task templates / playbooks"
-          >
-            Templates
-          </Link>
           <button
             onClick={() => {
               window.dispatchEvent(new KeyboardEvent('keydown', { key: 'N' }));
@@ -890,7 +883,11 @@ function TasksListContent() {
                         type="button"
                         onClick={() => void toggleExpand(t.id)}
                         aria-label={expanded.has(t.id) ? 'Collapse sub-tasks' : 'Expand sub-tasks'}
-                        className="shrink-0 text-ink-muted hover:text-ink"
+                        className={`shrink-0 ${
+                          t.subtask_total > 0
+                            ? 'text-brand-600 hover:text-brand-700'
+                            : 'text-ink-muted hover:text-ink'
+                        }`}
                         title={
                           t.subtask_total > 0
                             ? `${t.subtask_done}/${t.subtask_total} sub-tasks done`
@@ -912,6 +909,18 @@ function TasksListContent() {
                           />
                         </TaskHoverPreview>
                       </div>
+                      {/* Engagement marker — only when this row actually has
+                          sub-tasks. Reads "this is a workstream parent" at a
+                          glance and shows the done/total roll-up so Diego can
+                          scan progress without expanding. */}
+                      {t.subtask_total > 0 && (
+                        <span
+                          className="shrink-0 px-1 py-0.5 text-2xs font-medium rounded bg-brand-50 text-brand-700 tabular-nums"
+                          title={`${t.subtask_done}/${t.subtask_total} workstreams done`}
+                        >
+                          {t.subtask_done}/{t.subtask_total}
+                        </span>
+                      )}
                       {/* Stint 58.T2.4 — sign-off progress + blocker chips
                           moved out of the title cell into the hover
                           preview. Title cell now has just chevron + text
