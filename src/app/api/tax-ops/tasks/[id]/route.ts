@@ -57,6 +57,24 @@ interface SubtaskRow {
   // Stint 55.A — only populated for the direct subtasks list (the
   // blocker / blocked_by_us queries leave it undefined).
   subtask_total?: number;
+  // Stint 84 — engagement-aware detail page surfaces the latest activity
+  // per sub-task inline, so reading "what's the status of the Swiss
+  // counsel piece?" doesn't require navigating into the sub-task.
+  comment_count?: number;
+  last_comment_body?: string | null;
+  last_comment_at?: string | null;
+  last_comment_by?: string | null;
+  // Stint 84 — counterparties responsible for / informed on this sub-task.
+  counterparties?: TaskCounterparty[];
+}
+
+interface TaskCounterparty {
+  counterparty_id: string;
+  display_name: string;
+  side: string;            // 'internal' | 'external'
+  role: string | null;
+  jurisdiction: string | null;
+  role_in_task: string | null;  // 'responsible' | 'reviewer' | 'informed'
 }
 
 const ALLOWED = [
@@ -105,8 +123,15 @@ export async function GET(
     query<SubtaskRow>(
       // Stint 55.A — surface subtask_total per child so the detail page
       // can show a chevron and recursively expand the tree.
+      // Stint 84 — also surface the latest comment per sub-task so the
+      // engagement view can preview "last update" + lets reviewers tell
+      // at a glance whether a workstream has gone stale.
       `SELECT t.id, t.title, t.status, t.priority, t.due_date::text, t.assignee,
-              (SELECT COUNT(*)::int FROM tax_ops_tasks gc WHERE gc.parent_task_id = t.id) AS subtask_total
+              (SELECT COUNT(*)::int FROM tax_ops_tasks gc WHERE gc.parent_task_id = t.id) AS subtask_total,
+              (SELECT COUNT(*)::int FROM tax_ops_task_comments c WHERE c.task_id = t.id) AS comment_count,
+              (SELECT body         FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_body,
+              (SELECT created_at::text FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_at,
+              (SELECT created_by   FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_by
          FROM tax_ops_tasks t
         WHERE t.parent_task_id = $1
         ORDER BY
@@ -133,6 +158,41 @@ export async function GET(
 
   if (!taskRows[0]) return NextResponse.json({ error: 'not_found' }, { status: 404 });
   const task = taskRows[0];
+
+  // Stint 84 — counterparties for the parent task itself + every sub-task in
+  // a single round-trip; client-side groups them by task_id.
+  const taskIdsForCounterparties = [task.id, ...subtasks.map(s => s.id)];
+  const counterpartyLinks = taskIdsForCounterparties.length > 0
+    ? await query<TaskCounterparty & { task_id: string }>(
+        `SELECT l.task_id, l.counterparty_id, l.role_in_task,
+                c.display_name, c.side, c.role, c.jurisdiction
+           FROM tax_ops_task_counterparties l
+           JOIN tax_ops_counterparties c ON c.id = l.counterparty_id
+          WHERE l.task_id = ANY($1::text[])
+            AND c.archived_at IS NULL
+          ORDER BY
+            CASE l.role_in_task WHEN 'responsible' THEN 0 WHEN 'reviewer' THEN 1 ELSE 2 END,
+            c.display_name`,
+        [taskIdsForCounterparties],
+      )
+    : [];
+  const counterpartiesByTask = new Map<string, TaskCounterparty[]>();
+  for (const link of counterpartyLinks) {
+    const list = counterpartiesByTask.get(link.task_id) ?? [];
+    list.push({
+      counterparty_id: link.counterparty_id,
+      display_name: link.display_name,
+      side: link.side,
+      role: link.role,
+      jurisdiction: link.jurisdiction,
+      role_in_task: link.role_in_task,
+    });
+    counterpartiesByTask.set(link.task_id, list);
+  }
+  for (const sub of subtasks) {
+    sub.counterparties = counterpartiesByTask.get(sub.id) ?? [];
+  }
+  const taskCounterparties = counterpartiesByTask.get(task.id) ?? [];
 
   // Enrich with related entity/filing labels
   let related_entity_name: string | null = null;
@@ -163,6 +223,9 @@ export async function GET(
     blocker: blockerTask[0] ?? null, // task we're waiting for
     related_entity_name,
     related_filing_label,
+    // Stint 84 — counterparties on the parent task itself (engagement-level
+    // stakeholders such as the client CFO who applies to the whole deal).
+    counterparties: taskCounterparties,
   });
 }
 

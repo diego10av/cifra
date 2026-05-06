@@ -16,7 +16,7 @@ import { useEffect, useState, useCallback, use } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeftIcon, PlusIcon, Trash2Icon, CheckIcon, SendIcon,
-  ChevronRightIcon, ChevronDownIcon, ArrowUpIcon,
+  ChevronRightIcon, ChevronDownIcon, ArrowUpIcon, MessageSquareIcon,
 } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { CrmErrorBox } from '@/components/crm/CrmErrorBox';
@@ -29,6 +29,9 @@ import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { TaskSignoffCard } from '@/components/tax-ops/TaskSignoffCard';
 import { TaskTimeline } from '@/components/tax-ops/TaskTimeline';
 import { TaskAttachmentsPanel } from '@/components/tax-ops/TaskAttachmentsPanel';
+import {
+  CounterpartyChipPicker, CounterpartyChip,
+} from '@/components/tax-ops/CounterpartyChipPicker';
 
 interface Task {
   id: string;
@@ -70,6 +73,22 @@ interface Subtask {
   assignee: string | null;
   // Stint 55.A — only populated for the direct subtasks list.
   subtask_total?: number;
+  // Stint 84 — engagement view inline activity preview.
+  comment_count?: number;
+  last_comment_body?: string | null;
+  last_comment_at?: string | null;
+  last_comment_by?: string | null;
+  // Stint 84 — counterparties responsible for / informed on this sub-task.
+  counterparties?: TaskCounterparty[];
+}
+
+interface TaskCounterparty {
+  counterparty_id: string;
+  display_name: string;
+  side: string;
+  role: string | null;
+  jurisdiction: string | null;
+  role_in_task: string | null;
 }
 
 interface Comment {
@@ -86,6 +105,9 @@ interface DetailResponse {
   blocked_by_us: Subtask[];
   related_entity_name: string | null;
   related_filing_label: string | null;
+  // Stint 84 — engagement-level stakeholders (counterparties on the
+  // parent task itself).
+  counterparties?: TaskCounterparty[];
 }
 
 const STATUSES = [
@@ -332,6 +354,39 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             ))}
           </div>
         )}
+
+        {/* Stint 84 — Stakeholders / counterparties on this engagement.
+            For atomic tasks (no sub-tasks) this is also useful: the task
+            has a counterparty responsible for delivering it. */}
+        <div className="mt-3 pt-2.5 border-t border-divider flex items-center gap-1.5 flex-wrap">
+          <span className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">
+            Stakeholders
+          </span>
+          {(data.counterparties ?? []).map(cp => (
+            <CounterpartyChip
+              key={cp.counterparty_id}
+              counterparty={cp}
+              onRemove={async () => {
+                await fetch(`/api/tax-ops/tasks/${id}/counterparties/${cp.counterparty_id}`, {
+                  method: 'DELETE',
+                });
+                load();
+              }}
+            />
+          ))}
+          <CounterpartyChipPicker
+            triggerLabel={(data.counterparties ?? []).length === 0 ? '+ Add stakeholder' : '+ Add'}
+            excludeIds={(data.counterparties ?? []).map(c => c.counterparty_id)}
+            onPick={async (cpid, role) => {
+              await fetch(`/api/tax-ops/tasks/${id}/counterparties`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ counterparty_id: cpid, role_in_task: role }),
+              });
+              load();
+            }}
+          />
+        </div>
       </div>
 
       {/* Stint 56.A — sign-off cascade card right under the header so
@@ -370,22 +425,54 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             />
           </div>
 
-          {/* Subtasks — Stint 55.A: recursive tree (3-4 levels realistic).
-              Each node can be expanded to load its own children lazily; a
-              "Promote" button moves a child up to root level. Drag-drop
-              between siblings is out of scope here (kept for stint 56). */}
-          <div className="rounded-md border border-border bg-surface px-4 py-3">
-            <h3 className="text-sm font-semibold text-ink mb-2">
-              Subtasks
-              <span className="ml-2 text-xs font-normal text-ink-muted">
-                ({data.subtasks.filter(s => s.status === 'done').length}/{data.subtasks.length})
-              </span>
-            </h3>
-            {data.subtasks.length === 0 && (
-              <div className="text-sm text-ink-muted italic mb-2">
-                No subtasks yet. Break a big task into checklist items.
-              </div>
-            )}
+          {/* Subtasks — Stint 55.A recursive tree, stint 84 engagement-aware:
+              when sub-tasks exist this is an "engagement" (a transaction
+              with workstreams). The card grows a progress bar + last-activity
+              chip and the section is labelled "Workstreams". When empty
+              the card stays minimal so atomic tasks aren't bloated. */}
+          {(() => {
+            const isEngagement = data.subtasks.length > 0;
+            const doneCount = data.subtasks.filter(s => s.status === 'done').length;
+            const total = data.subtasks.length;
+            const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+            // Most-recent activity across any sub-task (stint 84).
+            const lastActivity = data.subtasks
+              .filter(s => s.last_comment_at)
+              .sort((a, b) => (b.last_comment_at ?? '').localeCompare(a.last_comment_at ?? ''))[0];
+            return (
+              <div className="rounded-md border border-border bg-surface px-4 py-3">
+                <div className="flex items-baseline justify-between gap-3 mb-2">
+                  <h3 className="text-sm font-semibold text-ink">
+                    {isEngagement ? 'Workstreams' : 'Subtasks'}
+                    {total > 0 && (
+                      <span className="ml-2 text-xs font-normal text-ink-muted">
+                        ({doneCount}/{total} {doneCount === total ? 'all done' : 'done'})
+                      </span>
+                    )}
+                  </h3>
+                  {isEngagement && lastActivity && (
+                    <span
+                      className="text-2xs text-ink-muted truncate max-w-[280px]"
+                      title={`Latest: "${lastActivity.title}" — ${lastActivity.last_comment_body}`}
+                    >
+                      Last update: <span className="text-ink-soft">{lastActivity.title}</span> · {relativeTime(lastActivity.last_comment_at)}
+                    </span>
+                  )}
+                </div>
+                {isEngagement && (
+                  <div className="mb-3 h-1.5 rounded-full bg-surface-alt overflow-hidden">
+                    <div
+                      className="h-full bg-brand-500 transition-all"
+                      style={{ width: `${pct}%` }}
+                      aria-label={`${pct}% complete`}
+                    />
+                  </div>
+                )}
+                {total === 0 && (
+                  <div className="text-sm text-ink-muted italic mb-2">
+                    No sub-tasks yet. Break a big task into checklist items, or use this as the engagement that groups workstreams.
+                  </div>
+                )}
             <div className="space-y-0">
               {data.subtasks.map(sub => (
                 <SubtaskNode
@@ -413,26 +500,29 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                     // Re-load task detail so subtask_total counts refresh.
                     load();
                   }}
+                  onCommentsChanged={load}
                 />
               ))}
             </div>
-            <div className="flex items-center gap-2 mt-2">
-              <input
-                value={subtaskDraft}
-                onChange={e => setSubtaskDraft(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') createSubtask(); }}
-                placeholder="+ Add subtask"
-                className="flex-1 px-2 py-1 text-sm border border-border rounded-md bg-surface"
-              />
-              <button
-                onClick={createSubtask}
-                disabled={!subtaskDraft.trim()}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
-              >
-                <PlusIcon size={11} /> Add
-              </button>
-            </div>
-          </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    value={subtaskDraft}
+                    onChange={e => setSubtaskDraft(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') createSubtask(); }}
+                    placeholder={isEngagement ? '+ Add workstream' : '+ Add subtask'}
+                    className="flex-1 px-2 py-1 text-sm border border-border rounded-md bg-surface"
+                  />
+                  <button
+                    onClick={createSubtask}
+                    disabled={!subtaskDraft.trim()}
+                    className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+                  >
+                    <PlusIcon size={11} /> Add
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Comments */}
           <div className="rounded-md border border-border bg-surface px-4 py-3">
@@ -558,15 +648,35 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   );
 }
 
-// ─── Subtask tree node — stint 55.A ────────────────────────────────────
+// ─── Subtask tree node — stint 55.A → enriched in stint 84 ────────────
 //
-// Renders a single subtask row + its expansion children recursively. The
-// children list is lazy-loaded the first time the user hits the chevron
-// (cached locally afterwards). Indentation is `depth * 1rem` so 3-4
-// levels of nesting still read cleanly. Diego asked for a "tree" so the
-// tasks module starts feeling like a project-management surface; this
-// is the cheapest possible shape that delivers the affordance without
-// rebuilding the entire list as a virtualized tree component.
+// Original (55.A): renders a single subtask row + recursive children
+// expansion. Children list lazy-loads on first chevron click.
+//
+// Stint 84 — engagement-aware: the chevron now ALWAYS shows because
+// expanding reveals an inline activity panel (status badge, comments
+// thread, add-comment textarea) ON TOP OF children. Diego's pain was
+// that to read "what did the Swiss counsel reply?" he had to navigate
+// into the sub-task and lose the engagement context. Now the comments
+// live next to the row.
+
+const SUBTASK_STATUS_LABEL: Record<string, string> = {
+  queued:                'Queued',
+  in_progress:           'In progress',
+  waiting_on_external:   'Waiting (external)',
+  waiting_on_internal:   'Waiting (internal)',
+  done:                  'Done',
+  cancelled:             'Cancelled',
+};
+
+const SUBTASK_STATUS_TONE: Record<string, string> = {
+  queued:                'bg-surface-alt text-ink-soft border-border',
+  in_progress:           'bg-info-50 text-info-800 border-info-200',
+  waiting_on_external:   'bg-amber-50 text-amber-800 border-amber-200',
+  waiting_on_internal:   'bg-warning-50 text-warning-800 border-warning-200',
+  done:                  'bg-success-50 text-success-800 border-success-200',
+  cancelled:             'bg-surface-alt text-ink-faint border-border',
+};
 
 interface SubtaskNodeProps {
   task: Subtask;
@@ -577,21 +687,45 @@ interface SubtaskNodeProps {
   /** Stint 58.T3.2 — per-node "+ Add sub" creator. Adds a child under
    *  this task with parent_task_id = task.id, then re-fetches. */
   onAddChild: (parentId: string, title: string) => Promise<void>;
+  /** Stint 84 — re-fetches the parent detail so last_comment fields refresh
+   *  after the user posts a comment from the inline panel. */
+  onCommentsChanged?: () => void;
+}
+
+function relativeTime(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const ms = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(ms)) return '';
+  const m = Math.round(ms / 60_000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}h ago`;
+  const d = Math.round(h / 24);
+  if (d < 30) return `${d}d ago`;
+  return new Date(iso).toLocaleDateString();
 }
 
 function SubtaskNode({
-  task, depth, onToggleDone, onDelete, onPromote, onAddChild,
+  task, depth, onToggleDone, onDelete, onPromote, onAddChild, onCommentsChanged,
 }: SubtaskNodeProps) {
   const [expanded, setExpanded] = useState(false);
   const [children, setChildren] = useState<Subtask[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loadingChildren, setLoadingChildren] = useState(false);
   const [addingChild, setAddingChild] = useState(false);
   const [childDraft, setChildDraft] = useState('');
   const [refreshTick, setRefreshTick] = useState(0);
+  const [comments, setComments] = useState<Comment[] | null>(null);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [sending, setSending] = useState(false);
+  const [statusDraft, setStatusDraft] = useState(task.status);
+
   const hasChildren = (task.subtask_total ?? 0) > 0 || (children !== null && children.length > 0);
+  const hasComments = (task.comment_count ?? 0) > 0;
 
   async function loadChildren() {
-    setLoading(true);
+    setLoadingChildren(true);
     try {
       const r = await fetch(`/api/tax-ops/tasks?parent=${encodeURIComponent(task.id)}`);
       if (r.ok) {
@@ -599,16 +733,63 @@ function SubtaskNode({
         setChildren(body.tasks ?? []);
       }
     } finally {
-      setLoading(false);
+      setLoadingChildren(false);
+    }
+  }
+
+  async function loadComments() {
+    setLoadingComments(true);
+    try {
+      const r = await fetch(`/api/tax-ops/tasks/${task.id}/comments`);
+      if (r.ok) {
+        const body = await r.json() as { comments: Comment[] };
+        setComments(body.comments ?? []);
+      }
+    } finally {
+      setLoadingComments(false);
     }
   }
 
   async function toggle() {
-    if (!hasChildren) return;
-    if (!expanded && children === null) {
-      await loadChildren();
+    const willExpand = !expanded;
+    if (willExpand) {
+      // Lazy-load children + comments on first expand.
+      const tasks: Promise<unknown>[] = [];
+      if (hasChildren && children === null) tasks.push(loadChildren());
+      if (comments === null) tasks.push(loadComments());
+      await Promise.all(tasks);
     }
-    setExpanded(v => !v);
+    setExpanded(willExpand);
+  }
+
+  async function changeStatus(next: string) {
+    setStatusDraft(next);
+    await fetch(`/api/tax-ops/tasks/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: next }),
+    });
+    onCommentsChanged?.();
+  }
+
+  async function postComment() {
+    const t = commentDraft.trim();
+    if (!t || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch(`/api/tax-ops/tasks/${task.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: t }),
+      });
+      if (res.ok) {
+        setCommentDraft('');
+        await loadComments();
+        onCommentsChanged?.();
+      }
+    } finally {
+      setSending(false);
+    }
   }
 
   async function handleAddChild() {
@@ -635,19 +816,21 @@ function SubtaskNode({
         className="flex items-center gap-2 py-1 text-sm border-b border-border/40 last:border-b-0"
         style={{ paddingLeft: `${depth > 0 ? 0.75 : 0}rem` }}
       >
-        {hasChildren ? (
-          <button
-            type="button"
-            onClick={() => void toggle()}
-            aria-label={expanded ? 'Collapse' : 'Expand'}
-            className="shrink-0 text-ink-muted hover:text-ink"
-            title={`${task.subtask_total ?? children?.length ?? 0} sub-task${(task.subtask_total ?? children?.length ?? 0) === 1 ? '' : 's'}`}
-          >
-            {expanded ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
-          </button>
-        ) : (
-          <span className="shrink-0 w-3" aria-hidden="true" />
-        )}
+        {/* Stint 84: chevron always visible — expanding shows inline
+            activity (comments + status edit) in addition to children. */}
+        <button
+          type="button"
+          onClick={() => void toggle()}
+          aria-label={expanded ? 'Collapse' : 'Expand'}
+          className="shrink-0 text-ink-muted hover:text-ink"
+          title={
+            hasChildren
+              ? `${task.subtask_total ?? children?.length ?? 0} sub-task(s)`
+              : hasComments ? `${task.comment_count} comment(s)` : 'Open inline activity'
+          }
+        >
+          {expanded ? <ChevronDownIcon size={12} /> : <ChevronRightIcon size={12} />}
+        </button>
         <input
           type="checkbox"
           checked={task.status === 'done'}
@@ -659,6 +842,41 @@ function SubtaskNode({
         >
           {task.title}
         </Link>
+        {/* Stint 84: status pill on the row so engagement reviewers
+            can scan workstream states without expanding. */}
+        <span
+          className={`text-2xs px-1.5 py-0.5 rounded border font-medium uppercase tracking-wide whitespace-nowrap ${SUBTASK_STATUS_TONE[task.status] ?? SUBTASK_STATUS_TONE.queued}`}
+        >
+          {SUBTASK_STATUS_LABEL[task.status] ?? task.status}
+        </span>
+        {hasComments && (
+          <span
+            className="inline-flex items-center gap-0.5 text-2xs text-ink-muted"
+            title={
+              task.last_comment_at
+                ? `Last update ${relativeTime(task.last_comment_at)} by ${task.last_comment_by ?? 'system'}`
+                : `${task.comment_count} comment(s)`
+            }
+          >
+            <MessageSquareIcon size={10} />
+            {task.comment_count}
+          </span>
+        )}
+        {/* Stint 84 — counterparty chips on the row. Only show the first
+            so the row stays scannable; details and full management live
+            in the expanded panel. */}
+        {task.counterparties && task.counterparties.length > 0 && (
+          <span className="flex items-center gap-1">
+            <CounterpartyChip counterparty={task.counterparties[0]} size="xs" />
+            {task.counterparties.length > 1 && (
+              <span className="text-2xs text-ink-muted" title={
+                task.counterparties.slice(1).map(c => c.display_name).join(', ')
+              }>
+                +{task.counterparties.length - 1}
+              </span>
+            )}
+          </span>
+        )}
         {task.due_date && (
           <span className="text-xs"><DateBadge value={task.due_date} mode="urgency" /></span>
         )}
@@ -695,6 +913,20 @@ function SubtaskNode({
           <Trash2Icon size={11} />
         </button>
       </div>
+      {/* Stint 84: collapsed-row last-comment preview. Two-line max,
+          hidden once the panel is expanded so we don't duplicate. */}
+      {!expanded && task.last_comment_body && (
+        <div
+          className="text-xs text-ink-muted italic line-clamp-1 pb-1.5"
+          style={{ paddingLeft: `${(depth > 0 ? 0.75 : 0) + 1.25}rem` }}
+          title={task.last_comment_body}
+        >
+          <span className="not-italic text-ink-faint mr-1">
+            {task.last_comment_by ?? 'system'} · {relativeTime(task.last_comment_at)}:
+          </span>
+          {task.last_comment_body}
+        </div>
+      )}
       {addingChild && (
         <div
           className="flex items-center gap-2 py-1"
@@ -730,22 +962,137 @@ function SubtaskNode({
         </div>
       )}
       {expanded && (
-        <div key={refreshTick}>
-          {loading && <div className="text-2xs text-ink-faint italic py-1" style={{ paddingLeft: `${(depth + 1) * 0.75}rem` }}>Loading…</div>}
-          {!loading && children && children.length === 0 && (
-            <div className="text-2xs text-ink-faint italic py-1" style={{ paddingLeft: `${(depth + 1) * 0.75}rem` }}>No deeper sub-tasks.</div>
-          )}
-          {!loading && children?.map(child => (
-            <SubtaskNode
-              key={child.id}
-              task={child}
-              depth={depth + 1}
-              onToggleDone={onToggleDone}
-              onDelete={onDelete}
-              onPromote={onPromote}
-              onAddChild={onAddChild}
+        <div
+          key={refreshTick}
+          className="bg-surface-alt/30 rounded-md mb-1.5 px-3 py-2 space-y-3"
+          style={{ marginLeft: `${(depth > 0 ? 0.75 : 0) + 1}rem` }}
+        >
+          {/* Stint 84: inline status quick-edit so a workstream's state
+              can be advanced from the engagement view without navigating. */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mr-1">Status</span>
+            {(['queued','in_progress','waiting_on_external','waiting_on_internal','done'] as const).map(s => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => void changeStatus(s)}
+                className={`text-2xs px-1.5 py-0.5 rounded border font-medium uppercase tracking-wide ${
+                  statusDraft === s
+                    ? SUBTASK_STATUS_TONE[s]
+                    : 'bg-surface text-ink-muted border-border hover:bg-surface-alt'
+                }`}
+              >
+                {SUBTASK_STATUS_LABEL[s]}
+              </button>
+            ))}
+          </div>
+
+          {/* Stint 84: counterparties for this workstream. Picker + chips. */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-2xs uppercase tracking-wide font-semibold text-ink-muted mr-1">Stakeholders</span>
+            {(task.counterparties ?? []).map(cp => (
+              <CounterpartyChip
+                key={cp.counterparty_id}
+                counterparty={cp}
+                size="xs"
+                onRemove={async () => {
+                  await fetch(`/api/tax-ops/tasks/${task.id}/counterparties/${cp.counterparty_id}`, {
+                    method: 'DELETE',
+                  });
+                  onCommentsChanged?.();
+                }}
+              />
+            ))}
+            <CounterpartyChipPicker
+              triggerLabel="+ Add"
+              excludeIds={(task.counterparties ?? []).map(c => c.counterparty_id)}
+              onPick={async (cpid, role) => {
+                await fetch(`/api/tax-ops/tasks/${task.id}/counterparties`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ counterparty_id: cpid, role_in_task: role }),
+                });
+                onCommentsChanged?.();
+              }}
             />
-          ))}
+          </div>
+
+          {/* Comments thread */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">
+                Activity {comments && comments.length > 0 && `(${comments.length})`}
+              </span>
+            </div>
+            {loadingComments && (
+              <div className="text-2xs text-ink-faint italic">Loading comments…</div>
+            )}
+            {!loadingComments && comments && comments.length === 0 && (
+              <div className="text-2xs text-ink-faint italic">No activity yet — drop the first update below.</div>
+            )}
+            {!loadingComments && comments && comments.length > 0 && (
+              <div className="space-y-1.5 max-h-[260px] overflow-y-auto">
+                {comments.map(c => (
+                  <div key={c.id} className="rounded bg-surface px-2.5 py-1.5 border border-border">
+                    <div className="text-2xs text-ink-muted mb-0.5">
+                      {c.created_by ?? 'system'} · {new Date(c.created_at).toLocaleString()}
+                    </div>
+                    <div className="text-sm whitespace-pre-wrap text-ink">{c.body}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex items-start gap-1.5">
+              <textarea
+                value={commentDraft}
+                onChange={e => setCommentDraft(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    e.preventDefault();
+                    void postComment();
+                  }
+                }}
+                rows={2}
+                placeholder="Update — what happened? ⌘+Enter to send."
+                className="flex-1 px-2 py-1 text-sm border border-border rounded bg-surface"
+              />
+              <button
+                type="button"
+                onClick={() => void postComment()}
+                disabled={!commentDraft.trim() || sending}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+              >
+                <SendIcon size={10} />
+                {sending ? 'Sending…' : 'Send'}
+              </button>
+            </div>
+          </div>
+
+          {/* Children sub-tasks (recursive) */}
+          {hasChildren && (
+            <div>
+              <span className="text-2xs uppercase tracking-wide font-semibold text-ink-muted">
+                Sub-tasks ({task.subtask_total ?? children?.length ?? 0})
+              </span>
+              <div className="mt-1">
+                {loadingChildren && (
+                  <div className="text-2xs text-ink-faint italic py-1">Loading…</div>
+                )}
+                {!loadingChildren && children?.map(child => (
+                  <SubtaskNode
+                    key={child.id}
+                    task={child}
+                    depth={depth + 1}
+                    onToggleDone={onToggleDone}
+                    onDelete={onDelete}
+                    onPromote={onPromote}
+                    onAddChild={onAddChild}
+                    onCommentsChanged={onCommentsChanged}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
