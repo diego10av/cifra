@@ -59,6 +59,11 @@ interface TaskFull extends TaskRow {
   partner_sign_off: string | null;
   // Stint 56.D — favourite.
   is_starred: boolean;
+  // Stint 84.B — list view shows effective_status (rolled up from open
+  // sub-tasks when the parent is closed but workstreams remain open).
+  effective_status?: string;
+  is_status_rolled_up?: boolean;
+  subtask_open?: number;
 }
 
 const STATUSES = [
@@ -345,18 +350,54 @@ function TasksListContent() {
   // Recursive flattener: takes the root rows + cached children and
   // produces a flat list with `depth` so the table can render nested
   // rows with indentation. Skips children that aren't loaded yet.
-  function flattenTree(roots: TaskFull[]): Array<{ task: TaskFull; depth: number }> {
-    const out: Array<{ task: TaskFull; depth: number }> = [];
+  // Stint 84.B — also emits a synthetic `addRow` entry after the last
+  // child of every expanded parent so the user can add a sub-task
+  // without leaving the table.
+  type FlatRow =
+    | { kind: 'task'; task: TaskFull; depth: number }
+    | { kind: 'add';  parentId: string; parentTitle: string; depth: number };
+
+  function flattenTree(roots: TaskFull[]): FlatRow[] {
+    const out: FlatRow[] = [];
     function walk(t: TaskFull, depth: number) {
-      out.push({ task: t, depth });
+      out.push({ kind: 'task', task: t, depth });
       if (expanded.has(t.id)) {
         for (const child of childrenByParent[t.id] ?? []) {
           walk(child, depth + 1);
         }
+        out.push({ kind: 'add', parentId: t.id, parentTitle: t.title, depth: depth + 1 });
       }
     }
     for (const r of roots) walk(r, 0);
     return out;
+  }
+
+  // Stint 84.B — quick-add input state per parent (one input shown at a
+  // time; `subtaskDraftFor` is the parent_task_id whose row is open).
+  const [subtaskDraftFor, setSubtaskDraftFor] = useState<string | null>(null);
+  const [subtaskDraft, setSubtaskDraft] = useState('');
+
+  async function createInlineSubtask(parentId: string, title: string) {
+    const t = title.trim();
+    if (!t) return;
+    try {
+      const res = await fetch('/api/tax-ops/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: t, parent_task_id: parentId, priority: 'medium' }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // Refresh just this parent's children + the parent counts.
+      try {
+        const kids = await loadChildren(parentId);
+        setChildrenByParent(prev => ({ ...prev, [parentId]: kids }));
+      } catch { /* ignore */ }
+      load();
+      setSubtaskDraft('');
+      setSubtaskDraftFor(parentId); // keep the input open so user can add another
+    } catch (e) {
+      toast.error(`Could not add sub-task: ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
 
   async function patchTask(taskId: string, patch: Record<string, unknown>): Promise<void> {
@@ -365,7 +406,15 @@ function TasksListContent() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patch),
     });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      // Stint 84.B — surface the API's friendly message (e.g. the
+      // "X workstreams still open" 409 for parent-done attempts).
+      const body = await res.json().catch(() => ({}));
+      const msg = (body as { message?: string; error?: string }).message
+        ?? (body as { message?: string; error?: string }).error
+        ?? `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
     load();
   }
 
@@ -661,7 +710,69 @@ function TasksListContent() {
               </tr>
             </thead>
             <tbody>
-              {flattenTree(rows).map(({ task: t, depth }) => (
+              {flattenTree(rows).map(row => {
+                if (row.kind === 'add') {
+                  const isOpen = subtaskDraftFor === row.parentId;
+                  // Total visible columns: checkbox + star + client + title +
+                  // (kind?) + status + (waiting?) + assignee + follow-up +
+                  // due + priority + delete = 10 base + 0..2 conditional.
+                  const totalCols = 10 + (showKind ? 1 : 0) + (showWaiting ? 1 : 0);
+                  return (
+                    <tr
+                      key={`add-${row.parentId}`}
+                      className="border-t border-border/40 bg-surface-alt/20"
+                    >
+                      <td colSpan={totalCols} className="px-2 py-1" style={{ paddingLeft: `${4.5 + row.depth * 1.25}rem` }}>
+                        {isOpen ? (
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              autoFocus
+                              value={subtaskDraft}
+                              onChange={(e) => setSubtaskDraft(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  void createInlineSubtask(row.parentId, subtaskDraft);
+                                } else if (e.key === 'Escape') {
+                                  e.preventDefault();
+                                  setSubtaskDraftFor(null);
+                                  setSubtaskDraft('');
+                                }
+                              }}
+                              placeholder={`Sub-task under "${row.parentTitle.slice(0, 40)}${row.parentTitle.length > 40 ? '…' : ''}". Enter to add, Esc to cancel.`}
+                              className="flex-1 px-2 py-1 text-xs border border-border rounded bg-surface"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void createInlineSubtask(row.parentId, subtaskDraft)}
+                              disabled={!subtaskDraft.trim()}
+                              className="px-2 py-0.5 text-2xs rounded bg-brand-500 text-white hover:bg-brand-600 disabled:opacity-50"
+                            >
+                              Add
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => { setSubtaskDraftFor(null); setSubtaskDraft(''); }}
+                              className="px-2 py-0.5 text-2xs rounded border border-border hover:bg-surface-alt"
+                            >
+                              Done
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setSubtaskDraftFor(row.parentId); setSubtaskDraft(''); }}
+                            className="inline-flex items-center gap-1 text-2xs text-ink-muted hover:text-brand-700"
+                          >
+                            <PlusIcon size={11} /> Add sub-task
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                }
+                const { task: t, depth } = row;
+                return (
                 <tr
                   key={t.id}
                   onContextMenu={(e) => {
@@ -744,21 +855,24 @@ function TasksListContent() {
                       has subtasks. Stint 55.B — 🔒 / 🔓 chip for blocker. */}
                   <td className="px-2 py-1.5" style={{ paddingLeft: `${0.5 + depth * 1.25}rem` }}>
                     <div className="flex items-center gap-1">
-                      {t.subtask_total > 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => void toggleExpand(t.id)}
-                          aria-label={expanded.has(t.id) ? 'Collapse sub-tasks' : 'Expand sub-tasks'}
-                          className="shrink-0 text-ink-muted hover:text-ink"
-                          title={`${t.subtask_done}/${t.subtask_total} sub-tasks done`}
-                        >
-                          {expanded.has(t.id)
-                            ? <ChevronDownIcon size={12} />
-                            : <ChevronRightIcon size={12} />}
-                        </button>
-                      ) : (
-                        <span className="shrink-0 w-3" aria-hidden="true" />
-                      )}
+                      {/* Stint 84.B — chevron always shown so the user can
+                          expand any row to add a sub-task inline, even
+                          when the task has no children yet. */}
+                      <button
+                        type="button"
+                        onClick={() => void toggleExpand(t.id)}
+                        aria-label={expanded.has(t.id) ? 'Collapse sub-tasks' : 'Expand sub-tasks'}
+                        className="shrink-0 text-ink-muted hover:text-ink"
+                        title={
+                          t.subtask_total > 0
+                            ? `${t.subtask_done}/${t.subtask_total} sub-tasks done`
+                            : 'Expand to add a sub-task here'
+                        }
+                      >
+                        {expanded.has(t.id)
+                          ? <ChevronDownIcon size={12} />
+                          : <ChevronRightIcon size={12} />}
+                      </button>
                       <div className="flex-1 min-w-0">
                         <TaskHoverPreview taskId={t.id}>
                           <InlineTextCell
@@ -822,18 +936,40 @@ function TasksListContent() {
                       />
                     </td>
                   )}
-                  {/* Status — ChipSelect with status-toned chips. */}
+                  {/* Status — ChipSelect with status-toned chips.
+                      Stint 84.B: when a closed parent has open sub-tasks
+                      we show the rolled-up effective status as a
+                      read-only chip + warning so the row doesn't lie
+                      ("Done while 3 workstreams still in flight"). */}
                   <td className="px-2 py-1.5">
-                    <ChipSelect
-                      value={t.status}
-                      options={STATUSES.map(s => ({
-                        value: s.value,
-                        label: s.label,
-                        tone: STATUS_TONES[s.value],
-                      }))}
-                      onChange={(next) => patchTask(t.id, { status: next }).catch(err => toast.error(String(err)))}
-                      ariaLabel="Task status"
-                    />
+                    {t.is_status_rolled_up && t.effective_status ? (
+                      <div className="flex items-center gap-1">
+                        <span
+                          className={`inline-flex items-center px-1.5 py-0.5 rounded text-2xs font-medium ${STATUS_TONES[t.effective_status] ?? 'bg-surface-alt text-ink'}`}
+                          title={`Parent marked ${t.status === 'done' ? 'Done' : t.status} but ${t.subtask_open} workstream${t.subtask_open === 1 ? '' : 's'} still open. Status reflects the open workstream. Open detail to reset.`}
+                        >
+                          {STATUSES.find(s => s.value === t.effective_status)?.label ?? t.effective_status}
+                        </span>
+                        <Link
+                          href={`/tax-ops/tasks/${t.id}`}
+                          className="text-2xs text-warning-700 hover:text-warning-800"
+                          title="Rolled up — open detail to fix"
+                        >
+                          ⚠
+                        </Link>
+                      </div>
+                    ) : (
+                      <ChipSelect
+                        value={t.status}
+                        options={STATUSES.map(s => ({
+                          value: s.value,
+                          label: s.label,
+                          tone: STATUS_TONES[s.value],
+                        }))}
+                        onChange={(next) => patchTask(t.id, { status: next }).catch(err => toast.error(String(err)))}
+                        ariaLabel="Task status"
+                      />
+                    )}
                   </td>
                   {/* Waiting on — kept as gear-toggle column. ChipSelect for
                       kind + InlineTextCell for the optional note. */}
@@ -916,7 +1052,8 @@ function TasksListContent() {
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

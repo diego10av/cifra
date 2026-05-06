@@ -236,6 +236,30 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json() as Record<string, unknown>;
 
+  // Stint 84.B — refuse to mark an engagement done while workstreams
+  // are still in flight. Diego: "no me puedes dejar marcar Done si hay
+  // sub-tasks sin completar, queda engañoso en la lista." Caller may
+  // pass `force_close: true` to override (used when the user explicitly
+  // chose "close anyway" in the future override flow).
+  if (body.status === 'done' && body.force_close !== true) {
+    const [openCount] = await query<{ open: number }>(
+      `SELECT COUNT(*)::int AS open
+         FROM tax_ops_tasks
+        WHERE parent_task_id = $1
+          AND status NOT IN ('done','cancelled')`,
+      [id],
+    );
+    if ((openCount?.open ?? 0) > 0) {
+      return NextResponse.json({
+        error: 'open_subtasks',
+        message: `${openCount.open} workstream${openCount.open === 1 ? '' : 's'} still open — close or cancel them before marking the parent done.`,
+        open_subtasks: openCount.open,
+      }, { status: 409 });
+    }
+  }
+  // Don't persist the override flag itself.
+  if ('force_close' in body) delete body.force_close;
+
   // Auto-bump completed_at when status → done (unless explicitly set)
   if (body.status === 'done' && !('completed_at' in body)) {
     body.completed_at = new Date().toISOString();

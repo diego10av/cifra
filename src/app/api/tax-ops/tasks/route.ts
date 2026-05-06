@@ -18,6 +18,12 @@ interface TaskListRow {
   title: string;
   description: string | null;
   status: string;
+  // Stint 84.B — what the list view shows to avoid the "engagement looks
+  // done but workstreams are still open" lie. Equals `status` unless the
+  // task is closed (done/cancelled) AND has open sub-tasks; then rolls
+  // up to the most-urgent open child status.
+  effective_status: string;
+  is_status_rolled_up: boolean;
   priority: string;
   due_date: string | null;
   remind_at: string | null;
@@ -35,6 +41,7 @@ interface TaskListRow {
   // Aggregates
   subtask_total: number;
   subtask_done: number;
+  subtask_open: number;
   comment_count: number;
   related_entity_name: string | null;
   related_filing_label: string | null;
@@ -135,6 +142,31 @@ export async function GET(request: NextRequest) {
             t.completed_at::text, t.created_at::text, t.updated_at::text,
             (SELECT COUNT(*)::int FROM tax_ops_tasks s WHERE s.parent_task_id = t.id) AS subtask_total,
             (SELECT COUNT(*)::int FROM tax_ops_tasks s WHERE s.parent_task_id = t.id AND s.status = 'done') AS subtask_done,
+            (SELECT COUNT(*)::int FROM tax_ops_tasks s
+              WHERE s.parent_task_id = t.id
+                AND s.status NOT IN ('done','cancelled')) AS subtask_open,
+            -- Stint 84.B — effective_status: roll up to the most-urgent
+            -- open child when the parent is in a closed state but has
+            -- workstreams still in flight. Otherwise == raw status.
+            COALESCE(
+              CASE WHEN t.status IN ('done','cancelled')
+                THEN (SELECT s.status FROM tax_ops_tasks s
+                       WHERE s.parent_task_id = t.id
+                         AND s.status NOT IN ('done','cancelled')
+                       ORDER BY CASE s.status
+                                  WHEN 'waiting_on_external' THEN 0
+                                  WHEN 'in_progress'         THEN 1
+                                  WHEN 'waiting_on_internal' THEN 2
+                                  WHEN 'queued'              THEN 3
+                                  ELSE 4 END
+                       LIMIT 1)
+              END,
+              t.status
+            ) AS effective_status,
+            (t.status IN ('done','cancelled')
+             AND EXISTS (SELECT 1 FROM tax_ops_tasks s
+                          WHERE s.parent_task_id = t.id
+                            AND s.status NOT IN ('done','cancelled'))) AS is_status_rolled_up,
             (SELECT COUNT(*)::int FROM tax_ops_task_comments c WHERE c.task_id = t.id) AS comment_count,
             -- Entity name via entity_id (new column) OR related_entity_id (legacy)
             COALESCE(
