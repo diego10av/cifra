@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Button } from '@/components/ui/Button';
 import { PageSkeleton } from '@/components/ui/Skeleton';
+import { useToast } from '@/components/Toaster';
 
 interface AEDComm {
   id: string;
@@ -56,6 +57,7 @@ export default function AEDLettersPage() {
   });
   const [entityFilter, setEntityFilter] = useState<string>('');
   const fileInput = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   function load() {
     fetch('/api/aed').then(r => r.json()).then(setLetters);
@@ -68,20 +70,33 @@ export default function AEDLettersPage() {
   async function handleUpload(files: FileList | null) {
     if (!files || !files.length) return;
     setUploading(true);
+    let okCount = 0;
+    let failCount = 0;
     for (const f of Array.from(files)) {
       const form = new FormData();
       form.set('file', f);
       if (selectedEntity) form.set('entity_id', selectedEntity);
-      await fetch('/api/aed/upload', { method: 'POST', body: form });
+      const res = await fetch('/api/aed/upload', { method: 'POST', body: form });
+      if (res.ok) okCount++; else failCount++;
     }
     setUploading(false);
+    if (okCount > 0) {
+      toast.success(`${okCount} letter${okCount === 1 ? '' : 's'} uploaded — Claude is reading${failCount > 0 ? ` · ${failCount} failed` : ''}`);
+    } else if (failCount > 0) {
+      toast.error(`Upload failed (${failCount} letter${failCount === 1 ? '' : 's'})`);
+    }
     load();
   }
   async function setStatus(id: string, status: string) {
-    await fetch(`/api/aed/${id}`, {
+    const res = await fetch(`/api/aed/${id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
+    if (!res.ok) {
+      toast.error('Could not update letter status');
+      return;
+    }
+    toast.success(`Letter marked ${status}`);
     load();
   }
   async function openLetter(id: string) {

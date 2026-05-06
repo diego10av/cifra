@@ -16,6 +16,7 @@
 import { useEffect, useState } from 'react';
 import { CheckIcon, AlertTriangleIcon } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
+import { useToast } from '@/components/Toaster';
 
 interface PreviewResponse {
   year: number;
@@ -46,6 +47,7 @@ export function RolloverModal({
   const [committed, setCommitted] = useState<CommitResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<'preview' | 'commit' | null>(null);
+  const toast = useToast();
 
   useEffect(() => {
     if (!open) {
@@ -77,8 +79,10 @@ export function RolloverModal({
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const body = await res.json() as CommitResponse;
       setCommitted(body);
+      toast.success(`Rolled over ${body.inserted} of ${body.planned} filings to ${year}`);
     } catch (e) {
       setError(String(e instanceof Error ? e.message : e));
+      toast.error(`Rollover failed: ${String(e instanceof Error ? e.message : e)}`);
     } finally {
       setBusy(null);
     }

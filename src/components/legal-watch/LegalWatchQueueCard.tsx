@@ -28,6 +28,7 @@ import {
   ExternalLinkIcon, Loader2Icon, EyeIcon, EyeOffIcon,
   ChevronDownIcon, ChevronRightIcon, PencilIcon,
 } from 'lucide-react';
+import { useToast } from '@/components/Toaster';
 
 type TriageSeverity = 'critical' | 'high' | 'medium' | 'low';
 type TriageStatus = 'new' | 'flagged' | 'dismissed' | 'escalated';
@@ -89,6 +90,7 @@ export function LegalWatchQueueCard() {
   const [escalatedOpen, setEscalatedOpen] = useState(true);
   const [flaggedOpen, setFlaggedOpen] = useState(true);
   const [dismissedOpen, setDismissedOpen] = useState(false);
+  const toast = useToast();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -149,10 +151,15 @@ export function LegalWatchQueueCard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) return;
+      if (!res.ok) {
+        toast.error(`Could not update item (${res.status})`);
+        return;
+      }
       // Refresh from server — the item moves to its new section rather
       // than disappearing entirely.
       await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Network error');
     } finally {
       setMutatingId(null);
     }

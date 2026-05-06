@@ -15,6 +15,7 @@ import {
   Wand2Icon, HelpCircleIcon, TrashIcon, ExternalLinkIcon,
 } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
+import { useToast } from '@/components/Toaster';
 
 interface Feedback {
   id: string;
@@ -53,6 +54,7 @@ export default function FeedbackAdminPage() {
   const [items, setItems] = useState<Feedback[] | null>(null);
   const [schemaMissing, setSchemaMissing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   const load = useCallback(async () => {
     setError(null);
@@ -88,12 +90,13 @@ export default function FeedbackAdminPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data?.error?.message ?? 'Update failed.');
+        toast.error(data?.error?.message ?? 'Update failed.');
         return;
       }
+      toast.success('Feedback updated');
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Network error.');
+      toast.error(e instanceof Error ? e.message : 'Network error.');
     }
   }
 
@@ -103,12 +106,13 @@ export default function FeedbackAdminPage() {
       const res = await fetch(`/api/feedback/${id}`, { method: 'DELETE' });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data?.error?.message ?? 'Delete failed.');
+        toast.error(data?.error?.message ?? 'Delete failed.');
         return;
       }
+      toast.success('Feedback deleted');
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Network error.');
+      toast.error(e instanceof Error ? e.message : 'Network error.');
     }
   }
 

@@ -25,6 +25,7 @@ import {
   AlertTriangleIcon, Building2Icon, UserIcon,
 } from 'lucide-react';
 import { VatLetterUpload, type ExtractedVatLetter } from '@/components/entity/VatLetterUpload';
+import { useToast } from '@/components/Toaster';
 
 type Kind = 'end_client' | 'csp' | 'other';
 
@@ -62,6 +63,7 @@ interface EntityForm {
 
 export default function NewClientWizardPage() {
   const router = useRouter();
+  const toast = useToast();
   const [step, setStep] = useState<1 | 2>(1);
 
   const [client, setClient] = useState<ClientForm>({
@@ -145,6 +147,7 @@ export default function NewClientWizardPage() {
         return null;
       }
       setCreatedClientId(data.id);
+      toast.success(`${client.name.trim()} created`);
       return data.id as string;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Network error.');
@@ -218,6 +221,7 @@ export default function NewClientWizardPage() {
         }
       }
 
+      toast.success(`${entity.name.trim()} created`);
       router.push(`/entities/${data.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Network error.');

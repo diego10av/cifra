@@ -33,6 +33,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { ScaleIcon, PencilIcon, Trash2Icon, PlusIcon, XIcon } from 'lucide-react';
+import { useToast } from '@/components/Toaster';
 
 type Method = 'general' | 'direct' | 'sector';
 
@@ -59,6 +60,7 @@ export function EntityProrataCard({ entityId }: { entityId: string }) {
   const [schemaMissing, setSchemaMissing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<{ id: string | null } | null>(null);
+  const toast = useToast();
 
   const load = useCallback(async () => {
     try {
@@ -90,9 +92,10 @@ export function EntityProrataCard({ entityId }: { entityId: string }) {
         const j = await res.json().catch(() => ({}));
         throw new Error(j?.error?.message || `HTTP ${res.status}`);
       }
+      toast.success('Pro-rata configuration deleted');
       load();
     } catch (e) {
-      alert(`Delete failed: ${e instanceof Error ? e.message : String(e)}`);
+      toast.error(`Delete failed: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
@@ -251,6 +254,7 @@ function Editor({
   );
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const toast = useToast();
 
   async function save() {
     setSaving(true);
@@ -270,6 +274,7 @@ function Editor({
         setErr(body?.error?.message ?? 'Could not save.');
         return;
       }
+      toast.success(existing ? 'Pro-rata configuration updated' : 'Pro-rata configuration created');
       onSaved();
     } catch (e) {
       setErr(e instanceof Error ? e.message : 'Network error.');

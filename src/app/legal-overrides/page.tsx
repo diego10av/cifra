@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { TREATMENT_CODES, type TreatmentCode } from '@/config/treatment-codes';
+import { useToast } from '@/components/Toaster';
 
 interface Override {
   id: string;
@@ -27,6 +28,7 @@ export default function LegalOverridesPage() {
     effective_date: new Date().toISOString().slice(0, 10),
     provider_match: '', description_match: '', justification: '',
   });
+  const toast = useToast();
 
   function load() {
     fetch('/api/legal-overrides').then(r => r.json()).then(setOverrides);
@@ -60,19 +62,38 @@ export default function LegalOverridesPage() {
     e.preventDefault();
     const url = editing ? `/api/legal-overrides/${editing.id}` : '/api/legal-overrides';
     const method = editing ? 'PATCH' : 'POST';
-    await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    });
-    setShowForm(false);
-    setEditing(null);
-    load();
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body?.error?.message ?? `Could not save override (${res.status})`);
+        return;
+      }
+      toast.success(editing ? 'Override updated' : 'Override created');
+      setShowForm(false);
+      setEditing(null);
+      load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Network error');
+    }
   }
   async function remove(id: string) {
     if (!confirm('Delete this legal override? This affects how invoices are classified.')) return;
-    await fetch(`/api/legal-overrides/${id}`, { method: 'DELETE' });
-    load();
+    try {
+      const res = await fetch(`/api/legal-overrides/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        toast.error(`Could not delete override (${res.status})`);
+        return;
+      }
+      toast.success('Override deleted');
+      load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Network error');
+    }
   }
 
   return (

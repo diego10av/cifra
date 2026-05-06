@@ -24,6 +24,7 @@ import { EngagedViaCard } from '@/components/clients/EngagedViaCard';
 import { BillingCard } from '@/components/clients/BillingCard';
 import { describeApiError, formatUiError } from '@/lib/ui-errors';
 import { CascadeDeleteModal } from '@/components/delete/CascadeDeleteModal';
+import { useToast } from '@/components/Toaster';
 
 interface Client {
   id: string;
@@ -325,6 +326,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
   const [draft, setDraft] = useState(client);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const toast = useToast();
 
   async function save() {
     setSaving(true);
@@ -340,6 +342,7 @@ function ProfileCard({ client, onUpdated }: { client: Client; onUpdated: () => v
         setErr(body?.error?.message ?? 'Could not save.');
         return;
       }
+      toast.success('Profile saved');
       setEditing(false);
       onUpdated();
     } finally {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/components/Toaster';
 
 interface Registration {
   id: string; entity_id: string; entity_name: string;
@@ -24,6 +25,7 @@ export default function RegistrationsPage() {
     comments_field: '', notes: '',
   });
   const router = useRouter();
+  const toast = useToast();
 
   function load() {
     fetch('/api/registrations').then(r => r.json()).then(setRegs);
@@ -35,17 +37,25 @@ export default function RegistrationsPage() {
 
   async function create(e: React.FormEvent) {
     e.preventDefault();
-    const res = await fetch('/api/registrations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ...form,
-        expected_turnover: form.expected_turnover ? Number(form.expected_turnover) : null,
-      }),
-    });
-    if (res.ok) {
-      const d = await res.json();
-      router.push(`/registrations/${d.id}`);
+    try {
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          expected_turnover: form.expected_turnover ? Number(form.expected_turnover) : null,
+        }),
+      });
+      if (res.ok) {
+        const d = await res.json();
+        toast.success('Registration created');
+        router.push(`/registrations/${d.id}`);
+        return;
+      }
+      const body = await res.json().catch(() => ({}));
+      toast.error(body?.error?.message ?? `Could not create registration (${res.status})`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Network error');
     }
   }
 

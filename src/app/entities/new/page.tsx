@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { PageSkeleton } from '@/components/ui/Skeleton';
 import { VatLetterUpload, type ExtractedVatLetter } from '@/components/entity/VatLetterUpload';
+import { useToast } from '@/components/Toaster';
 
 interface ClientSlim {
   id: string;
@@ -37,6 +38,7 @@ type VatStatus = 'registered' | 'pending_registration' | 'not_applicable';
 
 function NewEntityPageInner() {
   const router = useRouter();
+  const toast = useToast();
   const sp = useSearchParams();
   const presetClientId = sp.get('client_id') || null;
 
@@ -162,6 +164,7 @@ function NewEntityPageInner() {
         }
       }
 
+      toast.success(`${form.name.trim()} created`);
       router.push(`/entities/${data.id}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Network error.');

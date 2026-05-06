@@ -9,6 +9,7 @@ import { EntityEditCard } from '@/components/entity/EntityEditCard';
 import { EntityProrataCard } from '@/components/entity/EntityProrataCard';
 import { OfficialDocumentsCard } from '@/components/entity/OfficialDocumentsCard';
 import { CascadeDeleteModal } from '@/components/delete/CascadeDeleteModal';
+import { useToast } from '@/components/Toaster';
 
 interface TimelineData {
   entity: {
@@ -398,6 +399,7 @@ function AiModeCard({
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   async function set(mode: 'full' | 'classifier_only') {
     if (mode === current) return;
@@ -413,6 +415,7 @@ function AiModeCard({
         setError(data?.error?.message || 'Failed to change AI mode.');
         return;
       }
+      toast.success(mode === 'classifier_only' ? 'AI mode locked to classifier-only' : 'AI mode set to full');
       onChanged(mode);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Network error.');
