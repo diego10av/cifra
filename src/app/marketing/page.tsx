@@ -94,7 +94,7 @@ export default function MarketingPage() {
               icon={<BarChart3Icon size={22} />}
               title="Tax-Ops"
               tagline="Compliance tracker"
-              blurb="One matrix per obligation: CIT, NWT, WHT, BCL, subscription tax, FATCA / CRS. Status, deadlines, sign-off, audit trail — replaces a stack of spreadsheets."
+              blurb="Form 500 (CIT + MBT + NWT), withholding tax, subscription tax — plus BCL statistical reporting and FATCA/CRS exchange. One matrix per obligation. Status, deadlines, sign-off, audit trail — replaces a stack of spreadsheets."
             />
             <ModuleCard
               icon={<BriefcaseIcon size={22} />}

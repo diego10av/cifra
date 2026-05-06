@@ -161,7 +161,7 @@ export function HomeDashboard() {
             title="Tax-Ops"
             stat={data.modules.taxOps}
             statLabel={data.modules.taxOps === 1 ? 'filing this week' : 'filings this week'}
-            description="CIT · NWT · WHT · BCL · subscription tax"
+            description="Form 500 · WHT · subscription tax + BCL · FATCA/CRS"
           />
           <ModuleCard
             href="/crm"
