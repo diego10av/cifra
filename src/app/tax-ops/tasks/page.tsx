@@ -30,7 +30,6 @@ import { useToast } from '@/components/Toaster';
 // the row order respects the next pending action.
 import { InlineTextCell, InlineDateCell } from '@/components/tax-ops/inline-editors';
 import { familyChipClasses } from '@/components/tax-ops/familyColors';
-import { TaskSavedViews } from '@/components/tax-ops/TaskSavedViews';
 import { TaskHoverPreview } from '@/components/tax-ops/TaskHoverPreview';
 import { TaskCalendar } from '@/components/tax-ops/TaskCalendar';
 import { TaskContextMenu, type ContextTask } from '@/components/tax-ops/TaskContextMenu';
@@ -318,18 +317,6 @@ function TasksListContent() {
     [q, status, assignee, familyId, preset],
   );
 
-  // Stint 57.D.2 — query string for saved-views capture (excludes
-  // ephemeral things like view/expand state).
-  const currentQuery = useMemo(() => {
-    const qs = new URLSearchParams();
-    if (q) qs.set('q', q);
-    if (status) qs.set('status', status);
-    if (assignee) qs.set('assignee', assignee);
-    if (familyId) qs.set('family_id', familyId);
-    if (preset) qs.set('preset', preset);
-    return qs.toString();
-  }, [q, status, assignee, familyId, preset]);
-
   function clearFilters() {
     setQ(''); setStatus(''); setAssignee(''); setFamilyId(''); setPreset('');
   }
@@ -575,7 +562,6 @@ function TasksListContent() {
             <FilterXIcon size={12} /> Clear
           </button>
         )}
-        <TaskSavedViews currentQuery={currentQuery} />
         {/* Stint 58.T2.2 — column visibility toggle. Default columns
             (Client, Title, Status, Assignee, Due, Priority) cover ~90%
             of cases; the noisier ones (Kind, Waiting on, Follow-up)

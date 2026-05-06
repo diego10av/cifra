@@ -59,10 +59,16 @@ export async function GET() {
           AND status NOT IN ('actioned', 'archived')`,
     ),
     safeCount(
+      // Counts tax-ops tasks (engagements + workstreams + atomic) that
+      // are due today or overdue. CRM tasks are tracked in the CRM
+      // module — Diego's primary dogfood is Tax-Ops, so the home
+      // dashboard surfaces the compliance queue here. Waiting_on_* is
+      // intentionally excluded: those live in the ChaseToday section.
       `SELECT COUNT(*)::int AS count
-         FROM crm_tasks
-        WHERE status != 'done'
-          AND due_date::date <= CURRENT_DATE`,
+         FROM tax_ops_tasks
+        WHERE status NOT IN ('done', 'cancelled', 'waiting_on_external', 'waiting_on_internal')
+          AND due_date IS NOT NULL
+          AND due_date <= CURRENT_DATE`,
     ),
     safeCount(
       `SELECT COUNT(*)::int AS count

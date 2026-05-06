@@ -65,6 +65,7 @@ interface SubtaskRow {
   status: string;
   priority: string;
   due_date: string | null;
+  follow_up_date: string | null;
   assignee: string | null;
   // Stint 55.A — only populated for the direct subtasks list (the
   // blocker / blocked_by_us queries leave it undefined).
@@ -140,7 +141,9 @@ export async function GET(
       // Stint 84 — also surface the latest comment per sub-task so the
       // engagement view can preview "last update" + lets reviewers tell
       // at a glance whether a workstream has gone stale.
-      `SELECT t.id, t.title, t.status, t.priority, t.due_date::text, t.assignee,
+      `SELECT t.id, t.title, t.status, t.priority, t.due_date::text,
+              t.follow_up_date::text AS follow_up_date,
+              t.assignee,
               (SELECT COUNT(*)::int FROM tax_ops_tasks gc WHERE gc.parent_task_id = t.id) AS subtask_total,
               (SELECT COUNT(*)::int FROM tax_ops_task_comments c WHERE c.task_id = t.id) AS comment_count,
               (SELECT body         FROM tax_ops_task_comments c WHERE c.task_id = t.id ORDER BY created_at DESC LIMIT 1) AS last_comment_body,

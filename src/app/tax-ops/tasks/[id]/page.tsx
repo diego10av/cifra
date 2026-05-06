@@ -76,6 +76,7 @@ interface Subtask {
   status: string;
   priority: string;
   due_date: string | null;
+  follow_up_date: string | null;
   assignee: string | null;
   // Stint 55.A — only populated for the direct subtasks list.
   subtask_total?: number;
@@ -931,8 +932,30 @@ function SubtaskNode({
         {task.deliverables && task.deliverables.length > 0 && (
           <DeliverablesRollupChip items={task.deliverables} />
         )}
+        {/* Follow-up reminder + due date — both render with urgency
+            colours (red if past, amber if ≤7d) so Diego sees alerts at
+            a glance without expanding. mode goes neutral once the
+            sub-task is done/cancelled to stop "stale red" pollution. */}
+        {task.follow_up_date && (
+          <span
+            className="text-xs"
+            title={`Follow-up: ${task.follow_up_date}`}
+          >
+            <DateBadge
+              value={task.follow_up_date}
+              mode={task.status === 'done' || task.status === 'cancelled' ? 'neutral' : 'urgency'}
+              label="Follow-up"
+            />
+          </span>
+        )}
         {task.due_date && (
-          <span className="text-xs"><DateBadge value={task.due_date} mode="urgency" /></span>
+          <span className="text-xs">
+            <DateBadge
+              value={task.due_date}
+              mode={task.status === 'done' || task.status === 'cancelled' ? 'neutral' : 'urgency'}
+              label="Due"
+            />
+          </span>
         )}
         {/* Assignee shown ONLY when no counterparty is set — old matrices
             still rely on this field, but inside the engagement view the

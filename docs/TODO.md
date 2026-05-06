@@ -46,6 +46,24 @@
 
 ## ✅ Done this week
 
+**2026-05-06** — Tasks alerts surface + Saved Views removal (2nd commit)
+
+- **Removed `Saved Views` Tax-Ops dropdown** + its component file +
+  the `currentQuery` plumbing. Diego confirmed never used it. Toolbar
+  is now: filter chips · Columns · New.
+- **Sub-task rows now show `follow_up_date` alerts** in the engagement
+  detail page. Previously only `due_date` was rendered, so chase-
+  reminders were invisible until the row was expanded. Both dates now
+  switch to `mode='neutral'` once the sub-task is `done/cancelled` —
+  consistent with the list-page treatment, no more "stale red" on
+  closed work. API `SubtaskRow` query updated to surface the field.
+- **Home dashboard `tasks due today` now counts Tax-Ops tasks**
+  (was crm_tasks). Diego dogfoods Tax-Ops as primary; previously the
+  tile and link were oriented to `/crm/tasks`, leaving compliance
+  tasks invisible on home after the `/inbox` removal in the
+  2026-05-05 reset. Card now links to `/tax-ops/tasks?preset=overdue`.
+  ChaseToday continues to surface stale `waiting_on_*` separately.
+
 **2026-05-06** — Tasks UX polish (1 commit)
 
 - **Tailwind 4 z-index tokens fixed**: `--z-*` → `--z-index-*` in

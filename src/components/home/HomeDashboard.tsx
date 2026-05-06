@@ -114,8 +114,8 @@ export function HomeDashboard() {
           />
           <FocusCard
             count={data.todayFocus.tasksToday}
-            label="tasks due today"
-            href="/crm/tasks"
+            label="tax-ops tasks due"
+            href="/tax-ops/tasks?preset=overdue"
             icon={<CheckSquareIcon size={16} />}
             tone="brand"
           />
