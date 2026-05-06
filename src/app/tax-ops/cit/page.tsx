@@ -333,6 +333,11 @@ export default function CitPage() {
             onOptOut={async () => {
               const cur = citProvisionCellByEntity.get(e.id);
               if (!cur?.obligation_id) return;
+              if (!confirm(
+                `Opt ${e.legal_name} out of CIT tax-provision tracking? `
+                + `Existing filings stay in the audit log; future periods stop being created. `
+                + `You can re-enable it later from the entity detail page.`
+              )) return;
               const res = await fetch(`/api/tax-ops/obligations/${cur.obligation_id}`, { method: 'DELETE' });
               if (!res.ok) {
                 const b = await res.json().catch(() => ({}));
@@ -404,6 +409,11 @@ export default function CitPage() {
             onOptOut={async () => {
               const info = nwtCellByEntity.get(e.id);
               if (!info?.obligation_id) return;
+              if (!confirm(
+                `Opt ${e.legal_name} out of NWT review for ${year + 1}? `
+                + `Existing filings stay in the audit log; future periods stop being created. `
+                + `You can re-enable it later from the entity detail page.`
+              )) return;
               const res = await fetch(`/api/tax-ops/obligations/${info.obligation_id}`, {
                 method: 'DELETE',
               });
