@@ -112,6 +112,24 @@ Build green, tsc clean, design-lint 0 violations. Migrations 080 +
   confirmations land. Skipped pages with rich inline feedback already
   (FilingEditDrawer, DeadlineRuleEditor, FeedbackWidget, bulk-import).
 
+**2026-05-06** — Pre-dogfood E2E QA + bug fix
+
+- **`scripts/qa-pre-dogfood.ts`** verifies 3 critical flows end-to-end
+  (login, upload+extract+classify, AED reader, rollover preview+commit
+  +idempotency) against a running dev server. Use a far-future year
+  (2099) for rollover tests so QA data stays out of real years.
+- **Bug found + fixed**: `/api/tax-ops/rollover?mode=commit` returned
+  500 with `RangeError: Invalid time value`. Cause: `computeDeadline`
+  for `adhoc_no_deadline` rule_kind returns `effective: ''`; the
+  rollover route then passed `''` as `deadline_date` to a DATE column,
+  which the postgres-js driver tried to coerce via `Date.toISOString()`
+  → throw. Fix: coerce empty string to null at the rollover call site
+  (`eff || null`). Regression test in `tax-ops-deadlines.test.ts`
+  documents the contract: callers must guard against the empty string.
+  Affected tax types: `wht_director_monthly`, `wht_director_adhoc`.
+- After fix: all 3 flows pass clean. 614/614 tests, tsc clean,
+  design-lint 0.
+
 ---
 
 ## 📁 Archive

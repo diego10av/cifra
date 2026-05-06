@@ -135,6 +135,28 @@ describe('computeDeadline — fixed_md_with_extension (CIT/NWT)', () => {
   });
 });
 
+// ─── computeDeadline — adhoc_no_deadline ────────────────────────────
+
+describe('computeDeadline — adhoc_no_deadline', () => {
+  // Regression: WHT director monthly + functional currency requests use
+  // adhoc_no_deadline. computeDeadline returns effective: '' for these,
+  // and any caller that pipes effective straight into a DATE column
+  // (rollover, deadline-rule propagation) must coerce '' → null first;
+  // otherwise the postgres driver throws "Invalid time value" on INSERT.
+  it('returns empty strings for adhoc rules so callers must guard', () => {
+    const rule: DeadlineRule = {
+      tax_type: 'wht_director_monthly',
+      period_pattern: 'monthly',
+      rule_kind: 'adhoc_no_deadline',
+      rule_params: {},
+    };
+    const d = computeDeadline(rule, 2027, '2027-01');
+    expect(d.statutory).toBe('');
+    expect(d.extension).toBeNull();
+    expect(d.effective).toBe('');
+  });
+});
+
 // ─── computeDeadline — error paths ──────────────────────────────────
 
 describe('computeDeadline — errors', () => {

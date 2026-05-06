@@ -111,8 +111,13 @@ export async function POST(request: NextRequest) {
       if (existingKeys.has(`${ob.id}|${label}`)) continue;
       let deadlineIso: string | null = null;
       if (rule) {
-        try { deadlineIso = computeDeadline(rule, year, label).effective; }
-        catch { deadlineIso = null; }
+        try {
+          // Empty string from adhoc_no_deadline rule_kind would be passed
+          // to a DATE column; the pg driver chokes on '' with a RangeError
+          // ("Invalid time value"). Coerce to null.
+          const eff = computeDeadline(rule, year, label).effective;
+          deadlineIso = eff || null;
+        } catch { deadlineIso = null; }
       }
       toCreate.push({
         obligation_id: ob.id,
