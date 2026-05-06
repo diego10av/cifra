@@ -28,7 +28,8 @@ interface HomeSnapshot {
   todayFocus: {
     overdueFilings: number;
     aedUrgent: number;
-    tasksToday: number;
+    taxOpsTasksToday: number;
+    crmTasksToday: number;
     declarationsInReview: number;
   };
   modules: {
@@ -39,7 +40,7 @@ interface HomeSnapshot {
 }
 
 const EMPTY: HomeSnapshot = {
-  todayFocus: { overdueFilings: 0, aedUrgent: 0, tasksToday: 0, declarationsInReview: 0 },
+  todayFocus: { overdueFilings: 0, aedUrgent: 0, taxOpsTasksToday: 0, crmTasksToday: 0, declarationsInReview: 0 },
   modules: { vat: 0, taxOps: 0, crm: 0 },
 };
 
@@ -67,7 +68,8 @@ export function HomeDashboard() {
   const totalUrgent =
     data.todayFocus.overdueFilings +
     data.todayFocus.aedUrgent +
-    data.todayFocus.tasksToday +
+    data.todayFocus.taxOpsTasksToday +
+    data.todayFocus.crmTasksToday +
     data.todayFocus.declarationsInReview;
 
   return (
@@ -97,7 +99,7 @@ export function HomeDashboard() {
         <h2 className="text-2xs font-semibold uppercase tracking-[0.14em] text-accent-600 mb-3">
           Today&apos;s focus
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
           <FocusCard
             count={data.todayFocus.overdueFilings}
             label="overdue filings"
@@ -113,10 +115,17 @@ export function HomeDashboard() {
             tone="warning"
           />
           <FocusCard
-            count={data.todayFocus.tasksToday}
+            count={data.todayFocus.taxOpsTasksToday}
             label="tax-ops tasks due"
             href="/tax-ops/tasks?preset=overdue"
             icon={<CheckSquareIcon size={16} />}
+            tone="brand"
+          />
+          <FocusCard
+            count={data.todayFocus.crmTasksToday}
+            label="CRM tasks due"
+            href="/crm/tasks"
+            icon={<BriefcaseIcon size={16} />}
             tone="brand"
           />
           <FocusCard

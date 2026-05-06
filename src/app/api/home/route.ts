@@ -17,7 +17,8 @@ interface HomeSnapshot {
   todayFocus: {
     overdueFilings: number;
     aedUrgent: number;
-    tasksToday: number;
+    taxOpsTasksToday: number;
+    crmTasksToday: number;
     declarationsInReview: number;
   };
   modules: {
@@ -40,7 +41,8 @@ export async function GET() {
   const [
     overdueFilings,
     aedUrgent,
-    tasksToday,
+    taxOpsTasksToday,
+    crmTasksToday,
     declarationsInReview,
     vatInFlight,
     taxOpsThisWeek,
@@ -59,16 +61,23 @@ export async function GET() {
           AND status NOT IN ('actioned', 'archived')`,
     ),
     safeCount(
-      // Counts tax-ops tasks (engagements + workstreams + atomic) that
-      // are due today or overdue. CRM tasks are tracked in the CRM
-      // module — Diego's primary dogfood is Tax-Ops, so the home
-      // dashboard surfaces the compliance queue here. Waiting_on_* is
-      // intentionally excluded: those live in the ChaseToday section.
+      // Tax-Ops tasks (engagements + workstreams + atomic) due today or
+      // overdue. waiting_on_* excluded — those have their own surface
+      // in ChaseToday (chase reminders >5 days without an update).
       `SELECT COUNT(*)::int AS count
          FROM tax_ops_tasks
         WHERE status NOT IN ('done', 'cancelled', 'waiting_on_external', 'waiting_on_internal')
           AND due_date IS NOT NULL
           AND due_date <= CURRENT_DATE`,
+    ),
+    safeCount(
+      // CRM tasks due today or overdue. Tracked separately from the
+      // Tax-Ops queue per Rule §14 (independent modules) — Home is the
+      // meta-surface where both modules' queues coexist.
+      `SELECT COUNT(*)::int AS count
+         FROM crm_tasks
+        WHERE status != 'done'
+          AND due_date::date <= CURRENT_DATE`,
     ),
     safeCount(
       `SELECT COUNT(*)::int AS count
@@ -98,7 +107,8 @@ export async function GET() {
     todayFocus: {
       overdueFilings,
       aedUrgent,
-      tasksToday,
+      taxOpsTasksToday,
+      crmTasksToday,
       declarationsInReview,
     },
     modules: {

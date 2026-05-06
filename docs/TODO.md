@@ -46,6 +46,16 @@
 
 ## ✅ Done this week
 
+**2026-05-06** — Home dashboard alerts now meta-modular (3rd commit)
+
+- **Restored CRM tasks visibility on home**. Previous commit replaced
+  `crm_tasks` with `tax_ops_tasks` for the "tasks today" card; per
+  Diego's clarification (Rule §14 governs data, not the meta-surface),
+  the home is exactly where module queues should coexist. Layout now
+  has 5 focus cards: overdue filings · AED urgent · Tax-Ops tasks ·
+  CRM tasks · declarations in review. Each links to its module's
+  filtered list. Grid switched from `lg:grid-cols-4` to `lg:grid-cols-5`.
+
 **2026-05-06** — Tasks alerts surface + Saved Views removal (2nd commit)
 
 - **Removed `Saved Views` Tax-Ops dropdown** + its component file +
